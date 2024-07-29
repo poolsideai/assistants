@@ -14,13 +14,13 @@ common --incompatible_strict_action_env
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Bazel output can be distracting and can make it harder to notice errors
+common --ui_actions_shown=0 --ui_event_filters=-info,-stderr,-debug
+run --noshow_progress
+common:verbose --ui_actions_shown=8 --ui_event_filters=+info,+stderr,+debug
+
+clean --config=verbose
+common:ci --config=verbose
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 # Use ci_amd64 for helper build/test steps that need cross-compilation.
@@ -30,52 +30,52 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+# in order to make --test_output=errors effective despite the silencing above we have to show info on test runs
+test --ui_event_filters=+info
+
+# test errors are dwarfed by a wall of of "test passed" tests and that makes them harder to find.
+# A terse test summary will tell us details only about failed tests and the count of passed tests.
+test --test_summary=terse
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# when running tests with --config=verbose it will tell you which tests have been not configured using the right test `size` attribute
+# when not running with --config=verbose, it will hide the annoying warning "There were tests whose specified size is too big ..."
+test --test_verbose_timeout_warnings
+
+# exclude INFO logs coming from targets not explicitly built (e.g. system dependencies).
+# INFO logs are useful in test output but you rarely care about some build warning from some external dependency
+test --auto_output_filter=subpackages
+
+# The bazel build tag allows us to create alternative Go files that will be used when the build happens outside of bazel.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 build --define gotags=bazel,fts5
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# declare the publish so it can be used for non-build targets.
+# Note: the .bazelrc format requires a value so we put a flag that works in all contexts
+common:publish --announce_rc
+
+# make it easier to see in the logs which bazel options are actually used during build
+common:ci --announce_rc
+
 # Keep Windows helper cross-builds quiet with Zig's bundled libunwind.
+build --cxxopt=-std=c++17
+
+# https://github.com/uber/hermetic_cc_toolchain config
+common --enable_platform_specific_config
+build:linux --sandbox_add_mount_pair=/tmp
+build:macos --sandbox_add_mount_pair=/var/tmp
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+build:ci --curses=yes
+build:ci --color=yes
+build:ci --show_progress_rate_limit=10
+build:ci --terminal_columns=143
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+# speed up linking
+build:ci --fission=yes
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

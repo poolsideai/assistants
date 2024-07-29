@@ -7,18 +7,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 bazel_dep(name = "rules_go", version = "0.59.0")
 bazel_dep(name = "gazelle", version = "0.51.0")
+bazel_dep(name = "hermetic_cc_toolchain", version = "3.1.0")
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 # The helper uses CGO dependencies, including SQLite, that need cross compilation.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Setting up bazel cross-toolchains is notoriously complicated.
+# The https://github.com/uber/hermetic_cc_toolchain project found a practical solution
+# leveraging the zig toolchain's excellent builtin support for cross C/C++ toolchains.
+# Read historical context at https://news.ycombinator.com/item?id=28104996,
+# https://dev.to/kristoff/zig-makes-go-cross-compilation-just-work-29ho, and https://jakstys.lt/2022/how-uber-uses-zig/.
+toolchains = use_extension("@hermetic_cc_toolchain//toolchain:ext.bzl", "toolchains")
+use_repo(toolchains, "zig_sdk")
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     # Musl (libc-aware): only selected for platforms that explicitly declare
@@ -75,7 +75,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "com_github_creack_pty",
     "com_github_danielgtaylor_huma_v2",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "com_github_dustin_go_humanize",
     "com_github_go_chi_chi_v5",
     "com_github_go_git_go_billy_v5",
 __POOL_SYNTHETIC_IMPORT_BASELINE__

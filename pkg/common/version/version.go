@@ -1,18 +1,18 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// The version package exposes version information stamped at build/release time.
+//
+// Bazel will set these only when built with `--stamp` which is enabled also with `--config publish`
+package version
+
 import (
 	"fmt"
 	"os/user"
 )
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+var (
+	Commit    = "local"
+	BuildTime = "current"
+	Tag       = "untagged"
+)
 
 // Human returns a human-readable version string. Use the exported constants
 // for programmatic usage.
