@@ -1,16 +1,16 @@
 load("@rules_go//go:def.bzl", "go_library", "go_test")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+go_library(
+    name = "version",
+    srcs = ["version.go"],
     importpath = "github.com/poolsideai/assistant/pkg/common/version",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    visibility = ["//visibility:public"],
+    x_defs = {
         "github.com/poolsideai/assistant/pkg/common/version.Commit": "{GIT_COMMIT}",
         "github.com/poolsideai/assistant/pkg/common/version.BuildTime": "{BUILD_TIME}",
         "github.com/poolsideai/assistant/pkg/common/version.Tag": "{STABLE_VERSION_TAG}",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+)
 
 go_test(
     name = "version_test",
