@@ -6,7 +6,7 @@ import {
 import { System } from "../../system";
 
 type Generator = (system: System) => Promise<PromptContextFacet | undefined>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 const branchProviders: Generator[] = [getGitBranchNamesContext, getGitBranchCommitMessagesContext];
 
 export async function getPromptContext(system: System): Promise<Array<PromptContextFacet>> {
