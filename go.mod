@@ -56,7 +56,7 @@ require (
 	al.essio.dev/pkg/shellescape v1.5.1 // indirect
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/ProtonMail/go-crypto v1.1.6 // indirect
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/danieljoos/wincred v1.2.2 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect

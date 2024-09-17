@@ -71,7 +71,7 @@ go_deps.module_override(
 use_repo(
     go_deps,
     "co_honnef_go_tools",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "com_github_adrg_xdg",
     "com_github_coder_acp_go_sdk",
     "com_github_creack_pty",
     "com_github_danielgtaylor_huma_v2",
