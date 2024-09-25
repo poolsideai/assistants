@@ -16,15 +16,15 @@
 >
   {@render children?.()}
 </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 <style lang="postcss">
   @reference "#tailwind.css";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .app {
+    height: var(--psx-app-height, 100vh);
+    min-height: var(--psx-app-min-height, auto);
+  }
 
   .app.vscode {
     position: relative;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</style>

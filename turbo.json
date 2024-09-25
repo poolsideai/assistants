@@ -63,7 +63,7 @@
       "cache": false,
       "dependsOn": ["build"],
       "persistent": true
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
     "publish:storybook": {
       "dependsOn": ["build:storybook"],
       "env": ["CHROMATIC_PROJECT_TOKEN"]
