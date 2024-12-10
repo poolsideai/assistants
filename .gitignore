@@ -39,7 +39,7 @@ resources/VERSION
 
 # files generated
 node_modules
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+build
 ui/**/dist/
 ui/**/tsconfig.build.tsbuildinfo
 ui/**/tsconfig.check.tsbuildinfo
