@@ -35,7 +35,7 @@
       "-bazel-out",
       "-bazel-testlogs"
     ]
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  },
   "search.exclude": {
     "**/.svelte-kit": true,
     "**/.turbo": true,
