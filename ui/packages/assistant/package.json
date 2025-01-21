@@ -87,7 +87,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "autosize": "^6.0.1",
     "lodash": "catalog:",
     "luxon": "catalog:",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "marked": "^15.0.6",
     "serialize-error": "^11.0.3",
     "uuid": "^9.0.1"
   },

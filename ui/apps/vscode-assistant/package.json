@@ -188,13 +188,13 @@
           "fontCharacter": ""
         }
       },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "poolside-settings": {
+        "description": "Icon to use for settings",
+        "default": {
           "fontPath": "./dist/resources/font/poolside.woff",
           "fontCharacter": ""
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
+      },
       "poolside-new": {
         "description": "Icon to use for new conversations",
         "default": {
