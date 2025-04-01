@@ -1,26 +1,26 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+self-hosted-runner:
+  labels:
     # Custom runners used by this repository.
     - macos-15-xlarge
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+paths:
+  .github/**/*.{yml,yaml}:
+    # List of regular expressions to filter errors by the error messages.
+    ignore:
+      # Ignore some shellcheck errors
+      # TODO: remove these.
+      - 'shellcheck reported issue in this script: SC2002:.+'
+      - 'shellcheck reported issue in this script: SC2004:.+'
+      - 'shellcheck reported issue in this script: SC2006:.+'
+      - 'shellcheck reported issue in this script: SC2012:.+'
+      - 'shellcheck reported issue in this script: SC2013:.+'
+      - 'shellcheck reported issue in this script: SC2044:.+'
+      - 'shellcheck reported issue in this script: SC2046:.+'
+      - 'shellcheck reported issue in this script: SC2086:.+'
+      - 'shellcheck reported issue in this script: SC2129:.+'
+      - 'shellcheck reported issue in this script: SC2155:.+'
+      - 'shellcheck reported issue in this script: SC2199:.+'
+      - 'shellcheck reported issue in this script: SC2206:.+'
+      - 'shellcheck reported issue in this script: SC2076:.+'
       # GitHub supports queued concurrency groups; actionlint does not yet know
       # the `queue` key (https://docs.github.com/actions/using-jobs/using-concurrency).
       - 'unexpected key "queue" for "concurrency" section'
