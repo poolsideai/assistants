@@ -49,7 +49,7 @@ test --auto_output_filter=subpackages
 # currently required to run the linter due to an upstream bug: https://github.com/bazelbuild/rules_go/issues/3651
 # - fts5: build sqlite3 with FTS5 support
 build --define gotags=bazel,fts5
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+build --workspace_status_command=./scripts/workspace_status.sh
 build:publish  --stamp
 
 # declare the publish so it can be used for non-build targets.
