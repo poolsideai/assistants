@@ -8,14 +8,14 @@ import os from "os";
 import path from "path";
 import vscode, { env } from "vscode";
 import {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  CloseAction,
   type CloseHandlerResult,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ErrorAction,
   type ErrorHandlerResult,
   type Executable,
   LanguageClient,
   type LanguageClientOptions,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  Message,
   type ServerOptions,
   TransportKind,
 } from "vscode-languageclient/node";
@@ -46,17 +46,17 @@ async function startHelper(system: System) {
 
   const dlvBinary = vscode.workspace.getConfiguration("poolsideHelper").get("dlvBinary", "");
   if (dlvBinary) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const port = 21370;
+    system.telemetry.log("debugging poolside Helper via delve, connect debugger on port", { port });
     goRunDebug = {
       ...goRunDebug,
       command: dlvBinary,
       args: [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // don't use --continue, it doesn't work with VSCode/Intellij
         "debug",
         "--continue",
         "--headless",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        `--listen=:${port}`,
         "--api-version=2",
         "--accept-multiclient",
         "--build-flags=-tags=fts5",
@@ -69,17 +69,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "./cmd/poolside-helper",
         "--",
       ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      options: {
+        ...goRunDebug.options,
+        env: {
           ...goRunDebug.options.env,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          CGO_CPPFLAGS: "-w", // this suppresses tree-sitter warnings, otherwise they break the communication
+        },
+      },
+      transport: TransportKind.stdio,
     };
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const serverOptions: ServerOptions = {
     run: {
       command: helperBinary(system),
       transport: TransportKind.stdio,
@@ -94,38 +94,38 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   const clientOptions: LanguageClientOptions = {
     documentSelector: [{ scheme: "file" }],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    connectionOptions: {
+      maxRestartCount: 100,
+    },
     initializationOptions: {
       ...(await getRuntimeSettings()),
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       assistantHost: environment.assistantHost,
       assistantEnvironment: environment.assistantEnv,
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    errorHandler: {
+      error: (
+        error: Error,
+        message: Message | undefined,
         count: number | undefined,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      ): ErrorHandlerResult => {
+        system.telemetry.log("server error", { error, message, count });
+        return {
+          action: ErrorAction.Continue,
+          handled: true,
+        };
+      },
+      closed: (): CloseHandlerResult => {
+        system.telemetry.log("connection to server was closed, reconnecting", {});
+        return {
+          action: CloseAction.Restart,
+          handled: true,
+        };
+      },
+    },
     outputChannelName: identity.helperOutputChannelName,
   };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   // Set the following option in your settings.json to enable LSP tracing in the helper:
   //
   //     "poolsideHelper.trace.server": "verbose",

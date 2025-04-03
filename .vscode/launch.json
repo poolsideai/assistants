@@ -8,14 +8,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       "mode": "test",
       "program": "${fileDirname}"
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {
+      "name": "Debug: attach to Helper",
+      "type": "go",
+      "request": "attach",
+      "mode": "remote",
+      "port": 21370,
       "host": "127.0.0.1"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
     {
       "name": "Launch Desktop Assistant",
       "type": "node",
@@ -40,7 +40,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "--extensionDevelopmentPath=${workspaceFolder}/ui/apps/vscode-assistant",
         "--disable-extension=poolside-ai.acp-assistant",
         "--profile=local-development",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "${workspaceFolder}/../poolside-books-api-demo/",
         "${workspaceFolder}"
       ],
 __POOL_SYNTHETIC_IMPORT_BASELINE__

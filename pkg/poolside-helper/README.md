@@ -224,13 +224,13 @@ encoding (which may be neither of UTF-8 or UTF-16).
 JSON-RPC handlers dispatched through `internal/handler/` receive a non-nil
 request context in `(*glsp.Context).Context`.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+## Debugging
 
 ### VS Code
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+1. Set `poolsideHelper.dlvBinary` in `settings.json`. It should point to `delve` command, e.g. `dlv`.
    - if you don't have Delve installed: `go install github.com/go-delve/delve/cmd/dlv@latest`
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+2. Run `Launch Extension` debug config.
    - this will start the extension and launch headless Delve debugger listening on port `21370`
    - output in `poolside` tab should show:
 
@@ -240,12 +240,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
    - there should be no output from helper yet - it has started (give it a sec or two), but delve is waiting for a client to connect
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+3. Run `Debug: attach to Helper` config.
    - this will attach debugging client to the running dlv/helper process
    - once successful, you should start seeing logs from helper in `poolside Helper` tab
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+If you make changes to the code, you must restart the debug session and reconnect.
+
 ## Building locally
 
 1. Have some form of GCC installed (e.g. `MinGW`).

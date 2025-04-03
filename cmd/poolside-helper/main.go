@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log/slog"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"os"
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	"github.com/spf13/cobra"
@@ -18,7 +18,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	logging.Init()
 	rootCmd := rootCommandCreate()
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	slog.Info("poolside-helper", slog.String("version", version.Human()), "pid", os.Getpid())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
