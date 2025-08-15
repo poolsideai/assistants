@@ -56,10 +56,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "fix:format": "prettier . --write --cache --ignore-path ../../.gitignore --list-different",
     "fix:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' --fix",
     "prepublishOnly": "turbo build",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "test": "vitest run",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "test:watch": "vitest"
   },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

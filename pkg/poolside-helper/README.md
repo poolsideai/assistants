@@ -233,7 +233,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
    - this will start the extension and launch headless Delve debugger listening on port `21370`
    - output in `poolside` tab should show:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
    ```json
    { "port": 21370, "message": "debugging poolside Helper via delve, connect debugger on port" }
    ```

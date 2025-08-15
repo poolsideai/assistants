@@ -1,15 +1,15 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+##@ Testing
+
+test: ## Run tests
+	$(BAZEL_TEST) //...
+
 test-target: ## Run tests for a specific target. Usage: make test-target TARGET=//pkg/...
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	@if [ -z "$(TARGET)" ]; then \
 	  echo 'usage: make test-target TARGET=//pkg/...'; \
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	  exit 1; \
+	fi
+	$(BAZEL_TEST) $(TARGET)
+
 test-ci: ## Run CI integration tests (tagged as "test-ci")
 	$(BAZEL_TEST) --test_timeout=600 --spawn_strategy=local \
 		$$($(BAZEL) query --output=label 'attr(tags, test_ci, tests(//...))')

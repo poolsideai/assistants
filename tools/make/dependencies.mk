@@ -1,12 +1,12 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+##@ Dependencies
+
 .PHONY: setup
 setup: ## Install asdf tools, Rust toolchain, and UI workspace dependencies
 	bash $(CURDIR)/scripts/asdf-setup.sh
 	pnpm install
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+go_deps_sync: gazelle
+
+gazelle: ## Recompute dependencies for Bazel
+	$(BAZEL_RUN) @rules_go//go -- mod tidy
+	$(BAZEL_RUN) //:gazelle
