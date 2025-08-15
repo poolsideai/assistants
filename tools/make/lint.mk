@@ -1,14 +1,14 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+##@ Linting and formatting
+
 lint: bazel-lint go-fmt ## All the linters
 
 fix: bazel-fmt go-fmt-fix ## All the lint fixers
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+bazel-lint: ## Run Bazel linters
+	$(BAZEL_RUN) //:buildifier.check
+
+bazel-fmt: ## Run BUILD file code formatting
+	$(BAZEL_RUN) //:buildifier.format
 
 go-fmt: ## Check Go formatting (run go-fmt-fix to apply)
 	@unformatted=$$(gofmt -l $$(find . -name '*.go' \

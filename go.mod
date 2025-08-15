@@ -16,7 +16,7 @@ replace github.com/tliron/glsp v0.2.2 => github.com/poolsideai/glsp v0.0.8
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/BurntSushi/toml v1.5.0 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/danielgtaylor/huma/v2 v2.34.1
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

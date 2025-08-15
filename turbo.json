@@ -75,8 +75,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     },
     "test": {
       "dependsOn": ["^build"],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "outputs": []
+    },
     "test:storybook": {
       "dependsOn": ["prepare:test:storybook", "^build"]
     },
