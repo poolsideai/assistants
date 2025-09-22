@@ -86,9 +86,9 @@ async function doActivate(system: System) {
   system.context.subscriptions.push(createStatusBarItem());
 
   registerCommand("openPermissionSettings", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    openPermissionSettings(system);
+  });
+
   registerCommand("openSettings", () => {
     openSettings();
   });
@@ -128,7 +128,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     telemetry.reportError(new Error("failed to start poolside Helper", { cause: err }));
 
     vscode.window.showErrorMessage(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "poolside: There was an error starting poolside Helper, a required component. Functionality will be limited",
     );
   });
 
@@ -182,10 +182,10 @@ async function setColorTheme() {
  * @param e
  */
 async function handleConfigurationChange(e: vscode.ConfigurationChangeEvent) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const poolsideConfig = getPoolsideConfig();
+
   if (e.affectsConfiguration(POOLSIDE)) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    system.assistant.rpc.setConfiguration(poolsideConfig);
     system.acpChatPanels.setConfiguration(poolsideConfig);
     await updateHelperConfig(system);
   }

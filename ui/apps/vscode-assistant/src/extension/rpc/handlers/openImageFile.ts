@@ -19,6 +19,6 @@ export function openImageFile(svgContent: string, filename?: string): void {
     });
   } catch (error) {
     console.error("Error creating or opening image file:", error);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    vscode.window.showErrorMessage("poolside: Failed to open diagram image");
   }
 }
