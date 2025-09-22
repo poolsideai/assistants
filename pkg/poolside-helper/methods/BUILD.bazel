@@ -26,7 +26,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "mcp_servers.go",
         "remote_access.go",
         "remote_terminal.go",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "runtime_files.go",
         "search_files.go",
         "search_symbol_definitions.go",
         "secrets.go",

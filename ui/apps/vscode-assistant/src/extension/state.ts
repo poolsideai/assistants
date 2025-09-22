@@ -10,14 +10,14 @@ import type { System } from "./system";
 import { getActiveTheme, getParsedFileIconTheme } from "./theme";
 
 const capabilities = {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  header: true,
+  fileContext: true,
+  runTerminalCommands: true,
   terminalPanel: false,
   openWorkspace: true,
   addFolderToWorkspace: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+};
+
 /**
  * initialState builds a state object to be inserted in the webview HTML and used
  * as initial app state. It also sets that state in a svelte store on the extension
@@ -48,8 +48,8 @@ export function getInitialKeybindings() {
 }
 
 export async function getInitialAppState(system: System) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const poolsideConfig = getPoolsideConfig();
+
   const workspaces = getWorkspaces();
   const defaultCwd = getDefaultCwd();
 
@@ -60,7 +60,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   ]);
 
   return {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    userSettings: poolsideConfig,
     workspaces,
     homeDirectory: os.homedir(),
     defaultCwd,

@@ -5,13 +5,13 @@ import * as vscode from "vscode";
 export function showInfoMessage(message: string, typ: InfoMessageType = InfoMessageType.info) {
   switch (typ) {
     case InfoMessageType.info:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      vscode.window.showInformationMessage(`poolside: ${message}`);
       break;
     case InfoMessageType.error:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      vscode.window.showErrorMessage(`poolside: ${message}`);
       break;
     case InfoMessageType.warning:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      vscode.window.showWarningMessage(`poolside: ${message}`);
       break;
     default:
       forceExhaustivenessCheck(typ);

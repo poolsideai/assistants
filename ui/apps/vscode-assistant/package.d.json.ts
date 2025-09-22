@@ -72,11 +72,11 @@ declare const packageJson: {
         command: "poolside.showSidebar";
         title: "Show Sidebar";
       },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {
         category: "Poolside";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        command: "poolside.openPermissionSettings";
+        title: "Open Permissions Settings";
+      },
       {
         category: "Poolside";
         command: "poolside.openSettings";

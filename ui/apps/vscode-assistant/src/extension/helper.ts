@@ -234,8 +234,8 @@ function helperBinary(system: System) {
 // Based on /pkg/poolside-helper/handler/config.go#Config. The assistant is
 // ACP-chat-only, so the legacy auth/apiUrl/completion-model fields are gone.
 async function getRuntimeSettings() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const poolsideConfig = getPoolsideConfig();
+
   return {
     agentServers: poolsideConfig.agentServers,
   };
