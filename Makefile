@@ -14,7 +14,7 @@ include tools/make/help.mk
 CMD?=
 ACMD?=$(CMD) # alias for CMD so that it's the first alphabetically to expand in shell autocompletion
 ARGS?=
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+BAZEL_CMD_ARGS?=
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

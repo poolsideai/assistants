@@ -24,12 +24,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/golang-migrate/migrate/v4 v4.18.2
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/google/uuid v1.6.0
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/iancoleman/strcase v0.3.0 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/muesli/termenv v0.16.0 // indirect
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/pkg/errors v0.9.1
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -62,7 +62,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/kylelemons/godebug v1.1.0 // indirect
@@ -79,7 +79,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	golang.org/x/exp/typeparams v0.0.0-20240314144324-c7f7c6466f7f // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	gopkg.in/warnings.v0 v0.1.2 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 require (
@@ -90,8 +90,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -103,7 +103,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 )
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 // our fork, adds native session/delete, elastic notification buffering
 // during session/load replay, and the flattened elicitation scope fields the
 // generator drops (upstream SDK 0.13.6)
