@@ -16,7 +16,7 @@ import (
 )
 
 func TestBasicResolveAndRead(t *testing.T) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	synctest.Test(t, func(*testing.T) {
 		f := future.New[int]()
 
 		done := make(chan bool)
@@ -37,7 +37,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
 
 func TestMultipleReaders(t *testing.T) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	synctest.Test(t, func(*testing.T) {
 		f := future.New[*[]int]()
 		numReaders := 20
 		var wg sync.WaitGroup
@@ -69,7 +69,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
 
 func TestResolveOnce(t *testing.T) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	synctest.Test(t, func(*testing.T) {
 		f := future.New[int]()
 
 		var wg sync.WaitGroup
@@ -102,7 +102,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
 
 func TestContextCancellation(t *testing.T) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	synctest.Test(t, func(*testing.T) {
 		f := future.New[string]()
 
 		ctx, cancel := context.WithCancel(context.Background())

@@ -21,7 +21,7 @@ MOCKERY_VERSION_CMD_ARG := "version"
 MOCKGEN ?= mockgen
 MOCKGEN_BIN := $(TOOLSBIN)/$(MOCKGEN)
 MOCKGEN_SRC ?= go.uber.org/mock/mockgen
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+MOCKGEN_VERSION ?= v0.6.0
 MOCKGEN_VERSION_CMD_ARG := "-version"
 
 SQLC ?= sqlc
@@ -37,13 +37,13 @@ STRINGER_VERSION ?= latest
 
 define install_tool
 @if [ ! -x $(TOOLSBIN)/$(1) ]; then \
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	GOBIN=$(TOOLSBIN) bazelisk run @rules_go//go -- install $(2)@$(3); \
 fi
 endef
 
 define install_tool_version
 @if [ ! -x $(TOOLSBIN)/$(1) ] || [ "$(shell $(TOOLSBIN)/$(1) $(4) 2>/dev/null | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+')" != "$(3)" ]; then \
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	GOBIN=$(TOOLSBIN) bazelisk run @rules_go//go -- install $(2)@$(3); \
 fi
 endef
 
