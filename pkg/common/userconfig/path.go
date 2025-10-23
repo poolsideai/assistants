@@ -1,25 +1,25 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package userconfig
+
+import (
+	"os"
+	"path/filepath"
 
 	"github.com/adrg/xdg"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
+
 // Directory returns the OS abs path for the directory containing user-specific config files.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Uses XDG_CONFIG_HOME if set, otherwise defaults to $HOME/.config.
 func Directory() string {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	configHome := os.Getenv("XDG_CONFIG_HOME")
+	if configHome == "" {
+		homeDir, err := os.UserHomeDir()
+		if err == nil {
+			configHome = filepath.Join(homeDir, ".config")
+		}
+	}
+	return configHome
+}
+
 // PoolsideDirectory returns the OS abs path to the poolside config directory.
 func PoolsideDirectory() string {
 	return filepath.Join(Directory(), "poolside")

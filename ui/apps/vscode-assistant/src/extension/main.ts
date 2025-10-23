@@ -37,7 +37,7 @@ export async function activate(context: vscode.ExtensionContext) {
   configureExtensionIdentity(context.extension.id);
 
   telemetry = new TelemetryLogger();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  system = new System(context, telemetry, new DecorationProvider());
 
   try {
     await doActivate(system);

@@ -1,14 +1,14 @@
 load("@rules_go//go:def.bzl", "go_library")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+go_library(
+    name = "userconfig",
     srcs = [
         "doc.go",
         "path.go",
     ],
     importpath = "github.com/poolsideai/assistant/pkg/common/userconfig",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    visibility = ["//visibility:public"],
     deps = [
         "@com_github_adrg_xdg//:xdg",
     ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)

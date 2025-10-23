@@ -270,7 +270,7 @@ namespace Poolside.Assistant.WebViewInfrastructure
             public List<string> availableEnrichments { get; set; }
             public List<string> disabledEnrichments { get; set; }
             public bool isAgenticMode { get; set; }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            public bool isHelperSupported { get; set; }
             public bool isEditorFocused { get; set; }
             public WebViewTheme.ColorTheme colorTheme { get; set; }
         }

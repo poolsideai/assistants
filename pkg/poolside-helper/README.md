@@ -128,14 +128,14 @@ func New(/* ... */) {
   //...
   registerExtensionMethod(handler, JSONRPCOperation{
     Method:      "poolside/fooDidChange",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }, handler.FooHandler.DidChange)
 }
 
 
 // initialize.go
 func (h *PoolsideHandler) setInitializeState(params *protocol.InitializeParams) error {
   // ...
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   // assign the server value to our pre-allocated address, pointed
   // to by the various method handlers
   *h.FooHandler = *foo.NewHandler()
@@ -165,13 +165,13 @@ func someMethod(...) error {
     // return pkgerrors.Wrap("useful info", err)
     return pkgerrors.WithStack(err)
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   if err := helpercode.Something(); err != nil {
     // since we rely on all helper code following the "wrap third-party err" rule, we can confidently return err unchanged
     // when calling other helper code
     return err
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   if badThing() {
     // when we return constant errors, we should add a runtime stacktrace to aid debugging
     return pkgerrors.WithStack(ErrTheThing)
@@ -246,11 +246,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+## Building locally
+
+1. Have some form of GCC installed (e.g. `MinGW`).
+2. Make sure to set the `CGO_ENABLED=1` environment variable when compiling.
+
 ## Profiling
 
 For debugging memory and CPU issues, pprof profiles are exposed on a `127.0.0.1`

@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"runtime"
 	"strings"
 	"unicode"
 
@@ -189,12 +189,12 @@ func URIFromPath(path string) DocumentURI {
 	}
 	if !isWindowsDrivePath(path) {
 		if abs, err := filepath.Abs(path); err == nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			// Handling UNIX style paths is not handled consistently on Windows.
+			isWindowsAbsoluteUnixPath := runtime.GOOS == "windows" && strings.HasPrefix(path, "/")
+
+			if !isWindowsAbsoluteUnixPath {
+				path = abs
+			}
 		}
 	}
 	// Check the file path again, in case it became absolute.

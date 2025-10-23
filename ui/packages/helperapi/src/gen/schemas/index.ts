@@ -145,6 +145,6 @@ export * from "./searchSymbolDefinitionsParamsType";
 export * from "./secretSummary";
 export * from "./sessionRenameResponse";
 export * from "./skillSummary";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./symbolDefinition";
 export * from "./upsertSecretOutput";
 export * from "./upsertSecretParams";

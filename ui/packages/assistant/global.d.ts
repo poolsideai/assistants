@@ -1,7 +1,7 @@
 import type { ColorTheme, FileIconTheme } from "@poolsideai/components/providers";
 import type { Configuration, Keybindings, WorkspaceFolder } from "@poolsideai/rpc";
 import type { Environment } from "./src/lib/store";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 export default {};
 
 /**
