@@ -4,10 +4,10 @@
  * poolside helper
  * OpenAPI spec version: 0.1.0
  */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { SymbolDefinition } from "./symbolDefinition";
 
 export interface SearchSymbolDefinitionsOutput {
   /** A URL to the JSON Schema for this object. */
   readonly $schema?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  defs: SymbolDefinition[];
 }

@@ -90,7 +90,7 @@ const initialAppState = {
   // extension resolves $HOME). Empty in environments without a host.
   defaultCwd: "",
   isAgenticMode: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  isHelperSupported: false,
   isEditorFocused: true,
 
   ...stripAuthFields(globalThis.POOLSIDE_INITIAL_STATE),

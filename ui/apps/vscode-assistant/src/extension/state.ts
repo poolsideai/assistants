@@ -70,7 +70,7 @@ export async function getInitialAppState(system: System) {
     languages: serializeLanguages(getLanguages()),
     environment: getEnvironment(system),
     isAgenticMode: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    isHelperSupported: true,
     isEditorFocused: vscode.window.state.focused,
   };
 }

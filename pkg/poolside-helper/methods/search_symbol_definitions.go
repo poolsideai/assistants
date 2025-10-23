@@ -10,10 +10,10 @@ func (p SearchSymbolDefinitionsParams) MethodName() string {
 }
 
 type SearchSymbolDefinitionsOutput struct {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	Defs []SymbolDefinition `json:"defs"`
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type SymbolDefinition struct {
 	Name        string `json:"name"`
 	Type        string `json:"type"`
 	Path        string `json:"path"`
