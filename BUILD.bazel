@@ -41,7 +41,7 @@ buildifier(
     name = "buildifier.check",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "./.ijwb/*",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     lint_mode = "warn",
     mode = "check",
@@ -51,7 +51,7 @@ buildifier(
     name = "buildifier.format",
     exclude_patterns = [
         "./.git/*",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "./.ijwb/*",
     ],
     lint_mode = "fix",
     mode = "fix",

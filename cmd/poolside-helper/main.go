@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"os"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/danielgtaylor/huma/v2"
 	"github.com/spf13/cobra"
 
 	"github.com/poolsideai/assistant/pkg/common/version"
@@ -13,8 +13,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 )
 
 func main() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	huma.DefaultArrayNullable = false
+
 	logging.Init()
 	rootCmd := rootCommandCreate()
 

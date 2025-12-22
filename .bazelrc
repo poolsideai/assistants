@@ -1,9 +1,9 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Force the use of Clang for all builds. Otherwise if llvm is installed we have following error:
+# clang: error: invalid linker name in argument '-fuse-ld=ld64.lld:'
+build --action_env=CC=clang
+build --action_env=CXX=clang++
 build --macos_sdk_version=14.4
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 build --xcode_version_config=@local_config_xcode//:host_xcodes
 build --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
 

@@ -300,16 +300,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  response_regenerated: "response_regenerated",
   file_opened: "file_opened",
   selection_changed: "selection_changed",
   file_edited: "file_edited",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  task_started: "task_started",
+  task_completed: "task_completed",
+  task_canceled: "task_canceled",
+  task_reopened: "task_reopened",
+  rated_thumbs_up: "rated_thumbs_up",
+  rated_thumbs_down: "rated_thumbs_down",
   client_error: "client_error",
   user_interaction: "user_interaction",
 } as const;
