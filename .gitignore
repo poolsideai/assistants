@@ -52,7 +52,7 @@ ui/**/tsconfig.check.tsbuildinfo
 .husky/pre-push
 
 /.ijwb/
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 # agent tooling
 .aider*
 /.claude
