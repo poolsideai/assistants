@@ -1,7 +1,7 @@
 package ignore
 
 import (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"path/filepath"
 	"testing"
 
 	"github.com/spf13/afero"

@@ -5,7 +5,7 @@ package path
 
 import (
 	"path/filepath"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"runtime"
 	"strings"
 )
 
@@ -16,25 +16,25 @@ type Path []string
 
 // String returns the path as a string with components joined by
 // the system-specific path separator. The resulting path always
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// starts with a path separator or volume name (on windows).
 func (p Path) String() string {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// there's an issue with filepath.Join on windows if the first path part is the volume name
+	// where it won't add the separator between the volume name and the path, so we use strings.Join
+	var ret string
+	for i, e := range p {
+		if e != "" {
+			ret = filepath.Clean(strings.Join(p[i:], string(filepath.Separator)))
+			break
+		}
+	}
+
+	if runtime.GOOS == "windows" && len(p) > 0 {
+		if vol := filepath.VolumeName(ret); vol != "" && strings.HasPrefix(ret, vol) {
+			return ret
+		}
+	}
+
+	return string(filepath.Separator) + ret
 }
 
 // Parse creates a new Path from a string representation.

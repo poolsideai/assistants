@@ -129,26 +129,26 @@ const (
 	gitDir             = ".git"
 	gitignoreFile      = ".gitignore"
 	poolsideignoreFile = ".poolsideignore"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	infoExcludeFile    = gitDir + string(filepath.Separator) + "info" + string(filepath.Separator) + "exclude"
 )
 
 // This was copied from "github.com/go-git/go-git/v5/internal/path_util"
 func replaceTildeWithHome(path string) (string, error) {
 	if strings.HasPrefix(path, "~") {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		firstSeparator := strings.Index(path, string(filepath.Separator))
+		if firstSeparator == 1 {
 			home, err := os.UserHomeDir()
 			if err != nil {
 				return path, err
 			}
 			return strings.Replace(path, "~", home, 1), nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		} else if firstSeparator > 1 {
+			username := path[1:firstSeparator]
 			userAccount, err := user.Lookup(username)
 			if err != nil {
 				return path, err
 			}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			return strings.Replace(path, path[:firstSeparator], userAccount.HomeDir, 1), nil
 		}
 	}
 
@@ -235,7 +235,7 @@ func newMatcher(fs afero.Fs, opts ...Option) (*matcher, error) {
 	if o.gitIgnore {
 		var err error
 		if patterns, err = readPatterns(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			afero2billy.New(fs, string(filepath.Separator)),
 			nil,
 		); err != nil {
 			return nil, fmt.Errorf("error reading gitignore patterns from filesystem: %w", err)
@@ -290,7 +290,7 @@ func CreateIgnoredChecker(fs afero.Fs, rootPath string) (CheckIgnoredFunc, error
 		if err == nil {
 			fpath = relPath
 		}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 		return matcher.Match(path.Parse(fpath), isDir)
 	}, nil
 }

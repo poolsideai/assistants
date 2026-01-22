@@ -1,7 +1,7 @@
 package path
 
 import (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -76,17 +76,17 @@ func TestPathString(t *testing.T) {
 		{
 			name:     "empty path",
 			path:     Path{},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			expected: string(filepath.Separator),
 		},
 		{
 			name:     "single component",
 			path:     Path{"usr"},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			expected: string(filepath.Separator) + "usr",
 		},
 		{
 			name:     "multiple components",
 			path:     Path{"usr", "local", "bin"},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			expected: string(filepath.Separator) + "usr" + string(filepath.Separator) + "local" + string(filepath.Separator) + "bin",
 		},
 	}
 

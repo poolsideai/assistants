@@ -1,14 +1,14 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "bufferpool",
+    srcs = ["bufferpool.go"],
     importpath = "github.com/poolsideai/assistant/pkg/common/sync/bufferpool",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "bufferpool_test",
+    srcs = ["bufferpool_test.go"],
+    embed = [":bufferpool"],
+)
