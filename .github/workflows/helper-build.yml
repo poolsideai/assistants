@@ -37,7 +37,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         required: true
         default: true
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+jobs:
   build:
     uses: ./.github/workflows/reusable-bazel-build.yml
     with:

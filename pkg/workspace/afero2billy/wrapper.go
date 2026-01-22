@@ -3,9 +3,9 @@
 package afero2billy
 
 import (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"errors"
+	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -58,7 +58,7 @@ func (f fileWrapper) Unlock() error {
 
 // Create creates a new file with the specified name.
 func (w Wrapper) Create(filename string) (billy.File, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	file, err := w.Fs.Create(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -67,47 +67,47 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 // Open opens a file for reading.
 func (w Wrapper) Open(filename string) (billy.File, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	file, err := w.Fs.Open(filename)
 	if err != nil {
 		return nil, err
 	}
 	return fileWrapper{file}, nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (w Wrapper) mkdir(dir string) error {
+	fi, err := w.Stat(dir)
+	switch {
+	case err == nil:
+		if !fi.IsDir() {
+			return &os.PathError{Op: "openfile", Path: dir, Err: errors.New("not a directory")}
+		}
+	case errors.Is(err, fs.ErrNotExist):
+		if err = w.MkdirAll(dir, 0o755); err != nil {
+			return err
+		}
+	default:
+		return err
+	}
+	return nil
+}
+
 // OpenFile opens a file using the given flags and permissions.
 func (w Wrapper) OpenFile(filename string, flag int, perm os.FileMode) (billy.File, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if flag&os.O_CREATE != 0 {
+		if err := w.mkdir(filepath.Dir(filename)); err != nil {
+			return nil, err
+		}
+	}
+	file, err := w.Fs.OpenFile(filename, flag, perm)
 	if err != nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		afero.Walk(w.Fs, "/", func(path string, info fs.FileInfo, err error) error {
+			if err != nil {
+				fmt.Println("err", err)
+				return err
+			}
+			fmt.Println("path", path)
+			return nil
+		})
 		return nil, err
 	}
 	return fileWrapper{file}, nil
@@ -120,7 +120,7 @@ func (w Wrapper) Join(elem ...string) string {
 
 // ReadDir reads the directory named by path and returns a list of directory entries.
 func (w Wrapper) ReadDir(path string) ([]os.FileInfo, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	d, err := w.Fs.Open(path)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 // TempFile creates a new temporary file in the directory dir with a name beginning with prefix.
 func (w Wrapper) TempFile(dir, prefix string) (billy.File, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return util.TempFile(w, dir, prefix)
 }
 
 // Lstat returns a FileInfo describing the named file. If the file is a symbolic link,
@@ -147,7 +147,7 @@ func (w Wrapper) Lstat(filename string) (os.FileInfo, error) {
 // Symlink creates a symbolic link link pointing to target.
 func (w Wrapper) Symlink(target, link string) error {
 	if fs, ok := w.Fs.(afero.Linker); ok {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		return fs.SymlinkIfPossible(target, link)
 	}
 
 	return afero.ErrNoSymlink
@@ -156,7 +156,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 // Readlink returns the destination of the named symbolic link.
 func (w Wrapper) Readlink(link string) (string, error) {
 	if fs, ok := w.Fs.(afero.LinkReader); ok {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		return fs.ReadlinkIfPossible(link)
 	}
 
 	return "", afero.ErrNoReadlink
@@ -164,7 +164,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 // Chroot creates a new filesystem from the same type providing a new root.
 func (w Wrapper) Chroot(path string) (billy.Filesystem, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return chroot.New(w, path), nil
 }
 
 // Root returns the root path of the filesystem.

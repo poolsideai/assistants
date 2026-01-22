@@ -13,7 +13,7 @@ go_library(
     deps = [
         "//pkg/common/data",
         "//pkg/common/sync/bufferpool",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/git",
         "//pkg/workspace/afero2billy",
         "//pkg/workspace/path",
         "@com_github_go_git_go_billy_v5//:go-billy",
