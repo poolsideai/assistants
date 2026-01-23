@@ -6,7 +6,7 @@
 #   gh workflow run poolside-helper-build --ref <YOUR_BRANCH> -f 'tag=0.0.1-build.1'
 name: poolside-helper-build
 on:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  workflow_call:
     inputs:
       tag:
         description: "Version tag to embed (e.g. helper/v1.2.3)"
@@ -25,12 +25,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         type: boolean
         required: false
         default: true
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  workflow_dispatch:
     inputs:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      tag:
         description: "Version tag to embed (e.g. helper/v1.2.3)"
         type: string
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        required: true
       sign:
         description: "Sign and notarize release binaries"
         type: boolean

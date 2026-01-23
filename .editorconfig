@@ -10,7 +10,7 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+[*.{yml,yaml}]
 indent_style = space
 indent_size = 2
 

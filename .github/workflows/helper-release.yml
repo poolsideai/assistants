@@ -45,7 +45,7 @@ jobs:
       - name: Create helper release plan
         id: plan
         shell: bash
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail

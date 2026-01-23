@@ -82,8 +82,8 @@ tmp/
 fb/
 
 poolside-helper-*
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+/.release-env
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 .svelte-kit
