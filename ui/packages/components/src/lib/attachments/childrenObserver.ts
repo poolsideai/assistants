@@ -94,14 +94,14 @@ export function childrenObserver<T = DefaultEventDetail>(
       return filter(n);
     };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let pendingMutations: MutationRecord[] = [];
+    let rafId: number | null = null;
+
+    const processMutations = () => {
+      rafId = null;
+      const mutations = pendingMutations;
+      pendingMutations = [];
+
       const addedDetails: T[] = [];
       const removedDetails: T[] = [];
 
@@ -112,47 +112,47 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
         for (const removedNode of mutation.removedNodes) {
           if (!combinedFilter(removedNode)) continue;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          removedDetails.push(createDetail(removedNode));
         }
 
         for (const addedNode of mutation.addedNodes) {
           if (!combinedFilter(addedNode)) continue;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          addedDetails.push(createDetail(addedNode));
+        }
+      }
+
+      const getSiblingElements = () =>
+        Array.from(node.querySelectorAll<HTMLElement>(tagName || "*")).filter(combinedFilter);
+
+      if (removedDetails.length > 0) {
+        if (onRemove) {
+          const siblingElements = getSiblingElements();
+          for (const detail of removedDetails) {
+            onRemove(detail, { siblingElements, node });
           }
         }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (onRemoveAll) {
+          onRemoveAll(removedDetails, { siblingElements: getSiblingElements(), node });
+        }
       }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (addedDetails.length > 0) {
+        if (onAdd) {
+          const siblingElements = getSiblingElements();
+          for (const detail of addedDetails) {
+            onAdd(detail, { siblingElements, node });
+          }
+        }
+        if (onAddAll) {
+          onAddAll(addedDetails, { siblingElements: getSiblingElements(), node });
+        }
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const observer = new MutationObserver((mutations) => {
+      pendingMutations.push(...mutations);
+      if (rafId === null) {
+        rafId = requestAnimationFrame(processMutations);
       }
     });
 
@@ -163,9 +163,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     return () => {
       observer.disconnect();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
     };
   };
 }

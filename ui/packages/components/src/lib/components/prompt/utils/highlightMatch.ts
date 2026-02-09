@@ -31,28 +31,28 @@ export interface HighlightSegment {
   matched: boolean;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const HIGHLIGHT_CACHE_SIZE = 200;
 const highlightCache = new Map<string, HighlightSegment[]>();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+function getCacheKey(value: string, indices: readonly number[]): string {
+  return `${value}\0${indices.join(",")}`;
+}
+
 export function highlightSegments(
   value: string,
   indices: readonly number[],
 ): readonly HighlightSegment[] {
   if (!value) return [];
   if (indices.length === 0) return [{ text: value, matched: false }];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const cacheKey = getCacheKey(value, indices);
+  const cached = highlightCache.get(cacheKey);
+  if (cached !== undefined) {
+    highlightCache.delete(cacheKey);
+    highlightCache.set(cacheKey, cached);
+    return cached;
+  }
+
   const _indices = new Set(indices);
 
   const segments: HighlightSegment[] = [];
@@ -66,13 +66,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  if (highlightCache.size >= HIGHLIGHT_CACHE_SIZE) {
+    const firstKey = highlightCache.keys().next().value;
+    if (firstKey !== undefined) {
+      highlightCache.delete(firstKey);
+    }
+  }
   highlightCache.set(cacheKey, segments);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   return segments;
 }

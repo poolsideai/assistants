@@ -21,7 +21,7 @@ interface LineRange {
  * Host encodes all RPC methods that can be sent from a webview to a host
  */
 export interface Host {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  checkFileExists(path: string): Promise<boolean>;
   getCodeSymbols: (path?: string) => Promise<CodeSymbolResponse>;
   getFileContents(path: string): Promise<AttachedFile | undefined>;
   getFileIconDefinition(iconName: string): Promise<string | undefined>;
@@ -48,7 +48,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   saveTextFile(options: SaveTextFileOptions): Promise<string | undefined>;
   openWorkspace(path: string): Promise<void>;
   addFolderToWorkspace(path: string): Promise<void>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  openImageFile: (svgContent: string, filename?: string) => void;
   openSettings(setting?: string): void;
   openTerminal(command?: string, cwd?: string): void;
   listAssistantTerminals(worktreePath: string): Promise<AssistantTerminalTab[]>;
@@ -227,10 +227,10 @@ export interface Configuration {
   uri: string;
   themeOverride: string | null;
   wrapLines: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  showMermaidDiagrams?: boolean;
+  bubbleTheme?: string;
+  // whether to show RenderScan performance monitoring
+  renderScan?: boolean;
   highlightTelemetryElements?: boolean;
   // boolean only feature flags, matching the server-side features.
   // These are pre-processed to allow us to specify full "poolside.boolFeatures.foo"
@@ -239,7 +239,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   boolFeatures?: {
     [name: string]: boolean;
   };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  fontLigatures?: boolean; // Web Assistant only
   notifyOnApproval?: boolean;
   // How much of the agent's activity to show while it works. Stores the mode
   // string so future modes are new values, not a settings migration.
@@ -325,7 +325,7 @@ export interface SearchFile {
   name: Matchable;
   directory: Matchable;
   workspace?: Matchable;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  isDirectory?: boolean;
   /** Exact query text to use when drilling into this row. */
   navigationPath?: string;
   /** Virtual rows are UI navigation targets, not real files to insert/open. */

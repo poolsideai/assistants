@@ -22,8 +22,8 @@ import Clear from "./glyphs/clear.svelte";
 import Clock from "./glyphs/clock.svelte";
 import CloseCircle from "./glyphs/close-circle.svelte";
 import Code from "./glyphs/code.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import CollapseAll from "./glyphs/collapse-all.svelte";
+import CollapseBoth from "./glyphs/collapse-both.svelte";
 import Command from "./glyphs/command.svelte";
 import Compare from "./glyphs/compare.svelte";
 import Config from "./glyphs/config.svelte";
@@ -43,7 +43,7 @@ import Edit from "./glyphs/edit.svelte";
 import Email from "./glyphs/email.svelte";
 import Enter from "./glyphs/enter.svelte";
 import Error from "./glyphs/error.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import ExpandAll from "./glyphs/expand-all.svelte";
 import ExpandBoth from "./glyphs/expand-both.svelte";
 import ExpandDown from "./glyphs/expand-down.svelte";
 import ExpandUp from "./glyphs/expand-up.svelte";
@@ -173,8 +173,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   clock: Clock,
   "close-circle": CloseCircle,
   code: Code,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "collapse-all": CollapseAll,
+  "collapse-both": CollapseBoth,
   command: Command,
   compare: Compare,
   config: Config,
@@ -194,7 +194,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   email: Email,
   enter: Enter,
   error: Error,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "expand-all": ExpandAll,
   "expand-both": ExpandBoth,
   "expand-down": ExpandDown,
   "expand-up": ExpandUp,

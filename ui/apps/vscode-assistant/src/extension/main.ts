@@ -1,5 +1,5 @@
 import chokidar from "chokidar";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { debounce } from "lodash";
 import { serializeError } from "serialize-error";
 import * as vscode from "vscode";
 import { executeSetContextCommand, registerCommand } from "./api/commands";
@@ -56,13 +56,13 @@ async function doActivate(system: System) {
     ),
   );
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Debounce the sendActiveFileContext function to avoid UI flickering
+  const debouncedSendActiveFileContext = debounce(sendActiveFileContext, 150);
+
   vscode.window.onDidChangeActiveColorTheme(() => setActiveFileIconTheme());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  vscode.window.onDidChangeActiveTextEditor(() => debouncedSendActiveFileContext(system));
+  vscode.window.onDidChangeTextEditorSelection(() => debouncedSendActiveFileContext(system));
+  vscode.window.onDidChangeTextEditorVisibleRanges(() => debouncedSendActiveFileContext(system));
   vscode.window.onDidChangeWindowState((state) => {
     system.assistant.rpc.setEditorFocused(state.focused);
     system.acpChatPanels.setEditorFocused(state.focused);
@@ -90,9 +90,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   registerCommand("openSettings", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    openSettings();
+  });
+
   registerCommand("resetConfiguration", (_this) => {
     const workspaceConfig = getPoolsideConfigurationSection();
 
@@ -202,11 +202,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     await setActiveFileIconTheme();
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  if (
+    e.affectsConfiguration("editor.fontSize") ||
+    e.affectsConfiguration("editor.lineHeight") ||
     affectsConfiguration(e, "poolside.codeFontSize")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     await updateEditorConfig(system, system.assistant.webviewView.webview);

@@ -16,7 +16,7 @@ go_library(
         "jsonrpc.go",
         "legacy_state.go",
         "lifecycle.go",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "list_skills.go",
         "mcp_oauth.go",
         "pprof.go",
         "remote_access.go",

@@ -25,8 +25,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   | "clock"
   | "close-circle"
   | "code"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "collapse-all"
+  | "collapse-both"
   | "command"
   | "compare"
   | "config"
@@ -46,7 +46,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   | "email"
   | "enter"
   | "error"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "expand-all"
   | "expand-both"
   | "expand-down"
   | "expand-up"

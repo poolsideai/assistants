@@ -12,7 +12,7 @@
     icon?: IconProps | IconName | "loading" | IconProps;
     disabled?: boolean;
     alwaysRender?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    tooltip?: string;
     "data-testid"?: string;
   }
 </script>
@@ -46,7 +46,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     disabled,
     keywords,
     alwaysRender,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    tooltip,
     children,
     accessories,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -128,7 +128,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     bind:this={$rootEl}
     {id}
     data-prompt-item
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    title={tooltip}
     aria-disabled={disabled ? true : undefined}
     aria-selected={$isSelected ? true : undefined}
     data-disabled={disabled ? true : undefined}
@@ -189,8 +189,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 <style lang="postcss">
   @reference "#tailwind.css";
   [data-prompt-item] {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    content-visibility: auto;
+    contain-intrinsic-size: auto 28px;
     @apply flex cursor-pointer items-center text-psx-foreground-primary outline-hidden hover:bg-psx-menu-hover-background active:bg-psx-menu-active-background data-disabled:pointer-events-none data-disabled:opacity-50 data-selected:bg-psx-menu-active-background data-selected:text-psx-menu-active-foreground;
 
     :global(body:not(.web-app)) & {

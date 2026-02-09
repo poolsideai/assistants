@@ -1,34 +1,34 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package handler
+
+import (
 	"bufio"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"context"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	"github.com/tliron/glsp"
 	"gopkg.in/yaml.v3"
 
 	"github.com/poolsideai/assistant/pkg/common/userconfig"
 	protocol "github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
+
+type ListSkillsParams struct{}
+
+type SkillSummary struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Location    string `json:"location"`
+	DirPath     string `json:"dir_path"`
+}
+
+type ListSkillsOutput struct {
+	Skills []SkillSummary `json:"skills"`
+}
+
 func (h *PoolsideHandler) listSkillsHandler(_ context.Context, _ *ListSkillsParams, _ *glsp.Context) (*ListSkillsOutput, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
