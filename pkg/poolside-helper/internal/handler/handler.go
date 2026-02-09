@@ -192,11 +192,11 @@ func New() *PoolsideHandler {
 		Description: "simple ping/pong endpoint for verification",
 	}, handler.helloHandler)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      "poolside/listSkills",
+		Description: "list all installed skills from workspace and user directories",
+	}, handler.listSkillsHandler)
+
 	registerExtensionMethod(handler, JSONRPCOperation{
 		Method:      methods.InitiateMCPOAuthParams{}.MethodName(),
 		Description: "Initiate OAuth flow for MCP server authentication",

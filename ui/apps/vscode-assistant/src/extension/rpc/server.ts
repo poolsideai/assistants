@@ -98,11 +98,11 @@ export class HostRPCServer implements Host {
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  checkFileExists = checkFileExists;
   getCodeSymbols = getCodeSymbols;
   openExternalURL = openExternalURL;
   openFile = openFile;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  openImageFile = openImageFile;
   getUrlContents = (url: string) => getUrlContents(this.system, url);
   getFileContents = getFileContents;
   getImageFileData = getImageFileData;

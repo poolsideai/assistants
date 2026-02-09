@@ -61,8 +61,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   GetUserConfigParams,
   ListSecretsOutput,
   ListSecretsParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ListSkillsOutput,
+  ListSkillsParams,
   LocalInferenceCancelDownloadParams,
   LocalInferenceDeleteModelParams,
   LocalInferenceDownloadModelParams,
@@ -495,14 +495,14 @@ export const poolsideListSecrets = async (
 ): Promise<ListSecretsOutput> => {
   return await runtime.jsonrpcCall(toJsonrpcMethod("/poolside/listSecrets"), listSecretsParams);
 };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * list all installed skills from workspace and user directories
+ */
+export const poolsideListSkills = async (
+  listSkillsParams: NonReadonly<ListSkillsParams>,
+): Promise<ListSkillsOutput> => {
+  return await runtime.jsonrpcCall(toJsonrpcMethod("/poolside/listSkills"), listSkillsParams);
+};
 /**
  * cancels the download of a local on-device model
  */

@@ -47,7 +47,7 @@ jobs:
     # Actionlint cannot validate the organization-specific runner label.
     runs-on: ${{ github.repository == 'poolsideai/assistant' && 'ubuntu-24.04-4' || 'ubuntu-24.04' }}
     name: ${{ matrix.name }}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    env:
       GH_TOKEN: ${{ github.token }}
       TURBO_SCM_BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
 

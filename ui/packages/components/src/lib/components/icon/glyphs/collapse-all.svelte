@@ -1,14 +1,14 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
   import type { SVGAttributes } from "svelte/elements";
 
   interface Props extends SVGAttributes<SVGSVGElement> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    size?: number;
+    weight?: number;
+  }
+
   let { size = 16, weight = 1, ...rest }: Props = $props();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
 <svg
   {...rest}
   width={size}
@@ -17,11 +17,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   fill="none"
   xmlns="http://www.w3.org/2000/svg"
 >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <path
+    d="M10 13L8 11L6 13M10 3L8 5L6 3M2.5 8.00003H13.5"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width={weight}
+  />
+</svg>

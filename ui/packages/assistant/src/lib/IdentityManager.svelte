@@ -9,11 +9,11 @@
   let { children }: Props = $props();
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<div
   class="app relative flex flex-col text-base text-psx-foreground-primary"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  id="app-content"
+  class:vscode={$appState.environment.assistantHost === "vscode"}
+>
   {@render children?.()}
 </div>
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -24,7 +24,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .app.vscode {
+    position: relative;
+  }
 __POOL_SYNTHETIC_IMPORT_BASELINE__

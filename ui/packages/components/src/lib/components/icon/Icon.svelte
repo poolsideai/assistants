@@ -87,35 +87,35 @@
     } as const;
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Cache file icon SVG to prevent re-fetching on every render
+  let fileIconSvg = $state<string | undefined | null>(null);
+  let lastRequestedPath: string | null = null;
+
+  $effect(() => {
+    if (icon?.type === "file") {
+      const { path, language } = icon.props;
+      // Only fetch if path changed - prevents re-fetching on parent re-renders
+      if (lastRequestedPath === path) return;
+      lastRequestedPath = path;
+
+      fileIconSvg = null;
+
+      context
+        ?.getFileIcon(path, language)
+        .then((svg) => {
+          // Only update if this is still the path we requested
+          if (lastRequestedPath === path) {
+            fileIconSvg = svg;
+          }
+        })
+        .catch(() => {
+          if (lastRequestedPath === path) {
+            fileIconSvg = undefined;
+          }
+        });
+    }
+  });
+
   let mergedProps = $derived(
     mergeProps(props, {
       "data-type": icon ? icon.type : undefined,
@@ -133,11 +133,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   {#if icon}
     {#if icon?.type === "product"}
       <icon.Component class="size-full" {size} {...icon.props} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {:else if fileIconSvg}
+      {@html fileIconSvg}
+    {:else if icon.props.fallback !== false}
+      {@const Component = iconMap[icon.props.fallback ?? "file"]}
+      <Component class="size-full" {size} />
     {/if}
   {/if}
 {/snippet}

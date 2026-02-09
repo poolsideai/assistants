@@ -32,7 +32,7 @@ declare const packageJson: {
     "download:binaries": "bash scripts/copy_helper.sh";
     "fix:format": "prettier . --write --cache --ignore-path ../../.gitignore --list-different";
     "fix:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' './scripts/**/*.{js,mjs,cjs,ts,tsx,svelte}' --fix";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "generate:icons": "fantasticon";
     "make-release-manifest": "tsx scripts/make-release-manifest.ts";
     package: "vsce package --no-dependencies --allow-missing-repository";
     prepare: "turbo codegen:types --output-logs errors-only";
@@ -60,7 +60,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         category: "Poolside";
         command: "poolside.newConversation";
         title: "New Conversation";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        icon: "$(poolside-new)";
       },
       {
         category: "Poolside";
@@ -77,12 +77,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {
         category: "Poolside";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        command: "poolside.openSettings";
         title: "Extension Settings";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        icon: "$(poolside-settings)";
+      },
     ];
     configuration: {
       title: "poolside";
@@ -173,22 +173,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       "poolside-roundel": {
         description: "Roundel to use in the status bar";
         default: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          fontPath: "./dist/resources/font/poolside.woff";
+          fontCharacter: "";
         };
       };
       "poolside-settings": {
         description: "Icon to use for settings";
         default: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          fontPath: "./dist/resources/font/poolside.woff";
+          fontCharacter: "";
         };
       };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "poolside-new": {
+        description: "Icon to use for new conversations";
+        default: {
+          fontPath: "./dist/resources/font/poolside.woff";
+          fontCharacter: "";
         };
       };
     };
@@ -217,13 +217,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           group: "navigation@1";
         },
       ];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "view/title": [
+        {
+          command: "poolside.newConversation";
+          when: "view == poolside-webview";
+          group: "navigation@1";
+        },
+      ];
     };
     views: {
       poolside: [
@@ -291,7 +291,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@vscode/vsce": "^3.4.2";
     eslint: "catalog:";
     execa: "catalog:";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    fantasticon: "^3.0.0";
     "jest-mock-vscode": "^4.6.0";
     prettier: "catalog:";
     svelte: "catalog:";

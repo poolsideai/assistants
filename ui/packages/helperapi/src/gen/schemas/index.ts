@@ -90,8 +90,8 @@ export * from "./getUserConfigOutputSandboxConfig";
 export * from "./getUserConfigParams";
 export * from "./listSecretsOutput";
 export * from "./listSecretsParams";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./listSkillsOutput";
+export * from "./listSkillsParams";
 export * from "./localInferenceCancelDownloadParams";
 export * from "./localInferenceDeleteModelParams";
 export * from "./localInferenceDidChangeParams";
@@ -144,7 +144,7 @@ export * from "./searchSymbolDefinitionsParams";
 export * from "./searchSymbolDefinitionsParamsType";
 export * from "./secretSummary";
 export * from "./sessionRenameResponse";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./skillSummary";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 export * from "./upsertSecretOutput";
 export * from "./upsertSecretParams";
