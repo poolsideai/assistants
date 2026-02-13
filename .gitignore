@@ -57,8 +57,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 .aider*
 /.claude
 .claude/
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+AGENTS.local.md
+CLAUDE.local.md
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 .poolside/settings.local.yaml
