@@ -59,7 +59,7 @@ ui/**/tsconfig.check.tsbuildinfo
 .claude/
 AGENTS.local.md
 CLAUDE.local.md
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+.mcp.json
 
 .poolside/settings.local.yaml
 conductor.json
