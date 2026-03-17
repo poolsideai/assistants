@@ -29,7 +29,7 @@
 <button
   type="button"
   class="flex text-psx-foreground-primary hover:bg-psx-chrome-hover focus-visible:border-psx-focus focus-visible:text-psx-focus active:bg-psx-chrome-active {customUI
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ? 'size-9 rounded-[14px] sm:size-[32px]'
     : 'size-[22px]'} shrink-0 items-center justify-center rounded-full bg-transparent focus:outline-hidden focus-visible:border disabled:pointer-events-none disabled:opacity-25"
   aria-label={label}
   {title}

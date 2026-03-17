@@ -5,13 +5,13 @@ export function focusPrompt() {
   // This is a hack to focus the textarea after the component has been hydrated
   // FIXME: This is a hack and should be removed
   setTimeout(() => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // @ts-ignore
     const prompt = document.getElementById("prompt-editor");
     // preventScroll: revealing the editor must not scroll ancestors — the
     // document can transiently overflow during conversation switches, and a
     // scrolled document sticks (see "command menu scroll shift", #124).
     prompt?.focus({ preventScroll: true });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }, 100);
 }
 
 /** Automatic navigation focus must not override a later user action. */
