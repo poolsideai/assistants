@@ -389,7 +389,7 @@ export enum EnrichedContextSource {
   // e.g. the name of the current VCS branch and commit messages of changes on the branch
   branch = "branch",
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 export interface FileIconTheme {
   fonts?: Record<string, string>; // fontId -> embedded font CSS
   iconDefinitions?: Record<string, string>; // iconName -> SVG/img string
