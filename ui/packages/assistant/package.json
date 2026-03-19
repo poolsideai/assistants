@@ -113,7 +113,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@types/uuid": "^9.0.8",
     "@vitest/browser": "catalog:",
     "@vitest/coverage-v8": "catalog:",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "chromatic": "catalog:",
     "eslint": "catalog:",
     "katex": "^0.16.22",
     "playwright": "catalog:",

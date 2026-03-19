@@ -17,7 +17,7 @@
     "fix:lint": "turbo fix:lint --affected",
     "package": "turbo package --affected",
     "prepare": "husky",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "publish:storybook": "turbo publish:storybook --affected",
     "test": "turbo test --affected",
     "test:storybook": "turbo test:storybook --affected",
     "test:storybook:watch": "turbo test:storybook:watch --affected",

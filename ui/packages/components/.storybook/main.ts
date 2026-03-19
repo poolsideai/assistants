@@ -1,27 +1,27 @@
 import { defineConfig } from "@poolsideai/storybook-config";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 const DEFAULT_BRANCH = "head";
 
 const config = defineConfig({
   refs: (_: unknown, { configType }: { configType?: "DEVELOPMENT" | "PRODUCTION" }) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (configType === "DEVELOPMENT") {
+      return {
+        assistant: {
+          disable: true,
+        },
+      };
+    }
     const branch =
       (process.env.GITHUB_HEAD_REF === "main" ? DEFAULT_BRANCH : process.env.GITHUB_HEAD_REF) ||
       DEFAULT_BRANCH;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return {
+      assistant: {
+        title: "Assistant",
         url: `https://${branch}--${process.env.CHROMATIC_ASSISTANT_APP_ID}.chromatic.com`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      },
+    };
+  },
 });
 
 export default { ...config };

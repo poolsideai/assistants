@@ -1,7 +1,7 @@
 module github.com/poolsideai/assistant
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 // Here to add a `replace` entry to our fork? Remember to create a vX.Y.Z tag in the fork, push it
 // and use it directly, instead of those v0.0.0.-timestamp-revision entries.
 // e.g. replace github.com/a/b v7.42.0 github.com/poolsideai/b v0.0.1
@@ -13,7 +13,7 @@ replace github.com/tliron/kutil v0.3.11 => github.com/tliron/kutil v0.3.26
 // our fork, allowing for cancellation
 replace github.com/tliron/glsp v0.2.2 => github.com/poolsideai/glsp v0.0.8
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/danielgtaylor/huma/v2 v2.34.1
@@ -23,7 +23,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/golang-jwt/jwt/v5 v5.3.0
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/google/uuid v1.6.0
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/iancoleman/strcase v0.3.0 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -40,8 +40,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	gopkg.in/yaml.v3 v3.0.1
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/creack/pty v1.1.24
@@ -81,14 +81,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+
+require (
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -102,7 +102,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	golang.org/x/sync v0.20.0 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 // our fork, adds native session/delete, elastic notification buffering
 // during session/load replay, and the flattened elicitation scope fields the
