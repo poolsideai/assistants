@@ -1,5 +1,5 @@
 # Poolside Assistant
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 **An AI coding assistant for your editor and desktop.**
 
 Poolside Assistant is an open-source client for coding agents. Use it from the

@@ -74,13 +74,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "com_github_creack_pty",
+    "com_github_danielgtaylor_huma_v2",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "com_github_go_chi_chi_v5",
     "com_github_go_git_go_billy_v5",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "com_github_golang_migrate_migrate_v4",
     "com_github_google_go_cmp",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "com_github_gordonklaus_ineffassign",
