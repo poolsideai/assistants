@@ -76,11 +76,11 @@ build:ci --experimental_remote_cache_eviction_retries=2
 
 # speed up linking
 build:ci --fission=yes
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Pass through GITHUB_ACTIONS environment variable to detect CI environment
+test:ci --test_env=GITHUB_ACTIONS
+# Pass through ANTHROPIC_API_KEY environment variable for integration tests
+test:ci --test_env=ANTHROPIC_API_KEY
+
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
