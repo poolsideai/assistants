@@ -10,8 +10,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 .sw*
 .taskmaster
 .turbo
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+.idea/*
+!.idea/runConfigurations/
 *.vite
 *.class
 *.jar
