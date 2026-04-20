@@ -295,11 +295,11 @@ export type TelemetryEventInputEventType =
   (typeof TelemetryEventInputEventType)[keyof typeof TelemetryEventInputEventType];
 
 export const TelemetryEventInputEventType = {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  prompt_started: "prompt_started",
+  prompt_completed: "prompt_completed",
+  file_modifications_previewed: "file_modifications_previewed",
+  file_modifications_applied: "file_modifications_applied",
+  file_modifications_discarded: "file_modifications_discarded",
   response_regenerated: "response_regenerated",
   file_opened: "file_opened",
   selection_changed: "selection_changed",
