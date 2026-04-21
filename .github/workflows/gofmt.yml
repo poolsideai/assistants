@@ -29,13 +29,13 @@ jobs:
           if [ -n "$unformatted" ]; then
             echo "The following files are not gofmt'd:"
             echo "$unformatted"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            echo "----"
+            # print expected edits
+            gofmt -w $(find . -name '*.go' \
+              -not -path './third_party/*' \
+              -not -path './pkg/poolside-helper/gopls/*' \
               -not -path './pkg/poolside-helper/internal/gopls/*')
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            git diff
             echo "Run 'make go-fmt-fix' and commit the result."
             exit 1
           fi
