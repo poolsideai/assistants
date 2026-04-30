@@ -1,30 +1,30 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+@import "./reset.css";
+@import "./variants.css";
+@import "./utilities/space.css";
+@import "./utilities/size.css";
+@import "./utilities/typography.css";
+@import "./utilities/decorations.css";
+@import "./utilities/radius.css";
 @import "./utilities/menu.css";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+@theme inline {
+  --font-mono: var(--psx-font-mono);
+
+  --breakpoint-xs: 17.5rem;
+
+  --color-psx-foreground-primary: var(--psx-foreground-primary);
+  --color-psx-foreground-secondary: var(--psx-foreground-secondary);
+  --color-psx-foreground-tertiary: var(--psx-foreground-tertiary);
+
   /* Default glyph colour. Sits at primary-text contrast so icons read as solid
      as the label beside them; kept as its own token so it can diverge from text
      later without a repo-wide sweep. */
   --color-psx-icon: var(--psx-icon);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  --color-psx-chrome: var(--psx-chrome);
+  --color-psx-chrome-hover: var(--psx-chrome-hover);
+  --color-psx-chrome-active: var(--psx-chrome-active);
+
   --color-psx-tab-active-background: var(--psx-tab-active-background);
   --color-psx-tab-active-foreground: var(--psx-tab-active-foreground);
   --color-psx-tab-inactive-background: var(--psx-tab-inactive-background);
@@ -32,105 +32,105 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   --color-psx-tab-hover-background: var(--psx-tab-hover-background);
   --color-psx-tab-border: var(--psx-tab-border);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  --color-psx-panel: var(--psx-panel);
+  --color-psx-border: var(--psx-border);
+  --color-psx-focus: var(--psx-focus);
+  --color-psx-link: var(--psx-link);
+
+  --color-psx-bubble-foreground: var(--psx-bubble-foreground);
+  --color-psx-bubble-background: var(--psx-bubble-background);
+  --color-psx-bubble-shadow: var(--psx-bubble-shadow);
+
+  --color-psx-button-primary-foreground: var(--psx-button-primary-foreground);
+  --color-psx-button-primary-background: var(--psx-button-primary-background);
+  --color-psx-button-primary-hover-background: var(--psx-button-primary-hover-background);
+  --color-psx-button-primary-border: var(--psx-button-primary-border);
+  --color-psx-button-primary-hover-border: var(--psx-button-primary-hover-border);
+  --color-psx-button-secondary-foreground: var(--psx-button-secondary-foreground);
+  --color-psx-button-secondary-background: var(--psx-button-secondary-background);
+  --color-psx-button-secondary-hover-background: var(--psx-button-secondary-hover-background);
+  --color-psx-button-secondary-border: var(--psx-button-secondary-border);
+  --color-psx-button-secondary-hover-border: var(--psx-button-secondary-hover-border);
+
+  --color-psx-checkbox-background: var(--psx-checkbox-background);
+  --color-psx-checkbox-border: var(--psx-checkbox-border);
+  --color-psx-checkbox-foreground: var(--psx-checkbox-foreground);
+
+  --color-psx-editor-background: var(--psx-editor-background);
+  --color-psx-editor-gutter-alternative: var(--psx-editor-gutter-alternative);
+  --color-psx-editor-gutter-background: var(--psx-editor-gutter-background);
+  --color-psx-editor-info-foreground: var(--psx-editor-info-foreground);
+  --color-psx-editor-line-highlight-border: var(--psx-editor-line-highlight-border);
+  --color-psx-editor-line-number-foreground: var(--psx-editor-line-number-foreground);
+  --color-psx-editor-selection-background: var(--psx-editor-selection-background);
+  --color-psx-editor-selection-foreground: var(--psx-editor-selection-foreground);
+
+  --color-psx-diff-insert: var(--psx-diff-insert);
+  --color-psx-diff-insert-foreground: var(--psx-diff-insert-foreground);
+  --color-psx-diff-delete: var(--psx-diff-delete);
+  --color-psx-diff-delete-foreground: var(--psx-diff-delete-foreground);
+
+  --color-psx-error-background: var(--psx-error-background);
+  --color-psx-error-foreground: var(--psx-error-foreground);
+  --color-psx-error-badge: var(--psx-error-badge);
+
+  --color-psx-info-background: var(--psx-info-background);
+  --color-psx-info-foreground: var(--psx-info-foreground);
+  --color-psx-info-badge: var(--psx-info-badge);
+  --color-psx-warning-background: var(--psx-warning-background);
+  --color-psx-warning-foreground: var(--psx-warning-foreground);
+  --color-psx-warning-badge: var(--psx-warning-badge);
+
+  --color-psx-input-background: var(--psx-input-background);
+  --color-psx-input-border: var(--psx-input-border);
+  --color-psx-input-foreground: var(--psx-input-foreground);
+  --color-psx-input-placeholder-foreground: var(--psx-input-placeholder-foreground);
+
   --color-psx-menu-background: var(--psx-menu-background);
   --color-psx-menu-separator: var(--psx-menu-separator);
   --color-psx-highlight-background: var(--psx-highlight-background);
   --color-psx-highlight-border: var(--psx-highlight-border);
   --color-psx-selection-background: var(--psx-selection-background);
   --color-psx-selection-foreground: var(--psx-selection-foreground);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  --color-psx-menu-foreground: var(--psx-menu-foreground);
+  --color-psx-menu-highlight: var(--psx-menu-highlight);
+  --color-psx-menu-hover-background: var(--psx-menu-hover-background);
+  --color-psx-menu-active-foreground: var(--psx-menu-active-foreground);
+  --color-psx-menu-active-background: var(--psx-menu-active-background);
+  --color-psx-menu-active-highlight: var(--psx-menu-active-highlight);
+
+  --color-psx-prompt-type-foreground: var(--psx-prompt-type-foreground);
+  --color-psx-prompt-type-background: var(--psx-prompt-type-background);
+
+  --color-psx-toggle-off-background: var(--psx-toggle-off-background);
+  --color-psx-toggle-on-background: var(--psx-toggle-on-background);
+
+  --color-psx-tooltip-foreground: var(--psx-tooltip-foreground);
+  --color-psx-tooltip-background: var(--psx-tooltip-background);
+  --color-psx-tooltip-border: var(--psx-tooltip-border);
+
+  --color-psx-vibrant: var(--psx-vibrant);
+
+  --shadow-highlight: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-low:
+    0 0 0 1px rgba(0, 0, 0, 0.05), 0px 1.3px 4.5px rgba(0, 0, 0, 0.04),
+    0px 0.4px 1.3px rgba(0, 0, 0, 0.04);
+  --shadow-mid:
+    0 0 0 1px rgba(0, 0, 0, 0.025), 0 6px 20px rgba(0, 0, 0, 0.08),
+    0px 1.3px 4.5px rgba(0, 0, 0, 0.04), 0px 0.4px 1.3px rgba(0, 0, 0, 0.04);
+  --shadow-high:
+    0 0 0 1px rgba(0, 0, 0, 0.05), 0 6px 20px rgba(0, 0, 0, 0.1),
+    0px 1.3px 4.5px rgba(0, 0, 0, 0.1), 0px 0.4px 1.3px rgba(0, 0, 0, 0.1);
+  --shadow-low-dark:
+    0 0 0 1px rgba(255, 255, 255, 0.15), 0px 1.3px 4.5px rgba(0, 0, 0, 0.04),
+    0px 0.4px 1.3px rgba(0, 0, 0, 0.04);
+  --shadow-mid-dark:
+    0 0 0 1px rgba(255, 255, 255, 0.15), 0 6px 20px rgba(0, 0, 0, 0.08),
+    0px 1.3px 4.5px rgba(0, 0, 0, 0.04), 0px 0.4px 1.3px rgba(0, 0, 0, 0.04);
+  --shadow-high-dark:
+    0 0 0 1px rgba(255, 255, 255, 0.25), 0 6px 20px rgba(0, 0, 0, 0.1),
+    0px 1.3px 4.5px rgba(0, 0, 0, 0.1), 0px 0.4px 1.3px rgba(0, 0, 0, 0.1);
+
   /* Elevation for floating overlays: popovers, pickers, menus and modals. The
      1px hairline is the FIRST shadow layer, not a separate border/outline, so
      the stroke and the drop shadow stack as one crisp paint instead of two
@@ -154,28 +154,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     0 0 0 var(--psx-hairline, 1px) rgba(255, 255, 255, 0.12), 0 1px 3px rgba(0, 0, 0, 0.35),
     0 12px 34px rgba(0, 0, 0, 0.5);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  --animate-bounce: bounce 0.6s infinite;
+  --animate-blink: blink 1s steps(1, start) infinite;
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+      animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+    50% {
+      transform: translateY(-10px);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+  }
+}
+
 /* Menu metrics, kept out of the inline block so components can read the raw
    custom properties (e.g. h-[var(--text-menu--line-height)] to align a glyph
    with the first line of a two-line row). */
@@ -190,10 +190,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   --radius-menu: 10px;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+@layer theme {
+  :root {
+    --psx-brand: #6670fe;
+    --psx-vibrant: var(--psx-brand);
 
     /* Grid-line wash behind the new-conversation roundel (ChatEmptyState's
        .grid-background and ChatPane's .desktop-hero-grid). Mixed with
@@ -208,20 +208,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
        (popovers/menus/modals) and the desktop splits pane outline so they
        match. Only consumed in dark contexts. */
     --psx-overlay-stroke-dark: #3a4046;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    @variant p3 {
+      --psx-brand: #6670fe;
+      --psx-vibrant: color(display-p3 0.403 0.436 1);
+    }
+
+    @variant dark {
+      --psx-brand: #7185f8;
+      --psx-vibrant: var(--psx-brand);
       --psx-grid-line-color: color-mix(in srgb, var(--psx-foreground-primary) 6%, transparent);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+      @variant p3 {
+        --psx-brand: #7185f8;
+        --psx-vibrant: color(display-p3 0.443 0.521 0.972);
+      }
+    }
+  }
+}

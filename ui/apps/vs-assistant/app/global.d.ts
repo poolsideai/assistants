@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { EnrichedContextSource } from "@poolsideai/rpc";
 
 export default {};
 

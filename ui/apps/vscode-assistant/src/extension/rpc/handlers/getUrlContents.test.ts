@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { describe, type Mock, vi } from "vitest";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 describe("getUrlContents", () => {
@@ -51,7 +51,7 @@ describe("getUrlContents", () => {
     fetchMock.mockResolvedValue(response);
 
     await expect(getUrlContents(mockSystem, exampleUrl)).rejects.toThrow(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "Attempting to access that URL resulted in a HTTP error 404 Not Found",
     );
   });
 
@@ -60,7 +60,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     fetchMock.mockResolvedValue(response);
 
     await expect(getUrlContents(mockSystem, exampleUrl)).rejects.toThrow(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "No content in HTTP response",
     );
   });
 
@@ -74,7 +74,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     fetchMock.mockResolvedValue(response);
 
     await expect(getUrlContents(mockSystem, exampleUrl)).rejects.toThrow(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "Sorry, you cannot attach a binary file",
     );
   });
 

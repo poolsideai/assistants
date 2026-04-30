@@ -111,7 +111,7 @@ async function promptRestart() {
     .update(
       "window.titleBarStyle",
       value === "native" ? "custom" : "native",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      vscode.ConfigurationTarget.Global,
     );
   vscode.workspace
     .getConfiguration()

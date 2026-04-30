@@ -1,11 +1,11 @@
 import {
   isError,
   type AssistantClient,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  type AssistantError,
+  type AssistantResponse,
+} from "@poolsideai/rpc/assistant";
 import { randomUUID } from "crypto";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { Event } from "vscode";
 
 /**
  * A mockable interface which is a strict subset of System
@@ -42,7 +42,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
               if (id !== e.payload.requestId) return;
               isError(e) ? reject(e.payload.error) : resolve(e.payload.response);
               listener?.dispose();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            },
           );
 
           // Send the request

@@ -1,42 +1,42 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
   import { createPrompt } from "./context/prompt.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { writable } from "svelte/store";
+  import type { Snippet } from "svelte";
+  import type { ClassValue } from "svelte/elements";
+
+  export type PromptProps = {
+    value?: string;
     suggestion?: string | null;
     onValueChange?: (value: string) => void;
     onSuggestionAccepted?: (value: string) => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onSubmit?: (value: string) => void;
     onSubmitNow?: (value: string) => void;
     onInterrupt?: () => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  };
+
+  interface Props extends PromptProps {
+    label?: string;
+    class?: ClassValue;
     submitDisabled?: boolean;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    children?: Snippet;
+  }
+
+  let {
+    label = "",
     value = "",
     suggestion = null,
     onValueChange,
     onSuggestionAccepted,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onSubmit,
     onSubmitNow,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    children,
     submitDisabled,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     onInterrupt,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    class: className,
+  }: Props = $props();
+
   // for some reason, toStore didn't work.
   const submitDisabledS = writable<boolean | undefined>(submitDisabled);
   $effect.pre(() => {
@@ -66,15 +66,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const prompt = createPrompt({
     value,
     onValueChange,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onSubmit,
     onSubmitNow,
     submitDisabled: submitDisabledS,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     onInterrupt: onInterruptS,
     suggestion: suggestionS,
     onSuggestionAccepted: onSuggestionAcceptedS,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
   $effect(() => {
     prompt.setValue(value, { focus: false });
   });
@@ -92,8 +92,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   export const restore = (text: string) => prompt.restore(text);
   export const setValue = (text: string) => prompt.setValue(text);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
 <!--
 @component
 
@@ -102,20 +102,20 @@ The prompt component exports an imperative API:
 <Prompt bind:this={prompt} />
 -->
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<div
+  bind:this={$rootEl}
+  id={rootId}
+  role="application"
+  class={[className, "@container relative isolate"]}
+>
+  <label
+    id={labelId}
+    for={rootId}
+    data-prompt-label
+    class="absolute -m-px size-px overflow-hidden border-0 p-0 whitespace-nowrap [clip:rect(0,0,0,0)]"
+  >
+    {label}
+  </label>
+
+  {@render children?.()}
+</div>

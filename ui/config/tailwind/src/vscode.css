@@ -1,62 +1,62 @@
+@layer vscode-default {
+  code {
+    color: var(--psx-input-foreground);
+    background-color: transparent;
+    border-radius: 0;
+  }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+@theme {
+  --text-xs: 0.6875rem; /* 11px */
+  --text-xs--line-height: 0.875rem; /* 14px */
+
+  --text-sm: 0.75rem; /* 12px */
+  --text-sm--line-height: 1rem; /* 16px */
+
+  --text-base: 0.8125rem; /* 13px */
+  --text-base--line-height: 1.25rem; /* 20px */
+
+  --text-lg: 0.875rem; /* 14px */
+  --text-lg--line-height: 1.25rem; /* 20px */
+
+  --text-xl: 1rem; /* 16px */
+  --text-xl--line-height: 1.5rem; /* 24px */
+
+  --text-2xl: 1.125rem; /* 18px */
+  --text-2xl--line-height: 1.75rem; /* 28px */
+
+  --text-3xl: 1.25rem; /* 20px */
+  --text-3xl--line-height: 1.75rem; /* 28px */
+
+  --text-4xl: 1.5rem; /* 24px */
+  --text-4xl--line-height: 2rem; /* 32px */
+}
+
+@layer theme {
+  :root {
+    --psx-font-mono: var(--vscode-editor-font-family);
     --psx-editor-font-size: var(--vscode-editor-font-size);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    --psx-foreground-primary: var(--vscode-foreground);
+    --psx-foreground-secondary: var(--vscode-descriptionForeground);
     /* Unfocused-tab colors are often 50% alpha; keep tertiary copy readable at small text sizes. */
     --psx-foreground-tertiary: color-mix(
       in srgb,
       var(--vscode-descriptionForeground) 95%,
       var(--vscode-tab-unfocusedInactiveForeground)
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     /* Glyphs read at primary-text contrast (see --color-psx-icon). */
     --psx-icon: var(--psx-foreground-primary);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --psx-chrome: var(--vscode-sideBar-background);
+    --psx-chrome-hover: var(--vscode-toolbar-hoverBackground);
+    --psx-chrome-active: var(--vscode-toolbar-activeBackground);
+
     --psx-tab-active-background: var(
       --vscode-tab-activeBackground,
       var(--vscode-tab-selectedBackground, var(--psx-editor-background))
@@ -101,69 +101,69 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       var(--psx-foreground-primary)
     );
 
+    --psx-panel: var(--vscode-panel-background);
+    --psx-border: var(--vscode-editorGroup-border);
+    --psx-focus: var(--vscode-focusBorder);
+    --psx-link: var(--vscode-textLink-foreground);
+
+    --psx-bubble-background: var(--vscode-activityBarBadge-background);
+    --psx-bubble-foreground: var(--vscode-activityBarBadge-foreground);
+
+    --psx-button-primary-foreground: var(--vscode-button-foreground);
+    --psx-button-primary-background: var(--vscode-button-background);
+    --psx-button-primary-hover-background: var(--vscode-button-hoverBackground);
+    --psx-button-primary-border: var(--vscode-button-background);
+    --psx-button-primary-hover-border: var(--vscode-button-hoverBackground);
+    --psx-button-secondary-foreground: var(--vscode-button-secondaryForeground);
+    --psx-button-secondary-background: var(--vscode-button-secondaryBackground);
+    --psx-button-secondary-hover-background: var(--vscode-button-secondaryHoverBackground);
+    --psx-button-secondary-border: var(--vscode-button-secondaryBackground);
+    --psx-button-secondary-hover-border: var(--vscode-button-secondaryHoverBackground);
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --psx-checkbox-border: var(--vscode-checkbox-border);
+    --psx-checkbox-foreground: var(--vscode-checkbox-foreground);
+
+    --psx-editor-background: var(--vscode-editor-background);
+    --psx-editor-gutter-alternative: var(--vscode-editorGutter-commentRangeForeground);
+    --psx-editor-gutter-background: var(--vscode-editorGutter-background);
+    --psx-editor-info-foreground: var(--vscode-editorInfo-foreground);
+    --psx-editor-line-highlight-border: var(--vscode-editor-lineHighlightBorder);
+    --psx-editor-line-number-foreground: var(--vscode-editorLineNumber-foreground);
+    --psx-editor-selection-background: var(--vscode-editor-selectionBackground);
+    --psx-editor-selection-foreground: var(--vscode-editor-selectionForeground);
+
+    --psx-diff-insert: var(--vscode-diffEditor-insertedTextBackground);
+    --psx-diff-insert-foreground: var(--vscode-terminal-ansiGreen);
+    --psx-diff-delete: var(--vscode-diffEditor-removedTextBackground);
+    --psx-diff-delete-foreground: var(--vscode-terminal-ansiRed);
+
+    --psx-error-background: var(--vscode-inputValidation-errorBackground);
+    --psx-error-foreground: var(--vscode-terminal-ansiBrightRed);
+    --psx-error-badge: var(
+      --vscode-activityErrorBadge-background,
+      var(--vscode-problemsErrorIcon-foreground)
+    );
+
+    --psx-info-background: var(--vscode-badge-background);
+    --psx-info-foreground: var(--vscode-banner-iconForeground);
+    --psx-info-badge: var(--vscode-problemsInfoIcon-foreground);
+
+    --psx-warning-background: var(--vscode-editor-background);
+    --psx-warning-foreground: var(--vscode-activityWarningBadge-background);
+    --psx-warning-badge: var(
+      --vscode-activityWarningBadge-background,
+      var(--vscode-problemsWarningIcon-foreground)
+    );
+
+    --psx-input-background: var(--vscode-input-background);
+    --psx-input-border: var(--vscode-input-border, var(--psx-border));
+    --psx-input-foreground: var(--vscode-input-foreground);
+    --psx-input-placeholder-foreground: var(--vscode-input-placeholderForeground);
+
     /* Menu/popover surface. Hosts that own their chrome (the desktop app)
        override these with native menu values; inside VS Code the menus follow
        the editor theme instead, so they default to the panel colors. */
@@ -187,19 +187,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     --psx-selection-background: var(--psx-editor-selection-background);
     --psx-selection-foreground: var(--psx-editor-selection-foreground);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --psx-menu-foreground: var(--vscode-list-inactiveSelectionForeground);
+    --psx-menu-highlight: var(--vscode-list-highlightForeground);
+    --psx-menu-hover-background: var(--vscode-list-hoverBackground);
+    --psx-menu-active-foreground: var(--vscode-list-activeSelectionForeground);
+    --psx-menu-active-background: var(--vscode-list-activeSelectionBackground);
+    --psx-menu-active-highlight: var(--vscode-list-focusHighlightForeground);
+
+    --psx-toggle-off-background: var(--vscode-button-secondaryHoverBackground);
+    --psx-toggle-on-background: var(--vscode-activityBarBadge-background);
+
+    --psx-tooltip-foreground: var(--vscode-editorHoverWidget-foreground);
+    --psx-tooltip-background: var(--vscode-editorHoverWidget-background);
+    --psx-tooltip-border: var(--vscode-editorHoverWidget-border);
 
     --psx-terminal-font: var(--vscode-terminal-font-family, var(--psx-font-mono));
     --psx-terminal-font-size: var(--vscode-terminal-font-size, var(--vscode-editor-font-size));
@@ -266,5 +266,5 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       --vscode-terminal-ansiBrightWhite,
       var(--vscode-terminal-ansiWhite)
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+}

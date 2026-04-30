@@ -1,5 +1,5 @@
 // cSpell:ignore helperapi
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { SearchSymbolDefinitionsParams } from "@poolsideai/helperapi/schemas";
 import { createVSCodeMock } from "jest-mock-vscode";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as vscode from "vscode";

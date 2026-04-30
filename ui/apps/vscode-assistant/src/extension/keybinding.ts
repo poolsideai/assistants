@@ -16,7 +16,7 @@ export function serialize(platform: Platform, binding?: string) {
         chord
           .split("+") // e.g. [cmd, a]
           .map((key) => keyMap[platform][key] || capitalize(key)) // e.g. [⌘, A]
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          .join(" "), // e.g. "⌘ a"
     )
     .join(", "); // e.g. "⌘ a,  b"
 }

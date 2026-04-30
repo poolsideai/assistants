@@ -1,10 +1,10 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { createContext } from "svelte";
+import { ThemeRepository, type ThemeRepositoryProps } from "./ThemeRepository.svelte";
+
+const [getThemeContext, setContext] = createContext<ThemeRepository>();
+
+export function setThemeContext(props?: ThemeRepositoryProps) {
+  return setContext(new ThemeRepository(props));
+}
+
+export { getThemeContext };

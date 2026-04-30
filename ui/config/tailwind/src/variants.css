@@ -1,66 +1,66 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+@custom-variant p3 (@media (color-gamut: p3));
+@custom-variant dark (&:where(.psx-dark, .vscode-dark, .psx-dark *, .vscode-dark *));
+
+@custom-variant disabled (&:disabled, &[data-disabled]);
+@custom-variant read-only (&:read-only, &[data-readonly]);
+
+@custom-variant ui-selected (&[data-selected]);
+
+@custom-variant ui-state-closed (&:where([data-state~="closed"]));
+@custom-variant ui-state-open (&:where([data-state~="open"]));
+
+@custom-variant ui-state-checked (&:where([data-state~="checked"]));
+@custom-variant ui-state-unchecked (&:where([data-state~="unchecked"]));
+@custom-variant ui-state-indeterminate (&:where([data-state~="indeterminate"]));
+
+@custom-variant ui-orientation-horizontal (&:where([data-orientation~="horizontal"]));
+@custom-variant ui-orientation-vertical (&:where([data-orientation~="vertical"]));
+
+@layer theme {
+  :root,
+  :host {
+    container-name: prominence size;
+    --prominence: standard;
+    --size: md;
+  }
+
+  [data-prominence] {
+    container-name: prominence;
+  }
+
+  [data-size] {
+    container-name: size;
+  }
+
+  [data-prominence][data-size] {
+    container-name: prominence size;
+  }
+
+  [data-prominence="standard"] {
+    --prominence: standard;
+  }
+
+  [data-prominence="increased"] {
+    --prominence: increased;
+  }
+
+  [data-size="xs"] {
+    --size: xs;
+  }
+
+  [data-size="sm"] {
+    --size: sm;
+  }
+
+  [data-size="md"] {
+    --size: md;
+  }
+
+  [data-size="lg"] {
+    --size: lg;
+  }
+}
+
 /*
 Safari 17 lacks container style queries, so a descendant without its own
 data-prominence/data-size cannot read the inherited --prominence/--size value.
@@ -82,52 +82,52 @@ container-query behaviour:
 Only :where()/:not() with combinators are used, supported since Safari 14.
 */
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+@custom-variant ui-standard {
+  &[data-prominence="standard"],
+  &:where([data-prominence="increased"]) {
+    @slot;
+  }
+
   /* Lowest prominence threshold: applies to every descendant without its own
      data-prominence (root default is standard; an increased context still gets
      the standard baseline, then ui-increased overrides by source order). */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  &:not([data-prominence]) {
     @slot;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+}
+
+@custom-variant ui-increased {
+  &[data-prominence="increased"] {
+    @slot;
+  }
+
   /* Nearest data-prominence ancestor is increased. */
   &:not([data-prominence]):where([data-prominence="increased"] *):not(
       :where([data-prominence="increased"] [data-prominence] *)
     ) {
     @slot;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+}
+
+@custom-variant ui-xs {
+  &[data-size="xs"],
+  &:where([data-size="sm"], [data-size="md"], [data-size="lg"]) {
+    @slot;
+  }
+
   /* Lowest size threshold: applies to every descendant without its own
      data-size (xs ≤ every size, and the root default md ≥ xs). */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  &:not([data-size]) {
     @slot;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+}
+
+@custom-variant ui-sm {
+  &[data-size="sm"],
+  &:where([data-size="md"], [data-size="lg"]) {
+    @slot;
+  }
+
   /* Nearest data-size ancestor is sm, md or lg, or there is none (default md).
      Each clause means "nearest data-size ancestor has this value"; see header. */
   &:not([data-size]):where([data-size="sm"] *):not(:where([data-size="sm"] [data-size] *)),
@@ -135,31 +135,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   &:not([data-size]):where([data-size="lg"] *):not(:where([data-size="lg"] [data-size] *)),
   &:not([data-size]):not(:where([data-size] *)) {
     @slot;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+}
+
+@custom-variant ui-md {
+  &[data-size="md"],
+  &:where([data-size="lg"]) {
+    @slot;
+  }
+
   /* Nearest data-size ancestor is md or lg, or there is none (default md). */
   &:not([data-size]):where([data-size="md"] *):not(:where([data-size="md"] [data-size] *)),
   &:not([data-size]):where([data-size="lg"] *):not(:where([data-size="lg"] [data-size] *)),
   &:not([data-size]):not(:where([data-size] *)) {
     @slot;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+}
+
+@custom-variant ui-lg {
+  &[data-size="lg"] {
+    @slot;
+  }
+
   /* Nearest data-size ancestor is lg (md is the default, so no no-ancestor
      branch — the default never reaches the lg threshold). */
   &:not([data-size]):where([data-size="lg"] *):not(:where([data-size="lg"] [data-size] *)) {
     @slot;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+}

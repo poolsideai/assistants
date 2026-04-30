@@ -9,10 +9,10 @@ describe("_getValidHelperTarget", () => {
 
   it("throws errors on unsupported platforms", () => {
     expect(() => _getValidHelperTarget("unknown" as any, "x64")).toThrow(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "Unsupported platform/architecture: unknown/x64",
     );
     expect(() => _getValidHelperTarget("win32", "unknown")).toThrow(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "Unsupported platform/architecture: win32/unknown",
     );
   });
 });

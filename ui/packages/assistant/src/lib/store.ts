@@ -6,32 +6,32 @@
 import type { ColorTheme, FileIconTheme } from "@poolsideai/components/providers";
 import { normalize } from "@poolsideai/lib/path";
 import type { Configuration, Keybindings, Language, WorkspaceFolder } from "@poolsideai/rpc";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { type Updater, writable, type Writable } from "svelte/store";
+
+export const DEFAULT_URI = "https://api.poolsi.de";
+
+export interface Capabilities {
+  header: boolean;
+  fileContext: boolean;
+  customUI?: boolean;
+  hostClipboardWrite?: boolean;
+  runTerminalCommands?: boolean;
   terminalPanel?: boolean;
   openWorkspace?: boolean;
   addFolderToWorkspace?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+export interface Environment {
+  assistantEnv: "development" | "test" | "production";
+  assistantHost: string;
+  assistantProduct?: string;
+  assistantHostVersion: string;
+  assistantVersion: string;
+  operatingSystem?: string;
   desktopInstance?: DesktopInstanceInfo;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  capabilities: Capabilities;
+}
+
 export interface DesktopInstanceInfo {
   worktreeName?: string;
   folderName?: string;
@@ -64,43 +64,43 @@ type AuthManagedInitialState = PoolsideInitialState & {
   [key: string]: unknown;
 };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const initialAppState = {
+  userSettings: {
+    uri: DEFAULT_URI,
+    themeOverride: null,
+    wrapLines: false,
+    showMermaidDiagrams: false,
+    renderScan: false,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     boolFeatures: {},
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } as Configuration,
+  environment: {
+    assistantEnv: "development",
+    assistantHost: "",
+    assistantHostVersion: "",
+    assistantVersion: "",
+    capabilities: {},
+  } as Environment,
+  languages: [] as Language[],
+  keybindings: {} as Keybindings,
+  workspaces: [] as WorkspaceFolder[],
   homeDirectory: "",
   // Fallback cwd when no folder is open. Set by the host (e.g. VS Code
   // extension resolves $HOME). Empty in environments without a host.
   defaultCwd: "",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  isAgenticMode: false,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   ...stripAuthFields(globalThis.POOLSIDE_INITIAL_STATE),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+};
+
+export type AppState = typeof initialAppState;
+export type AppStore = Writable<AppState>;
+
+export const appState = writable(initialAppState);
+
 // Resolves the cwd for new ACP sessions and history refreshes. Prefers the
 // first open workspace folder, then the host-provided default (typically
 // $HOME), then "/" as a last resort.
@@ -108,11 +108,11 @@ export function resolveSessionCwd(appState: Pick<AppState, "workspaces" | "defau
   return appState.workspaces[0]?.path || appState.defaultCwd || "/";
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type AppStoreUpdates = {
   ensureWorkspaceForCwd: (cwd: string | null | undefined) => Updater<AppState>;
   setInitialState: (initial: PoolsideInitialState) => Updater<AppState>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+};
+
 function workspaceName(path: string): string {
   const parts = path.split(/[\\/]/).filter(Boolean);
   return parts.at(-1) ?? path;
@@ -129,7 +129,7 @@ export function workspaceFromCwd(cwd: string | null | undefined): WorkspaceFolde
   };
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export const appStateUpdates = {
   setInitialState: (initial) => ($state) => {
     const nextState = stripAuthFields(initial);
 
@@ -160,8 +160,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       workspaces: [workspace],
     };
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} satisfies AppStoreUpdates;
+
 // to keep appState's runtime fields matching its types, remove all
 // fields now managed by AuthRepository
 function stripAuthFields(

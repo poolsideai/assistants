@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import "@testing-library/jest-dom/vitest";
 
 // jsdom does not implement the Web Animations API, which Svelte's transition
 // engine calls (svelte >= 5.5x) whenever a component uses a `transition:`

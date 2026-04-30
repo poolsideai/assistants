@@ -1,24 +1,24 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function findMatchIndices(text: string, term: string) {
+  if (!text) return [];
+  if (!term) return [];
+
+  const termChars = term.toLowerCase().split("");
+  const matchedIndices: number[] = [];
+  let textIndex = 0;
+  let termIndex = 0;
+
+  while (textIndex < text.length && termIndex < termChars.length) {
+    const textChar = text[textIndex].toLowerCase();
+    if (textChar === termChars[termIndex]) {
+      matchedIndices.push(textIndex);
+      termIndex++;
+    }
+    textIndex++;
+  }
+
+  return matchedIndices;
+}
+
 /**
  * A run of characters that is either matched (and so highlighted) or not.
  *
@@ -53,19 +53,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const _indices = new Set(indices);
+
   const segments: HighlightSegment[] = [];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  for (let i = 0; i < value.length; ++i) {
     const matched = _indices.has(i);
     const last = segments[segments.length - 1];
     if (last !== undefined && last.matched === matched) {
       last.text += value[i];
     } else {
       segments.push({ text: value[i], matched });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -75,4 +75,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   highlightCache.set(cacheKey, segments);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   return segments;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

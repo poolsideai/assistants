@@ -1,4 +1,4 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "extends": "@poolsideai/tsconfig/svelte",
+  "include": ["**/*.js", "**/*.ts", "**/*.svelte"]
 __POOL_SYNTHETIC_IMPORT_BASELINE__

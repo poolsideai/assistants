@@ -1,51 +1,76 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getOrSet } from "@poolsideai/lib/map";
+import { generateId } from "@poolsideai/lib/string";
+import type { BaseEntity, EntityCollection, EntityRelation } from "@poolsideai/lib/types";
 import { TextSelection, type Command, type EditorState } from "prosemirror-state";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getContext, onMount, setContext, tick } from "svelte";
+import { derived, get, writable, type Readable, type Writable } from "svelte/store";
+import type { SetRequired } from "type-fest";
+import type { Destructor } from "../../../actions/floating.js";
+import { createNavigationStore } from "../../../stores/navigation.js";
+import type { Editor } from "../../editor/index.js";
+import {
+  deleteAll,
+  getMatchDecorationState,
+  saveDocMeta,
+  type MatchDecorationRule,
+} from "../../editor/index.js";
+import type { ActionProps } from "../actions/BaseAction.svelte";
+import type { ChipProps } from "../actions/InsertAction.svelte";
 import { markdownParser, markdownSerializer, schema } from "../editor/schema.js";
+import type { ItemProps } from "../list/Item.svelte";
+import type { SectionProps } from "../list/Section.svelte";
+import type { MenuProps, MenuRule } from "../menu/Menu.svelte";
+import type { PromptProps } from "../Prompt.svelte";
+import { filter, type FilterResult } from "../utils/filter.js";
+
+const PROMPT_KEY = Symbol("prompt");
+const MENUS_KEY = Symbol("menus");
+const ITEMS_KEY = Symbol("items");
+const ACTIONS_KEY = Symbol("actions");
+const CHIPS_KEY = Symbol("chips");
+
+export type CreateMenuProps = SetRequired<MenuProps, "highlightMatch" | "loop" | "shouldFilter">;
+
+export interface Menu extends BaseEntity<"menu">, CreateMenuProps {}
+
+export interface Section extends BaseEntity<"section">, SectionProps {}
+
+export interface Item extends BaseEntity<"item">, ItemProps {
+  sectionId: Section["id"];
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export interface Chip extends BaseEntity<"chip">, ChipProps {}
+
 type Menus = EntityCollection<Menu>;
 type Items = EntityCollection<Item>;
+export type Actions = EntityCollection<Action>;
+export type Chips = EntityCollection<Chip>;
+
+export type ItemsBySection = EntityRelation<Section, Item, "many">;
+export type ActionsByItem = EntityRelation<Item, Action, "many">;
+export type ActionByItem = EntityRelation<Item, Action>;
+
+/**
+ * Lookups for quick access
+ */
+type MenusByValue = Map<Required<Menu["value"]>, Menu["id"]>;
+type ChipsByValue = Map<Required<Chip["content"]["value"]>, Chip["id"]>;
+
+export interface PromptContext {
+  /**
+   * Tracks whether an Input Method Editor (IME) composition is in progress.
+   * Used for languages like Chinese, Japanese, or Korean that require multi-stage text input.
+   */
+  imeIsComposing: Writable<boolean>;
+
+  /**
+   * Indicates whether the prompt content has been modified from its original state.
+   */
+  isDirty: Writable<boolean>;
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -58,36 +83,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Determines if the prompt can be submitted in its current state.
+   */
+  canSubmit: Readable<boolean>;
+
   /**
    * Ephemeral text the user may accept into an otherwise empty editor.
    */
@@ -103,11 +103,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
    */
   submitSuggestion: () => boolean;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Clears the prompt editor.
+   */
+  clear: () => void;
+
   /**
    * Replaces the editor content with the given text (parsed as markdown) and focuses the editor.
    */
@@ -129,101 +129,101 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
    */
   onEditorUpdate: (state: EditorState) => void;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Resets the prompt to its initial state.
+   */
+  reset: () => void;
+
+  /**
+   * Interrupts the current operation.
    * @returns true when an interrupt handler was available
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+   */
   interrupt: () => boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  /**
+   * Submits the current prompt content for processing.
+   * @returns true if submission started
+   */
+  submit: (text?: string) => boolean;
+
   /**
    * Submits through the optional alternate submit action.
    * @returns true if alternate submission started
    */
   submitNow: (text?: string) => boolean;
 
+  /**
+   * Reference to the editor instance used by the prompt.
+   */
+  editor: Writable<Editor | undefined>;
+
+  elements: {
+    rootId: string;
+    labelId: string;
+    listId: string;
+    rootEl: Writable<HTMLElement | undefined>;
+    contentEl: Writable<HTMLElement | undefined>;
+    listEl: Writable<HTMLElement | undefined>;
+    submitEl: Writable<HTMLElement | undefined>;
+    inputEl: Writable<HTMLElement | undefined>;
+  };
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+export interface MenusContext {
+  rules: Readable<MatchDecorationRule[]>;
+  search: Writable<string | undefined>;
+  home: Readable<Menu["id"] | undefined>;
+  menu: Readable<Menu | undefined>;
+  depth: Readable<number>;
+
+  register: (id: Menu["id"], menu: CreateMenuProps) => Destructor;
+  get: (value: Menu["value"]) => Menu | undefined;
+  has: (id: Menu["id"]) => boolean;
+  open: (id: Menu["id"]) => void;
   push: (value: Menu["value"], baseQuery?: string) => void;
+  pop: () => void;
+  close: () => void;
+}
+
+export interface ItemsContext {
+  items: Readable<Items>;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  filtered: Readable<FilterResult | undefined>;
+  selected: Readable<Item["id"] | undefined>;
+  selectedAction: Readable<Action | undefined>;
+  register: (id: Item["id"], item: ItemProps, sectionId: Section["id"]) => Destructor;
   updateDisabled: (id: Item["id"], disabled: boolean | undefined) => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  getFirstInteractiveItemElement: () => HTMLElement | undefined;
+  getInteractiveItemElements: () => HTMLElement[];
+  select: (target: Item["id"] | HTMLElement, scrollIntoView?: boolean) => void;
+  selectNext: (scrollIntoView?: boolean) => void;
+  selectPrevious: (scrollIntoView?: boolean) => void;
+  selectFirst: (scrollIntoView?: boolean) => void;
+  selectLast: (scrollIntoView?: boolean) => void;
+}
+
+export interface ActionsContext {
+  actions: Readable<Actions>;
+  actionByItem: Readable<ActionByItem>;
+  register: (id: Action["id"], action: ActionProps, itemId: Item["id"]) => Destructor;
+}
+
+export interface ChipsContext {
+  register: (id: Chip["id"], chip: ChipProps) => Destructor;
+  get: (id: Chip["id"]) => Chip | undefined;
+  getByValue: (value: Chip["content"]["value"]) => Chip | undefined;
+}
+
 export interface PromptOptions
   extends Omit<PromptProps, "onInterrupt" | "suggestion" | "onSuggestionAccepted"> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  submitDisabled: Readable<boolean | undefined>;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   onInterrupt: Readable<PromptProps["onInterrupt"]>;
   suggestion: Readable<PromptProps["suggestion"]>;
   onSuggestionAccepted: Readable<PromptProps["onSuggestionAccepted"]>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 export function createPrompt({
   value = "",
   submitDisabled,
@@ -235,134 +235,52 @@ export function createPrompt({
   suggestion,
   onSuggestionAccepted,
 }: PromptOptions) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-  /**
-   * The latest query matched by an editor trigger rule (e.g. "model" for
-   * "/model"). Captured when pushing a submenu so continued typing can be
-   * resolved relative to it instead of re-opening the trigger's menu.
-   */
-  let lastMatchQuery: string | undefined;
-  const pushedBaseQueries: string[] = [];
+  const search = writable<string | undefined>();
+  const selectedItem = writable<Item["id"] | undefined>();
+
+  const elements = {
+    rootId: generateId(),
+    listId: generateId(),
+    labelId: generateId(),
+    rootEl: writable(),
+    contentEl: writable(),
+    listEl: writable(),
+    inputEl: writable(),
+    submitEl: writable(),
+  } satisfies PromptContext["elements"];
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    search.set(undefined);
+    selectedItem.set(undefined);
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    const $editor = get(prompt.editor);
+    const $menu = get(menu);
+    if (!$editor || !$menu) return;
+
+    $menu.rules?.forEach(({ trigger, behavior }) => {
+      if (trigger) {
+        $editor.executeCommand(insertTrigger(trigger, behavior));
+        return;
+      }
+    });
+  };
+
+  const navigation = createNavigationStore<Menu["id"]>([], {
+    onNavigate,
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  const menus = writable<Menus>(new Map());
+  const menusByValue = writable<MenusByValue>(new Map());
+  const items = writable<Items>(new Map());
+  const actions = writable<Actions>(new Map());
+  const chips = writable<Chips>(new Map());
+  const chipsByValue = writable<ChipsByValue>(new Map());
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -387,6 +305,88 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const { onMount: altKeyOnMount, isAltKeyPressed } = createAltKeyStore();
+
+  onMount(altKeyOnMount);
+
+  const actionByItem = derived(
+    [actionsByItem, isAltKeyPressed],
+    ([$actionsByItem, $isAltKeyPressed]) => {
+      const results: ActionByItem = new Map();
+
+      let actionId: Action["id"] | undefined;
+      for (const [item, actions] of $actionsByItem) {
+        if (actions.size > 1 && $isAltKeyPressed) {
+          const [, secondary] = actions.values();
+          actionId = secondary;
+        } else {
+          const [primary] = actions.values();
+          actionId = primary;
+        }
+
+        results.set(item, actionId);
+      }
+
+      return results;
+    },
+  );
+
+  const getMenu: MenusContext["get"] = (value) => {
+    const $menusByValue = get(menusByValue);
+    const id = $menusByValue.get(value);
+    if (!id) return;
+    return get(menus).get(id);
+  };
+
+  const hasMenu: MenusContext["has"] = (id) => {
+    const exists = get(menus).has(id);
+    if (!exists) console.warn(`Menu "${id}" does not exist`);
+    return exists;
+  };
+
+  const menu = derived([navigation.current, menus], ([$current, $menus]) =>
+    $current ? $menus.get($current) : undefined,
+  );
+
+  /**
+   * The latest query matched by an editor trigger rule (e.g. "model" for
+   * "/model"). Captured when pushing a submenu so continued typing can be
+   * resolved relative to it instead of re-opening the trigger's menu.
+   */
+  let lastMatchQuery: string | undefined;
+  const pushedBaseQueries: string[] = [];
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    menu,
+    rules: derived(menus, ($menus) => {
+      const menusToCheck: Menu[] = [];
+      const $menu = get(menu);
+
+      // first check the current menu
+      if ($menu) menusToCheck.push($menu);
+
+      // then all other menus
+      for (const [id, menu] of $menus) {
+        if (id !== $menu?.id) {
+          menusToCheck.push(menu);
+        }
+      }
+
+      const rules: MatchDecorationRule[] = [];
+      menusToCheck.forEach((menu) => {
+        menu.rules?.forEach(({ triggerRegExp, queryRegExp, attrs }) => {
+          rules.push({
+            triggerRegExp,
+            queryRegExp,
+            attrs,
             shouldMatch: ({ query }) => {
               // A pushed submenu deliberately keeps matching after its
               // completion space. Whitespace ends every other menu match
@@ -394,7 +394,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
               const base = pushedBaseQueries.at(-1);
               return !/\s/.test(query) || (base !== undefined && query.startsWith(base));
             },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            onMatch: (params) => {
               lastMatchQuery = params.query;
 
               // While a pushed submenu is open (e.g. the model list pushed
@@ -407,96 +407,96 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 return;
               }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              open(menu.id);
+              search.set(params.query);
+            },
             onEnd: () => {
               lastMatchQuery = undefined;
               close();
             },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          });
+        });
+      });
+
+      return rules;
+    }),
+    depth: navigation.depth,
     close: () => {
       pushedBaseQueries.length = 0;
       navigation.clear();
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    pop: () => {
       pushedBaseQueries.pop();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      navigation.pop();
+    },
+    open: (id) => {
+      if (hasMenu(id) && id !== get(menu)?.id) {
         pushedBaseQueries.length = 0;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        navigation.replace(id);
+      }
+    },
     push: (value, baseQuery) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const target = getMenu(value);
+      if (!target) return;
       pushedBaseQueries.push(baseQuery ?? lastMatchQuery ?? "");
+      navigation.push(target.id);
+    },
+    search,
+    home: derived(menus, ($menus) => $menus.keys().next().value),
+    register: (id, { value, ...menu }) => {
+      menus.update(($menus) => $menus.set(id, { id, value, ...menu }));
+      if (value) {
+        menusByValue.update(($menus) => $menus.set(value, id));
+      }
+
+      return () => {
+        menus.update(($menus) => {
+          $menus.delete(id);
+          return $menus;
+        });
+
+        if (value) {
+          menusByValue.update(($menus) => {
+            $menus.delete(value);
+            return $menus;
+          });
+        }
+      };
+    },
+    get: getMenu,
+    has: hasMenu,
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const { select, getInteractiveItemElements } = setContext<ItemsContext>(ITEMS_KEY, {
+    items,
+    itemsBySection,
+    selected: selectedItem,
+    selectedAction: derived(
       [selectedItem, actionByItem, actions, items],
       ([$selectedItem, $actionByItem, $actions, $items]) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (!$selectedItem) return;
         const item = $items.get($selectedItem);
         if (item?.disabled) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        const id = $actionByItem.get($selectedItem);
+        if (!id) return;
+        return $actions.get(id);
+      },
+    ),
     filtered: derived([search, items, menu], ([$search, $items, $menu], set) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      tick().then(() => {
+        if (!$search || !$menu?.shouldFilter) {
+          set(undefined);
+          return;
+        }
+
+        const targets = Array.from($items.values());
+        const filtered = filter($search, targets, $menu.filterOptions);
+
+        set(filtered);
+      });
+    }),
     updateDisabled: (id, disabled) => {
       items.update(($items) => {
         const item = $items.get(id);
@@ -505,164 +505,164 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       });
     },
 
+    register: (id, item, sectionId) => {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+
+      return () => {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      };
+    },
+
+    getFirstInteractiveItemElement: (container?: HTMLElement) => {
+      const element = container ?? get(elements.listEl);
+      if (!element) return;
+
+      return (
+        element.querySelector<HTMLElement>('[data-prompt-item]:not([aria-disabled="true"]') ??
+        undefined
+      );
+    },
+
+    getInteractiveItemElements: (container?: HTMLElement) => {
+      const element = container ?? get(elements.listEl);
+      if (!element) return [];
+
       // While filtering, items are ranked visually with a score-based flex
       // `order`, so DOM order no longer matches what the user sees — navigate
       // and select in visual order.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return Array.from(
+        element.querySelectorAll<HTMLElement>('[data-prompt-item]:not([aria-disabled="true"]'),
       ).sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+
+    select: (target, scrollIntoView = true) => {
+      const id = target instanceof HTMLElement ? (target.id as Item["id"]) : target;
+
+      if (id !== get(selectedItem)) {
+        selectedItem.set(id);
+
+        if (scrollIntoView) {
           const element = target instanceof HTMLElement ? target : document.getElementById(target);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          if (!element) return;
+
+          element.scrollIntoView({ block: "nearest" });
+        }
+      }
+    },
+
+    selectNext: (scrollIntoView) => {
+      const $menu = get(menu);
+
+      if (!$menu) return;
+
+      const $selectedItem = get(selectedItem);
+
+      const elements = getInteractiveItemElements();
+      const currentIndex = elements.findIndex((item) => item.id === $selectedItem);
+
+      let nextIndex = currentIndex + 1;
+
+      if ($menu.loop) {
+        if (nextIndex < 0) {
+          nextIndex = elements.length - 1;
+        } else if (nextIndex === elements.length) {
+          nextIndex = 0;
+        }
+      }
+
+      select(elements[nextIndex], scrollIntoView);
+    },
+
+    selectPrevious: (scrollIntoView) => {
+      const $menu = get(menu);
+      if (!$menu) return;
+
+      const $selectedItem = get(selectedItem);
+
+      const elements = getInteractiveItemElements();
+      const currentIndex = elements.findIndex((item) => item.id === $selectedItem);
+
+      let prevIndex = currentIndex - 1;
+
+      if ($menu.loop) {
+        if (prevIndex < 0) {
+          prevIndex = elements.length - 1;
+        } else if (prevIndex >= elements.length) {
+          prevIndex = 0;
+        }
+      }
+
+      select(elements[prevIndex], scrollIntoView);
+    },
+
+    selectFirst: (scrollIntoView) => {
+      const elements = getInteractiveItemElements();
+      if (!elements.length) return;
+      select(elements[0], scrollIntoView);
+    },
+
+    selectLast: (scrollIntoView) => {
+      const elements = getInteractiveItemElements();
+      if (!elements.length) return;
+      select(elements[elements.length - 1], scrollIntoView);
+    },
+  });
+
+  setContext<ActionsContext>(ACTIONS_KEY, {
+    actions,
+    actionByItem,
+    register: (id, action, itemId) => {
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+      return () => {
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+      };
+    },
+  });
+
+  setContext<ChipsContext>(CHIPS_KEY, {
+    register: (id, { content, onInsert, onRemove }) => {
+      chips.update(($chips) =>
+        $chips.set(id, {
+          id,
+          content,
+          onInsert,
+          onRemove,
+        }),
+      );
+
+      chipsByValue.update(($chipsByValue) => $chipsByValue.set(content.value, id));
+
+      return () => {
+        chips.update(($chips) => {
+          $chips.delete(id);
+          return $chips;
+        });
+        chipsByValue.update(($chipsByValue) => {
+          $chipsByValue.delete(content.value);
+          return $chipsByValue;
+        });
+      };
+    },
+    get: (id) => get(chips).get(id),
+    getByValue: (value) => {
+      const $chipsByValue = get(chipsByValue);
+      const id = $chipsByValue.get(value);
+      if (!id) return;
+      return get(chips).get(id);
+    },
+  });
+
+  const imeIsComposing = writable(false);
+  const isDirty = writable(false);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   let currentValue = value;
   let suppressValueChange = false;
@@ -702,7 +702,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     currentValue = nextValue;
     onValueChange?.(nextValue);
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   function availableSuggestion(): { editor: Editor; text: string } | undefined {
     const text = get(suggestion);
     const $editor = get(prompt.editor);
@@ -741,13 +741,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   // inherently commits or cancels a pending composition, so disabling it here
   // would only leave the button stuck when the composing flag goes stale
   // (e.g. macOS predictive text at the end of the prompt, PE-2456).
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const canSubmit = derived(
     [isDirty, menu, submitDisabled],
     ([$isDirty, $menu, $submitDisabled]) => {
       return $isDirty && !$menu && !$submitDisabled;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+  );
+
   function submitTo(
     callback: ((text: string) => void) | undefined,
     text?: string,
@@ -786,23 +786,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return submitted;
   }
 
+  const prompt = setContext<PromptContext>(PROMPT_KEY, {
+    editor: writable(),
+    elements,
+    imeIsComposing,
+    isDirty,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    canSubmit,
     suggestion,
     acceptSuggestion,
     submitSuggestion,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    clear: () => {
+      const $editor = get(prompt.editor);
+      if (!$editor) return;
+      $editor.executeCommand(deleteAll);
+    },
     restore: (text: string) => setValue(text, { focus: true }),
     setValue,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -812,30 +812,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     onEditorUpdate,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    reset: () => {
+      prompt.clear();
+
+      chips.update(($chips) => {
+        $chips.forEach((chip) => chip.onRemove?.(chip.content.value));
+        $chips.clear();
+        return $chips;
+      });
+
+      chipsByValue.update(($chipsByValue) => {
+        $chipsByValue.clear();
+        return $chipsByValue;
+      });
+    },
+    interrupt: () => {
       const handler = get(onInterrupt);
       if (!handler) return false;
       handler();
       return true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
     submit: (text) => submitTo(onSubmit, text),
     submitNow: (text) => (onSubmitNow ? submitTo(onSubmitNow, text) : false),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
   onMount(() =>
     prompt.editor.subscribe(($editor) => {
       if (!$editor) return;
@@ -843,81 +843,81 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }),
   );
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-  const onMount = () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return prompt;
+}
+
+export function getPrompt() {
+  return getContext<PromptContext>(PROMPT_KEY);
+}
+
+export function getMenus() {
+  return getContext<MenusContext>(MENUS_KEY);
+}
+
+export function getItems() {
+  return getContext<ItemsContext>(ITEMS_KEY);
+}
+
+export function getActions() {
+  return getContext<ActionsContext>(ACTIONS_KEY);
+}
+
+export function getChips() {
+  return getContext<ChipsContext>(CHIPS_KEY);
+}
+
+/**
+ * TODO: refactor into keyboard store with register shortcut features
+ */
+function createAltKeyStore() {
+  const isAltKeyPressed = writable(false);
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Alt") isAltKeyPressed.set(true);
   };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const handleKeyUp = (e: KeyboardEvent) => {
+    if (e.key === "Alt") isAltKeyPressed.set(false);
+  };
+
+  const handleBlur = () => {
+    isAltKeyPressed.set(false);
+  };
+
+  const onMount = () => {
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("blur", handleBlur);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", handleBlur);
+    };
+  };
+
   return { isAltKeyPressed, onMount };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+function insertTrigger(trigger: string, behavior: MenuRule["behavior"]): Command {
+  return (state, dispatch, view) => {
+    const decoration = getMatchDecorationState(state);
+    const { tr } = state;
+
+    if (behavior === "always" || (behavior === "when-focused" && view?.hasFocus())) {
+      if (decoration?.status === "match") {
+        tr.insertText(trigger, decoration.range.from, decoration.range.to);
+      } else {
+        tr.insertText(trigger);
+      }
+
+      dispatch?.(tr);
+
+      if (behavior === "always") {
+        view?.focus();
+      }
+    }
+
+    return true;
+  };
+}

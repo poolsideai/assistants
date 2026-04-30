@@ -1,7 +1,7 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import type { Manifest, ManifestChunk } from "vite";
+import * as vscode from "vscode";
 import { getPoolsideConfigurationSection } from "../api/configuration";
 import { getExtensionIdentity } from "../extensionIdentity";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -22,51 +22,51 @@ function getReleaseManifest(context: vscode.ExtensionContext): Promise<Manifest>
   }
   return pending;
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+interface InitialState {
+  key: string;
+  value: any;
+}
+
+function getImportedChunks(manifest: Manifest, chunk: ManifestChunk) {
+  const seen = new Set<string>();
+
+  function importedChunks(chunk: ManifestChunk) {
+    const chunks: ManifestChunk[] = [];
+    for (const file of chunk.imports ?? []) {
+      const importee = manifest[file];
+      if (seen.has(file)) {
+        continue;
+      }
+      seen.add(file);
+
+      chunks.push(...importedChunks(importee));
+      chunks.push(importee);
+    }
+
+    return chunks;
+  }
+
+  return importedChunks(chunk);
+}
+
+/**
+ * Generates the HTML source required to render a webview for the given mainFile. Any InitialState
+ * values passed to the initialStates parameter will be rendered into the global scope under the
+ * provided key.
+ */
+export async function getWebviewHtml(
+  system: System,
+  webview: vscode.Webview,
   entry: "assistant" | "acp-chat" | "tasks",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  initialStates: InitialState[] = [],
+) {
+  let baseUri: vscode.Uri;
+  let head = "";
+  let src: string;
+  let riveUri: string;
+  let riveThinUri: string;
+  let logoUri: string;
   let logoFaceUri: string;
   const identity = getExtensionIdentity();
   const production = system.context.extensionMode === vscode.ExtensionMode.Production;
@@ -78,73 +78,73 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       ? undefined
       : vscode.env.asExternalUri(vscode.Uri.parse(`http://localhost:${devPort}/`)),
   ]);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const editorConfig = vscode.workspace.getConfiguration("editor");
   const poolsideConfig = getPoolsideConfigurationSection();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const customCodeFontSize = poolsideConfig.get<number>("codeFontSize") ?? 0;
+  const editorFontSize =
     customCodeFontSize > 0 ? customCodeFontSize : (editorConfig.get<number>("fontSize") ?? 14);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  let lineHeight = editorConfig.get<number>("lineHeight") ?? 0;
+
+  if (lineHeight === 0) {
+    // Default to 1.5x font size
+    lineHeight = Math.round(editorFontSize * 1.5);
+  } else if (lineHeight > 0 && lineHeight < 8) {
+    // Use as multiplier if less than 8
+    lineHeight = Math.round(editorFontSize * lineHeight);
+  }
+  const editorLineHeight = lineHeight;
+
   if (manifest) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const entryChunk = manifest[`src/webview/${entry}.main.ts`];
+    const importedChunks = getImportedChunks(manifest, entryChunk);
+    const importedCssFiles = new Set(importedChunks.flatMap((chunk) => chunk.css || []));
+
+    function createLinkTag<R extends string>(rel: R, href: string) {
+      return `<link rel="${rel}" href="${href}" />` as const;
+    }
+
+    const entryStylesheets = (entryChunk.css ?? []).map((css) => createLinkTag("stylesheet", css));
+    const importedStylesheets = Array.from(importedCssFiles).map((css) =>
+      createLinkTag("stylesheet", css),
+    );
+    const preloads = importedChunks.map((chunk) => createLinkTag("modulepreload", chunk.file));
+
+    baseUri = webview.asWebviewUri(vscode.Uri.joinPath(system.context.extensionUri, "dist", "/"));
+    head = [...entryStylesheets, ...importedStylesheets, ...preloads].join("\n");
+    src = entryChunk.file;
+    riveUri = "resources/roundel-spinner.riv";
+    riveThinUri = "resources/roundel-spinner-thin.riv";
+    logoUri = "resources/poolside-logo.glb";
     logoFaceUri = "resources/poolside-logo-face.glb";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } else {
+    // Convert local Vite server URL to externally accessible URL for compatibility with remote port
+    // forwarding used for remote tunnel access
     if (!devBaseUri) throw new Error("Missing webview asset base URI");
     baseUri = devBaseUri;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    src = `/src/webview/${entry}.main.ts`;
+    riveUri = "/roundel-spinner.riv";
+    riveThinUri = "/roundel-spinner-thin.riv";
+    logoUri = "/poolside-logo.glb";
     logoFaceUri = "/poolside-logo-face.glb";
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return `<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="${baseUri.toString()}">
+    ${head}
+    <style type="text/css" class="editor-config">
+      body {
+        --editor-font-size: ${editorFontSize}px;
+        --editor-line-height: ${editorLineHeight}px;
+        min-height: 100vh;
+      }
       .poolside-dev-badge {
         position: fixed;
         top: 8px;
@@ -158,69 +158,69 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         letter-spacing: 0;
         pointer-events: none;
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </style>
+  </head>
+  <body>
     ${identity.isDev ? '<div class="poolside-dev-badge">DEV</div>' : ""}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div id="app"></div>
+    <script>
+      (function() {
+        function decode(base64) {
+          const binary = atob(base64);
+          const bytes = Uint8Array.from(binary, (m) => m.codePointAt(0));
+          const json = new TextDecoder("utf-8").decode(bytes);
+          return JSON.parse(json);
+        }
+
         this.POOLSIDE_INITIAL_STATE = decode("${encode(initialAppState)}");
+        ${initialStates.map((s) => `this.${s.key} = decode("${encode(JSON.stringify(s.value))}");`).join("\n")};
+      }).call(this);
+
+      // Add message handler for updateEditorConfig command
+      window.addEventListener('message', event => {
+        const message = event.data;
+        if (message.command === 'updateEditorConfig') {
+          document.body.style.setProperty('--editor-font-size', message.fontSize + 'px');
+          document.body.style.setProperty('--editor-line-height', message.lineHeight + 'px');
+        }
+      });
+
+        window.riveUri = "${riveUri}";
+        window.riveThinUri = "${riveThinUri}";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        window.logoUri = "${logoUri}";
         window.logoFaceUri = "${logoFaceUri}";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </script>
+    <script type="module" src="${src}"></script>
+  </body>
+</html>`;
+}
+
+function encode(data: string) {
   return Buffer.from(data, "utf8").toString("base64");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+export async function updateEditorConfig(system: System, webview: vscode.Webview) {
+  const editorConfig = vscode.workspace.getConfiguration("editor");
   const poolsideConfig = getPoolsideConfigurationSection();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const customCodeFontSize = poolsideConfig.get<number>("codeFontSize") ?? 0;
+  const editorFontSize =
     customCodeFontSize > 0 ? customCodeFontSize : (editorConfig.get<number>("fontSize") ?? 14);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  let lineHeight = editorConfig.get<number>("lineHeight") ?? 0;
+
+  if (lineHeight === 0) {
+    // Default to 1.5x font size
+    lineHeight = Math.round(editorFontSize * 1.5);
+  } else if (lineHeight > 0 && lineHeight < 8) {
+    // Use as multiplier if less than 8
+    lineHeight = Math.round(editorFontSize * lineHeight);
+  }
+  const editorLineHeight = lineHeight;
+
+  webview.postMessage({
+    command: "updateEditorConfig",
+    fontSize: editorFontSize,
+    lineHeight: editorLineHeight,
+  });
+}

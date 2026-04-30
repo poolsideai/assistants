@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { mergeConfig, type UserConfig } from "vite";
+
+export const mergeConfigs = (...configs: [UserConfig, UserConfig, ...UserConfig[]]) =>
+  configs.reduceRight((acc, config) => mergeConfig(acc, config));

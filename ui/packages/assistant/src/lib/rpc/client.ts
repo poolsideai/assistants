@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { HostClient } from "@poolsideai/rpc";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 type RawJsonRPC = Pick<HostClient, "jsonrpc" | "jsonrpcNotify">;

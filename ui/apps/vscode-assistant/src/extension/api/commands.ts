@@ -1,8 +1,8 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ArrayTail } from "type-fest";
+import vscode from "vscode";
 import { POOLSIDE } from "../extensionIdentity";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { PoolsideCommand, PoolsideContextKey, PoolsideContextKeys } from "../types/manifest";
+
 export type PoolsideCommandName = PoolsideCommand extends `poolside.${infer Command}`
   ? Command
   : never;
@@ -11,23 +11,23 @@ export function poolsideCommand(command: PoolsideCommandName): string {
   return `${POOLSIDE}.${command}`;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function registerCommand(
   command: PoolsideCommandName,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ...args: ArrayTail<Parameters<typeof vscode.commands.registerCommand>>
+) {
   return vscode.commands.registerCommand(poolsideCommand(command), ...args);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+export function executeCommand(
   command: PoolsideCommandName,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ...args: ArrayTail<Parameters<typeof vscode.commands.executeCommand>>
+) {
   return vscode.commands.executeCommand(poolsideCommand(command), ...args);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 export function executeSetContextCommand<K extends PoolsideContextKey | string>(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  key: K,
   value: K extends PoolsideContextKey ? PoolsideContextKeys[K] : unknown,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+) {
+  return vscode.commands.executeCommand("setContext", key, value);
+}

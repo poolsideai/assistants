@@ -1,123 +1,123 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+@utility nubbin {
   /* The outer silhouette (tip + right edge + top curve) matches the original
      tail design; the inner edge is filled all the way to the bottom-left of
      the viewBox so the tail solidly overlaps the bubble's rounded corner
      instead of relying on exact tangency (which left a hairline gap). */
   mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="9.27824727px" height="11.9929812px" viewBox="0 0 9.27824727 11.9929812"><path d="M8.57200196,0.0598078007 C8.78740196,-0.124572199 9.16990196,0.152484801 9.06070196,0.414231801 C7.86501585,3.28112192 7.91620405,8.27970274 9.27824727,11.9929812 L0,11.9929812 L0,3.49763732 C0.0808101114,3.50982125 0.190575218,3.53006181 0.335088143,3.56237387 C3.07835424,4.17574854 6.34549703,1.96489272 8.57200196,0.0598078007 Z" fill="black"></path></svg>');
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  mask-repeat: no-repeat;
+  mask-position: top right;
+  transform: translate(-1px, 1px);
+}
+
+@utility roundel-mask {
+  mask-image: conic-gradient(
+    from -75.32deg at 27.33% 47.09%,
+    #000000 0deg,
+    #000000 222.79deg,
+    rgba(0, 0, 0, 0) 360deg
+  );
+}
+
+@utility zigzag-web {
+  --height: 9px;
+  --halfheight: calc(var(--height) / 2);
+  --thickness: 120%;
+  /* increase to make the line thicker */
+  --offset: 2px;
+  --backgroundcolor: var(--color-mono-100);
+  --linecolor: var(--color-mono-300);
+
+  background: var(--backgroundcolor);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--height);
+  z-index: 1;
+
+  &:before,
+  &:after {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+  }
+
+  &:before {
+    height: calc(var(--height) - var(--offset));
+    top: var(--thickness);
+    background:
+      linear-gradient(-135deg, var(--linecolor) var(--halfheight), transparent 0) 0
+        var(--halfheight),
+      linear-gradient(135deg, var(--linecolor) var(--halfheight), transparent 0) 0 var(--halfheight);
+    background-position: top left;
+    background-repeat: repeat-x;
+    background-size: var(--height) var(--height);
+  }
+
+  &:after {
+    height: var(--height);
+    top: 100%;
+    background:
+      linear-gradient(-135deg, var(--backgroundcolor) var(--halfheight), transparent 0) 0
+        var(--halfheight),
+      linear-gradient(135deg, var(--backgroundcolor) var(--halfheight), transparent 0) 0
+        var(--halfheight);
+    background-position: top left;
+    background-repeat: repeat-x;
+    background-size: var(--height) var(--height);
+  }
+}
+
+@utility zigzag {
+  --height: 9px;
+  --halfheight: calc(var(--height) / 2);
+  --thickness: 120%;
+  /* increase to make the line thicker */
+  --offset: 2px;
+  --backgroundcolor: var(--psx-chrome);
+  --linecolor: var(--psx-border);
+
+  background: var(--backgroundcolor);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--height);
+  z-index: 1;
+
+  &:before,
+  &:after {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+  }
+
+  &:before {
+    height: calc(var(--height) - var(--offset));
+    top: var(--thickness);
+    background:
+      linear-gradient(-135deg, var(--linecolor) var(--halfheight), transparent 0) 0
+        var(--halfheight),
+      linear-gradient(135deg, var(--linecolor) var(--halfheight), transparent 0) 0 var(--halfheight);
+    background-position: top left;
+    background-repeat: repeat-x;
+    background-size: var(--height) var(--height);
+  }
+
+  &:after {
+    height: var(--height);
+    top: 100%;
+    background:
+      linear-gradient(-135deg, var(--backgroundcolor) var(--halfheight), transparent 0) 0
+        var(--halfheight),
+      linear-gradient(135deg, var(--backgroundcolor) var(--halfheight), transparent 0) 0
+        var(--halfheight);
+    background-position: top left;
+    background-repeat: repeat-x;
+    background-size: var(--height) var(--height);
+  }
+}

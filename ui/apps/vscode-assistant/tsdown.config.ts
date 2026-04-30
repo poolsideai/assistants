@@ -1,21 +1,21 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { defineConfig } from "tsdown";
+import pkg from "./package.json" with { type: "json" };
+
 export default defineConfig((options) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const dependencies = Object.keys(pkg.dependencies);
+  return {
+    entry: "src/extension/main.ts",
+    format: ["cjs"],
+    outDir: "dist/extension",
+    platform: "node",
     minify: !options.watch,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    shims: true,
+    target: "node18",
     sourcemap: options.watch ? false : "hidden",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    clean: true,
+    copy: { from: "public", to: "dist/resources" },
+    external: ["vscode"],
+    noExternal: (id) => dependencies.some((dep) => id.startsWith(dep)),
     inputOptions(options) {
       const mutableOptions = options as typeof options & {
         define?: Record<string, string>;
@@ -41,5 +41,5 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         },
       };
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  };
+});

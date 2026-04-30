@@ -1,25 +1,25 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import type { Snippet } from "svelte";
   import { getMenus, getPrompt } from "../context/prompt.js";
   import { getMatchDecorationState } from "../../editor/index.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import BaseAction, { type ActionBaseProps } from "./BaseAction.svelte";
+  import { getItem } from "../context/item.js";
+
   export interface PushActionProps extends ActionBaseProps {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    menu: string;
     /** Canonical query to replace an abbreviated trigger match before opening the submenu. */
     completion?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onPush?: () => void;
   }
 
   interface Props extends PushActionProps {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    children?: Snippet;
+  }
+
   let { icon = "arrow-right", menu, completion, onPush, children, ...rest }: Props = $props();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const { disabled } = getItem();
+  const { push } = getMenus();
   const { editor } = getPrompt();
 
   function handlePush(): void {
@@ -47,14 +47,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (!completedMatch) push(menu);
     onPush?.();
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
+<BaseAction
+  prominence={disabled ? undefined : "increased"}
+  {...rest}
+  {icon}
+  type="push"
   onAction={handlePush}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+>
+  {@render children?.()}
+</BaseAction>

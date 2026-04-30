@@ -1,2 +1,2 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { compact } from "./compact.js";
+export { uniqueBy } from "./uniqueBy.js";

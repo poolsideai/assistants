@@ -1,212 +1,212 @@
+{
+  "name": "@poolsideai/components",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "type": "module",
+  "imports": {
+    "#tailwind.css": "./src/lib/components/tailwind.css"
+  },
+  "exports": {
+    ".": {
+      "development": "./src/lib/index.ts",
+      "default": "./dist/index.js"
+    },
     "./assistant-ui": {
       "development": "./src/lib/components/assistant-ui/index.ts",
       "default": "./dist/components/assistant-ui/index.js"
     },
+    "./badge": {
+      "development": "./src/lib/components/badge/index.ts",
+      "default": "./dist/components/badge/index.js"
+    },
+    "./button": {
+      "development": "./src/lib/components/button/index.ts",
+      "default": "./dist/components/button/index.js"
+    },
+    "./boundary": {
+      "development": "./src/lib/components/boundary/index.ts",
+      "svelte": "./dist/components/boundary/index.js",
+      "default": "./dist/components/boundary/index.js"
+    },
+    "./checkbox": {
+      "development": "./src/lib/components/checkbox/index.ts",
+      "default": "./dist/components/checkbox/index.js"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "./clipboard": {
+      "development": "./src/lib/components/clipboard/index.ts",
+      "default": "./dist/components/clipboard/index.js"
+    },
+    "./collapsible": {
+      "development": "./src/lib/components/collapsible/index.ts",
+      "default": "./dist/components/collapsible/index.js"
+    },
+    "./diff": {
+      "development": "./src/lib/components/diff/index.ts",
+      "default": "./dist/components/diff/index.js"
+    },
+    "./editor": {
+      "development": "./src/lib/components/editor/index.ts",
+      "default": "./dist/components/editor/index.js"
+    },
     "./file-diff": {
       "development": "./src/lib/components/file-diff/index.ts",
       "default": "./dist/components/file-diff/index.js"
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "./icon": {
+      "development": "./src/lib/components/icon/index.ts",
+      "default": "./dist/components/icon/index.js"
+    },
     "./interactive-logo": {
       "development": "./src/lib/components/interactive-logo/index.ts",
       "default": "./dist/components/interactive-logo/index.js"
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "./kbd": {
+      "development": "./src/lib/components/kbd/index.ts",
+      "default": "./dist/components/kbd/index.js"
+    },
     "./markdown": {
       "development": "./src/lib/components/markdown/index.ts",
       "default": "./dist/components/markdown/index.js"
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "./prompt": {
+      "development": "./src/lib/components/prompt/index.ts",
+      "default": "./dist/components/prompt/index.js"
+    },
     "./zigzag-error": {
       "development": "./src/lib/components/zigzag-error/index.ts",
       "default": "./dist/components/zigzag-error/index.js"
+    },
+    "./spinner": {
+      "development": "./src/lib/components/spinner/index.ts",
+      "default": "./dist/components/spinner/index.js"
     },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "./tooltip": {
+      "development": "./src/lib/components/tooltip/index.ts",
+      "default": "./dist/components/tooltip/index.js"
+    },
     "./virtual-list": {
       "development": "./src/lib/components/virtual-list/index.ts",
       "svelte": "./dist/components/virtual-list/index.js",
       "default": "./dist/components/virtual-list/index.js"
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "./providers": {
+      "development": "./src/lib/providers/index.ts",
+      "default": "./dist/providers/index.js"
+    },
+    "./storybook": {
+      "development": "./src/lib/storybook/index.ts",
+      "default": "./dist/storybook/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "dist",
+    "!dist/**/*.test.*",
+    "!dist/**/*.stories.*",
+    "!src/lib/**/*.test.*",
+    "!src/lib/**/*.stories.*"
+  ],
+  "scripts": {
     "build": "node scripts/highlight-languages.mjs --check && svelte-package --tsconfig tsconfig.build.json",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "build:storybook": "storybook build --stats-json",
+    "check:format": "prettier . --check --cache --ignore-path ../../.gitignore",
     "check:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' './scripts/**/*.{js,mjs,cjs,ts,tsx,svelte}'",
     "check:types": "svelte-check --tsconfig tsconfig.check.json --fail-on-warnings --compiler-warnings \"state_referenced_locally:ignore,a11y_no_static_element_interactions:ignore\"",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "codegen:types": "tsx scripts/generate-icon-names.ts",
     "fix:format": "prettier . --write --cache --ignore-path ../../.gitignore --list-different",
     "fix:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' './scripts/**/*.{js,mjs,cjs,ts,tsx,svelte}' --fix",
+    "prepare": "turbo codegen:types --output-logs errors-only",
+    "prepare:test:storybook": "playwright install --with-deps",
+    "prepublishOnly": "turbo build",
+    "publish:storybook": "chromatic",
+    "storybook": "storybook dev -p 6007",
+    "test": "vitest run",
+    "test:storybook": "vitest run --project storybook",
+    "test:storybook:watch": "vitest --project storybook",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    "test:watch": "vitest"
+  },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      "prettier --ignore-unknown --write"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "dependencies": {
+    "@floating-ui/dom": "^1.7.4",
+    "@melt-ui/svelte": "catalog:",
     "@pierre/diffs": "^1.2.12",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@poolsideai/diff": "workspace:*",
+    "@poolsideai/lib": "workspace:*",
+    "@poolsideai/tailwind-config": "workspace:*",
+    "bits-ui": "^2.14.4",
     "dompurify": "3.4.12",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "fuzzysort": "^3.1.0",
     "html-entities": "^2.6.0",
     "html-escaper": "^3.0.3",
     "katex": "0.16.22",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "lodash": "catalog:",
     "marked": "^15.0.6",
     "mermaid": "^11.16.0",
     "parse-diff": "^0.11.1",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "prosemirror-codemark": "^0.4.2",
+    "prosemirror-commands": "^1.7.1",
+    "prosemirror-history": "^1.4.1",
+    "prosemirror-inputrules": "^1.5.1",
+    "prosemirror-keymap": "^1.2.3",
+    "prosemirror-markdown": "^1.13.2",
+    "prosemirror-model": "^1.25.4",
+    "prosemirror-state": "^1.4.4",
+    "prosemirror-view": "^1.41.3",
     "shiki": "^4.3.1",
     "svelte-copy": "^2.0.0",
     "svelte-time": "^2.0.2",
     "three": "^0.173.0",
     "type-fest": "catalog:",
     "uuid": "^9.0.1"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  },
+  "devDependencies": {
+    "@chromatic-com/storybook": "catalog:",
     "@poolsideai/eslint-config": "workspace:*",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@poolsideai/prettier-config": "workspace:*",
+    "@poolsideai/storybook-config": "workspace:*",
+    "@poolsideai/svelte-config": "workspace:*",
+    "@poolsideai/tsconfig": "workspace:*",
+    "@poolsideai/vite-config": "workspace:*",
+    "@storybook/addon-a11y": "catalog:",
+    "@storybook/addon-svelte-csf": "catalog:",
+    "@storybook/addon-vitest": "catalog:",
+    "@storybook/svelte-vite": "catalog:",
+    "@sveltejs/package": "catalog:",
     "@testing-library/svelte": "catalog:",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@testing-library/user-event": "^14.6.1",
     "@types/html-escaper": "^3.0.2",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@types/lodash": "catalog:",
     "@types/three": "^0.173.0",
     "@types/uuid": "^9.0.8",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@vitest/browser": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "eslint": "catalog:",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "execa": "catalog:",
     "playwright": "catalog:",
+    "prettier": "catalog:",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "storybook": "catalog:",
+    "svelte-check": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "svelte": "catalog:",
+    "tailwindcss": "catalog:"
+  }
+}

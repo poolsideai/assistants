@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { Configuration } from "@poolsideai/rpc";
 import { getPoolsideConfigurationSection } from "./api/configuration";
 
 /**

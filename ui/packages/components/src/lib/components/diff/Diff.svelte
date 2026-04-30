@@ -1,29 +1,29 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts" module>
   export interface DiffContext extends SetRequired<DiffProps, "newContent" | "oldContent"> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    changes: DiffLinesResult["changes"];
+    stats: DiffLinesResult["stats"];
+  }
+
+  export const [getDiffContext, setDiffContext] = createContext<DiffContext>();
+</script>
+
+<script lang="ts">
+  import type { DiffLinesResult } from "@poolsideai/diff";
+  import { diffLines } from "@poolsideai/diff";
+  import { createContext, type Snippet } from "svelte";
   import type { LiteralUnion, SetRequired } from "type-fest";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   export interface DiffProps {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /**
+     * The original version of the text to compare
+     */
+    oldContent?: string;
+
+    /**
+     * The modified version of the text to compare
+     */
+    newContent?: string;
+
     /**
      * The original content-type
      */
@@ -44,42 +44,42 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
      */
     newFilename?: string;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /**
+     * Whether to ignore case differences when computing the diff.
+     * When enabled, changes in capitalization won't be highlighted as differences.
+     * @default false
+     */
+    ignoreCase?: boolean;
+
+    /**
+     * Weather to ignore leading and trailing whitespace characters when checking if two lines are equal.
+     * @default false
+     */
+    ignoreWhitespace?: boolean;
+
+    /**
+     * Callback fired when the diff is computed.
+     */
+    onDiff?: (diff: DiffLinesResult) => void;
+  }
+
+  type Props = DiffProps & {
+    children?: Snippet<[DiffLinesResult]>;
+  };
+
+  let {
+    children,
+    oldContent = "",
+    newContent = "",
     oldContentType,
     newContentType,
     oldFilename,
     newFilename,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ignoreCase,
+    ignoreWhitespace,
+    onDiff,
+  }: Props = $props();
+
   const diff = $derived.by<DiffLinesResult>(() => {
     if (newContentType === "application/octet-stream") {
       const isNew = !oldFilename;
@@ -96,22 +96,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
 
     return diffLines(oldContent, newContent, {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      ignoreWhitespace,
+      ignoreCase,
     });
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  $effect(() => {
+    onDiff?.(diff);
+  });
+
+  setDiffContext({
+    get newContent() {
+      return newContent;
+    },
+    get oldContent() {
+      return oldContent;
+    },
     get oldContentType() {
       return oldContentType;
     },
@@ -123,17 +123,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     },
     get newFilename() {
       return newFilename;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+    get ignoreWhitespace() {
+      return ignoreWhitespace;
+    },
+    get changes() {
+      return diff.changes;
+    },
+    get stats() {
+      return diff.stats;
+    },
+  });
+</script>
+
+{@render children?.(diff)}

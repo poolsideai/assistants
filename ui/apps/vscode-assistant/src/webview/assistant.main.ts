@@ -6,8 +6,8 @@ globalThis.acquireVsCodeApi = (() => vscodeAPI) as typeof acquireVsCodeApi;
 
 import { messageHandler } from "@estruyf/vscode/dist/client";
 import { SidebarOnlyPanel, init } from "@poolsideai/assistant";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { mount } from "svelte";
+import "./assistant.css";
 
 const targetElement = document.getElementById("app");
 const target = targetElement!;
@@ -16,8 +16,8 @@ init().then(() => {
   mount(SidebarOnlyPanel, {
     target,
     props: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      rpcHostRequestHandler: (method, args) => messageHandler.request(method.toString(), args),
+      rpcWebViewResponseHandler: (_, payload) => messageHandler.send("rpc response", payload),
     },
   });
 });

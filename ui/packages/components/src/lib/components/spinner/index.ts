@@ -1,1 +1,1 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { default as Spinner } from "./Spinner.svelte";

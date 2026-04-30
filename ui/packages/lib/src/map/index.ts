@@ -1,1 +1,1 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { getOrSet } from "./getOrSet.js";

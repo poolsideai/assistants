@@ -1,18 +1,18 @@
+<script lang="ts">
+  import { Collapsible, type CollapsibleContentProps } from "bits-ui";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   type Props = CollapsibleContentProps & {
     /** Disable the height-reading reveal for bodies that mount expensive content. */
     animated?: boolean;
   };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   let { children, animated = true, ...rest }: Props = $props();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
+<Collapsible.Content forceMount {...rest}>
+  {#snippet child({ props, open })}
+    {#if open}
       {#if animated}
         <div {...props} transition:revealTransition>
           {@render children?.()}
@@ -22,6 +22,6 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           {@render children?.()}
         </div>
       {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {/if}
+  {/snippet}
+</Collapsible.Content>

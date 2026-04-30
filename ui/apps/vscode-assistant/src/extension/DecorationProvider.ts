@@ -47,20 +47,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
       const hoverMessage = new vscode.MarkdownString(
         `$(${POOLSIDE}-roundel) Edited by poolside`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        true,
       );
 
       if (ranges.lines.length > 0) {
         editor.setDecorations(
           decoration,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          ranges.lines.map((range) => ({ range, hoverMessage })),
         );
       }
 
       if (ranges.inner.length > 0) {
         editor.setDecorations(
           innerDecoration,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          ranges.inner.map((range) => ({ range })),
         );
       }
     }

@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { TelemetryLogger } from "./telemetry/TelemetryLogger";
 import { AcpChatPanels } from "./views/acpChatPanels";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { Assistant } from "./views/assistant";
 
 export enum ApiProposalStatus {
   unknown,
@@ -19,7 +19,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   constructor(
     readonly context: vscode.ExtensionContext,
     readonly telemetry: TelemetryLogger,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    readonly decorationProvider: DecorationProvider,
   ) {
     this.apiProposalStatus = ApiProposalStatus.unknown;
     this.assistant = Assistant.create(this);

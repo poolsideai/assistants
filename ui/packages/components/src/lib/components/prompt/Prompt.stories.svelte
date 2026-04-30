@@ -1,38 +1,38 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script module lang="ts">
+  import { defineMeta } from "@storybook/addon-svelte-csf";
   import { Root } from "./index.js";
   import { expect, fn, waitFor } from "storybook/test";
   import * as Prompt from "./index.js";
   import { PointerEventsCheckLevel } from "@testing-library/user-event";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const { Story } = defineMeta({
     component: Root,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    args: {
+      onSubmit: fn(),
+    },
+  });
 
   const longLink =
     "https://podium.poolsi.de/dataset_viewer?iceberg_query=SELECT+instance_id,+generated_checkpoint,+raw_output,SUBSTR(trajectory,GREATEST(1,position-400),700)%0A++++AS+incriminating_excerpt,%0Atrajectory%0AFROM+lake.bondi_e0707_quetzal_2_s2_trajectories+WHERE+run_id=8842&offset=0&limit=100&format=json&pretty=true";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
+{#snippet form()}
+  <Prompt.Form.Root>
+    <Prompt.Form.Field.Root>
+      <Prompt.Form.Field.Editor.Root>
         <Prompt.Form.Field.Editor.Suggestion />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <Prompt.Form.Field.Editor.Placeholder>
+          Ask poolside something...
+        </Prompt.Form.Field.Editor.Placeholder>
+      </Prompt.Form.Field.Editor.Root>
+    </Prompt.Form.Field.Root>
 
     <Prompt.Form.Footer>
       <Prompt.Form.Submit />
     </Prompt.Form.Footer>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </Prompt.Form.Root>
+{/snippet}
+
 <Story
   name="Text Entry"
   play={async ({ canvas, userEvent, step, args }) => {
@@ -58,7 +58,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }}
 >
   {@render form()}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</Story>
 
 <Story
   name="Suggested Prompt — Enter"
@@ -316,7 +316,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   </Prompt.Menu.Root>
 {/snippet}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<Story name="Actions">
   {@render form()}
   {@render actionsMenu()}
 </Story>
@@ -410,7 +410,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 >
   {@render form()}
   {@render actionsMenu()}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</Story>
 
 <Story
   name="Push Menu Completion"

@@ -1,2 +1,2 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "../gen/schemas/index.js";
 export * from "./legacy";

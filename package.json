@@ -3,31 +3,31 @@
   "version": "1.0.0",
   "private": true,
   "description": "The pnpm root for the poolside UI monorepo",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "type": "module",
   "scripts": {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "build": "turbo build --affected",
+    "check:format": "turbo check:format --affected --continue",
+    "check:lint": "turbo check:lint --affected",
     "check:lint:ci": "pnpm check:lint:guard && pnpm check:lint",
     "check:lint:guard": "node scripts/ui/check-lint-coverage.mjs",
+    "check:types": "turbo check:types --affected",
+    "codegen": "turbo codegen --affected",
+    "dev": "turbo dev",
+    "fix:format": "turbo fix:format --affected --continue",
+    "fix:lint": "turbo fix:lint --affected",
+    "package": "turbo package --affected",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "test": "turbo test --affected",
+    "test:storybook": "turbo test:storybook --affected",
+    "test:storybook:watch": "turbo test:storybook:watch --affected",
+    "test:unit": "turbo test:unit --affected",
+    "test:unit:watch": "turbo test:unit:watch --affected",
+    "test:watch": "turbo test:watch --affected"
   },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "*.{json,ts,js,mjs,cjs}": [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "prettier --ignore-unknown --write"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   "prettier": "@poolsideai/prettier-config",
@@ -35,12 +35,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@poolsideai/prettier-config": "workspace:*",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "lint-staged": "^16.2.0",
+    "prettier": "catalog:",
     "turbo": "^2.10.5",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "vitest": "catalog:"
+  },
+  "packageManager": "pnpm@10.15.1",
   "pnpm": {
     "overrides": {
       "jsonpath-plus@<10.3.0": ">=10.3.0"

@@ -1,7 +1,7 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type {
   SearchSymbolDefinitionsOutput,
   SearchSymbolDefinitionsParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "@poolsideai/helperapi/schemas";
 import * as vscode from "vscode";
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
