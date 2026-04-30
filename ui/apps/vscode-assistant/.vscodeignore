@@ -1,9 +1,9 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+**
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+!LICENSE
+!readme.md
+!CHANGELOG.md
+!package.json
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 # vsce gives include patterns precedence over excludes. Include runtime files

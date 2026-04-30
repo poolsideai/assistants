@@ -1,33 +1,33 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import "prosemirror-view/style/prosemirror.css";
+  import { type Command, type EditorState } from "prosemirror-state";
   import type { DirectEditorProps } from "prosemirror-view";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { EditorView } from "prosemirror-view";
+  import type { ActionReturn } from "svelte/action";
+  import type { Except } from "type-fest";
+  import { isDocEmpty } from "./utils/isDocEmpty.js";
+
+  export interface EditorProps extends DirectEditorProps {}
+
+  interface Props extends Except<EditorProps, "dispatchTransaction"> {
+    isDefault?: boolean;
+    isComposing?: boolean;
     onUpdate?: (state: EditorState) => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  let {
+    isDefault = $bindable(true),
+    isComposing = $bindable(),
+    state: editorState,
+    attributes,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     onUpdate,
     handleDOMEvents,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ...rest
+  }: Props = $props();
+
+  let view = $state<EditorView>();
+
   // Composition state must be tracked from the DOM events, not only from
   // transaction snapshots: a composition can end without ProseMirror
   // dispatching a transaction (e.g. macOS predictive text cancelled by a
@@ -51,70 +51,70 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     },
   };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  export function executeCommand(command: Command) {
     if (!view) return false;
     return command(view.state, view.dispatch, view);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  export function hasFocus() {
+    return view?.hasFocus() ?? false;
+  }
+
+  export function focus() {
+    view?.focus();
+  }
+
+  const dispatchTransaction: EditorProps["dispatchTransaction"] = (tr) => {
+    if (!view) return;
+    const newState = view.state.apply(tr);
+    view.updateState(newState);
+    isDefault = isDocEmpty(newState);
+    isComposing = view.composing;
     onUpdate?.(newState);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  };
+
+  function editor(node: HTMLElement, initialState: EditorState) {
+    view = new EditorView(
+      { mount: node },
+      {
+        state: initialState,
+        dispatchTransaction,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         handleDOMEvents: { ...handleDOMEvents, ...compositionHandlers },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        ...rest,
+      },
+    );
+
+    return {
+      update: (newState) => {
+        view?.updateState(newState);
+      },
+      destroy: () => {
+        view?.destroy();
+        view = undefined;
+      },
+    } satisfies ActionReturn<EditorState>;
+  }
+
   $effect.pre(() => {
+    if (view && attributes) {
+      view.setProps({ attributes });
+    }
+  });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
+<div use:editor={editorState}></div>
+
+<style>
+  :global {
+    .ProseMirror-selectednode {
+      outline: none !important;
+    }
+  }
+</style>

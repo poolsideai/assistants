@@ -1,80 +1,80 @@
 import { countAttentionConversations, type ACPNavConversation } from "@poolsideai/features/acp/nav";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { AssistantClient } from "@poolsideai/rpc/assistant";
+import EventEmitter from "events";
+import * as vscode from "vscode";
+import { getPoolsideConfig } from "../configuration";
+import { sendActiveFileContext } from "../context";
 import { POOLSIDE } from "../extensionIdentity";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { HostRPCServer } from "../rpc/server";
 import type { System } from "../system";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getWebviewHtml } from "./getWebviewHtml";
+
 const POOLSIDE_WEBVIEW_VIEW_ID = `${POOLSIDE}-webview`;
 const POOLSIDE_WEBVIEW_FOCUS_COMMAND = `${POOLSIDE_WEBVIEW_VIEW_ID}.focus`;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export enum AssistantState {
+  // The webview has not yet been resolved or was disposed
+  UNINITIALIZED = "uninitialized",
+  // The webview is resolved and is initializing but not yet ready for RPC messages
+  INITIALIZING = "initializing",
+  // The webview is ready to receive RPC messages
+  READY = "ready",
+}
+
+/**
+ * Assistant encapsulates the initialization of the poolside assistant webview, mediates RPC
+ * communication and keeps track of the state.
  *
  * Always displayed in the sidebar as a WebviewView.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ */
+export class Assistant implements vscode.WebviewViewProvider {
+  static instance: Assistant;
+
+  /**
+   * create initializes the Assistant instance ensuring that it is a singleton
+   */
+  static create(system: System) {
+    if (this.instance) throw new Error("assistant is already initialized");
+
+    this.instance = new Assistant(system);
+
+    system.context.subscriptions.push(
       vscode.window.registerWebviewViewProvider(POOLSIDE_WEBVIEW_VIEW_ID, this.instance, {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        webviewOptions: { retainContextWhenHidden: true },
+      }),
+    );
+
+    return this.instance;
+  }
+
+  rpc: AssistantClient;
+  state: AssistantState = AssistantState.UNINITIALIZED;
 
   webviewView: vscode.WebviewView | undefined;
 
   private rpcListenerDisposable: vscode.Disposable | undefined;
   private sidebarVisibilityDisposable: vscode.Disposable | undefined;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private events: EventEmitter;
   private attentionCount = 0;
+  // queue of callbacks to call when assistant becomes ready
+  private onReady: Array<() => void> = [];
+
+  constructor(readonly system: System) {
+    this.events = new EventEmitter();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.onDidChangeState((to, from) => {
+      system.telemetry.log("assistant changed state", { from, to });
+
+      if (to === AssistantState.READY) {
+        this.callReadyCallbacks();
+      }
+    });
+  }
+
+  async resolveWebviewView(webviewView: vscode.WebviewView) {
     this.webviewView = webviewView;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     webviewView.onDidDispose(() => {
       this.sidebarVisibilityDisposable?.dispose();
       this.sidebarVisibilityDisposable = undefined;
@@ -85,18 +85,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     await this.initializeWebview(webviewView);
     this.updateAttentionBadge();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     this.sidebarVisibilityDisposable?.dispose();
     this.sidebarVisibilityDisposable = webviewView.onDidChangeVisibility(() => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (!webviewView.visible) this.system.decorationProvider.deleteAllInserts();
+      sendActiveFileContext(this.system);
+
+      const poolsideConfig = getPoolsideConfig();
+      this.rpc.setConfiguration(poolsideConfig);
       this.system.acpChatPanels.setConfiguration(poolsideConfig);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   private cleanupRpc() {
     this.rpcListenerDisposable?.dispose();
     this.rpcListenerDisposable = undefined;
@@ -121,18 +121,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.rpcListenerDisposable = webviewView.webview.onDidReceiveMessage(
       rpcServer.route.bind(rpcServer),
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  /**
+   * show ensures that the poolside assistant webview is visible and ready to receive RPC messages.
+   *
+   * @returns a promise which resolves when the assistant webview is ready to receive RPC messages.
+   */
+  async show() {
+    if (this.isReady) {
       return await vscode.commands.executeCommand(POOLSIDE_WEBVIEW_FOCUS_COMMAND);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+
     const readyPromise = this.waitForReady();
     await vscode.commands.executeCommand(POOLSIDE_WEBVIEW_FOCUS_COMMAND);
     return readyPromise;
@@ -165,56 +165,56 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       return Promise.resolve();
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return new Promise<void>((resolve) => {
+      const unregister = this.onDidChangeState((state: AssistantState) => {
+        if (state === AssistantState.READY) {
+          unregister();
           resolve();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
+      });
+    });
+  }
+
+  /**
+   * mark is used to update the Assistant state
+   */
+  mark(state: AssistantState) {
+    const prevState = this.state;
+    this.state = state;
+    this.events.emit("didChangeState", state, prevState);
+  }
+
+  get isReady() {
+    return this.state === AssistantState.READY;
+  }
+
+  /**
+   * onDidChangeState registers an event emitter which will be called each time the Assistant state
+   * changes.
+   *
+   * @returns a function that can be called to unregister the event listener.
+   */
+  onDidChangeState(cb: (newState: AssistantState, prevState: AssistantState) => unknown) {
+    this.events.on("didChangeState", cb);
+    return () => {
+      this.events.off("didChangeState", cb);
+    };
+  }
+
+  // cb will be called either when assistant is ready, or on nextTick if already ready (i.e. will never be called sync)
+  runWhenReady(cb: () => void) {
+    if (this.state === AssistantState.READY) {
+      process.nextTick(cb);
+      return;
+    }
+    this.onReady.push(cb);
+  }
+
+  private callReadyCallbacks() {
+    const toCall = this.onReady;
+    this.onReady = [];
+    for (const cb of toCall) {
+      process.nextTick(cb);
+    }
+  }
+}

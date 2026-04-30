@@ -2,10 +2,10 @@ import {
   EnrichedContextKind,
   EnrichedContextSource,
   type PromptContextFacet,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "@poolsideai/rpc";
 import * as vscode from "vscode";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { GitExtension } from "./gitExtension";
 
 export async function getGitBranchNamesContext(): Promise<PromptContextFacet | undefined> {
   const repositories = getWorkspaceGitRepositories();

@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { AttachedFile } from "@poolsideai/rpc";
 import * as vscode from "vscode";
 
 /**

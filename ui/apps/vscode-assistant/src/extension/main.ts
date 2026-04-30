@@ -1,7 +1,7 @@
+import chokidar from "chokidar";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import * as vscode from "vscode";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { affectsConfiguration, getPoolsideConfigurationSection } from "./api/configuration";
 import * as apiProposals from "./apiProposals";
@@ -12,16 +12,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { configureExtensionIdentity, POOLSIDE } from "./extensionIdentity";
 import { getHelperSingleton, initializeHelperClient, updateHelperConfig } from "./helper";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getLanguages, serializeLanguages } from "./languages";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { getInitialKeybindings } from "./state";
 import { createStatusBarItem } from "./statusBar";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { TelemetryLogger } from "./telemetry/TelemetryLogger";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getActiveTheme, getParsedFileIconTheme } from "./theme";
 import { AcpChatPanelSerializer, POOLSIDE_ACP_CHAT_VIEW_TYPE } from "./views/acpChatPanels";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { updateEditorConfig } from "./views/getWebviewHtml";
 
 /**
  * Pre-activation state, i.e. set before doActivate
@@ -59,7 +59,7 @@ async function doActivate(system: System) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  vscode.window.onDidChangeActiveColorTheme(() => setActiveFileIconTheme());
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -137,14 +137,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (e.contentChanges.length > 0) {
         system.decorationProvider.deleteInserts(e.document.uri.fsPath);
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }),
   );
 
   system.context.subscriptions.push(
     vscode.window.onDidChangeVisibleTextEditors(() => {
       debouncedSendActiveFileContext(system);
       system.decorationProvider.applyInserts();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }),
   );
 
   // Notify the webview when the user updates their keybindings
@@ -152,31 +152,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   shortcutWatcher.on("all", sendKeybindings);
   system.context.subscriptions.push({ dispose: () => shortcutWatcher.close() });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  vscode.extensions.onDidChange(() => {
+    const languages = getLanguages();
     const serializedLanguages = serializeLanguages(languages);
     system.assistant.rpc.setLanguages(serializedLanguages);
     system.acpChatPanels.setLanguages(serializedLanguages);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   executeSetContextCommand(`${POOLSIDE}.webviewFocus`, false);
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+async function setActiveFileIconTheme() {
+  const theme = await getParsedFileIconTheme();
+  if (!theme) return;
+  system.assistant.rpc.setFileIconTheme(theme);
   system.acpChatPanels.setFileIconTheme(theme);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+async function setColorTheme() {
+  const theme = await getActiveTheme();
+  if (!theme) return;
+  system.assistant.rpc.setTheme(theme);
   system.acpChatPanels.setTheme(theme);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 /**
  * Handle the configuration change event which is fired when the user changes their settings
  * @param e
@@ -194,14 +194,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  if (e.affectsConfiguration("workbench.colorTheme")) {
+    await setColorTheme();
+  }
+
+  if (e.affectsConfiguration("workbench.iconTheme")) {
+    await setActiveFileIconTheme();
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

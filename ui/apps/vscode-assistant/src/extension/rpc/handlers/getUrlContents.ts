@@ -1,8 +1,8 @@
 import { Readability } from "@mozilla/readability";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { AttachedUrl } from "@poolsideai/rpc";
 import { parseHTML } from "linkedom";
 import { Readable } from "node:stream";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { System } from "../../system";
 
 // Arbitrary limit that seems reasonable: there's not much hope
 // that an HTML page with >10mb of data is going to fit in the request
@@ -18,7 +18,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const response = await fetchWithTimeout(url, system);
   if (!response.ok) {
     throw new Error(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      `Attempting to access that URL resulted in a HTTP error ${response.status} ${response.statusText}`,
     );
   }
 
@@ -39,8 +39,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   if (_treatAsHTML(contentType, content)) {
     try {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const parsed = await parseAsHTML(content);
+      return { url, content: parsed.content, title: parsed.title };
     } catch (_e) {
       // fallback if we couldn't parse
       // TODO catch more specific errors
@@ -86,21 +86,21 @@ async function fetchWithTimeout(url: string, system: System) {
 async function parseAsHTML(content: string) {
   const doc = parseHTML(content).window.document;
   if (!doc) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return { content };
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const reader = new Readability(doc);
+  const article = reader.parse();
+  content = article?.textContent ?? article?.content ?? doc.documentElement.innerText ?? "";
 
   if (content === "") {
     throw new Error("Failed to parse content");
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return {
+    content,
+    title: article?.title ?? doc.title,
+  };
 }
 
 async function readWithLimit(body: Readable, maxBytes: number): Promise<string> {

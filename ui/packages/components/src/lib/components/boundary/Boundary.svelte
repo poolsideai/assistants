@@ -1,30 +1,30 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import type { Snippet } from "svelte";
+  import type { SvelteHTMLElements } from "svelte/elements";
+  import { getEnvironment, getLog } from "../../providers/index.js";
+
+  export type BoundaryProps = Pick<SvelteHTMLElements["svelte:boundary"], "failed" | "pending"> & {
+    name?: string;
+    children?: Snippet;
+    onError?: (error: unknown, reset: () => void) => void;
     rethrowInDev?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  };
+
   let { children, name, onError, failed, pending, rethrowInDev = true }: BoundaryProps = $props();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const log = getLog();
+  const environment = getEnvironment();
+</script>
+
+<svelte:boundary
+  {failed}
+  {pending}
+  onerror={(error, retry) => {
+    onError?.(error, retry);
+    log.error(error, `error within component boundary: ${name}`, { boundary: name });
     if (environment.name === "production" || !rethrowInDev) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    throw error;
+  }}
+>
+  {@render children?.()}
+</svelte:boundary>

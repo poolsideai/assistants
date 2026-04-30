@@ -4,10 +4,10 @@ import packageJSON from "../../package.json";
 import { getPoolsideConfig } from "./configuration";
 import { getDefaultCwd, getWorkspaces } from "./context";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getLanguages, serializeLanguages } from "./languages";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import type { System } from "./system";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getActiveTheme, getParsedFileIconTheme } from "./theme";
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -67,7 +67,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     keybindings,
     colorTheme,
     fileIconTheme,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    languages: serializeLanguages(getLanguages()),
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

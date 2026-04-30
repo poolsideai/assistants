@@ -1,52 +1,52 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type ColorTheme = object;
+
+export interface FileIconTheme {
+  fonts?: Record<string, string>; // fontId -> embedded font CSS
   iconDefinitions?: Record<string, string>; // iconName -> SVG/img string
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  fileExtensions?: Record<string, string>;
+  fileNames?: Record<string, string>;
+  folderNames?: Record<string, string>;
+  languageIds?: Record<string, string>;
+  file?: string;
+  folder?: string;
+}
+
+export type ThemeRepositoryProps = {
+  colorTheme?: ColorTheme;
+  fileIconTheme?: FileIconTheme;
   getFileIconDefinition?: (iconName: string) => Promise<string | undefined>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  onColorThemeChange?: (value: ColorTheme | undefined) => void;
+  onFileIconThemeChange?: (value: FileIconTheme | undefined) => void;
+};
+
+export class ThemeRepository {
+  #colorTheme: ColorTheme | undefined;
+  #fileIconTheme: FileIconTheme | undefined;
   #fileIconDefinitions = new Map<string, string | undefined>();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  constructor(private readonly props?: ThemeRepositoryProps) {
+    this.#colorTheme = $state(props?.colorTheme);
+    this.#fileIconTheme = $state(props?.fileIconTheme);
+  }
+
+  get colorTheme() {
+    return this.#colorTheme;
+  }
+
+  set colorTheme(value) {
+    this.#colorTheme = value;
+    this.props?.onColorThemeChange?.(value);
+  }
+
+  get fileIconTheme() {
+    return this.#fileIconTheme;
+  }
+
+  set fileIconTheme(value) {
+    this.#fileIconTheme = value;
     this.#fileIconDefinitions.clear();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.props?.onFileIconThemeChange?.(value);
+  }
 
   async getFileIconDefinition(iconName: string) {
     const inlineDefinition = this.#fileIconTheme?.iconDefinitions?.[iconName];
@@ -60,4 +60,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.#fileIconDefinitions.set(iconName, definition);
     return definition;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

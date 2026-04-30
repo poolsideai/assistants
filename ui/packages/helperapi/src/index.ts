@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./gen/api";
 export { poolsideAcpPoolsideRenameSession as poolsideAcpRenameSession } from "./gen/api";
 export * from "./manualApi";
 import { runtime } from "./orval/clientHelpers";

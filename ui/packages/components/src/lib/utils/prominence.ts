@@ -1,3 +1,3 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export const prominences = ["standard", "increased"] as const;
+
+export type Prominence = (typeof prominences)[number];

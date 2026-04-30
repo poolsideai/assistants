@@ -1,22 +1,22 @@
 import { initializeStatefulModule as initializeHelperClientRPC } from "@poolsideai/helperapi";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   ACPNavDidChangeParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "@poolsideai/helperapi/schemas";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import path from "path";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  type CloseHandlerResult,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  type ErrorHandlerResult,
+  type Executable,
   LanguageClient,
+  type LanguageClientOptions,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  type ServerOptions,
   TransportKind,
 } from "vscode-languageclient/node";
 import { getPoolsideConfig } from "./configuration";
@@ -34,15 +34,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const { context } = system;
   const identity = getExtensionIdentity();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let goRunDebug = {
     command: "go",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     transport: TransportKind.stdio,
     options: {
       cwd: context.asAbsolutePath("../../../"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      env: process.env,
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } satisfies Executable;
 
   const dlvBinary = vscode.workspace.getConfiguration("poolsideHelper").get("dlvBinary", "");
   if (dlvBinary) {
@@ -72,7 +72,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          ...goRunDebug.options.env,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -107,7 +107,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        count: number | undefined,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -131,7 +131,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   //     "poolsideHelper.trace.server": "verbose",
   if (vscode.workspace.getConfiguration("poolsideHelper").get("trace.server")) {
     clientOptions.traceOutputChannel = vscode.window.createOutputChannel(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "poolsideHelper Language Server - Protocol Trace",
     );
   }
 
@@ -215,7 +215,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       },
       (err) => {
         system.telemetry.reportError(new Error("failed to start daemon", { cause: err }));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      },
     );
   }
   return await starting;
@@ -257,7 +257,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     system.telemetry.reportError(
       new Error("failed to update config", {
         cause: e,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }),
     );
   }
 }

@@ -1,7 +1,7 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+@import "./app.css";
+@import "@poolsideai/assistant/theme.css";
+@import "@poolsideai/assistant/syntax-theme.css";
+
+@source "../node_modules/@poolsideai/assistant";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 @source "../node_modules/@poolsideai/features";

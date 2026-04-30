@@ -1,32 +1,32 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+@utility text-* {
+  --tw-font-size: --value(--text-*);
+  --tw-line-height: --value(--text-* --line-height);
+}
+
+@utility text-auto {
+  --tw-font-size: --value(--text-base);
+  --tw-line-height: --value(--text-base--line-height);
+
+  font-size: var(--tw-font-size);
+  line-height: var(--tw-line-height);
+
+  @variant ui-xs {
+    --tw-font-size: var(--text-xs);
+    --tw-line-height: var(--text-xs--line-height);
+  }
+
+  @variant ui-sm {
+    --tw-font-size: var(--text-sm);
+    --tw-line-height: var(--text-sm--line-height);
+  }
+
+  @variant ui-md {
+    --tw-font-size: var(--text-base);
+    --tw-line-height: var(--text-base--line-height);
+  }
+
+  @variant ui-lg {
+    --tw-font-size: var(--text-lg);
+    --tw-line-height: var(--text-lg--line-height);
+  }
+}

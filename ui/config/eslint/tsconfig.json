@@ -1,7 +1,7 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{
   "extends": "@poolsideai/tsconfig/base",
   "compilerOptions": {
     "module": "nodenext",
     "moduleResolution": "nodenext"
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

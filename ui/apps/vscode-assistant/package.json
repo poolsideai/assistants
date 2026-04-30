@@ -4,53 +4,53 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "categories": [
+    "Machine Learning"
+  ],
+  "keywords": [
+    "ai",
+    "chat"
+  ],
+  "license": "SEE LICENSE IN LICENSE",
+  "qna": "mailto:feedback@poolside.ai",
   "author": {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "email": "hello@poolside.ai",
     "url": "https://poolside.ai"
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "publisher": "poolside-ai",
   "type": "module",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "main": "./dist/extension/main.cjs",
   "scripts": {
+    "build": "vite build",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "check:format": "prettier . --check --cache --ignore-path ../../.gitignore",
     "check:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' './scripts/**/*.{js,mjs,cjs,ts,tsx,svelte}'",
     "check:release-build": "node scripts/check-release-build.mjs",
     "check:types": "svelte-check --tsconfig tsconfig.check.json --fail-on-warnings --compiler-warnings \"state_referenced_locally:ignore,a11y_no_static_element_interactions:ignore\"",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "codegen:types": "tsx scripts/generate-package-json-dts.ts",
+    "dev": "vite",
+    "download:binaries": "bash scripts/copy_helper.sh",
     "fix:format": "prettier . --write --cache --ignore-path ../../.gitignore --list-different",
     "fix:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' './scripts/**/*.{js,mjs,cjs,ts,tsx,svelte}' --fix",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "prepare": "turbo codegen:types --output-logs errors-only",
+    "preview": "vite preview",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "test": "vitest run",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "test:unit": "vitest run --project unit",
+    "test:unit:watch": "vitest --project unit",
+    "test:watch": "vitest"
   },
   "contributes": {
     "commands": [
       {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "command": "poolside.focusInput",
         "icon": "$(poolside-roundel)",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "title": "Focus on Prompt Input"
       },
       {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -59,14 +59,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       },
       {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "command": "poolside.newConversation",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       },
       {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "command": "poolside.resetConfiguration",
+        "title": "Reset Configuration"
       },
       {
         "category": "Poolside",
@@ -85,6 +85,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       }
     ],
+    "configuration": {
+      "title": "poolside",
+      "properties": {
+        "poolside.showKeybindings": {
+          "default": true,
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+          "type": "boolean"
+        },
+        "poolside.wrapLines": {
+          "default": true,
+          "description": "Wrap lines in code snippets",
+          "type": "boolean"
+        },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -92,23 +105,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "poolside.showMermaidDiagrams": {
+          "default": false,
+          "markdownDescription": "`Experimental` Visualise Mermaid diagrams in code blocks",
+          "type": "boolean"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -178,7 +178,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             }
           }
         }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
     },
     "icons": {
       "poolside-roundel": {
@@ -203,7 +203,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         }
       }
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "keybindings": [
       {
         "command": "poolside.showSidebar",
         "key": "ctrl+escape",
@@ -213,6 +213,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
+    ],
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -221,9 +223,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "menus": {
       "editor/title": [
         {
           "command": "poolside.focusInput",
@@ -236,27 +236,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         }
+      ]
+    },
+    "views": {
+      "poolside": [
+        {
+          "id": "poolside-webview",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+          "type": "webview",
+          "webview": "poolside-webview",
+          "visibility": "visible"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "poolside",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          "icon": "./dist/resources/icon-light.svg"
+        }
+      ]
     },
     "yamlValidation": [
       {
@@ -265,69 +265,69 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }
     ]
   },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      "prettier --ignore-unknown --write"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "dependencies": {
+    "@estruyf/vscode": "^1.1.0",
+    "@mozilla/readability": "^0.5.0",
     "@poolsideai/assistant": "workspace:*",
     "@poolsideai/features": "workspace:*",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@poolsideai/helperapi": "workspace:*",
     "@poolsideai/lib": "workspace:*",
     "@poolsideai/rpc": "workspace:*",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "chokidar": "^4.0.3",
+    "comment-json": "^4.2.5",
+    "json5": "^2.2.3",
+    "linkedom": "^0.16.8",
+    "lodash": "catalog:",
+    "luxon": "catalog:",
+    "serialize-error": "^11.0.3",
+    "vscode-diff": "^2.1.1",
+    "vscode-languageclient": "^9.0.1"
+  },
   "devDependencies": {
     "@poolsideai/eslint-config": "workspace:*",
     "@poolsideai/prettier-config": "workspace:*",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@poolsideai/svelte-config": "workspace:*",
+    "@poolsideai/tailwind-config": "workspace:*",
     "@poolsideai/tsconfig": "workspace:*",
+    "@poolsideai/vite-config": "workspace:*",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@types/lodash": "catalog:",
+    "@types/luxon": "catalog:",
+    "@types/node": "catalog:",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@types/vscode-webview": "^1.57.5",
+    "@vscode/vsce": "^3.4.2",
     "eslint": "catalog:",
+    "execa": "catalog:",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "jest-mock-vscode": "^4.6.0",
+    "prettier": "catalog:",
+    "svelte": "catalog:",
+    "svelte-check": "catalog:",
+    "tailwindcss": "catalog:",
+    "tsdown": "catalog:",
+    "tsx": "catalog:",
+    "type-fest": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "icon": "./dist/resources/icon.png",
+  "galleryBanner": {
+    "color": "#FFFAF5",
+    "theme": "light"
+  },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 }

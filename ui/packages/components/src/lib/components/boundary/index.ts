@@ -1,2 +1,2 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { default as Boundary } from "./Boundary.svelte";
+export type { BoundaryProps } from "./Boundary.svelte";

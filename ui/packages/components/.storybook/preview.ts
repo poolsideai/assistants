@@ -1,13 +1,13 @@
 import { definePreviewConfig } from "@poolsideai/storybook-config";
 import { Providers } from "../src/lib/storybook/index.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import "./globals.css";
+
 const preview = definePreviewConfig({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  decorators: [
+    () => ({
+      Component: Providers,
+    }),
+  ],
+});
+
+export default preview;

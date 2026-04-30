@@ -1,12 +1,12 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+ * Focus the prompt editor
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function focusPrompt() {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const prompt = document.getElementById("prompt-editor");
     // preventScroll: revealing the editor must not scroll ancestors — the
     // document can transiently overflow during conversation switches, and a
     // scrolled document sticks (see "command menu scroll shift", #124).

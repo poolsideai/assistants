@@ -15,7 +15,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   OpenAcpChatOptions,
   TelemetryEventInputEventType,
   TelemetryEventInputMetadata,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "@poolsideai/rpc";
 import { randomUUID } from "crypto";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import * as vscode from "vscode";
@@ -60,7 +60,7 @@ export class HostRPCServer implements Host {
 
   constructor(
     private system: System,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    private webview: vscode.Webview,
     private options: {
       acpChatPanels?: AcpChatPanels;
 __POOL_SYNTHETIC_IMPORT_BASELINE__

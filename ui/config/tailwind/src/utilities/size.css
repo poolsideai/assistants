@@ -1,9 +1,9 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+@utility size-* {
+  --tw-size: --spacing(--value(number));
+  --tw-h: var(--tw-size);
+  --tw-w: var(--tw-size);
+}
+
+@utility min-h-* {
+  --tw-min-h: --spacing(--value(number));
+}

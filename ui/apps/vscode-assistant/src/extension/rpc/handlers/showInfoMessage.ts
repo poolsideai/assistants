@@ -1,5 +1,5 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { forceExhaustivenessCheck } from "@poolsideai/assistant/shared/language";
+import { InfoMessageType } from "@poolsideai/rpc";
 import * as vscode from "vscode";
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__

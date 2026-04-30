@@ -14,7 +14,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "host": "127.0.0.1"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     {
       "name": "Launch Desktop Assistant",
@@ -48,12 +48,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       ]
     },
     {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "name": "Launch Extension (with my profile)",
+      "type": "extensionHost",
+      "request": "launch",
       "preLaunchTask": "vscode-assistant-dev",
       "args": [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "--extensionDevelopmentPath=${workspaceFolder}/ui/apps/vscode-assistant",
         "--disable-extension=poolside-ai.acp-assistant",
         "${workspaceFolder}/../poolside-books-api-demo",
         "${workspaceFolder}"
@@ -65,7 +65,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "HTTPS_PROXY": "${env:HTTPS_PROXY}",
         "HTTP_PROXY": "${env:HTTP_PROXY}"
       },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "sourceMaps": true
+    }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

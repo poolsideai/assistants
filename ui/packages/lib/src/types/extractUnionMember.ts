@@ -1,5 +1,5 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type ExtractUnionMember<
+  T extends Record<string, unknown>,
+  V extends T extends Record<Field, infer V> ? V : string,
+  Field extends string = "type",
+> = Extract<T, Record<Field, V>>;

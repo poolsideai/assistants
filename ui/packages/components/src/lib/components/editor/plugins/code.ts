@@ -1,57 +1,57 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import codemark from "prosemirror-codemark";
+import { InputRule, inputRules } from "prosemirror-inputrules";
 import { Fragment, DOMParser as PMDOMParser, Slice, type Schema } from "prosemirror-model";
 import { EditorState, Plugin, TextSelection, type Transaction } from "prosemirror-state";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { tick } from "svelte";
+import { detectCodeInText } from "../utils/detectCodeInText.js";
 import { htmlToMarkdown } from "../utils/htmlToMarkdown.js";
 import { mergeTabularCodeBlocksInHtml } from "../utils/mergeTabularCodeBlocksInHtml.js";
 import { preserveInlineCode } from "./preserveInlineCode.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+/**
+ * Check if the given position is inside a code block
+ */
+function isInsideCodeBlock(state: EditorState, pos: number) {
+  const $pos = state.doc.resolve(pos);
+  return $pos.parent.type === state.schema.nodes.code_block;
+}
+
+/**
+ * Check if the given position is inside inline code
+ */
+function isInsideCodeMark(state: EditorState, pos: number) {
+  const $pos = state.doc.resolve(pos);
+  const marks = $pos.marks();
+  return marks.some((mark) => mark.type === state.schema.marks.code);
+}
+
+/**
+ * Check if the given position is inside any kind of code (block or inline)
+ */
+function isInsideCode(state: EditorState, pos: number) {
+  return isInsideCodeBlock(state, pos) || isInsideCodeMark(state, pos);
+}
+
+/**
+ * Handle triple backticks at start of line to create a code block
+ */
+const codeBlockInputRule = new InputRule(/^\s*```$/, (state, match, start, end) => {
+  if (isInsideCode(state, start)) return null;
+
+  const { tr, schema } = state;
+  const $start = state.doc.resolve(start);
+  const paragraphNodeStart = $start.before($start.depth);
+  const paragraphNodeEnd = $start.after($start.depth);
+  const textAfterMatch = state.doc.textBetween(end, $start.end($start.depth));
+
+  const codeBlock = schema.nodes.code_block.create(
+    null,
+    textAfterMatch ? schema.text(textAfterMatch) : null,
+  );
+
+  return tr.replaceWith(paragraphNodeStart, paragraphNodeEnd, codeBlock);
+});
+
 /**
  * Typing the closing ``` fence inside a code block exits it: the fence line is
  * removed and the cursor moves to a paragraph after the block, mirroring how
@@ -203,17 +203,17 @@ export function classifyPasteSegments(text: string): PasteSegment[] {
   return segments;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * Plugin to handle code block creation and paste behavior
+ */
+const codePlugin = new Plugin({
+  props: {
+    handleTextInput: (view, from, to, text) => {
+      const { state, dispatch } = view;
+      const { tr, selection, schema } = state;
+      const { $from } = selection;
+      const { nodeBefore, nodeAfter } = $from;
+
       if (selection.empty) {
         const closeTr = closeCodeBlockFence(state, from, text);
         if (closeTr) {
@@ -222,58 +222,58 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         }
       }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (isInsideCode(state, from) || !selection.empty) return false;
+
+      if (nodeBefore?.type.name === "text" && nodeAfter?.type.name === "text") {
+        if (nodeBefore.textContent.endsWith("`") && nodeAfter.textContent.startsWith("`")) {
+          const beforeBacktickPos = from - 1;
+
+          tr.delete(beforeBacktickPos, from)
+            .insertText(text, beforeBacktickPos)
+            .delete(beforeBacktickPos + text.length, beforeBacktickPos + text.length + 1)
+            .addMark(
+              beforeBacktickPos,
+              beforeBacktickPos + text.length,
+              state.schema.marks.code.create(),
+            );
+
+          dispatch(tr);
+          return true;
+        }
+      }
+
+      if (text === "`") {
+        const textBefore = state.doc.textBetween($from.start($from.depth), from);
+
+        if (textBefore.endsWith("``")) {
+          const lineStart = $from.start($from.depth);
+          const lineEnd = $from.end($from.depth);
+          const textBeforeBackticks = state.doc.textBetween(lineStart, from - 2);
+
+          // Only handle if not at start of line
+          if (textBeforeBackticks.trim() !== "") {
+            const textAfterCursor = state.doc.textBetween(from, lineEnd);
+            const insertPos = from - 2;
+            const codeBlock = schema.nodes.code_block.create(
+              null,
+              textAfterCursor ? schema.text(textAfterCursor) : null,
+            );
+
+            tr.delete(insertPos, lineEnd)
+              .insert(insertPos, codeBlock)
+              .setSelection(TextSelection.near(tr.doc.resolve(insertPos + 1)));
+            dispatch(tr);
+            return true;
+          }
+        }
+      }
+
+      return false;
+    },
+
+    handlePaste: (view, event) => {
       const html = event.clipboardData?.getData("text/html");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const text = event.clipboardData?.getData("text/plain");
       const insideCodeBlock = view.state.selection.$from.parent.type.name === "code_block";
 
       // Some code viewers (notably our HighlightedCode) render each code line as its own
@@ -300,15 +300,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         }
       }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (!text) return false;
+
+      const { state, dispatch } = view;
+      const { selection, schema } = state;
+      const { $from, from } = selection;
+
+      // If we're already in a code block, let the default paste behavior handle it
+      if ($from.parent.type.name === "code_block") return false;
+
       // Split into blank-line-separated paragraphs and classify each so a paste
       // that mixes prose and code only wraps the code portions.
       const segments = classifyPasteSegments(text);
@@ -331,33 +331,33 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
       const fragment = Fragment.from(nodes);
       const slice = new Slice(fragment, 0, 0);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const tr = state.tr.replaceSelection(slice);
+
       // Position cursor inside the trailing paragraph
       tr.setSelection(
         TextSelection.near(tr.doc.resolve(from + fragment.size - trailing.nodeSize + 1)),
       );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      dispatch(tr);
+
+      // Scroll to cursor position after paste
+      tick().then(() => {
+        view.dom.scrollTo({
+          top: view.dom.scrollHeight,
+          behavior: "smooth",
+        });
+      });
+
+      return true;
+    },
+  },
+});
+
+export function code(schema: Schema) {
+  return [
+    // @ts-ignore
+    ...codemark({ markType: schema.marks.code }),
+    inputRules({ rules: [codeBlockInputRule] }),
+    codePlugin,
     preserveInlineCode,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ];
+}

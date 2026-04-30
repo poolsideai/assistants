@@ -28,7 +28,7 @@ export class TelemetryLogger {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         ...args,
         message,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }),
     );
   }
 
@@ -60,7 +60,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       tags = undefined,
     }: {
       tags?: Record<string, string>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } = {},
   ) {
     if (this.#disposed) return;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -80,7 +80,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
           ...(tags ? [`Tags: ${JSON.stringify(tags, null, 4)}`] : []),
           `Error properties: ${JSON.stringify(kept, null, 4)}`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        ].join("\n\t"),
       );
     }
   }

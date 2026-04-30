@@ -1,9 +1,9 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { glob } from "glob";
+import fs from "node:fs";
+import path, { basename } from "node:path";
 import { defineConfig, type GeneratorClients } from "orval";
 import { jsonrpcClientBuilder } from "./src/orval/jsonrpcGenerator";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 // These methods are invoked by an IDE/native host or the remote transport,
 // not by the shared webview helper client. Their schemas remain in OpenAPI for
 // those hosts, but emitting TypeScript call wrappers for them leaves functions
@@ -44,9 +44,9 @@ const hostOwnedPaths = new Set([
   "/workspace/willDeleteFiles",
 ]);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export default defineConfig({
+  poolsideHelper: {
+    input: {
       target: process.env.LOCAL_SCHEMA ?? "http://localhost:8080/openapi.yaml",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -93,75 +93,75 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+    output: {
+      target: "./src/gen/api.ts",
+      schemas: "./src/gen/schemas",
+      prettier: true,
       client: (clients: GeneratorClients) => jsonrpcClientBuilder,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      clean: true,
+    },
+    hooks: {
+      afterAllFilesWrite: () => {
+        const updateFile = (
+          path: string,
+          replacements: { from: string | RegExp; to: string }[],
+        ) => {
+          let content = fs.readFileSync(path, "utf8");
+          let modified = false;
+
+          for (const { from, to } of replacements) {
+            const newContent =
+              typeof from === "string" ? content.replaceAll(from, to) : content.replace(from, to);
+
+            if (newContent !== content) {
+              content = newContent;
+              modified = true;
+            }
+          }
+
+          if (modified) {
+            fs.writeFileSync(path, content);
+            console.log(`Updated imports in: ${basename(path)}`);
+          }
+        };
+
+        const overridenSchemas = glob
+          .sync("./src/schemas/*.ts", {
+            ignore: ["**/*.test.ts", "**/index.ts"],
+          })
+          .map((filePath) => path.basename(filePath, ".ts"));
+
+        if (overridenSchemas.length === 0) return;
+
+        const generatedSchemas = glob.sync("./src/gen/schemas/*.ts", {
+          ignore: ["**/index.ts"],
+        });
+
+        generatedSchemas.forEach((path) => {
+          const replacements = overridenSchemas.map((override) => ({
+            from: `'./${override}'`,
+            to: `'../../schemas/${override}'`,
+          }));
+
+          updateFile(path, replacements);
+        });
+
+        const indexPath = "./src/gen/schemas/index.ts";
+        if (fs.existsSync(indexPath)) {
+          const replacements = overridenSchemas.map((override) => ({
+            from: new RegExp(`export \\* from '\\.\/${override}'`, "g"),
+            to: `export * from '../../schemas/${override}'`,
+          }));
+
+          updateFile(indexPath, replacements);
+        }
 
         pruneUnusedGeneratedSchemas();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      },
+    },
+  },
+});
 
 function pruneUnusedGeneratedSchemas() {
   const schemaFiles = glob.sync("./src/gen/schemas/*.ts", {

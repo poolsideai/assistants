@@ -1,1 +1,1 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/// <reference types="@vitest/browser/providers/playwright" />

@@ -1,6 +1,6 @@
 export { createTwoFilesPatch } from "diff";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { diffChars } from "./diffChars.js";
+export type { SpanChange } from "./diffChars.js";
+export { diffLines } from "./diffLines/diffLines.js";
+export type { Change, DiffLinesResult } from "./diffLines/diffLines.js";
+export type { Range } from "./types/range.js";

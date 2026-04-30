@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon, { type IconName } from "../../icon/index.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getDisplay } from "../../../providers/index.js";
   import type { MouseEventHandler } from "svelte/elements";
 
   interface Props {
@@ -23,7 +23,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     ref = $bindable(),
   }: Props = $props();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const { customUI } = getDisplay();
 </script>
 
 <button

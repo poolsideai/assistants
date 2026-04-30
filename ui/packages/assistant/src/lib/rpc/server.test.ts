@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { AssistantMessage } from "@poolsideai/rpc/assistant";
 import { describe, type Mock, type MockInstance } from "vitest";
 import {
   SET_CURRENT_CONVERSATION_EVENT,
@@ -10,7 +10,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let send: MockInstance<WebViewRPCResponseSender>;
   let acpTransport: { receive: Mock };
   let localInferenceRepo: { applyDidChange: Mock };
   let assistantTerminals: {

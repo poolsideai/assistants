@@ -1,18 +1,18 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   ACPNavDidChangeParams,
   LocalInferenceDidChangeParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "@poolsideai/helperapi/schemas";
+import type { Client, Error, Messages, Responses } from "./generics";
+import type {
   ActiveFileContext,
   AssistantTerminalTab,
   AssistantTerminalUpdate,
   Configuration,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  FileIconTheme,
   Keybindings,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  Language,
 } from "./host";
 
 /**
@@ -38,9 +38,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   setContext(context: ActiveFileContext): void;
   setCurrentConversation(id: string): void;
   setKeybindings(keybindings: Keybindings): void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  setTheme(theme: object): void;
+  setFileIconTheme(theme: FileIconTheme): void;
+  setLanguages(languages: Language[]): void;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   acpAgentServerDidExit(params: { agentServer: string; error?: string }): void;

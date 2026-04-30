@@ -1,10 +1,10 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { Keybindings } from "@poolsideai/rpc";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import JSON5 from "json5";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import * as vscode from "vscode";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import packageJson from "../../../../package.json";
+import { getConfiguration } from "../../api/configuration";
 import { serialize } from "../../keybinding";
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -16,7 +16,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   when?: string;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const extensionKeyBindings: Keybinding[] = packageJson.contributes.keybindings;
 
 /**
  * Attempts to resolve the configured keybindings for the commands provided
@@ -24,7 +24,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
  * @returns {Promise<Keybinding[]>} A promise for a list of resolved keybindings
  */
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const showKeybindings = getConfiguration("poolside.showKeybindings");
   if (!showKeybindings) return {};
 
   const userKeyBindings = await loadUserKeyBindings();

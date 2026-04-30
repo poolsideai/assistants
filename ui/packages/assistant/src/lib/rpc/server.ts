@@ -1,5 +1,5 @@
 import type { AnyMessage } from "@agentclientprotocol/sdk";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ColorTheme, FileIconTheme, ThemeRepository } from "@poolsideai/components/providers";
 import {
   getUserMCPServersRepo,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -66,7 +66,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     win: WebviewRPCListener,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    messageSender: WebViewRPCResponseSender,
     readonly appState: AppStore,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     readonly acpTransport: ACPTransport,
@@ -74,7 +74,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     readonly assistantTerminals: AssistantTerminalEventSink,
     readonly acpRepo?: ACPSessionRepository,
     readonly getActiveSession?: () => ACPSession | null,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    readonly theme?: ThemeRepository,
     readonly acpProjectRepo?: ACPProjectRepository,
     readonly acpConversationRepo?: ACPConversationRepository,
     readonly localInferenceRepo?: LocalInferenceRepository,
@@ -192,21 +192,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.appState.update((s) => ({ ...s, keybindings }));
   };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  setTheme = (theme: ColorTheme) => {
+    if (!this.theme) return;
+    this.theme.colorTheme = theme;
+  };
+
+  setFileIconTheme = (theme: FileIconTheme) => {
+    if (!this.theme) return;
+    this.theme.fileIconTheme = theme;
+  };
+
+  setLanguages = (languages: Language[]) => {
+    this.appState.update(($state) => ({
+      ...$state,
+      languages,
+    }));
   };
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__

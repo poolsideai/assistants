@@ -1,124 +1,124 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import base, { mergeConfigs } from "@poolsideai/vite-config";
+import { execa } from "execa";
+import console from "node:console";
+import path from "node:path";
+import { build } from "tsdown";
 import type { ConfigEnv, PluginOption, ResolvedConfig, UserConfig } from "vite";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-  return {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { defineConfig } from "vite";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function packageJsonDeclaration(): PluginOption {
+  async function generateDeclaration() {
+    await execa`pnpm codegen:types`;
+  }
+
+  return {
+    name: "package-json-declaration",
+    buildStart: generateDeclaration,
+    configureServer(server) {
+      const packageJsonPath = path.resolve("./package.json");
+      server.watcher.add(packageJsonPath);
+      server.watcher.on("change", async (filePath) => {
+        if (path.resolve(filePath) === packageJsonPath) {
+          await generateDeclaration();
+        }
+      });
+    },
+  };
+}
+
+function vscode(): PluginOption {
   const handleConfig = (config: UserConfig, { command }: ConfigEnv): UserConfig => {
+    const { assetsDir = "webview" } = config.build ?? {};
+
+    return {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      build: {
+        assetsDir,
+        manifest: true,
         sourcemap: command === "build" ? "hidden" : false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        copyPublicDir: false,
         minify: command === "build",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        rollupOptions: {
+          output: {
+            chunkFileNames: `${assetsDir}/[name].js`,
+            entryFileNames: `${assetsDir}/[name].js`,
+            assetFileNames: `${assetsDir}/[name].[ext]`,
+          },
         },
       },
+    };
+  };
+
+  let config: ResolvedConfig;
+
+  return [
+    {
+      name: "@poolsideai:vscode",
+      apply: "serve",
+      config: handleConfig,
+      configResolved(_config) {
+        config = _config;
+      },
+      configureServer(server) {
+        if (!server.httpServer) return;
+
+        const { assetsDir } = config.build ?? {};
+
+        server.httpServer.once("listening", async () => {
+          console.info("extension build start");
+          let buildCount = 0;
+
+          await build({
+            watch: true,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            minify: false,
+            onSuccess() {
+              if (buildCount++ > 1) {
+                console.info("extension rebuild success");
+              } else {
+                console.info("extension build success");
+              }
+            },
+          });
+        });
+      },
+    },
+    {
+      name: "@poolsideai:vscode",
+      apply: "build",
+      enforce: "post",
+      config: handleConfig,
       async closeBundle() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        console.info("extension build start");
         await build({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          onSuccess() {
+            console.info("extension build success");
+          },
+        });
+      },
+    },
+    {
       /**
        * The `vscode` package which provides the extension API is dynamically built by the extension
        * host. The following allows vitest to mock this package even though it does not exist in the
        * test context.
        */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      name: "@poolsideai:vscode",
+      resolveId(id) {
+        if (id === "vscode") {
+          return "virtual:vscode";
+        }
       },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+  ];
+}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export default defineConfig((env) =>
+  mergeConfigs(base(env), {
     plugins: [vscode(), packageJsonDeclaration()],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    optimizeDeps: {
       include: ["vscode-diff/dist/vs/editor/common/core/range"],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
     build: {
       rollupOptions: {
         input: ["./src/webview/assistant.main.ts", "./src/webview/acp-chat.main.ts"],
@@ -127,7 +127,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     server: {
       port: parseInt(process.env.VITE_DEV_PORT || "5173", 10),
       strictPort: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      cors: true,
       headers: {
         "access-control-allow-headers": "*",
         "access-control-allow-methods": "*",
@@ -135,5 +135,5 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "access-control-expose-headers": "*",
       },
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }),
+);

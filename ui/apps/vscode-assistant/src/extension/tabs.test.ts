@@ -1,6 +1,6 @@
 import { createMockTabGroups, createTextDocument, createVSCodeMock } from "jest-mock-vscode";
 import * as vscode from "vscode";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { type TextDocument, Uri } from "vscode";
 import { isOpenInTab } from "./tabs";
 
 vi.mock("vscode", () => createVSCodeMock(vi));

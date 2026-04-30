@@ -1,12 +1,12 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import { cn } from "@poolsideai/tailwind-config/tv";
+  import type { HTMLAttributes } from "svelte/elements";
+
+  interface Props extends HTMLAttributes<HTMLElement> {}
+
+  let { children, class: className, ...rest }: Props = $props();
+</script>
+
+<footer {...rest} data-prompt-form-footer class={cn(["flex items-center", className])}>
+  {@render children?.()}
+</footer>

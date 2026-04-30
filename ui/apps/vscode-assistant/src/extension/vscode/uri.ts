@@ -5,9 +5,9 @@ import * as vscode from "vscode";
  */
 
 export function contextPathToVSCodeUri(path: string) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return path.startsWith("untitled:") || path.startsWith("file:")
+    ? vscode.Uri.parse(path)
+    : vscode.Uri.file(path);
 }
 
 export function documentToContextPath(document: vscode.TextDocument) {

@@ -1,3 +1,3 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { annotations } from "./annotations.js";
+export { defineConfig } from "./main.js";
 export { definePreviewConfig } from "./preview.js";

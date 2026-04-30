@@ -1,8 +1,8 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { boolAttr } from "./utils/boolAttr.js";
 export { insideModalOverlay } from "./utils/modalOverlay.js";
 export { isAppleUser, isMac } from "./utils/platform.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type { Prominence } from "./utils/prominence.js";
+export type { Size } from "./utils/size.js";
 export {
   UserScrollIntentTracker,
   type UserScrollIntentTrackerOptions,

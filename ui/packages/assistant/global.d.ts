@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ColorTheme, FileIconTheme } from "@poolsideai/components/providers";
 import type { Configuration, Keybindings, WorkspaceFolder } from "@poolsideai/rpc";
 import type { Environment } from "./src/lib/store";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -12,8 +12,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   var POOLSIDE_INITIAL_STATE: {
     accessToken?: string | undefined;
     keybindings?: Keybindings;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    colorTheme?: ColorTheme;
+    fileIconTheme?: FileIconTheme;
     userSettings?: Configuration;
     environment?: Environment;
 __POOL_SYNTHETIC_IMPORT_BASELINE__

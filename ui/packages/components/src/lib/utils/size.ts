@@ -1,3 +1,3 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export const sizes = ["xs", "sm", "md", "lg"] as const;
+
+export type Size = (typeof sizes)[number];

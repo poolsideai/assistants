@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type {
   DeleteSecretOutput,
   DeleteSecretParams,
   GetSecretOutput,
@@ -7,9 +7,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   ListSecretsParams,
   UpsertSecretOutput,
   UpsertSecretParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "@poolsideai/helperapi/schemas";
+import type { ErrorObject } from "serialize-error";
+import type { Client, Messages } from "./generics";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 interface LineRange {
   start: number;
@@ -22,7 +22,7 @@ interface LineRange {
  */
 export interface Host {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  getCodeSymbols: (path?: string) => Promise<CodeSymbolResponse>;
   getFileContents(path: string): Promise<AttachedFile | undefined>;
   getFileIconDefinition(iconName: string): Promise<string | undefined>;
   getImageFileData(path: string): Promise<ImageFileData | undefined>;
@@ -90,8 +90,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type Selection = [start: number, end: number];
+
 export enum InfoMessageType {
   info = "info",
   error = "error",
@@ -111,7 +111,7 @@ export type HostMessage = HostMessages[keyof HostMessages];
 export interface AttachedFile {
   path?: string;
   content?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  selection?: Selection;
   selectedCode?: string;
   visibleRange?: LineRange;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -316,21 +316,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 export type TelemetryEventInputMetadata = { [key: string]: unknown };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type Matchable<T extends string = string> =
+  | T
+  | { value: T; score: number; indices: readonly number[] };
+
 export interface SearchFile {
   path: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  name: Matchable;
+  directory: Matchable;
+  workspace?: Matchable;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   /** Exact query text to use when drilling into this row. */
   navigationPath?: string;
   /** Virtual rows are UI navigation targets, not real files to insert/open. */
   virtualKind?: "workspace-folder";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  score?: number;
   /** A user-friendly form of the path (e.g. `~/Documents/x` or workspace-relative)
    *  computed by the server based on how the query was phrased. Used for chip
    *  tooltips so users see the same shape they typed.
@@ -390,21 +390,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   branch = "branch",
 }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export interface FileIconTheme {
+  fonts?: Record<string, string>; // fontId -> embedded font CSS
   iconDefinitions?: Record<string, string>; // iconName -> SVG/img string
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  fileExtensions?: Record<string, string>;
+  fileNames?: Record<string, string>;
+  folderNames?: Record<string, string>;
+  languageIds?: Record<string, string>;
+  file?: string;
+  folder?: string;
+}
+
+export type Language = {
+  id: string;
+  extensions?: string[];
+  aliases?: string[];
+  filenames?: string[];
+  filenamePatterns?: string[];
+};
