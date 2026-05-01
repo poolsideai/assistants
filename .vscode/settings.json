@@ -4,7 +4,7 @@
     // The vscode extension sets tabSize to 4 by default while the formatter outside of Vscode defaults to 2.
     "editor.tabSize": 2
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "eslint.validate": ["javascript", "typescript", "typescriptreact", "svelte"],
   "[typescript][javascript][svelte][json][jsonc]": {
     "editor.codeActionsOnSave": {
       "source.fixAll.eslint": "explicit"

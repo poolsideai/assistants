@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Map, not encyclopedia. Small by design - follow the paths.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 This repository contains Poolside Assistant: desktop and IDE assistant clients,
 shared assistant UI packages, ACP support, and `poolside-helper`.
 
