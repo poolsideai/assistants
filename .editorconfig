@@ -14,10 +14,10 @@ insert_final_newline = true
 indent_style = space
 indent_size = 2
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+[*.{js,ts,svelte}]
+indent_style = space
+indent_size = 2
+
 [Makefile]
 indent_style = tab
 indent_size = 2
