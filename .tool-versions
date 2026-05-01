@@ -1,6 +1,6 @@
 nodejs        24.7.0
 pnpm          10.15.1
 golang        1.26.1
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+golangci-lint 2.11.3
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 bazelisk      1.28.1
