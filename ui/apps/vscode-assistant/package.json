@@ -303,7 +303,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@types/lodash": "catalog:",
     "@types/luxon": "catalog:",
     "@types/node": "catalog:",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@types/vscode": "^1.85.0",
     "@types/vscode-webview": "^1.57.5",
     "@vscode/vsce": "^3.4.2",
     "eslint": "catalog:",
