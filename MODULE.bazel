@@ -20,7 +20,7 @@ bazel_dep(name = "sqlite3", version = "3.49.0")
 toolchains = use_extension("@hermetic_cc_toolchain//toolchain:ext.bzl", "toolchains")
 use_repo(toolchains, "zig_sdk")
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+register_toolchains(
     # Musl (libc-aware): only selected for platforms that explicitly declare
     # @zig_sdk//libc:musl. Used by poolside-helper for fully static Linux binaries.
     "@zig_sdk//libc_aware/toolchain:linux_amd64_musl",
@@ -31,8 +31,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     # Windows uses Zig's bundled MinGW CRT — no runtime changes needed
     "@zig_sdk//toolchain:windows_amd64",
     "@zig_sdk//toolchain:windows_arm64",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
+
 single_version_override(
     module_name = "hermetic_cc_toolchain",
     patch_strip = 1,
