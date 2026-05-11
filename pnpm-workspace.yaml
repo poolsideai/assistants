@@ -37,8 +37,8 @@ catalog:
   orval: ^7.10.0
   playwright: ^1.55.0
   prettier: ^3.6.2
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  prettier-plugin-organize-imports: ^4.2.0
+  prettier-plugin-svelte: ^3.4.0
   read-pkg: ^9.0.1
   storybook: ^10.5.2
   svelte: ^5.56.6

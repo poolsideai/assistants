@@ -10,9 +10,9 @@ import "sort"
 // A Token provides the extent and semantics of a token.
 type Token struct {
 	Line, Start uint32
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	Len         uint32
+	Type        TokenType
+	Modifiers   []string
 }
 
 type TokenType string

@@ -85,8 +85,8 @@ type ProcessIdentifier struct {
 }
 
 type LibraryInfo struct {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	Language           Language `json:"language,omitempty"`
+	ExporterVersion    string   `json:"exporter_version,omitempty"`
 	CoreLibraryVersion string   `json:"core_library_version,omitempty"`
 }
 

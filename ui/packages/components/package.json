@@ -196,8 +196,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "execa": "catalog:",
     "playwright": "catalog:",
     "prettier": "catalog:",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "prettier-plugin-organize-imports": "catalog:",
+    "prettier-plugin-svelte": "catalog:",
     "storybook": "catalog:",
     "svelte-check": "catalog:",
     "tsx": "catalog:",

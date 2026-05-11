@@ -64,8 +64,8 @@ type Annotation struct {
 }
 
 type MessageEvent struct {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	Type             MessageEventType `json:"type,omitempty"`
+	ID               uint64           `json:"id,omitempty"`
 	UncompressedSize uint64           `json:"uncompressed_size,omitempty"`
 	CompressedSize   uint64           `json:"compressed_size,omitempty"`
 }

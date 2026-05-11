@@ -30,8 +30,8 @@ type Key interface {
 // Label holds a key and value pair.
 // It is normally used when passing around lists of labels.
 type Label struct {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	key     Key
+	packed  uint64
 	untyped interface{}
 }
 

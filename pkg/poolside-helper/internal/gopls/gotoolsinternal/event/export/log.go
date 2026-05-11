@@ -25,9 +25,9 @@ func LogWriter(w io.Writer, onlyErrors bool) event.Exporter {
 }
 
 type logWriter struct {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	mu         sync.Mutex
+	printer    Printer
+	writer     io.Writer
 	onlyErrors bool
 }
 
