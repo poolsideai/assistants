@@ -25,7 +25,7 @@ runs:
   using: composite
   steps:
     - name: Import Developer ID cert
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      uses: apple-actions/import-codesign-certs@63fff01cd422d4b7b855d40ca1e9d34d2de9427d # v3
       with:
         p12-file-base64: ${{ inputs.MACOS_DEVID_P12_B64 }}
         p12-password: ${{ inputs.MACOS_DEVID_P12_PASSWORD }}

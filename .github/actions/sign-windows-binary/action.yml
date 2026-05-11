@@ -43,7 +43,7 @@ runs:
         tar --no-same-owner -xzf ${{ inputs.archive_path }} -C signing-workspace
 
     - name: Sign Windows binary with SSL.com
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      uses: sslcom/esigner-codesign@cf5f6c1d38ad10f47e3ed9aca873f429b1a8d85b # main
       with:
         command: sign
         username: ${{ inputs.username }}
