@@ -3,10 +3,10 @@
 !ui/**
 ui/**/.svelte-kit/**
 ui/**/dist/**
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+!doc/
+!doc/**
 
 !*.ts
 !turbo.json
 !package.json
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+!pnpm-workspace.yaml

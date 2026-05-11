@@ -15,7 +15,7 @@ replace github.com/tliron/glsp v0.2.2 => github.com/poolsideai/glsp v0.0.8
 
 require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/adrg/xdg v0.5.3
 	github.com/danielgtaylor/huma/v2 v2.34.1
 	github.com/go-chi/chi/v5 v5.2.4
 	github.com/go-git/go-billy/v5 v5.9.0
@@ -26,14 +26,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/iancoleman/strcase v0.3.0 // indirect
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/pkg/errors v0.9.1
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/stretchr/testify v1.11.1
 	github.com/tliron/glsp v0.2.2
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/oauth2 v0.34.0
