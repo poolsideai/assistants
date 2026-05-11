@@ -24,9 +24,9 @@ type Metric struct {
 type MetricDescriptor struct {
 	Name        string                `json:"name,omitempty"`
 	Description string                `json:"description,omitempty"`
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	Unit        string                `json:"unit,omitempty"`
+	Type        MetricDescriptor_Type `json:"type,omitempty"`
+	LabelKeys   []*LabelKey           `json:"label_keys,omitempty"`
 }
 
 type MetricDescriptor_Type int32

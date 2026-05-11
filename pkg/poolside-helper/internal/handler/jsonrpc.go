@@ -198,7 +198,7 @@ func errorToWire(err error) error {
 		}
 		if rpcErr.Data != nil {
 			if data, marshalErr := json.Marshal(rpcErr.Data); marshalErr == nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+				wire.Data = new(json.RawMessage(data))
 			} else {
 				slog.Warn("failed to marshal JSONRPCError.Data", "error", marshalErr)
 			}
