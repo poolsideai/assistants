@@ -35,7 +35,7 @@
     subtitle?: ItemProps["subtitle"] | Snippet<[{ highlight: Snippet<[Highlightable]> }]>;
     children?: Snippet;
     accessories?: Snippet;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    preserveAccessorySpace?: boolean;
   }
 
   let {
@@ -49,7 +49,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     tooltip,
     children,
     accessories,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    preserveAccessorySpace,
     ...rest
   }: Props = $props();
 
@@ -67,7 +67,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     id,
     action,
     isSelected,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    elements: { rootEl, leadingEl, subtitleEl, accessoriesEl },
   } = createItem(item);
 
   const { filtered, select, updateDisabled } = getItems();
@@ -142,8 +142,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   >
     {@render children?.()}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div data-prompt-item-leading class="flex items-center" bind:this={$leadingEl}></div>
+
     {#if typeof icon === "function"}
       {@render icon()}
     {:else if icon === "loading"}
@@ -177,7 +177,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     <div
       data-prompt-item-accessories
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      class={["flex items-center gap-1 text-auto", preserveAccessorySpace && "shrink-0"]}
       data-size="xs"
       bind:this={$accessoriesEl}
     >
@@ -226,8 +226,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   :global(body.web-app .title-highlight [data-state="matched"]) {
     @apply text-(--color-pri-900);
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  [data-prompt-item-leading]:empty {
+    @apply hidden;
+  }
 </style>

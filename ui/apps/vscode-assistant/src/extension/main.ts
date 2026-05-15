@@ -207,10 +207,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     e.affectsConfiguration("editor.lineHeight") ||
     affectsConfiguration(e, "poolside.codeFontSize")
   ) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // FIXME: This needs to be tidied up
+    if (system.assistant.webviewView === undefined) return;
     await updateEditorConfig(system, system.assistant.webviewView.webview);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
 }
 
 async function sendKeybindings() {

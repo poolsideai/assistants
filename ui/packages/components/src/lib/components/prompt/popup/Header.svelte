@@ -13,11 +13,11 @@
 
 <header
   data-prompt-header
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  class="flex items-center gap-2 px-2 py-2 text-sm text-psx-foreground-secondary"
 >
   {#if icon}
     <span
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      class="flex shrink-0 items-center justify-center rounded-sm bg-black/5 p-2.5 text-base dark:bg-white/5"
     >
       <Icon name={icon} />
     </span>
@@ -26,14 +26,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     {#if typeof title === "function"}
       {@render title()}
     {:else}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <span class="min-w-0 truncate font-medium">
         {title}
       </span>
     {/if}
     {#if typeof subtitle === "function"}
       {@render subtitle()}
     {:else}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <span class="min-w-0 truncate text-psx-foreground-secondary">
         {subtitle}
       </span>
     {/if}
