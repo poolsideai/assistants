@@ -5,14 +5,14 @@
   import type { Snippet } from "svelte";
   import { Checkbox } from "../../checkbox/index.js";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  interface Props extends Except<ActionBaseProps, "icon" | "leading"> {
     checked: boolean;
     onToggle?: (value: boolean) => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /**
+     * Which side the checkbox renders on.
+     * @default "trailing"
+     */
+    edge?: "leading" | "trailing";
     children?: Snippet;
   }
 
@@ -20,7 +20,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     checked = $bindable(),
     prominence = "increased",
     onToggle,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    edge = "trailing",
     children,
     accessories: ownAccessories,
     ...rest
@@ -29,29 +29,29 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const { select, disabled } = getItem();
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#snippet checkbox()}
+  <Checkbox
+    {disabled}
+    bind:checked
+    onCheckedChange={onToggle}
+    onclick={(e) => {
+      e.stopPropagation();
+      select();
+    }}
+  />
+{/snippet}
+
+{#snippet leadingCheckbox()}
+  <span class="inline-flex size-[1.2em] shrink-0 items-center justify-center self-center">
+    {@render checkbox()}
+  </span>
+{/snippet}
+
 <BaseAction
   {...rest}
   {prominence}
   type="toggle"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  leading={edge === "leading" ? leadingCheckbox : undefined}
   onAction={() => {
     if (disabled) return;
     checked = !checked;
@@ -61,8 +61,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   {@render children?.()}
   {#snippet accessories()}
     {@render ownAccessories?.()}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {#if edge === "trailing"}
+      {@render checkbox()}
+    {/if}
   {/snippet}
 </BaseAction>

@@ -6,7 +6,7 @@ export type IconName =
   | "admin"
   | "alert"
   | "apply"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "archive"
   | "arrow-down-circle"
   | "arrow-left-down"
   | "arrow-left"
@@ -59,9 +59,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   | "file"
   | "files-websites"
   | "files"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "folder-closed"
+  | "folder-open"
+  | "folder-plus"
   | "folder"
   | "gear"
   | "git-branch"
@@ -115,7 +115,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   | "sidebar-right-closed"
   | "sidebar-right-open"
   | "sidebar-show"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "skills"
   | "slash"
   | "sparkles-slash"
   | "sparkles"

@@ -3,7 +3,7 @@ import type { Schema } from "type-fest";
 import Admin from "./glyphs/admin.svelte";
 import Alert from "./glyphs/alert.svelte";
 import Apply from "./glyphs/apply.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import Archive from "./glyphs/archive.svelte";
 import ArrowDownCircle from "./glyphs/arrow-down-circle.svelte";
 import ArrowLeftDown from "./glyphs/arrow-left-down.svelte";
 import ArrowLeft from "./glyphs/arrow-left.svelte";
@@ -56,9 +56,9 @@ import FileGo from "./glyphs/file-go.svelte";
 import File from "./glyphs/file.svelte";
 import FilesWebsites from "./glyphs/files-websites.svelte";
 import Files from "./glyphs/files.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import FolderClosed from "./glyphs/folder-closed.svelte";
+import FolderOpen from "./glyphs/folder-open.svelte";
+import FolderPlus from "./glyphs/folder-plus.svelte";
 import Folder from "./glyphs/folder.svelte";
 import Gear from "./glyphs/gear.svelte";
 import GitBranch from "./glyphs/git-branch.svelte";
@@ -112,7 +112,7 @@ import SidebarLeftOpen from "./glyphs/sidebar-left-open.svelte";
 import SidebarRightClosed from "./glyphs/sidebar-right-closed.svelte";
 import SidebarRightOpen from "./glyphs/sidebar-right-open.svelte";
 import SidebarShow from "./glyphs/sidebar-show.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import Skills from "./glyphs/skills.svelte";
 import Slash from "./glyphs/slash.svelte";
 import SparklesSlash from "./glyphs/sparkles-slash.svelte";
 import Sparkles from "./glyphs/sparkles.svelte";
@@ -154,7 +154,7 @@ export const iconMap: Record<IconName, Component> = {
   admin: Admin,
   alert: Alert,
   apply: Apply,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  archive: Archive,
   "arrow-down-circle": ArrowDownCircle,
   "arrow-left": ArrowLeft,
   "arrow-left-down": ArrowLeftDown,
@@ -208,9 +208,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   files: Files,
   "files-websites": FilesWebsites,
   folder: Folder,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "folder-closed": FolderClosed,
+  "folder-open": FolderOpen,
+  "folder-plus": FolderPlus,
   gear: Gear,
   "git-branch": GitBranch,
   "git-commit": GitCommit,
@@ -263,7 +263,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   "sidebar-right-closed": SidebarRightClosed,
   "sidebar-right-open": SidebarRightOpen,
   "sidebar-show": SidebarShow,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  skills: Skills,
   slash: Slash,
   "sparkles-slash": SparklesSlash,
   sparkles: Sparkles,
@@ -307,7 +307,7 @@ export const iconVariantSupport: Record<
   admin: { weight: true },
   alert: { weight: true },
   apply: { weight: true },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  archive: { weight: true },
   "arrow-down-circle": { weight: true },
   "arrow-left": { weight: true },
   "arrow-left-down": { weight: true },
@@ -361,9 +361,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   files: { weight: true, dashed: true },
   "files-websites": { weight: true },
   folder: { weight: true, dashed: true },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "folder-closed": { weight: true },
+  "folder-open": { weight: true },
+  "folder-plus": { weight: true },
   gear: { weight: true },
   "git-branch": { weight: true },
   "git-commit": { weight: true },
@@ -416,7 +416,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   "sidebar-right-closed": { weight: true },
   "sidebar-right-open": { weight: true },
   "sidebar-show": { weight: true },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  skills: { weight: true },
   slash: { weight: true },
   "sparkles-slash": { weight: true },
   sparkles: { weight: true },

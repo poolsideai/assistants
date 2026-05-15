@@ -20,7 +20,7 @@
      * @default "neutral"
      */
     intent?: "neutral" | "warning";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    leading?: Snippet;
     accessories?: Snippet;
   }
 
@@ -41,7 +41,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     intent = "neutral",
     onAction,
     children,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    leading,
     accessories,
   }: Props = $props();
 
@@ -51,7 +51,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     id: itemId,
     action,
     isSelected,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    elements: { leadingEl, subtitleEl, accessoriesEl },
   } = getItem();
 
   const id = generateId<Action["id"]>();
@@ -66,12 +66,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 </script>
 
 {#if shouldRender}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {#if $leadingEl && leading}
+    <div {@attach portal($leadingEl)}>
+      {@render leading()}
+    </div>
+  {/if}
+
   {#if $subtitleEl}
     <span {@attach portal($subtitleEl)}>
       {#if title}

@@ -24,8 +24,8 @@ namespace Poolside.Assistant.WebViewInfrastructure
             return $@"
                 :root {{
                     {declarations}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                    --editor-font-size: 13px;
+                    --editor-line-height: 20px;
                 }}
                 body {{
                     background-color: var(--psx-chrome);

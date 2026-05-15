@@ -13,7 +13,7 @@ interface ItemContext extends Item {
   select: () => void;
   elements: {
     rootEl: Readable<HTMLElement | undefined>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    leadingEl: Readable<HTMLElement | undefined>;
     subtitleEl: Readable<HTMLElement | undefined>;
     accessoriesEl: Readable<HTMLElement | undefined>;
   };
@@ -44,7 +44,7 @@ export function createItem(item: ItemProps) {
     }),
     elements: {
       rootEl: writable(),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      leadingEl: writable(),
       subtitleEl: writable(),
       accessoriesEl: writable(),
     },
