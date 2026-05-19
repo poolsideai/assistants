@@ -77,12 +77,12 @@ export interface PromptContext {
    */
   isSubmitting: Readable<boolean>;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Indicates whether the prompt is disabled (read-only).
+   * When true, the editor should not accept user input.
+   */
+  disabled: Readable<boolean>;
+
   /**
    * Determines if the prompt can be submitted in its current state.
    */
@@ -218,7 +218,7 @@ export interface ChipsContext {
 export interface PromptOptions
   extends Omit<PromptProps, "onInterrupt" | "suggestion" | "onSuggestionAccepted"> {
   submitDisabled: Readable<boolean | undefined>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  disabled: Readable<boolean>;
   onInterrupt: Readable<PromptProps["onInterrupt"]>;
   suggestion: Readable<PromptProps["suggestion"]>;
   onSuggestionAccepted: Readable<PromptProps["onSuggestionAccepted"]>;
@@ -792,7 +792,7 @@ export function createPrompt({
     imeIsComposing,
     isDirty,
     isSubmitting,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    disabled,
     canSubmit,
     suggestion,
     acceptSuggestion,
