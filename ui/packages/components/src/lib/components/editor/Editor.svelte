@@ -20,7 +20,7 @@
     isComposing = $bindable(),
     state: editorState,
     attributes,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    editable,
     onUpdate,
     handleDOMEvents,
     ...rest
@@ -79,7 +79,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       {
         state: initialState,
         dispatchTransaction,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        editable,
         handleDOMEvents: { ...handleDOMEvents, ...compositionHandlers },
         ...rest,
       },
@@ -101,12 +101,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       view.setProps({ attributes });
     }
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  $effect.pre(() => {
+    if (view && editable) {
+      view.setProps({ editable });
+    }
+  });
 </script>
 
 <div use:editor={editorState}></div>

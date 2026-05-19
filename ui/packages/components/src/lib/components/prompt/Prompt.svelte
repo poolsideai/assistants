@@ -18,7 +18,7 @@
     label?: string;
     class?: ClassValue;
     submitDisabled?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    disabled?: boolean;
     children?: Snippet;
   }
 
@@ -32,7 +32,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onSubmitNow,
     children,
     submitDisabled,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    disabled = false,
     onInterrupt,
     class: className,
   }: Props = $props();
@@ -43,11 +43,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     submitDisabledS.set(submitDisabled);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const disabledS = writable<boolean>(disabled);
+  $effect.pre(() => {
+    disabledS.set(disabled);
+  });
+
   const onInterruptS = writable<PromptProps["onInterrupt"]>(onInterrupt);
   $effect.pre(() => {
     onInterruptS.set(onInterrupt);
@@ -69,7 +69,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onSubmit,
     onSubmitNow,
     submitDisabled: submitDisabledS,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    disabled: disabledS,
     onInterrupt: onInterruptS,
     suggestion: suggestionS,
     onSuggestionAccepted: onSuggestionAcceptedS,

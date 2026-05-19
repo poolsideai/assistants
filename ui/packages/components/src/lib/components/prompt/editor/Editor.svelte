@@ -47,7 +47,7 @@
     isDirty,
     imeIsComposing,
     isSubmitting,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    disabled,
     submit,
     submitNow,
     interrupt,
@@ -223,9 +223,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       return;
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Don't focus the editor when disabled
+    if ($disabled) return;
+
     if (/^[a-zA-Z0-9/@#]$/.test(e.key)) {
       return $editor?.executeCommand(focusCommand);
     }
