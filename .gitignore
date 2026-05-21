@@ -56,11 +56,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 # agent tooling
 .aider*
 /.claude
+.claude/
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 .poolside/settings.local.yaml
 conductor.json
 .worktree-env.json
@@ -68,11 +68,11 @@ conductor.json
 # Task tracking and notes
 TASKS.md
 NOTES.md
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+NOTES/
+# Also need stub for symlinks
+NOTES
 TODO.md
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+__scratch/
 .used/
 
 # cleanup / audit scratch (never publish)
