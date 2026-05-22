@@ -51,7 +51,7 @@ require (
 	github.com/zalando/go-keyring v0.2.6
 	honnef.co/go/tools v0.7.0
 )
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 require (
 	al.essio.dev/pkg/shellescape v1.5.1 // indirect
 	dario.cat/mergo v1.0.2 // indirect

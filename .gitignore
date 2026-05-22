@@ -35,7 +35,7 @@ resources/VERSION
 *.decrypted*
 *-cluster.yml
 *-secrets.tmp.yaml
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+.pgpassword
 
 # files generated
 node_modules
