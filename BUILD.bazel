@@ -39,10 +39,10 @@ gazelle(
 
 buildifier(
     name = "buildifier.check",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    exclude_patterns = [
+        "./.git/*",
         "./.ijwb/*",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ],
     lint_mode = "warn",
     mode = "check",
 )

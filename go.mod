@@ -32,7 +32,7 @@ require (
 	github.com/pkg/errors v0.9.1
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
 	github.com/tliron/glsp v0.2.2
 	go.uber.org/atomic v1.11.0 // indirect
