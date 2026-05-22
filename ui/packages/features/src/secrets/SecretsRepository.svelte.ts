@@ -8,13 +8,13 @@ import type {
 import type { HostClient } from "@poolsideai/rpc";
 import { PersistedState } from "runed";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type SecretsRPCClient = Pick<
+  HostClient,
+  "deleteSecret" | "getSecret" | "listSecrets" | "upsertSecret"
+>;
+
 export type SecretsRepositoryDependencies = {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  rpc: SecretsRPCClient;
 };
 
 export type SandboxMenuSecrets = {

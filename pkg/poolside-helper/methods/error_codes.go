@@ -1,18 +1,18 @@
+package methods
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+//go:generate go-enum
+
+// PoolsideErrorCode are our application specific codes (for cases not covered by
+// the jsonrpc standard codes), in range 1400-1599. For ease of reading, we categorise them like http errors:
+// 14xx for input errors, 15xx for internal errors, and map to existing http statuses
+// if it will aid comprehension.
 // ENUM(entity_not_found=1404,conflict=1409,entity_invalid=1422,user_config_invalid=1423,internal_error=1500,agent_install_failed=1502)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type PoolsideErrorCode int64
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

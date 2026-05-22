@@ -1,5 +1,5 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+@poolsideai/components contains reusable UI, not coupled to business logic or state. UI state is fine, e.g. whether a component has been clicked, or the value of fields currently shown in a form. UI components that are coupled to application logic belong within their relevant @poolsideai/features package.
+
 ## Highlighting bundles
 
 Chat highlighting uses Shiki core, the app's CSS-variable theme, and lazy grammar loaders. The small `highlightLanguages.ts` registry contains every installed language name and alias without importing the tokenizer into UI name lookup. Regenerate it with `node scripts/highlight-languages.mjs` after updating Shiki; the highlighting tests compare it with the complete installed registry. Both WASM and the CSP-compatible JavaScript engine remain available.
@@ -8,11 +8,11 @@ Chat and Pierre workers use `?shared-worker`, provided by `@poolsideai/vite-conf
 
 The pinned `@pierre/diffs` patch uses narrow Shiki imports and the same core constructor as Pierre's own worker. Its existing language/theme resolvers still supply grammars, registered app themes, and optional upstream themes. Modified dependency modules retain accurate final JS source maps by omitting their stale upstream map links. See the [B3 evidence](../../../docs/performance-audit/implementation.md#b3--shared-worker-assets-and-narrow-highlighter-imports) for all-host grammar, engine, fallback and UI checks.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+## Adding a component
+
+1. Add a directory inside `src/lib/components`, e.g. `src/lib/components/cool-component`.
+2. Add this directory to `exports` in `package.json`. The `index.ts` should contain all public exports to ensure a consciously designed public API for your feature.
+3. Add a storybook (with `play` tests for interactions)
 4. Ensure your component has enough document to be used by others
 
 ## Markdown diagrams

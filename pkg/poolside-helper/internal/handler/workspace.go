@@ -1,24 +1,24 @@
+package handler
+
+import (
+	"context"
+
+	"github.com/tliron/glsp"
+	protocol "github.com/tliron/glsp/protocol_3_16"
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
+
+func (h *PoolsideHandler) WorkspaceDidChangeWorkspaceFolders(ctx context.Context, params *protocol3.DidChangeWorkspaceFoldersParams, lspCtx *glsp.Context) (any, error) {
 	h.applyWorkspaceFolderChange(params)
 	if h.fileSearchHandler != nil {
 		h.fileSearchHandler.Invalidate()
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return nil, nil
+}
+
+func (h *PoolsideHandler) WorkspaceDidChangeWatchedFiles(ctx context.Context, params *protocol3.DidChangeWatchedFilesParams, lspCtx *glsp.Context) (any, error) {
 	return nil, h.handleWorkspaceDidChangeWatchedFiles(ctx, params)
 }
 
@@ -27,36 +27,36 @@ func (h *PoolsideHandler) handleWorkspaceDidChangeWatchedFiles(ctx context.Conte
 		h.fileSearchHandler.Invalidate()
 	}
 	return nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func (h *PoolsideHandler) WorkspaceWillDeleteFiles(ctx context.Context, params *lsptypes.DeleteFilesParams, lspCtx *glsp.Context) (any, error) {
+	h.OnWorkspaceWillDeleteFiles(ctx, *params, lspCtx.Call)
+	return nil, nil
+}
+
+func (h *PoolsideHandler) WorkspaceDidDeleteFiles(ctx context.Context, params *lsptypes.DeleteFilesParams, lspCtx *glsp.Context) (any, error) {
 	if h.fileSearchHandler != nil {
 		h.fileSearchHandler.Invalidate()
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return nil, nil
+}
+
+func (h *PoolsideHandler) WorkspaceDidCreateFiles(ctx context.Context, params *lsptypes.CreateFilesParams, lspCtx *glsp.Context) (any, error) {
 	if h.fileSearchHandler != nil {
 		h.fileSearchHandler.Invalidate()
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	h.OnWorkspaceDidCreateFiles(ctx, *params, lspCtx.Call)
+	return nil, nil
+}
+
+func (h *PoolsideHandler) WorkspaceDidRenameFiles(ctx context.Context, params *lsptypes.RenameFilesParams, lspCtx *glsp.Context) (any, error) {
 	if h.fileSearchHandler != nil {
 		h.fileSearchHandler.Invalidate()
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	h.OnWorkspaceDidRenameFiles(ctx, *params, lspCtx.Call)
+	return nil, nil
+}
+
 func (h *PoolsideHandler) applyWorkspaceFolderChange(params *protocol3.DidChangeWorkspaceFoldersParams) {
 	if params == nil {
 		return

@@ -1,3 +1,3 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Package methods defines types for JSONRPC extension methods.
+// They can use huma tags for documentation and validation.
+package methods

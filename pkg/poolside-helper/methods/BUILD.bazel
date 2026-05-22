@@ -1,25 +1,25 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "methods",
+    srcs = [
+        "abort.go",
         "acp_approvals.go",
         "acp_claude.go",
         "acp_codex.go",
         "acp_nav.go",
         "acp_session.go",
         "client_origin.go",
+        "doc.go",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "environment.go",
+        "error_codes.go",
+        "error_codes_enum.go",
         "get_diagnostics.go",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         "git.go",
         "github.go",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "invoke_lsp.go",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         "local_inference.go",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -31,15 +31,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "search_symbol_definitions.go",
         "secrets.go",
         "voice_input.go",
+    ],
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    visibility = ["//visibility:public"],
+    deps = [
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         "//pkg/humautil",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/poolside-helper/gopls/pkg/protocol",
         "@com_github_coder_acp_go_sdk//:acp-go-sdk",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "@com_github_pkg_errors//:errors",
+    ],
+)

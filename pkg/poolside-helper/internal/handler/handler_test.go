@@ -1,45 +1,45 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package handler
+
+import (
+	"context"
 	"crypto/sha256"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"encoding/json"
+	"errors"
+	"log/slog"
 	"path/filepath"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"strings"
+	"sync"
+	"sync/atomic"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/tliron/glsp"
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/acpproxy"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
+
+func TestJSONRPC(t *testing.T) {
 	h := New()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	h.config = &Config{
+		AssistantEnvironment: string(methods.DevelopmentEnv),
+	}
+	h.SetInitialized(true)
+
+	registerJSONRPCMethod(h, JSONRPCOperation{
+		Method: "test/panic",
+	}, func(ctx context.Context, req *int, lspReq *glsp.Context) (any, error) {
+		panic("BOOM")
+	})
+	registerJSONRPCMethod(h, JSONRPCOperation{
+		Method: "test/error",
+	}, func(ctx context.Context, req *int, lspReq *glsp.Context) (any, error) {
+		return nil, errors.New("test error")
+	})
 	registerJSONRPCMethod(h, JSONRPCOperation{
 		Method: "test/error-data",
 	}, func(ctx context.Context, req *int, lspReq *glsp.Context) (any, error) {
@@ -53,109 +53,109 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		})
 		return nil, wireErr
 	})
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	t.Run("valid requests are handled", func(t *testing.T) {
+		r, validMethod, validParams, err := h.Handle(lsptest.NewGLSPTestCtxForMethod(t,
+			"poolside/hello",
+			mustJSON(t, &HelloIn{
+				Ping: "input",
+			}),
+		))
+
+		require.NoError(t, err)
+		assert.True(t, validMethod)
+		assert.True(t, validParams)
+
+		out, ok := r.(*HelloOut)
+		require.True(t, ok)
+
+		assert.Equal(t, out.Pong, "input")
+	})
+
+	// trigger max length violation
+	invalidHelloBody :=
+		mustJSON(t, map[string]any{
+			"ping": strings.Repeat("hello", (128/5)+1),
+		})
+
+	t.Run("request bodies are validated", func(t *testing.T) {
+		_, validMethod, validParams, err := h.Handle(lsptest.NewGLSPTestCtxForMethod(t,
+			"poolside/hello",
+			invalidHelloBody,
+		))
+
+		require.ErrorContains(t, err, "expected length <= 128")
+		assert.False(t, validParams)
+		assert.True(t, validMethod)
+	})
+
+	t.Run("in production, request bodies are not validated", func(t *testing.T) {
 		h := New()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		h.config = &Config{
 			AssistantEnvironment: string(methods.AssistantEnvironment("production")),
+		}
+		h.SetInitialized(true)
+		_, validMethod, validParams, err := h.Handle(lsptest.NewGLSPTestCtxForMethod(t,
+			"poolside/hello",
+			invalidHelloBody,
+		))
+
+		assert.True(t, validMethod)
+		assert.True(t, validParams)
+		require.NoError(t, err)
+	})
+
+	t.Run("request bodies with unexpected fields error as usual", func(t *testing.T) {
+		_, validMethod, validParams, err := h.Handle(lsptest.NewGLSPTestCtxForMethod(t,
+			"poolside/hello",
+			mustJSON(t, map[string]any{
+				"ping":  42,
+				"extra": 42,
+			})),
+		)
+
+		require.ErrorContains(t, err, "expected string (ping: 42)")
+		assert.False(t, validParams)
+		assert.True(t, validMethod)
+	})
+
+	t.Run("missing methods return invalid method, but no error", func(t *testing.T) {
+		_, validMethod, validParams, err := h.Handle(lsptest.NewGLSPTestCtxForMethod(t,
+			"poolside/i_am_a_teapot",
+			mustJSON(t, map[string]any{}),
+		))
+
+		assert.NoError(t, err)
+		assert.False(t, validParams)
+		assert.False(t, validMethod)
+	})
+
+	t.Run("panics are recovered and logged", func(t *testing.T) {
+		tlog := testLogger()
+
+		_, validMethod, _, err := h.Handle(lsptest.NewGLSPTestCtxForMethod(t,
+			"test/panic",
+			mustJSON(t, 42),
+		))
+		require.True(t, validMethod, "expected valid method")
+		assert.Error(t, err)
+
+		assert.Contains(t, tlog.String(), `error="panic with value: BOOM`)
+	})
+
+	t.Run("errors are logged", func(t *testing.T) {
+		tlog := testLogger()
+
+		_, validMethod, _, err := h.Handle(lsptest.NewGLSPTestCtxForMethod(t,
+			"test/error",
+			mustJSON(t, 42),
+		))
+		require.True(t, validMethod, "expected valid method")
+		assert.Error(t, err)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	})
+
 	t.Run("jsonrpc error data is logged", func(t *testing.T) {
 		tlog := testLogger()
 
@@ -170,19 +170,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		assert.Contains(t, tlog.String(), `error_data="{\"details\":[\"session-1\",\"workspace-a\"],\"error\":\"loaded session does not exist\"}"`)
 	})
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	t.Run("non-errors are logged", func(t *testing.T) {
+		tlog := testLogger()
+
+		_, validMethod, validParams, err := h.Handle(lsptest.NewGLSPTestCtxForMethod(t,
+			"poolside/hello",
+			mustJSON(t, &HelloIn{
+				Ping: "input",
+			})))
+		require.NoError(t, err)
+		require.True(t, validMethod && validParams, "expected valid call")
+
+		assert.Contains(t, tlog.String(), "method=poolside/hello error=<nil>")
+	})
 
 	t.Run("successful acp nav list requests are silent", func(t *testing.T) {
 		tlog := testLogger()
@@ -201,192 +201,192 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 		assert.NotContains(t, tlog.String(), methods.ACPNavListMethod)
 	})
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func TestJSONRPC_Cancellation(t *testing.T) {
+
+	t.Run("in-flight requests are aborted", func(t *testing.T) {
+		tlog := testLogger()
+
 		h := New()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		h.SetInitialized(true)
+
+		started := make(chan struct{})
+		registerJSONRPCMethod(h, JSONRPCOperation{
+			Method: "test/blockForAges",
+		}, func(ctx context.Context, req *int, lspReq *glsp.Context) (any, error) {
+			close(started)
+			select {
+			case <-ctx.Done():
+				return nil, nil
+			case <-time.After(60 * time.Second):
+				return nil, errors.New("should not have completed")
+			}
+		})
+
+		done := make(chan struct{})
+		go func() {
+			_, validMethod, _, err := h.Handle(lsptest.NewGLSPTestCtxForMethodWithRequestID(t,
+				"test/blockForAges",
+				mustJSON(t, 99),
+				42,
+			))
+			assert.True(t, validMethod, "expected valid method")
+			assert.NoError(t, err)
+			close(done)
+		}()
+
+		<-started
+		_, validMethod, _, err := h.Handle(lsptest.NewGLSPTestCtxForMethod(t,
+			"$/cancelRequest",
 			mustJSON(t, map[string]any{"id": 42}),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		))
+		require.True(t, validMethod, "expected valid method")
+		assert.NoError(t, err)
+
+		assert.Contains(t, tlog.String(), `cancel`)
+
+		select {
+		case <-done:
+
+		case <-time.After(10 * time.Millisecond):
+			t.Errorf("should have been cancelled")
+		}
+	})
+
+	t.Run("request that have not yet started are immediately aborted on start", func(t *testing.T) {
+		tlog := testLogger()
+
 		h := New()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		h.SetInitialized(true)
+
+		started := atomic.Int64{}
+		registerJSONRPCMethod(h, JSONRPCOperation{
+			Method: "test/blockForAges",
+		}, func(ctx context.Context, req *int, lspReq *glsp.Context) (any, error) {
+			started.Add(1)
+			select {
+			case <-ctx.Done():
+				return nil, nil
+			case <-time.After(time.Second * 2):
+				t.Errorf("unexpectedly uncancelled %s", lspReq.RequestID.String())
+				return nil, errors.New("should not have completed")
+			}
+		})
+
+		rids := []int{}
+		n := 50
+		for i := range n {
+			rids = append(rids, i+1)
+		}
+
+		nextCancelRequestID := 10000
+		for i, rid := range rids {
+			// cancel half ahead of time
+			if i%2 == 0 {
+				continue
+			}
+			nextCancelRequestID++
+			_, validMethod, _, err := h.Handle(lsptest.NewGLSPTestCtxForMethodWithRequestID(t,
+				"$/cancelRequest",
 				mustJSON(t, map[string]any{"id": rid}),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+				nextCancelRequestID,
+			))
+			require.True(t, validMethod)
+			require.NoError(t, err)
+		}
+
+		// back up a lot of requests
+		wg := sync.WaitGroup{}
+		for _, rid := range rids {
+			wg.Add(1)
 			// Loop variable passed as an argument (not captured) to appease
 			// nogo's loopclosure analyzer, which cannot see the Go language
 			// version under rules_go and assumes pre-1.22 capture semantics.
 			go func(rid int) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+				defer wg.Done()
+				_, validMethod, _, _ := h.Handle(lsptest.NewGLSPTestCtxForMethodWithRequestID(t,
+					"test/blockForAges",
+					mustJSON(t, 99),
+					rid,
+				))
+				assert.True(t, validMethod, "expected valid method")
 			}(rid)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		}
+
+		for i, rid := range rids {
+			// cancel the rest
+			if i%2 != 0 {
+				continue
+			}
+			nextCancelRequestID++
+			_, validMethod, _, err := h.Handle(lsptest.NewGLSPTestCtxForMethodWithRequestID(t,
+				"$/cancelRequest",
 				mustJSON(t, map[string]any{"id": rid}),
+				nextCancelRequestID,
+			))
+			require.True(t, validMethod)
+			require.NoError(t, err)
+		}
+
+		heardAll := make(chan struct{})
+		go func() {
+			wg.Wait()
+			close(heardAll)
+		}()
+
+		select {
+		// pass if we've heard all first
+		case <-heardAll:
+			assert.Contains(t, tlog.String(), `canceled_by_client=true`, "should have logged cancellation")
+			assert.LessOrEqual(t, started.Load(), int64(n/2), "at least half should have never started, as cancel was received first")
+		// give a decent amount of time to avoid flakes
+		case <-time.After(5 * time.Second):
+			t.Errorf("should have been cancelled. Logs:\n%s", tlog.String())
+		}
+
+	})
+}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestConcurrentMethods(t *testing.T) {
+	t.Run("default handler marks extension methods as concurrent", func(t *testing.T) {
 		h := New()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+		extensionMethods := []string{
 			methods.ACPInitializeMethod,
 			methods.ACPSteerMethod,
 			methods.ACPSetConfigOptionMethod,
 			methods.ACPSetModeMethod,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			"poolside/hello",
+		}
+		for _, method := range extensionMethods {
+			assert.True(t, h.IsConcurrentMethod(method), "%s should be concurrent", method)
+		}
+
+		lspMethods := []string{
+			"textDocument/didOpen",
+			"textDocument/didChange",
+		}
+		for _, method := range lspMethods {
+			assert.False(t, h.IsConcurrentMethod(method), "%s should not be concurrent", method)
+		}
+	})
+
+	t.Run("custom handler properly sets concurrent flag", func(t *testing.T) {
 		h := newHandlerBaseState()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+		registerLSPMethod(h, JSONRPCOperation{
+			Method: "test/lspMethod",
+		}, func(ctx context.Context, req *string, lspReq *glsp.Context) (string, error) {
+			return "", nil
+		})
+
+		registerExtensionMethod(h, JSONRPCOperation{
+			Method: "test/extensionMethod",
+		}, func(ctx context.Context, req *string, lspReq *glsp.Context) (string, error) {
+			return "", nil
+		})
+
 		registerExtensionMethodUntyped(h, JSONRPCOperation{
 			Method: "test/serializedUntypedMethod",
 		}, func(ctx context.Context, req *string, lspReq *glsp.Context) (string, error) {
@@ -405,12 +405,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			return "", nil
 		})
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		assert.False(t, h.IsConcurrentMethod("test/lspMethod"), "LSP method should not be concurrent")
+		assert.True(t, h.IsConcurrentMethod("test/extensionMethod"), "Extension method should be concurrent")
 		assert.False(t, h.IsConcurrentMethod("test/serializedUntypedMethod"), "serialized untyped method should not be concurrent")
 		assert.True(t, h.IsConcurrentMethod("test/unserializedUntypedMethod"), "unserialized untyped method should be concurrent")
 		assert.True(t, h.IsConcurrentMethod("test/unserializedUntypedMethodNoDeadline"), "unserialized no-deadline method should be concurrent")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	})
 }
 
 func TestRequestContextDeadlines(t *testing.T) {
@@ -450,8 +450,8 @@ func TestRequestContextDeadlines(t *testing.T) {
 	require.True(t, validMethod)
 	require.True(t, validParams)
 	assert.False(t, sawNoDeadline)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 func TestACPInitializeHasNoRequestDeadline(t *testing.T) {
 	h := New()
 
@@ -540,24 +540,24 @@ func TestACPNavStateForHost(t *testing.T) {
 	})
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func testLogger() *strings.Builder {
+	var buf strings.Builder
+	handler := slog.NewTextHandler(&buf, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	})
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
+	return &buf
+}
+
+func mustJSON(t *testing.T, v any) []byte {
+	t.Helper()
+	b, err := json.Marshal(v)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return b
+}
 
 type performanceRPCInput struct {
 	Content string   `json:"content"`

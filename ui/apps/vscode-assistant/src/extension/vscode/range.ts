@@ -1,22 +1,22 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// API ranges are 1 indexed
+import { Range } from "vscode";
+
+export interface LineRangeOneIndexed {
+  startLine: number;
+  endLine: number;
+  oneIndexed: true;
+}
+
+/**
+ * The poolside API starts line number at 1, vscode at 0
+ */
+export function vscodeRangeToAPIRange(selection: Range): LineRangeOneIndexed {
+  return {
     startLine: vscodeLineToAPILine(selection.start.line),
     endLine: vscodeLineToAPILine(selection.end.line),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    oneIndexed: true,
+  };
+}
 
 export function vscodeLineToAPILine(line: number): number {
   return line + 1;

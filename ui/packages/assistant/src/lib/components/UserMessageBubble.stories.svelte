@@ -1,30 +1,30 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script module lang="ts">
+  import { defineMeta } from "@storybook/addon-svelte-csf";
   import { UserMessageBubble } from "@poolsideai/components/assistant-ui";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const { Story } = defineMeta({
+    title: "Components/UserMessageBubble",
+    component: UserMessageBubble,
+  });
+</script>
+
+<Story name="LongMessage">
+  This is a very long message that will be truncated when the collapsible prop is enabled. The user
+  can click to expand and see the full content. Lorem ipsum dolor sit amet, consectetur adipiscing
+  elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+  quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
+  dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur
+  sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+  laborum. Second paragraph to make it even longer. Sed ut perspiciatis unde omnis iste natus error
+  sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo
+  inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo
+</Story>
+
+<Story
+  name="LongMessage: Collapsible"
+  args={{
+    collapsible: true,
+  }}
 >
   This is a very long message that will be truncated when the collapsible prop is enabled. The user
   can click to expand and see the full content. Lorem ipsum dolor sit amet, consectetur adipiscing
@@ -51,25 +51,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     variant: "enqueued",
     nubbinPosition: "bottom-right",
   }}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+>
+  This is a very long message that will be truncated when the collapsible prop is enabled. The user
+  can click to expand and see the full content. Lorem ipsum dolor sit amet, consectetur adipiscing
+  elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+  quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
+  dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur
+  sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est
+  laborum. Second paragraph to make it even longer. Sed ut perspiciatis unde omnis iste natus error
+  sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo
+  inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo
+</Story>
+
+<Story name="ShortMessage">This is a short message</Story>
+
+<Story
+  name="Nubbin bottom right"
+  args={{
+    nubbinPosition: "bottom-right",
+  }}
+>
+  This is a short message
+</Story>

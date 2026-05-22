@@ -21,17 +21,17 @@ export class TelemetryLogger {
     this.#output.dispose();
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  log(message: string, args: object) {
     if (this.#disposed) return;
+    this.#output.appendLine(
+      JSON.stringify({
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        ...args,
+        message,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    );
+  }
+
   reportUsage(eventType: TelemetryEventInputEventType, data: TelemetryEventInputMetadata) {
     if (this.#disposed) return;
     this.#output.appendLine(
@@ -44,24 +44,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // this is called when we report an error from the UI process
+  reportErrorFromUI(error: ErrorObject) {
     if (this.#disposed) return;
+    this.reportError(error, {
+      tags: {
+        ui_error: "true",
+      },
+    });
+  }
+
+  reportError(
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    {
+      tags = undefined,
+    }: {
+      tags?: Record<string, string>;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ) {
     if (this.#disposed) return;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -71,17 +71,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      // drop stack as we will already have included that if present
+      const { stack: _, ...kept } = serialized as Record<string, any>;
       this.#output.appendLine(
+        [
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          ...(tags ? [`Tags: ${JSON.stringify(tags, null, 4)}`] : []),
+          `Error properties: ${JSON.stringify(kept, null, 4)}`,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       );
     }
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

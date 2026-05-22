@@ -4,8 +4,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { runtime, toJsonrpcMethod } from "../orval/clientHelpers";
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   ACPAgentServerParams,
   ACPCloseSessionParams,
@@ -652,7 +652,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 export const poolsideMcpServersTestConnection = async (
   mCPServersTestConnectionParams: NonReadonly<MCPServersTestConnectionParams>,
 ): Promise<MCPServersTestConnectionOutput> => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return await runtime.jsonrpcCall(
     toJsonrpcMethod("/poolside/mcpServers/testConnection"),
     mCPServersTestConnectionParams,
   );
@@ -666,7 +666,7 @@ export const poolsideMcpServersUpsert = async (
   return await runtime.jsonrpcCall(
     toJsonrpcMethod("/poolside/mcpServers/upsert"),
     mCPServersUpsertParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 /**
  * searches workspace and filesystem paths for the file picker

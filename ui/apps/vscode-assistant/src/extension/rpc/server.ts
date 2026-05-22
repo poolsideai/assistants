@@ -18,7 +18,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { randomUUID } from "crypto";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import * as vscode from "vscode";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { POOLSIDE } from "../extensionIdentity";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -83,9 +83,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (requestId !== undefined) {
         this.webview.postMessage({ command, requestId, payload: resp });
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      this.system.telemetry.reportError(serializeError(error), { tags: { hostRpc: command } });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (requestId !== undefined) {
@@ -206,7 +206,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   }
   showInfoMessage = showInfoMessage;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async jsonrpc<I, O>(methodName: string, params: I): Promise<O> {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     const result = await client.sendRequest(methodName, params);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -235,7 +235,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   async jsonrpcNotify<I>(methodName: string, params: I): Promise<void> {
     const client = await getHelperSingleton(this.system);
     await client.sendNotification(methodName, params);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
   selectProjectFolder = selectProjectFolder;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   saveTextFile = saveTextFile;
@@ -338,7 +338,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   getSecret = poolsideGetSecret;
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    vscode.env.clipboard.writeText(text);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
 

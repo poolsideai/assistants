@@ -1,5 +1,5 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { describe, type Mock, type MockInstance } from "vitest";
 import {
   SET_CURRENT_CONVERSATION_EVENT,
   type WebViewRPCResponseSender,

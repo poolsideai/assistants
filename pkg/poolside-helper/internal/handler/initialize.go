@@ -1,154 +1,154 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package handler
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"log/slog"
 	"os"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"path/filepath"
 	"runtime/trace"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-	goroutine.WithRecover(removeLegacyEngagementState)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-	err := initializePhase(gCtx.Context, "configuration", func() error { return h.initializeConfiguration(gCtx, params) })
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-	}
+	"time"
+
+	"github.com/tliron/glsp"
+	protocol "github.com/tliron/glsp/protocol_3_16"
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
+
+// initialize is the first method received by the LSP server from client. Until a response has been received no
+// other methods should be called. If this fails no methods will be called, and it's likely the client will either
+// try a restart or give up, so the helper will not be usable.
+func (h *PoolsideHandler) initialize(gCtx *glsp.Context, params *protocol.InitializeParams) (any, error) {
+	if h.IsInitialized() {
+		return nil, errors.New("server cannot be re-initialized")
+	}
+
+	err := h.criticalPathDependencies(gCtx, params)
+	if err != nil {
+		// hard fail - helper out of action
+		return nil, err
+	}
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	/**
+	 * Soft, non-blocking dependencies. Place any slow initialization processes here, as work in initialize delays the helper
+	 * being responsive for API requests etc.
+	 */
+	if gCtx.Context != nil {
+		goroutine.WithRecover(func() {
+			h.startPprofNonBlocking()
+		})
+	}
+	goroutine.WithRecover(removeLegacyEngagementState)
+
+	ret := protocol2.InitializeResult{
+		// this informs the clients which methods we support, opting in to things like text doc synchronisation
+		Capabilities: protocol2.ServerCapabilities{
+			TextDocumentSync: protocol2.TextDocumentSyncOptions{
+				OpenClose: true,
+				Change:    protocol2.Incremental,
+			},
+			Workspace: &protocol2.WorkspaceOptions{
+				WorkspaceFolders: &protocol2.WorkspaceFolders5Gn{
+					Supported:           true,
+					ChangeNotifications: "workspaceFolders/changeNotifications",
+				},
+				// TODO: maybe the following filters could be more strict
+				FileOperations: &protocol2.FileOperationOptions{
+					DidRename: &protocol2.FileOperationRegistrationOptions{
+						Filters: []protocol2.FileOperationFilter{
+							{
+								Scheme: "file",
+								Pattern: protocol2.FileOperationPattern{
+									Glob: "**",
+									Options: &protocol2.FileOperationPatternOptions{
+										IgnoreCase: true,
+									},
+								},
+							},
+						},
+					},
+					DidDelete: &protocol2.FileOperationRegistrationOptions{
+						Filters: []protocol2.FileOperationFilter{
+							{
+								Scheme: "file",
+								Pattern: protocol2.FileOperationPattern{
+									Glob: "**",
+									Options: &protocol2.FileOperationPatternOptions{
+										IgnoreCase: true,
+									},
+								},
+							},
+						},
+					},
+					DidCreate: &protocol2.FileOperationRegistrationOptions{
+						Filters: []protocol2.FileOperationFilter{
+							{
+								Scheme: "file",
+								Pattern: protocol2.FileOperationPattern{
+									Glob: "**",
+									Options: &protocol2.FileOperationPatternOptions{
+										IgnoreCase: true,
+									},
+								},
+							},
+						},
+					},
+					WillDelete: &protocol2.FileOperationRegistrationOptions{
+						Filters: []protocol2.FileOperationFilter{
+							{
+								Scheme: "file",
+								Pattern: protocol2.FileOperationPattern{
+									Glob: "**",
+									Options: &protocol2.FileOperationPatternOptions{
+										IgnoreCase: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		ServerInfo: &protocol2.ServerInfo{
+			Name: "poolside Helper",
+			// TODO pass in the cmd version for consistency
+			Version: version.Human(),
+		},
+	}
+
+	h.SetInitialized(true)
+
+	// N.B. think carefully about adding places that initialize can fail - see docs at top of method
+	return ret, nil
+}
+
+// criticalPathDependencies are all the initialization steps which must occur for the helper to be useable.
+// Think carefully about what's necessary here, especially any work involving state not under our control, or slow processes (disk, config files etc).
+// Ideally make this work fail-safe, so it gracefully handles error conditions rather than returning an error which
+// blocks startup
+func (h *PoolsideHandler) criticalPathDependencies(gCtx *glsp.Context, params *protocol.InitializeParams) error {
+	err := initializePhase(gCtx.Context, "configuration", func() error { return h.initializeConfiguration(gCtx, params) })
+	if err != nil {
+		return err
+	}
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
+
+	return nil
+}
+
 func clientSupportsWatchedFiles(params *protocol.InitializeParams) bool {
 	if params == nil || params.Capabilities.Workspace == nil || params.Capabilities.Workspace.DidChangeWatchedFiles == nil {
 		return false
@@ -158,27 +158,27 @@ func clientSupportsWatchedFiles(params *protocol.InitializeParams) bool {
 }
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	h.mx.Lock()
+	defer h.mx.Unlock()
+
+	conf, err := fromInitializationOptions(params.InitializationOptions)
+	if err != nil {
+		return err
+	}
+	h.config = conf
+	h.workspaceFolders = params.WorkspaceFolders
 	h.clientSupportsWatchedFiles = clientSupportsWatchedFiles(params)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	// change default level for stdout (Debug for development, Info for production)
+	logging.UpdateLevelForEnvironment(methods.AssistantEnvironment(conf.AssistantEnvironment))
+
+	return nil
+}
+
+func (h *PoolsideHandler) initialized(gLsp *glsp.Context, params *protocol.InitializedParams) error {
+	if gLsp == nil {
+		return nil
+	}
 	if h.clientSupportsWatchedFiles {
 		gLsp.Call(context.Background(), "client/registerCapability", &protocol.RegistrationParams{
 			Registrations: []protocol.Registration{
@@ -190,16 +190,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 							{
 								GlobPattern: "**",
 							},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+						},
+					},
+				},
+			},
 		}, nil)
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return nil
+}
+
 func acpNavDB() (string, error) {
 	if dbPath := os.Getenv("POOLSIDE_ACP_NAV_DB_PATH"); dbPath != "" {
 		return dbPath, nil

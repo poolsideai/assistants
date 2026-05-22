@@ -1,64 +1,64 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+name: Sign & Notarize macOS Binary
+description: Code sign and notarize a macOS binary using Developer ID
+
+inputs:
+  BINARY_PATH:
+    description: "Path to the binary to sign (e.g. dist/mycmd)"
+    required: true
+  ASC_ISSUER_ID:
+    description: "App Store Connect Team ID (https://appstoreconnect.apple.com/access/integrations/api)"
+    required: true
+  ASC_KEY_ID:
+    description: "App Store Connect Key ID (API key)"
+    required: true
+  MACOS_DEVID_P12_B64:
+    description: ".p12 containing private key + cert for Developer ID app (base64 encoded)"
+    required: true
+  MACOS_DEVID_P12_PASSWORD:
+    description: "Password for the .p12 file"
+    required: true
+  ASC_KEY_P8_B64:
+    description: ".p8 API key (base64 encoded)"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Import Developer ID cert
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+      with:
+        p12-file-base64: ${{ inputs.MACOS_DEVID_P12_B64 }}
+        p12-password: ${{ inputs.MACOS_DEVID_P12_PASSWORD }}
+
+    - name: Sign
+      shell: bash
+      run: |
+        set -euo pipefail
+        BIN="${{ inputs.BINARY_PATH }}"
+        codesign --force --timestamp --options runtime --sign "Developer ID Application" "$BIN"
+        codesign --verify --strict --verbose=2 "$BIN"
+
+    - name: Zip for notarization
+      shell: bash
+      run: |
+        set -euo pipefail
+        BIN="${{ inputs.BINARY_PATH }}"
+        ditto -c -k --keepParent "$BIN" "${BIN##*/}.zip"
+
+    - name: Notarize
+      shell: bash
+      env:
+        ASC_KEY_P8_B64: ${{ inputs.ASC_KEY_P8_B64 }}
+      run: |
+        set -euo pipefail
+        KEY="$RUNNER_TEMP/AuthKey.p8"
+        echo "$ASC_KEY_P8_B64" | base64 --decode > "$KEY"
+
+        BIN="${{ inputs.BINARY_PATH }}"
+        ZIP="${BIN##*/}.zip"
+        xcrun notarytool submit "$ZIP" --key "$KEY" --key-id "${{ inputs.ASC_KEY_ID }}" --issuer "${{ inputs.ASC_ISSUER_ID }}" --wait
+
+    - name: Cleanup auth key
+      if: always()
+      shell: bash
+      run: rm -f "$RUNNER_TEMP/AuthKey.p8"

@@ -122,7 +122,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import SubmitAdditionalSolid from "./glyphs/submit-additional-solid.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import SubmitAdditional from "./glyphs/submit-additional.svelte";
 import SubmitSolid from "./glyphs/submit-solid.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -273,7 +273,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "submit-additional": SubmitAdditional,
   "submit-additional-solid": SubmitAdditionalSolid,
   "submit-solid": SubmitSolid,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -426,7 +426,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "submit-additional": { weight: true },
   "submit-additional-solid": { weight: true },
   "submit-solid": { weight: true },
 __POOL_SYNTHETIC_IMPORT_BASELINE__

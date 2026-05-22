@@ -51,9 +51,9 @@ type PoolsideSecretStore interface {
 	Upsert(ctx context.Context, params UpsertSecretParams) error
 	Delete(ctx context.Context, name string) error
 	Get(ctx context.Context, name string) (*Secret, error)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// List may return partial results alongside a non-nil error (e.g. in composite
+	// implementations where one backing store fails). Callers should use whatever
+	// secrets are returned and handle the error accordingly.
 	List(ctx context.Context) ([]Secret, error)
 }
 
