@@ -74,8 +74,8 @@
     "test": "vitest run",
     "test:storybook": "vitest run --project storybook",
     "test:storybook:watch": "vitest --project storybook",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "test:unit": "POOLSIDE_SKIP_STORYBOOK_VITE=1 vitest run --project unit",
+    "test:unit:watch": "POOLSIDE_SKIP_STORYBOOK_VITE=1 vitest --project unit",
     "test:watch": "vitest"
   },
   "lint-staged": {
