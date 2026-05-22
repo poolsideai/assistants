@@ -99,7 +99,7 @@ async function startHelper(system: System) {
     },
     initializationOptions: {
       ...(await getRuntimeSettings()),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      sessionId: env.sessionId,
       assistantHost: environment.assistantHost,
       assistantEnvironment: environment.assistantEnv,
     },
