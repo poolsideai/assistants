@@ -1,11 +1,11 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+@poolsideai/features contains shared application features, e.g. auth. Features can comprise state-management, UI, and anything else required. In contrast, @poolsideai/components contains only UI logic and state.
+
+Each feature should be self-contained. If there are cross-feature dependencies, express them via the public API, rather than mutual imports.
+
+## Adding a feature
+
+1. Add a directory inside `src/`, e.g. `src/new-feature`.
+2. Add this directory to `exports` in `package.json`. The `index.ts` should contain all public exports to ensure a consciously designed public API for your feature.
 
 ## Connector logos
 

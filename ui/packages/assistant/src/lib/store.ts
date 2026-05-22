@@ -1,8 +1,8 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * @module AssistantStore
+ * @description This module is written in a legacy style. Do not copy it. Instead, use repositories to manage state and persistence. Refer to ui/README.md for more.
+ */
+
 import type { ColorTheme, FileIconTheme } from "@poolsideai/components/providers";
 import { normalize } from "@poolsideai/lib/path";
 import type { Configuration, Keybindings, Language, WorkspaceFolder } from "@poolsideai/rpc";
@@ -93,7 +93,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ...stripAuthFields(globalThis.POOLSIDE_INITIAL_STATE),
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -162,21 +162,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// to keep appState's runtime fields matching its types, remove all
+// fields now managed by AuthRepository
+function stripAuthFields(
   initial: PoolsideInitialState | undefined,
 ): Omit<PoolsideInitialState, "accessToken"> {
+  if (!initial) return {};
+  const {
+    accessToken: _accessToken,
+    identity: _identity,
+    is_tenant_admin: _isTenantAdmin,
+    isAuthenticated: _isAuthenticated,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    userAvatarBase64: _userAvatarBase64,
+    features: _features,
+    ...rest
   } = initial as AuthManagedInitialState;
   return rest as Omit<PoolsideInitialState, "accessToken">;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

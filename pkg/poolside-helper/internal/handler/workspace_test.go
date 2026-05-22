@@ -1,15 +1,15 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package handler
+
+import (
 	"encoding/json"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	protocol "github.com/tliron/glsp/protocol_3_16"
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
+
 func TestApplyWorkspaceFolderChange(t *testing.T) {
 	h := &PoolsideHandler{
 		workspaceFolders: []protocol.WorkspaceFolder{

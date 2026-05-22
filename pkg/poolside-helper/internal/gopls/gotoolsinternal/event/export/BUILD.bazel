@@ -1,32 +1,32 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "export",
+    srcs = [
+        "id.go",
+        "labels.go",
+        "log.go",
+        "printer.go",
+        "trace.go",
+    ],
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event",
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event/core",
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event/keys",
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event/label",
+    ],
+)
+
+go_test(
+    name = "export_test",
+    srcs = ["log_test.go"],
+    deps = [
+        ":export",
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event",
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event/core",
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event/keys",
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event/label",
+    ],
+)

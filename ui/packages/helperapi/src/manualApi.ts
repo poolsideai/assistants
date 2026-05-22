@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { runtime, toJsonrpcMethod } from "./orval/clientHelpers";
 
 // --- GitHub awareness (poolside/github/*) ---
 //

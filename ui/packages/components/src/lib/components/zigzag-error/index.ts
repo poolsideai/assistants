@@ -1,2 +1,2 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { default as ZigZagError } from "./ZigZagError.svelte";
+export type { ZigZagErrorProps, ZigZagErrorTheme, ZigZagErrorVariant } from "./ZigZagError.svelte";

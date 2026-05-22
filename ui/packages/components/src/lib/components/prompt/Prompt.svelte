@@ -1,5 +1,5 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { createPrompt } from "./context/prompt.js";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -11,13 +11,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onSuggestionAccepted?: (value: string) => void;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     onSubmitNow?: (value: string) => void;
+    onInterrupt?: () => void;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    submitDisabled?: boolean;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -31,18 +31,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     onSubmitNow,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    submitDisabled,
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onInterrupt,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // for some reason, toStore didn't work.
+  const submitDisabledS = writable<boolean | undefined>(submitDisabled);
+  $effect.pre(() => {
+    submitDisabledS.set(submitDisabled);
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -63,12 +63,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onSuggestionAcceptedS.set(onSuggestionAccepted);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const prompt = createPrompt({
     value,
     onValueChange,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     onSubmitNow,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    submitDisabled: submitDisabledS,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     onInterrupt: onInterruptS,
     suggestion: suggestionS,
@@ -79,29 +79,29 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     prompt.setValue(value, { focus: false });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const {
+    elements: { rootEl, rootId, labelId },
+  } = prompt;
+
+  export const interrupt = () => prompt.interrupt();
+  export const clear = () => prompt.clear();
   export const focus = () => prompt.focus();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  export const submit = () => prompt.submit();
   export const submitNow = () => prompt.submitNow();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  export const reset = () => prompt.reset();
   export const restore = (text: string) => prompt.restore(text);
   export const setValue = (text: string) => prompt.setValue(text);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<!--
+@component
+
+The prompt component exports an imperative API:
+
+<Prompt bind:this={prompt} />
+-->
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

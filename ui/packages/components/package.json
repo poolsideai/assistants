@@ -72,10 +72,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "./zigzag-error": {
+      "development": "./src/lib/components/zigzag-error/index.ts",
+      "default": "./dist/components/zigzag-error/index.js"
+    },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -118,7 +118,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "check:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' './scripts/**/*.{js,mjs,cjs,ts,tsx,svelte}'",
     "check:types": "svelte-check --tsconfig tsconfig.check.json --fail-on-warnings --compiler-warnings \"state_referenced_locally:ignore,a11y_no_static_element_interactions:ignore\"",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "fix:format": "prettier . --write --cache --ignore-path ../../.gitignore --list-different",
     "fix:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' './scripts/**/*.{js,mjs,cjs,ts,tsx,svelte}' --fix",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -183,7 +183,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@testing-library/svelte": "catalog:",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@types/html-escaper": "^3.0.2",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -194,7 +194,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "eslint": "catalog:",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "playwright": "catalog:",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

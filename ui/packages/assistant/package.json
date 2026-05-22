@@ -55,7 +55,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "check:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}'",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "fix:format": "prettier . --write --cache --ignore-path ../../.gitignore --list-different",
     "fix:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' --fix",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -78,7 +78,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@poolsideai/features": "workspace:*",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@poolsideai/lib": "workspace:*",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -116,7 +116,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "eslint": "catalog:",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "playwright": "catalog:",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

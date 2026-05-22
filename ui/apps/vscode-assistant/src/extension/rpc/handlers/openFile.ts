@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { contextPathToVSCodeUri } from "../../vscode/uri";
 
 export async function openFile(path: string, line?: number, column?: number): Promise<void> {
   if (path === "") return;

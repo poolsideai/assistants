@@ -1,10 +1,10 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package protocol
+
+func NewTextDocumentEdit(uri DocumentURI, textedits []TextEdit) *TextDocumentEdit {
+	return &TextDocumentEdit{
+		TextDocument: OptionalVersionedTextDocumentIdentifier{
+			TextDocumentIdentifier: TextDocumentIdentifier{URI: uri},
+		},
+		Edits: AsAnnotatedTextEdits(textedits),
+	}
+}

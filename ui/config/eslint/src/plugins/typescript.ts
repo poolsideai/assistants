@@ -1,62 +1,62 @@
 import ts, { type ConfigArray } from "typescript-eslint";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const restrictedLodashMemoizeMessage =
   "lodash memoize can create unbounded caches and leak memory. Use an explicitly bounded cache.";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const restrictedUnscopedLodashMessage =
+  'Avoid unscoped lodash imports. Import specific functions instead, e.g. import { isEqual } from "lodash".';
+
+const noRestrictedLodashMemoize: [
+  "error",
+  {
+    paths: Array<{
+      name: string;
+      message: string;
+      importNames?: string[];
+    }>;
+  },
+] = [
+  "error",
+  {
+    paths: [
+      {
+        name: "lodash/memoize",
+        message: restrictedLodashMemoizeMessage,
+      },
+      {
+        name: "lodash.memoize",
+        message: restrictedLodashMemoizeMessage,
+      },
+      {
+        name: "lodash",
+        importNames: ["memoize"],
+        message: restrictedLodashMemoizeMessage,
+      },
+    ],
+  },
+];
+
+const noRestrictedUnscopedLodash: [
+  "error",
+  {
+    selector: string;
+    message: string;
+  },
+  {
+    selector: string;
+    message: string;
+  },
+] = [
+  "error",
+  {
+    selector: 'ImportDeclaration[source.value="lodash"] > ImportDefaultSpecifier',
+    message: restrictedUnscopedLodashMessage,
+  },
+  {
+    selector: 'ImportDeclaration[source.value="lodash"] > ImportNamespaceSpecifier',
+    message: restrictedUnscopedLodashMessage,
+  },
+];
+
 const config: ConfigArray = ts.config(
   {
     name: "javascript/poolside",
@@ -64,8 +64,8 @@ const config: ConfigArray = ts.config(
     rules: {
       "no-lonely-if": "warn",
       "prefer-const": "warn",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "no-restricted-imports": noRestrictedLodashMemoize,
+      "no-restricted-syntax": noRestrictedUnscopedLodash,
     },
   },
   {
@@ -84,8 +84,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     rules: {
       "no-lonely-if": "warn",
       "prefer-const": "warn",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "no-restricted-imports": noRestrictedLodashMemoize,
+      "no-restricted-syntax": noRestrictedUnscopedLodash,
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {

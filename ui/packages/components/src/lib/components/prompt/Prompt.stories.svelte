@@ -1,12 +1,12 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { Root } from "./index.js";
+  import { expect, fn, waitFor } from "storybook/test";
+  import * as Prompt from "./index.js";
+  import { PointerEventsCheckLevel } from "@testing-library/user-event";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    component: Root,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -26,40 +26,40 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    <Prompt.Form.Footer>
+      <Prompt.Form.Submit />
+    </Prompt.Form.Footer>
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+<Story
+  name="Text Entry"
+  play={async ({ canvas, userEvent, step, args }) => {
+    const promptInput = await canvas.findByTestId("prompt-input");
+    const submitButton = canvas.getByRole("button", { name: "Submit" });
+    const typedText = "hello world";
+
+    await step("updates the editor when text is entered", async () => {
+      await userEvent.click(promptInput);
+      await userEvent.keyboard(typedText);
+
+      await expect(promptInput).toHaveTextContent(typedText);
+      expect(submitButton).toBeEnabled();
+    });
+
+    await step("submits editor content and clears the input", async () => {
+      await userEvent.click(submitButton);
+
+      await waitFor(() => expect(args.onSubmit).toHaveBeenCalledWith(typedText));
+      await waitFor(() => expect(promptInput).toHaveTextContent(""));
+      await waitFor(() => expect(submitButton).toBeDisabled());
+    });
+  }}
+>
+  {@render form()}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 <Story
   name="Suggested Prompt — Enter"
   args={{
@@ -248,57 +248,57 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   {@render form()}
 </Story>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#snippet actionsMenu()}
+  <Prompt.Menu.Root
+    rules={[
+      {
+        trigger: "/",
         triggerRegExp: /(?<=^|\s)\/(?!\s)/g,
         queryRegExp: /^\S*(?:\s.*)?$/,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      },
+    ]}
+    filterOptions={{
+      strictTitleMatching: true,
+    }}
+  >
+    <Prompt.Menu.Popup.Root>
+      <Prompt.Menu.Popup.List>
+        <Prompt.Menu.Popup.Empty title="No matching commands" icon="slash" />
+
+        <Prompt.Menu.Popup.Section title="Actions">
           <Prompt.Menu.Popup.Item title="model" class="menu-item-model">
             <Prompt.Actions.Push menu="models" completion="model" />
           </Prompt.Menu.Popup.Item>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <Prompt.Menu.Popup.Item title="action" class="menu-item-action">
+            <Prompt.Actions.Action
+              title="A context-specific action that can be performed by the user"
+            />
+          </Prompt.Menu.Popup.Item>
+        </Prompt.Menu.Popup.Section>
+
+        <Prompt.Menu.Popup.Separator />
+
+        <Prompt.Menu.Popup.Section title="Insert">
+          <Prompt.Menu.Popup.Item title="text" class="menu-item-text">
+            <Prompt.Actions.Insert
+              type="text"
+              title="Action that inserts text into the content"
+              content="hello"
+            />
+          </Prompt.Menu.Popup.Item>
+          <Prompt.Menu.Popup.Item title="chip" class="menu-item-chip">
+            <Prompt.Actions.Insert
+              type="chip"
+              title="Action that inserts a chip into the content"
+              content={{
+                label: "hello",
+              }}
+            />
+          </Prompt.Menu.Popup.Item>
+        </Prompt.Menu.Popup.Section>
+      </Prompt.Menu.Popup.List>
+    </Prompt.Menu.Popup.Root>
+  </Prompt.Menu.Root>
 
   <Prompt.Menu.Root value="models">
     <Prompt.Menu.Popup.Root>
@@ -314,13 +314,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       </Prompt.Menu.Popup.List>
     </Prompt.Menu.Popup.Root>
   </Prompt.Menu.Root>
+{/snippet}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {@render form()}
+  {@render actionsMenu()}
+</Story>
+
 <Story
   name="Command Match Ends After Whitespace"
   play={async ({ canvas, userEvent }) => {
@@ -338,80 +338,80 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   {@render actionsMenu()}
 </Story>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<Story
+  name="Insert Text Action"
+  play={async ({ canvas, userEvent, step }) => {
+    const promptInput = await canvas.findByTestId("prompt-input");
+
+    await step("inserts text at cursor position, replacing the trigger", async () => {
+      await userEvent.click(promptInput);
+      await userEvent.keyboard("/text");
+      await waitFor(() =>
+        expect(canvas.getByRole("listbox").querySelector(".menu-item-text")).toBeVisible(),
+      );
+      await userEvent.keyboard("{Enter}");
+
+      await waitFor(() => expect(promptInput).toHaveTextContent("hello"));
+    });
+  }}
+>
+  {@render form()}
+  {@render actionsMenu()}
+</Story>
+
+<Story
+  name="Insert Chip Action"
+  play={async ({ canvas, userEvent, step }) => {
+    const promptInput = await canvas.findByTestId("prompt-input");
+
+    await step("inserts a chip element, replacing the trigger", async () => {
+      await userEvent.click(promptInput);
+      await userEvent.keyboard("/chip");
+      await waitFor(() =>
+        expect(canvas.getByRole("listbox").querySelector(".menu-item-chip")).toBeVisible(),
+      );
+      await userEvent.keyboard("{Enter}");
+
+      const chipNode = await waitFor(() =>
+        canvas.getByRole("application").querySelector(".chip-node"),
+      );
+      expect(chipNode).toBeInTheDocument();
+      expect(chipNode).toHaveAttribute("data-label", "hello");
+    });
+  }}
+>
+  {@render form()}
+  {@render actionsMenu()}
+</Story>
+
+<Story
+  name="Menu Filtering"
+  play={async ({ canvas, userEvent, step }) => {
+    const promptInput = await canvas.findByTestId("prompt-input");
+
+    await step("filters menu items based on typed query", async () => {
+      await userEvent.click(promptInput);
+      await userEvent.keyboard("/ch");
+      await waitFor(() =>
+        expect(canvas.getByRole("listbox").querySelector(".menu-item-chip")).toBeVisible(),
+      );
+
+      expect(
+        canvas.getByRole("listbox").querySelector(".menu-item-action"),
+      ).not.toBeInTheDocument();
+      expect(canvas.getByRole("listbox").querySelector(".menu-item-text")).not.toBeInTheDocument();
+    });
+
+    await step("shows empty state when no items match", async () => {
+      await userEvent.keyboard("xyz");
+      await waitFor(() => expect(canvas.getByText("No matching commands")).toBeVisible());
+    });
+  }}
+>
+  {@render form()}
+  {@render actionsMenu()}
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 <Story
   name="Push Menu Completion"
   play={async ({ canvas, userEvent, step }) => {
@@ -443,100 +443,100 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   {@render actionsMenu()}
 </Story>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<Story
+  name="submitDisabled - explicit true"
+  args={{ submitDisabled: true }}
+  play={async ({ canvas, userEvent, step, args }) => {
+    const promptInput = await canvas.findByTestId("prompt-input");
+    const submitButton = canvas.getByRole("button", { name: "Submit" });
+
+    await step("submit button is disabled even with content", async () => {
+      expect(submitButton).toBeDisabled();
+
+      await userEvent.click(promptInput);
+      await userEvent.keyboard("some text");
+
+      await expect(promptInput).toHaveTextContent("some text");
+      expect(submitButton).toBeDisabled();
+    });
+
+    await step("clicking submit does not submit", async () => {
+      await userEvent
+        .setup({ pointerEventsCheck: PointerEventsCheckLevel.Never })
+        .click(submitButton);
+      expect(args.onSubmit).not.toHaveBeenCalled();
+    });
+
+    await step("pressing Enter does not submit", async () => {
+      await userEvent.click(promptInput);
+      await userEvent.keyboard("{Enter}");
+      expect(args.onSubmit).not.toHaveBeenCalled();
+    });
+  }}
+>
+  {@render form()}
+</Story>
+
+<Story
+  name="submitDisabled - explicit false"
+  args={{ submitDisabled: false }}
+  play={async ({ canvas, userEvent, step, args }) => {
+    const promptInput = await canvas.findByTestId("prompt-input");
+    const submitButton = canvas.getByRole("button", { name: "Submit" });
+
+    await step("cannot submit when empty", async () => {
+      await userEvent.click(promptInput);
+      await userEvent.keyboard("{Enter}");
+      await waitFor(() => expect(args.onSubmit).not.toHaveBeenCalled());
+    });
+
+    await step("typing and pressing Enter submits", async () => {
+      await userEvent.click(promptInput);
+      await userEvent.keyboard("some text{Enter}");
+      await waitFor(() => expect(args.onSubmit).toHaveBeenCalledWith("some text"));
+    });
+
+    await step("clicking submit also works", async () => {
+      await userEvent.click(promptInput);
+      await userEvent.keyboard("click test");
+      await userEvent.click(submitButton);
+      await waitFor(() => expect(args.onSubmit).toHaveBeenCalledWith("click test"));
+    });
+  }}
+>
+  {@render form()}
+</Story>
+
+<Story
+  name="submitDisabled Undefined"
+  play={async ({ canvas, userEvent, step, args }) => {
+    const promptInput = await canvas.findByTestId("prompt-input");
+    const submitButton = canvas.getByRole("button", { name: "Submit" });
+
+    await step("submit button follows normal canSubmit logic", async () => {
+      // Initially disabled (no content)
+      expect(submitButton).toBeDisabled();
+
+      await userEvent.click(promptInput);
+      await userEvent.keyboard("some text");
+
+      // Enabled after content is entered
+      await expect(promptInput).toHaveTextContent("some text");
+      expect(submitButton).toBeEnabled();
+    });
+
+    await step("pressing Enter submits the text", async () => {
+      await userEvent.keyboard("{Enter}");
+      await waitFor(() => expect(args.onSubmit).toHaveBeenCalledWith("some text"));
+    });
+
+    await step("typing more and clicking submit also works", async () => {
+      await userEvent.click(promptInput);
+      await userEvent.keyboard("more text");
+      await userEvent.click(submitButton);
+      await waitFor(() => expect(args.onSubmit).toHaveBeenCalledWith("more text"));
+    });
+  }}
+>
+  {@render form()}
+</Story>

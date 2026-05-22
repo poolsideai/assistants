@@ -1,62 +1,62 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export class CodedError extends Error {
+  readonly code: number;
+  readonly data?: unknown;
+
+  constructor(
+    message: string,
+    { code, data, name = "CodedError" }: { code: number; data?: unknown; name?: string },
+  ) {
+    super(message);
+    this.name = name;
+    this.code = code;
+    this.data = data;
+  }
+}
+
+type FormatErrorOptions = {
+  prefix?: string;
+  truncateLength?: number;
+};
+
+export function toError(error: unknown): Error {
+  if (error instanceof Error) {
+    return error;
+  }
+
+  // RPC and worker boundaries often serialize errors into plain objects that
+  // still carry a numeric code, message, and optional data payload.
+  if (isCodedErrorLike(error)) {
+    return new CodedError(error.message, {
+      code: error.code,
+      data: error.data,
+      name: error.name,
+    });
+  }
+
+  // Some flows preserve only the basic Error fields after postMessage or JSON
+  // serialization. Rehydrate those into a usable Error instance.
+  if (isMessageErrorLike(error)) {
+    const normalizedError = new Error(error.message);
+
+    if (typeof error.name === "string") {
+      normalizedError.name = error.name;
+    }
+
+    return normalizedError;
+  }
+
+  // Primitive throws and unknown objects are uncommon but still happen in
   // application code. Normalize them so object-shaped failures do not surface
   // as "[object Object]".
   return new Error(getUnknownErrorMessage(error));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 export function getErrorMessage(error: Error, seen: WeakSet<object> = new WeakSet()): string {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const requestErrorMessage = getRequestErrorMessage(error);
+  if (requestErrorMessage) {
+    return requestErrorMessage;
+  }
+
   if (isUsefulMessage(error.message)) {
     return error.message.trim();
   }
@@ -82,49 +82,49 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   return "Unknown error";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+export function formatError(
   error: unknown,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  { prefix, truncateLength = 256 }: FormatErrorOptions = {},
+): string {
   const message = truncate(getErrorMessage(toError(error)), truncateLength);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  if (!prefix) {
+    return message;
+  }
+  // ensure we have some space left
   const p = prefix + ": ";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  if (p.length >= truncateLength) {
+    return truncate(prefix, truncateLength);
+  }
+
+  return `${p}${truncate(message, truncateLength - prefix.length)}`;
+}
+
+type MessageErrorLike = {
+  message: string;
+  name?: string;
+};
+
+type CodedErrorLike = MessageErrorLike & {
+  code: number;
+  data?: unknown;
+};
+
+function isMessageErrorLike(error: unknown): error is MessageErrorLike {
+  return (
+    typeof error === "object" &&
+    error != null &&
+    "message" in error &&
+    typeof error.message === "string"
+  );
+}
+
+function isCodedErrorLike(error: unknown): error is CodedErrorLike {
+  return isMessageErrorLike(error) && "code" in error && typeof error.code === "number";
+}
+
 export function getUnknownErrorMessage(error: unknown): string {
   return getUnknownErrorMessageInner(error, new WeakSet());
 }
@@ -225,37 +225,37 @@ function stringifyErrorObject(error: object): string | null {
   }
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function getRequestErrorMessage(error: Error): string | null {
+  if (!("body" in error) || typeof error.body !== "object" || error.body == null) {
+    return null;
+  }
+
+  const { body } = error as Error & { body: { errors?: unknown; detail?: unknown } };
+
+  if (Array.isArray(body.errors)) {
+    const firstError = body.errors[0];
+    if (
+      typeof firstError === "object" &&
+      firstError != null &&
+      "message" in firstError &&
+      typeof firstError.message === "string" &&
+      firstError.message.trim().length > 0
+    ) {
+      return firstError.message;
+    }
+  }
+
+  if (typeof body.detail === "string" && body.detail.trim().length > 0) {
+    return body.detail;
+  }
+
+  return null;
+}
+
+function truncate(message: string, truncateLength: number): string {
+  if (truncateLength <= 0 || message.length <= truncateLength) {
+    return message;
+  }
+
+  return `${message.slice(0, truncateLength - 1).trimEnd()}…`;
+}

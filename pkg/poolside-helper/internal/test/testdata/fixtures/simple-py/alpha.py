@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+from beta.beta import beta_function
+
+def alpha_function():
+    return f"Alpha calls -> {beta_function()}"

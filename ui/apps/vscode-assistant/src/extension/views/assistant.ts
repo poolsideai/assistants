@@ -25,7 +25,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ *
  * Always displayed in the sidebar as a WebviewView.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -50,11 +50,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   webviewView: vscode.WebviewView | undefined;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  private rpcListenerDisposable: vscode.Disposable | undefined;
+  private sidebarVisibilityDisposable: vscode.Disposable | undefined;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -75,19 +75,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.webviewView = webviewView;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    webviewView.onDidDispose(() => {
+      this.sidebarVisibilityDisposable?.dispose();
+      this.sidebarVisibilityDisposable = undefined;
       this.webviewView = undefined;
       this.cleanupRpc();
       this.mark(AssistantState.UNINITIALIZED);
+    });
+
+    await this.initializeWebview(webviewView);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.sidebarVisibilityDisposable?.dispose();
+    this.sidebarVisibilityDisposable = webviewView.onDidChangeVisibility(() => {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -95,27 +95,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       this.system.acpChatPanels.setConfiguration(poolsideConfig);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private cleanupRpc() {
+    this.rpcListenerDisposable?.dispose();
+    this.rpcListenerDisposable = undefined;
+  }
+
   async refresh() {
     if (!this.webviewView) return;
     await this.initializeWebview(this.webviewView);
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   private async initializeWebview(webviewView: vscode.WebviewView) {
     this.mark(AssistantState.INITIALIZING);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     webviewView.webview.options = {
       enableScripts: true,
     };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     webviewView.webview.html = await getWebviewHtml(this.system, webviewView.webview, "assistant");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     this.cleanupRpc();
     const rpcServer = new HostRPCServer(this.system, webviewView.webview);
     this.rpcListenerDisposable = webviewView.webview.onDidReceiveMessage(
@@ -133,11 +133,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       return await vscode.commands.executeCommand(POOLSIDE_WEBVIEW_FOCUS_COMMAND);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const readyPromise = this.waitForReady();
     await vscode.commands.executeCommand(POOLSIDE_WEBVIEW_FOCUS_COMMAND);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return readyPromise;
+  }
+
   async showSidebar() {
     await this.show();
   }
@@ -160,16 +160,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  private waitForReady(): Promise<void> {
+    if (this.isReady) {
+      return Promise.resolve();
+    }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          resolve();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

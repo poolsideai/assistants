@@ -41,12 +41,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "pnpm": {
+    "overrides": {
+      "jsonpath-plus@<10.3.0": ">=10.3.0"
     },
     "patchedDependencies": {
       "@pierre/diffs@1.2.12": "patches/@pierre__diffs@1.2.12.patch"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  }
 }

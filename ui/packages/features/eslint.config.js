@@ -1,6 +1,6 @@
 import { defineConfig } from "@poolsideai/eslint-config";
 import acpRules from "./eslint-acp-rules.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 export default defineConfig(
   {
     files: ["**/*.{ts,js,svelte}"],
@@ -24,7 +24,7 @@ export default defineConfig(
         },
       ],
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  },
   {
     files: ["src/acp/**/*.{ts,svelte}"],
     rules: {

@@ -1,38 +1,38 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "jsonrpc2",
+    srcs = [
+        "conn.go",
+        "handler.go",
+        "jsonrpc2.go",
+        "labels.go",
+        "messages.go",
+        "serve.go",
+        "stream.go",
+        "wire.go",
+    ],
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event",
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event/keys",
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event/label",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ],
+)
+
+go_test(
+    name = "jsonrpc2_test",
+    srcs = [
+        "jsonrpc2_test.go",
+        "serve_test.go",
+        "wire_test.go",
+    ],
+    embed = [":jsonrpc2"],
+    deps = [
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event/export/eventtest",
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/stack/stacktest",
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/testenv",
+    ],
+)

@@ -20,7 +20,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   type LocalInferenceDidChangeParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "@poolsideai/helperapi/schemas";
 import type {
   ActiveFileContext,
   AssistantTerminalTab,
@@ -35,10 +35,10 @@ import type {
   JSONRPCNotifyBatchResult,
 } from "@poolsideai/rpc/assistant";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { focusPrompt } from "../../shared/Helpers";
 import { type AppStore } from "../store";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type WebviewRPCListener = Pick<Window, "addEventListener" | "removeEventListener">;
 
 // Host-driven conversation navigation (e.g. a clicked desktop notification).
 // The RPC server has no handle on navigation state, so it broadcasts a window
@@ -65,9 +65,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    win: WebviewRPCListener,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    readonly appState: AppStore,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     readonly acpTransport: ACPTransport,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -141,7 +141,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       new CustomEvent(SET_CURRENT_CONVERSATION_EVENT, { detail: { conversationId: id } }),
     );
   };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -165,21 +165,33 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     void this.acpRepo?.refreshMCPServersForAllSessions();
   }
 
+  // App state handlers
+  setConfiguration = (configuration: Configuration) => {
+    this.appState.update((s) => ({ ...s, userSettings: { ...s.userSettings, ...configuration } }));
+  };
+
+  setContext = (context: ActiveFileContext) => {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.appState.update((state) => {
+      const newState = { ...state, workspaces: context.workspaces };
       if (context.homeDirectory != null) {
         newState.homeDirectory = context.homeDirectory;
       }
       if (context.defaultCwd != null) {
         newState.defaultCwd = context.defaultCwd;
       }
+      return newState;
+    });
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  };
+
+  setKeybindings = (keybindings: Keybindings) => {
+    this.appState.update((s) => ({ ...s, keybindings }));
+  };
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -195,6 +207,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  };
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -206,25 +220,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Utility handlers
+  focusInput = () => {
+    focusPrompt();
+  };
+
   acpAgentServerDidExit(params: { agentServer: string; error?: string }) {
     this.acpTransport.disconnect?.(params.agentServer);
     this.acpRepo?.handleAgentServerDidExit(params.agentServer, params.error);

@@ -1,5 +1,5 @@
 import { definePreviewConfig } from "@poolsideai/storybook-config";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { Providers } from "../src/lib/storybook/index.js";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 const preview = definePreviewConfig({

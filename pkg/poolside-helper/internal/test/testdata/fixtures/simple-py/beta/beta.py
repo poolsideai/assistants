@@ -1,2 +1,2 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+def beta_function():
+    return "Beta is working!"

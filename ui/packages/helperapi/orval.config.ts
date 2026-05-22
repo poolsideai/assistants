@@ -1,8 +1,8 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { defineConfig, type GeneratorClients } from "orval";
+import { jsonrpcClientBuilder } from "./src/orval/jsonrpcGenerator";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 // These methods are invoked by an IDE/native host or the remote transport,
 // not by the shared webview helper client. Their schemas remain in OpenAPI for
@@ -98,7 +98,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      client: (clients: GeneratorClients) => jsonrpcClientBuilder,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

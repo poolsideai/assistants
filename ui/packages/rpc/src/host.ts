@@ -28,10 +28,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   getImageFileData(path: string): Promise<ImageFileData | undefined>;
   getPromptContext: () => Promise<PromptContextFacet[]>;
   getUrlContents(url: string): Promise<AttachedUrl | undefined>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // jsonrpc performs a jsonrpc request to the poolside Helper over jsonrpc,
+  // and returns the response. Throws an error if an error response is received.
+  /** @deprecated Use generated `@poolsideai/helperapi` methods instead. */
+  jsonrpc(methodName: string, params: object): Promise<object>;
   jsonrpcNotify(methodName: string, params: object): Promise<void>;
   openExternalURL: (url: string) => void;
   openFile: (path: string, line?: number, column?: number) => void;
@@ -81,7 +81,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   updateAcpChatPanelMetadata(metadata: AcpChatPanelMetadata): void;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  showInfoMessage(message: string, type?: InfoMessageType): void;
   upsertSecret(upsertSecretParams: UpsertSecretParams): Promise<UpsertSecretOutput>;
   deleteSecret(deleteSecretParams: DeleteSecretParams): Promise<DeleteSecretOutput>;
   listSecrets(listSecretsParams: ListSecretsParams): Promise<ListSecretsOutput>;
@@ -92,9 +92,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export enum InfoMessageType {
+  info = "info",
+  error = "error",
   warning = "warning",
 }
 
@@ -146,11 +146,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type AttachedUrl = {
   url: string;
   title?: string;
   content: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+};
 
 export interface ACPAgentServerConfig {
   type?: "custom" | "registry" | "local";
@@ -219,10 +219,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * Client-side, user-controlled configuration, i.e.
+ * VSCode preferences. Treat with caution
+ */
 export interface Configuration {
   uri: string;
   themeOverride: string | null;
@@ -350,45 +350,45 @@ export interface CodeSymbol {
 export type CodeSymbolKind = "type" | "code" | "value";
 
 export type Keybindings = Record<string, string | undefined>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+export type PromptContextFacet = {
+  /** describes the content for the model, in natural language. Can use markdown formatting */
+  description: string;
+  /** Describes the supplied context for user, will be visible in history */
+  history?: string;
+  /** @minItems 1 */
+  items: ContextItem[];
+  /** well-known values here (anything but "dynamic") opts in to specific behaviour */
   kind: EnrichedContextKind;
+  /**
+   * the mime-type of the content. Must be a non-binary format
+   * @pattern [^/]+/[^/]+
+   */
+  mime_type: string;
+  /** indicates the source of this context */
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+};
+
+export type ContextItem = {
+  /** content in the format specified by mime_type */
+  content: string;
+  path?: string;
+};
+
+/** The kinds of enriched context that we might send to the API. */
 export enum EnrichedContextKind {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+ of the enriched context, and may produce more than one kind of context. (For example, the
+ `branch` source produces both branch names and latest commits on the branch, which are two
+ kinds of content.) */
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // e.g. the name of the current VCS branch and commit messages of changes on the branch
+  branch = "branch",
+}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
