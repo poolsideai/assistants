@@ -90,12 +90,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 .vscode-test/
 build-storybook.log
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Project specific neovim config
+.nvim.lua
+.nvim/
+
 license-check-output/
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Go code coverage report
+coverage.out
 /.codex
