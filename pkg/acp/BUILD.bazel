@@ -1,25 +1,25 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "acp",
+    srcs = [
         "extensions.go",
         "permission.go",
         "sessionmeta.go",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ],
     importpath = "github.com/poolsideai/assistant/pkg/acp",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_coder_acp_go_sdk//:acp-go-sdk",
+    ],
+)
+
+go_test(
+    name = "acp_test",
+    srcs = [
         "permission_test.go",
         "sessionmeta_test.go",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ],
+    embed = [":acp"],
     deps = ["@com_github_stretchr_testify//assert"],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
