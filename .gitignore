@@ -85,7 +85,7 @@ poolside-helper-*
 
 /.release-env
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+*.dev.env
 .svelte-kit
 .vscode-test/
 build-storybook.log
