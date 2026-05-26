@@ -12,11 +12,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "check:format": "prettier . --check --cache --ignore-path ../../.gitignore",
     "fix:format": "prettier . --write --cache --ignore-path ../../.gitignore"
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "lint-staged": {
+    "*": [
       "prettier --ignore-unknown --write"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ]
+  },
   "prettier": "@poolsideai/prettier-config",
   "devDependencies": {
     "@poolsideai/prettier-config": "workspace:*",

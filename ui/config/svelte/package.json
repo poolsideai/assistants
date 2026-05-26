@@ -16,11 +16,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "prepare": "turbo build --output-logs errors-only",
     "prepublishOnly": "turbo build"
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "lint-staged": {
+    "*": [
       "prettier --ignore-unknown --write"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ]
+  },
   "prettier": "@poolsideai/prettier-config",
   "dependencies": {
     "@melt-ui/pp": "catalog:",

@@ -1,16 +1,16 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#!/bin/sh
+
 # Skip all hooks if SKIP_HOOKS environment variable is set
 if [ "$SKIP_HOOKS" = "true" ]; then
   echo "Skipping all hooks"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  exit 0
+fi
+
+# Load mise environment for node/pnpm
+if [ -x ~/.local/bin/mise ]; then
+  eval "$(~/.local/bin/mise activate bash)"
+fi
+
 # JS/TS: lint-staged (skip with SKIP_LINT_STAGED=true)
 if [ "$SKIP_LINT_STAGED" != "true" ]; then
   pnpm lint-staged --allow-empty

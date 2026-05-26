@@ -57,7 +57,7 @@ jobs:
         include:
           - name: Format
             script: check:format
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          - name: Lint
             script: check:lint:ci
           - name: Typecheck
             script: check:types

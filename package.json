@@ -16,7 +16,7 @@
     "fix:format": "turbo fix:format --affected --continue",
     "fix:lint": "turbo fix:lint --affected",
     "package": "turbo package --affected",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "prepare": "husky",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "test": "turbo test --affected",
     "test:storybook": "turbo test:storybook --affected",
@@ -25,16 +25,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "test:unit:watch": "turbo test:unit:watch --affected",
     "test:watch": "turbo test:watch --affected"
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "lint-staged": {
     "*.{json,ts,js,mjs,cjs}": [
       "prettier --ignore-unknown --write"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ]
+  },
   "prettier": "@poolsideai/prettier-config",
   "devDependencies": {
     "@poolsideai/prettier-config": "workspace:*",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@testing-library/jest-dom": "catalog:",
+    "husky": "^9.1.7",
     "lint-staged": "^16.2.0",
     "prettier": "catalog:",
     "turbo": "^2.10.5",

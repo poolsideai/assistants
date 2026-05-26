@@ -26,23 +26,23 @@
   background: linear-gradient(to top, var(--psx-chrome), var(--psx-chrome), rgba(0, 0, 0, 0) 100%);
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+.scrollContainer::after,
+.web-app .psx-dark .scrollContainer::after {
+  top: calc(100% - 16px);
   left: 0;
   right: 0;
   width: 100%;
   max-width: none;
   transform: none;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  height: 16px;
+  background: linear-gradient(
+    to top,
     var(--color-mono-000),
     var(--color-mono-000),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
 .scrollContainer.scrolledToBottom::after {
   opacity: 0;
 }

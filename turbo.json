@@ -13,7 +13,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "env": ["GH_TOKEN", "APP_TYPE", "BUILD_COMMIT"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "!README.md",
@@ -44,7 +44,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     },
     "dev": {
       "cache": false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "env": ["APP_TYPE"],
       "dependsOn": ["^build"],
       "persistent": true
     },

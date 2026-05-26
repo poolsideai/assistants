@@ -61,11 +61,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "test:unit:watch": "vitest",
     "test:watch": "vitest"
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "lint-staged": {
+    "*": [
       "prettier --ignore-unknown --write"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ]
+  },
   "prettier": "@poolsideai/prettier-config",
   "dependencies": {
     "nanoid": "^5.1.6",

@@ -173,7 +173,7 @@ function stripAuthFields(
     identity: _identity,
     is_tenant_admin: _isTenantAdmin,
     isAuthenticated: _isAuthenticated,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    canAutoApproveCommands: _canAutoApproveCommands,
     userAvatarBase64: _userAvatarBase64,
     features: _features,
     ...rest

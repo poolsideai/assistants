@@ -24,11 +24,11 @@
     "fix:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' --fix",
     "make-release-manifest": "tsx ../scripts/make-release-manifest.ts"
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "lint-staged": {
+    "*": [
       "prettier --ignore-unknown --write"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ]
+  },
   "prettier": "@poolsideai/prettier-config",
   "dependencies": {
     "@poolsideai/assistant": "workspace:*",

@@ -268,11 +268,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   "activationEvents": [
     "onStartupFinished"
   ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "lint-staged": {
+    "*": [
       "prettier --ignore-unknown --write"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ]
+  },
   "dependencies": {
     "@estruyf/vscode": "^1.1.0",
     "@mozilla/readability": "^0.5.0",

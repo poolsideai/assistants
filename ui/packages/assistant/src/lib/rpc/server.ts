@@ -13,7 +13,7 @@ import {
 import type { ContextRepository } from "@poolsideai/features/context";
 import type { ElicitationRepository } from "@poolsideai/features/elicitation";
 import type { ACPApproval } from "@poolsideai/helperapi";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import {
   type ACPElicitationOutput,
   type ACPElicitationParams,
   type ACPNavDidChangeParams,
