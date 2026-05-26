@@ -104,7 +104,7 @@ type MCPSetInputVariableResponse struct{}
 
 // CompactionPhase identifies the lifecycle stage of a compaction run.
 type CompactionPhase string
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 type CompactionNotification struct {
 	SessionID acpsdk.SessionId `json:"sessionId,omitempty"` // routes the notification to its ACP session
 	ID        string           `json:"id"`                  // correlates started↔completed

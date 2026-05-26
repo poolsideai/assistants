@@ -1516,9 +1516,9 @@ func (h *Handler) SetConfigOption(ctx context.Context, params *methods.ACPSetCon
 }
 
 func setConfigOptionRequestSessionID(req acpsdk.SetSessionConfigOptionRequest, fallback acpsdk.SessionId) (acpsdk.SetSessionConfigOptionRequest, acpsdk.SessionId, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	switch {
+	case req.ValueId != nil:
+		v := *req.ValueId
 		sessionID := v.SessionId
 		if sessionID == "" {
 			sessionID = fallback
@@ -1527,10 +1527,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			return req, "", fmt.Errorf("acpproxy: no active session; call session/new first")
 		}
 		v.SessionId = sessionID
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		req.ValueId = &v
 		return req, sessionID, nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	case req.Boolean != nil:
+		v := *req.Boolean
 		sessionID := v.SessionId
 		if sessionID == "" {
 			sessionID = fallback
@@ -1539,9 +1539,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			return req, "", fmt.Errorf("acpproxy: no active session; call session/new first")
 		}
 		v.SessionId = sessionID
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		req.Boolean = &v
 		return req, sessionID, nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	default:
 		if fallback == "" {
 			return req, "", fmt.Errorf("acpproxy: no active session; call session/new first")
 		}

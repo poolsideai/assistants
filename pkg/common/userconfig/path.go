@@ -33,10 +33,10 @@ func PoolsideConfigFile(name string) string {
 // StateDirectory returns the path to poolside's XDG state directory for data that should
 // persist between application restarts but is not important enough to store in $XDG_DATA_HOME
 // (e.g. logs, history, recently used files).
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+//
+// macOS: $HOME/Library/Application Support/poolside
+//
+// Linux: $HOME/.local/share/poolside
 func StateDirectory() string {
 	return filepath.Join(xdg.StateHome, "poolside")
 }

@@ -632,6 +632,6 @@ func (c *acpClient) WaitForTerminalExit(_ context.Context, _ acpsdk.WaitForTermi
 	return acpsdk.WaitForTerminalExitResponse{}, nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (c *acpClient) KillTerminal(_ context.Context, _ acpsdk.KillTerminalRequest) (acpsdk.KillTerminalResponse, error) {
+	return acpsdk.KillTerminalResponse{}, nil
 }
