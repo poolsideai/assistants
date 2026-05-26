@@ -4,9 +4,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 build --macos_sdk_version=14.4
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+build --xcode_version_config=@local_config_xcode//:host_xcodes
+build --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+
 # Use a static action environment (including PATH) so environment changes don't invalidate Bazel's
 # action cache and cause unnecessary rebuilds. e.g. between CI workers and the remote cache. 
 # This will default to true in Bazel 9.0.0. See https://github.com/bazelbuild/bazel/pull/27670
@@ -21,11 +21,11 @@ common:verbose --ui_actions_shown=8 --ui_event_filters=+info,+stderr,+debug
 
 clean --config=verbose
 common:ci --config=verbose
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+# ci_amd64 extends ci with an explicit linux/amd64 target platform.
 # Use ci_amd64 for helper build/test steps that need cross-compilation.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+common:ci_amd64 --config=ci
+common:ci_amd64 --platforms=@zig_sdk//platform:linux_amd64
 
 # By default, failing tests don't print any output, it's logged to a
 # file instead.
