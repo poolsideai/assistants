@@ -24,7 +24,7 @@
     "skipLibCheck": true,
 
     "baseUrl": "${configDir}",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
   "include": ["${configDir}/**/*.js", "${configDir}/**/*.ts"],
   "exclude": [

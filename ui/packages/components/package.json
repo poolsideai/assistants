@@ -31,7 +31,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "./checkbox": {
       "development": "./src/lib/components/checkbox/index.ts",
       "default": "./dist/components/checkbox/index.js"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
     "./clipboard": {
       "development": "./src/lib/components/clipboard/index.ts",
       "default": "./dist/components/clipboard/index.js"
@@ -132,11 +132,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "test:watch": "vitest"
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "lint-staged": {
+    "*": [
       "prettier --ignore-unknown --write"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ]
+  },
   "dependencies": {
     "@floating-ui/dom": "^1.7.4",
     "@melt-ui/svelte": "catalog:",
@@ -191,7 +191,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@types/uuid": "^9.0.8",
     "@vitest/browser": "catalog:",
     "@vitest/coverage-v8": "catalog:",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "chromatic": "catalog:",
     "eslint": "catalog:",
     "execa": "catalog:",
     "playwright": "catalog:",

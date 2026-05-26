@@ -2,13 +2,13 @@
   import type { HTMLAttributes } from "svelte/elements";
   import { getPrompt } from "../context/prompt.js";
   import type { Snippet } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { cn } from "@poolsideai/tailwind-config/tv";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  interface Props extends HTMLAttributes<HTMLParagraphElement> {
     children?: Snippet;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let { children, class: className }: Props = $props();
 
   const {
     disabled,
@@ -20,10 +20,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 {#if !$isDirty && !($suggestion && !$disabled && !$menu)}
   <p
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    class={cn([
       "pointer-events-none absolute inset-x-0 top-(--tw-pt) bottom-(--tw-pb) -z-10 whitespace-nowrap text-psx-input-placeholder-foreground select-none",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      className,
+    ])}
   >
     {@render children?.()}
   </p>

@@ -1,12 +1,12 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{
+  "$schema": "https://www.chromatic.com/config-file.schema.json",
+  "autoAcceptChanges": "main",
   "buildScriptName": "build:storybook",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "exitOnceUploaded": true,
+  "exitZeroOnChanges": true,
+  "onlyChanged": true,
   "projectId": "Project:68c03a33660eab5f6e0f5af2",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "storybookBaseDir": "ui/packages/components",
   "storybookBuildDir": "storybook-static",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "zip": true
+}

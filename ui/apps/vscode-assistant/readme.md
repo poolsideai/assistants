@@ -6,7 +6,7 @@ Poolside Assistant for Visual Studio Code is an ACP client for coding agents in
 your editor.
 
 ## Get started
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 Once Poolside Assistant is installed, run **Poolside: Show Sidebar** from the
 Command Palette. If the Poolside icon appears in the Activity Bar, you can open
 it from there too.

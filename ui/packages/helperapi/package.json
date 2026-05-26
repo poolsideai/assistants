@@ -43,11 +43,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "test:unit:watch": "vitest --project unit",
     "test:watch": "vitest"
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "lint-staged": {
+    "*": [
       "prettier --ignore-unknown --write"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ]
+  },
   "prettier": "@poolsideai/prettier-config",
   "dependencies": {
     "vscode-languageserver-protocol": "^3.17.5"

@@ -13,7 +13,7 @@ export function isAppleUser() {
   const os = getOperatingSystem();
   return os === "Mac" || os === "iOS";
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+export function isMac() {
+  return getOperatingSystem() === "Mac";
+}
