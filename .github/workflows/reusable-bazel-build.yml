@@ -7,9 +7,9 @@
 # Darwin targets still require a macOS runner because the macOS SDK cannot be
 # redistributed separately from Xcode.
 #
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# NOTE: --config=ci_amd64 is intentionally NOT used for macOS jobs because it
+# contains --platforms=@zig_sdk//platform:linux_amd64 which would override the
+# target OS.
 #
 # Usage example:
 #
@@ -79,7 +79,7 @@ jobs:
       matrix:
         include:
           # linux and windows: cross-compiled from Ubuntu via the Zig toolchain.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          # build_type=cross builds {bazel_target}_{goos}_{goarch} with --config=ci_amd64.
           - os: ubuntu-24.04
             goos: linux
             goarch: amd64
@@ -182,11 +182,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           case "${{ matrix.build_type }}" in
             cross)
               # Linux/Windows: use Zig toolchain via go_cross_binary.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              # --config=ci_amd64 sets --platforms=linux_amd64 for the outer config,
               # but go_cross_binary applies its own platform transition so the
               # outer --platforms does not override the cross-compiled target.
               TARGET="${{ inputs.bazel_target }}_${{ matrix.goos }}_${{ matrix.goarch }}"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              BUILD_FLAGS="--config=ci_amd64 --config=publish"
               ;;
             native)
               # darwin/arm64: plain native build, no platform override.
