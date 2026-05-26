@@ -72,7 +72,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "co_honnef_go_tools",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "com_github_coder_acp_go_sdk",
     "com_github_creack_pty",
     "com_github_danielgtaylor_huma_v2",
     "com_github_dustin_go_humanize",
@@ -89,7 +89,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "com_github_mitchellh_mapstructure",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "com_github_sahilm_fuzzy",
     "com_github_samber_lo",
     "com_github_sourcegraph_jsonrpc2",
     "com_github_spf13_afero",

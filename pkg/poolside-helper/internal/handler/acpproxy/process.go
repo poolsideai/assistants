@@ -317,7 +317,7 @@ func defaultInitializeRequest() acpsdk.InitializeRequest {
 			Version: version.Tag,
 		},
 		ClientCapabilities: acpsdk.ClientCapabilities{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			Fs: acpsdk.FileSystemCapabilities{
 				ReadTextFile:  true,
 				WriteTextFile: true,
 			},

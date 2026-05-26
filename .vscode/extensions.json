@@ -7,7 +7,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "svelte.svelte-vscode",
     "tamasfe.even-better-toml",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "bazelbuild.vscode-bazel",
+    "golang.go"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 }

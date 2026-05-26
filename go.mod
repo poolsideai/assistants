@@ -36,18 +36,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/tliron/glsp v0.2.2
 	go.uber.org/atomic v1.11.0 // indirect
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	golang.org/x/oauth2 v0.34.0
 	golang.org/x/telemetry v0.0.0-20260409153401-be6f6cb8b1fa
 	golang.org/x/tools v0.44.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/coder/acp-go-sdk v0.13.0
 	github.com/creack/pty v1.1.24
 	github.com/gordonklaus/ineffassign v0.2.0
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/sahilm/fuzzy v0.1.1
 	github.com/zalando/go-keyring v0.2.6
 	honnef.co/go/tools v0.7.0
 )
@@ -66,7 +66,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/onsi/gomega v1.38.2 // indirect
 	github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7 // indirect
 	github.com/pjbgf/sha1cd v0.6.0 // indirect
@@ -94,7 +94,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/sourcegraph/jsonrpc2 v0.2.1
 	github.com/spf13/pflag v1.0.10 // indirect
 	golang.org/x/crypto v0.52.0 // indirect
 	golang.org/x/mod v0.35.0
