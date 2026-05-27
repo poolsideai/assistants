@@ -1,7 +1,7 @@
 ##@ Tools
 
 ifeq ($(origin ROOTDIR),undefined)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ROOTDIR := $(abspath $(shell git rev-parse --show-toplevel))
 endif
 
 TOOLSBIN := $(ROOTDIR)/bin

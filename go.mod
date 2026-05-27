@@ -1,6 +1,6 @@
 module github.com/poolsideai/assistant
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+go 1.26.1
 
 // Here to add a `replace` entry to our fork? Remember to create a vX.Y.Z tag in the fork, push it
 // and use it directly, instead of those v0.0.0.-timestamp-revision entries.
@@ -22,7 +22,7 @@ require (
 	github.com/go-git/go-git/v5 v5.19.1
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/golang-migrate/migrate/v4 v4.18.2
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/iancoleman/strcase v0.3.0 // indirect
@@ -83,7 +83,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 )
 
 require (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dustin/go-humanize v1.0.1

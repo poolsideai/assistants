@@ -29,8 +29,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@zig_sdk//toolchain:linux_amd64_gnu.2.17",
     "@zig_sdk//toolchain:linux_arm64_gnu.2.17",
     # Windows uses Zig's bundled MinGW CRT — no runtime changes needed
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@zig_sdk//toolchain:windows_amd64",
+    "@zig_sdk//toolchain:windows_arm64",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 single_version_override(
@@ -40,7 +40,7 @@ single_version_override(
 )
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+go_sdk.download(version = "1.26.1")
 go_sdk.nogo(
     excludes = [
         "//third_party:__subpackages__",
@@ -54,10 +54,10 @@ go_sdk.nogo(
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+go_deps.gazelle_override(
+    directives = ["gazelle:build_tags fts5"],
+    path = "github.com/mattn/go-sqlite3",
+)
 go_deps.module_override(
     patch_strip = 1,
     patches = ["//patches/mattn_go_sqlite3:no_nogo.patch"],
@@ -79,7 +79,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "com_github_go_chi_chi_v5",
     "com_github_go_git_go_billy_v5",
     "com_github_go_git_go_git_v5",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "com_github_golang_jwt_jwt_v5",
     "com_github_golang_migrate_migrate_v4",
     "com_github_google_go_cmp",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
