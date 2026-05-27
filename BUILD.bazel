@@ -57,9 +57,9 @@ buildifier(
     mode = "fix",
     verbose = True,
 )
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+# Go module files for tests that need go/packages
+exports_files([
+    "go.mod",
+    "go.sum",
+])
