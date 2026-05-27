@@ -6,7 +6,7 @@
     "poolside-ai.poolside-assistant",
     "svelte.svelte-vscode",
     "tamasfe.even-better-toml",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "vitest.explorer",
     "bazelbuild.vscode-bazel",
     "golang.go"
   ]
