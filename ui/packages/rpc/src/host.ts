@@ -80,7 +80,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   openAcpChat(opts: OpenAcpChatOptions): Promise<void>;
   closeAcpChat(opts: CloseAcpChatOptions): Promise<void>;
   updateAcpChatPanelMetadata(metadata: AcpChatPanelMetadata): void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  setWebviewFocus(focused: boolean): void;
   showInfoMessage(message: string, type?: InfoMessageType): void;
   upsertSecret(upsertSecretParams: UpsertSecretParams): Promise<UpsertSecretOutput>;
   deleteSecret(deleteSecretParams: DeleteSecretParams): Promise<DeleteSecretOutput>;

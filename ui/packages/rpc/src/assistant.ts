@@ -42,7 +42,7 @@ export interface Assistant {
   setFileIconTheme(theme: FileIconTheme): void;
   setLanguages(languages: Language[]): void;
   setEditorFocused(focused: boolean): void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  togglePlanMode(): void;
   acpAgentServerDidExit(params: { agentServer: string; error?: string }): void;
   acpNavDidChange(params: ACPNavDidChangeParams): void;
   localInferenceDidChange(params: LocalInferenceDidChangeParams): void;

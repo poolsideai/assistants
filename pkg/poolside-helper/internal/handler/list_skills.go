@@ -178,4 +178,4 @@ func parseSkillFrontmatter(data string) (skillFrontmatter, bool) {
 		return skillFrontmatter{}, false
 	}
 	return frontmatter, true
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

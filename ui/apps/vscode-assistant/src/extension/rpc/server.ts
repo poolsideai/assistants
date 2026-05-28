@@ -19,7 +19,7 @@ import type {
 import { randomUUID } from "crypto";
 import { serializeError, type ErrorObject } from "serialize-error";
 import * as vscode from "vscode";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { executeSetContextCommand } from "../api/commands";
 import { POOLSIDE } from "../extensionIdentity";
 import { getHelperSingleton, updateHelperConfig } from "../helper";
 import { System } from "../system";
@@ -327,11 +327,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // We set context so that keybindings can be enabled only when the webview is focused
+  setWebviewFocus(focused: boolean) {
     executeSetContextCommand(`${POOLSIDE}.webviewFocus`, focused);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   upsertSecret = poolsideUpsertSecret;
   deleteSecret = poolsideDeleteSecret;
   listSecrets = poolsideListSecrets;

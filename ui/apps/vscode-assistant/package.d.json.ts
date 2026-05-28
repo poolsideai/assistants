@@ -198,11 +198,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         key: "ctrl+escape";
         mac: "cmd+escape";
       },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {
+        command: "poolside.togglePlanMode";
+        key: "shift+tab";
+        when: "poolside.webviewFocus";
+      },
     ];
     languages: [
       {

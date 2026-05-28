@@ -1,8 +1,8 @@
 import { initializeStatefulModule as initializeHelperApi } from "@poolsideai/helperapi";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ACPConversationStatusRepository } from "../acp";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { ElicitationRepository } from "./ElicitationRepository.svelte";
+
 let helperJsonrpcCall: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
@@ -14,52 +14,52 @@ beforeEach(() => {
 });
 
 const request = (elicitationId: string) => ({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  mode: "form" as const,
   elicitationId,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  message: "test",
+});
+
 const conversationStatus = () =>
   ({
     markWaitingForUser: vi.fn(),
     clearWaitingForUser: vi.fn(),
   }) as unknown as ACPConversationStatusRepository;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+describe("ElicitationRepository", () => {
+  it("accept resolves the registered promise with content", async () => {
     const repo = new ElicitationRepository(conversationStatus());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const promise = repo.register(request("tc-1"));
+    repo.accept("tc-1", { q0: "yes" });
+
+    const response = await promise;
+    expect(response).toEqual({ action: "accept", content: { q0: "yes" } });
+  });
+
+  it("decline resolves without content", async () => {
     const repo = new ElicitationRepository(conversationStatus());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const promise = repo.register(request("tc-2"));
+    repo.decline("tc-2");
+
+    expect(await promise).toEqual({ action: "decline" });
+  });
+
+  it("cancel resolves without content", async () => {
     const repo = new ElicitationRepository(conversationStatus());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const promise = repo.register(request("tc-3"));
+    repo.cancel("tc-3");
+
+    expect(await promise).toEqual({ action: "cancel" });
+  });
+
+  it("removes the entry after resolution", async () => {
     const repo = new ElicitationRepository(conversationStatus());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const promise = repo.register(request("tc-4"));
+    repo.accept("tc-4", {});
+    await promise;
+
+    expect(repo.isElicitationPending("tc-4")).toBe(false);
+  });
+
   it("declineAllForChat resolves entries without routing info", async () => {
     const repo = new ElicitationRepository(conversationStatus());
     const promise = repo.register(request("tc-5"));
@@ -86,16 +86,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(repo.isElicitationPending("tc-other")).toBe(true);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("ignores accept/decline/cancel for unknown toolCallId", () => {
     const repo = new ElicitationRepository(conversationStatus());
     repo.register(request("tc-6"));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     expect(repo.isElicitationPending("tc-6")).toBe(true);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    repo.accept("unknown", {});
+    repo.decline("unknown");
+    repo.cancel("unknown");
+
     expect(repo.isElicitationPending("tc-6")).toBe(true);
   });
 
@@ -109,7 +109,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     expect(repo.hasPendingForSession("session-1", "agent-a")).toBe(true);
     expect(repo.hasPendingForSession("session-1", "agent-b")).toBe(false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
 
   it("scopes chat visibility to the tagged session", () => {
     const repo = new ElicitationRepository(conversationStatus());
@@ -274,4 +274,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       consoleError.mockRestore();
     }
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+});

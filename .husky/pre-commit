@@ -1,5 +1,8 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+# Skip all hooks if SKIP_HOOKS environment variable is set
+if [ "$SKIP_HOOKS" = "true" ]; then
+  echo "Skipping all hooks"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -8,30 +11,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# JS/TS: lint-staged (skip with SKIP_LINT_STAGED=true)
+if [ "$SKIP_LINT_STAGED" != "true" ]; then
+  pnpm lint-staged --allow-empty
+fi
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   staged_go_files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.go' | grep -v -E '(^third_party/|^pkg/poolside-helper/(gopls|internal/gopls)/)' || true)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  if [ -n "$staged_go_files" ]; then
+    echo "Running gofmt on staged Go files..."
+    gofmt -w $staged_go_files
+    echo "$staged_go_files" | xargs git add
+  fi
+fi
+
+# Python: pre-commit (skip with SKIP_PRE_COMMIT=true)
+if [ "$SKIP_PRE_COMMIT" != "true" ]; then
+  staged_py_files=$(git diff --cached --name-only -- '*.py')
+  if [ -n "$staged_py_files" ]; then
+    echo "Running pre-commit hooks for Python files"
+    uv run pre-commit run --files $staged_py_files
+  fi
+fi

@@ -4,7 +4,7 @@ Map, not encyclopedia. Small by design - follow the paths.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 This repository contains Poolside Assistant: desktop and IDE assistant clients,
 shared assistant UI packages, ACP support, and `poolside-helper`.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 Scoped `AGENTS.md` files override this file for their subtree. Read the scoped
 file before editing a domain you have not touched before. `CLAUDE.md` files are
 symlinks to `AGENTS.md` — edit `AGENTS.md`, never add a separate `CLAUDE.md`.
@@ -21,7 +21,7 @@ protocol and schema documentation live there. Poolside's `_poolside/*`
 extension methods are defined in `pkg/acp/README.md`.
 
 ## Repository map
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 | Area | Where |
 | --- | --- |
 | Helper entry point | `cmd/poolside-helper/readme.md` |

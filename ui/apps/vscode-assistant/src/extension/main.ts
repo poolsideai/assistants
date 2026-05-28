@@ -2,7 +2,7 @@ import chokidar from "chokidar";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { serializeError } from "serialize-error";
 import * as vscode from "vscode";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { executeSetContextCommand, registerCommand } from "./api/commands";
 import { affectsConfiguration, getPoolsideConfigurationSection } from "./api/configuration";
 import * as apiProposals from "./apiProposals";
 import { openPermissionSettings } from "./commands/openPermissionSettings";
@@ -13,7 +13,7 @@ import { ExtensionEnv, mapContextToExtensionMode } from "./env";
 import { configureExtensionIdentity, POOLSIDE } from "./extensionIdentity";
 import { getHelperSingleton, initializeHelperClient, updateHelperConfig } from "./helper";
 import { getLanguages, serializeLanguages } from "./languages";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getKeybindingsWatchPaths } from "./rpc/handlers/getKeybindings";
 import { openSettings } from "./rpc/handlers/openSettings";
 import { getInitialKeybindings } from "./state";
 import { createStatusBarItem } from "./statusBar";
@@ -79,7 +79,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   registerCommand("focusInput", () => focusInput(system));
   registerCommand("togglePlanMode", () => {
     system.acpChatPanels.togglePlanModeOnActivePanel();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
   registerCommand("showSidebar", () => system.assistant.showSidebar());
 
   // Always-visible launch affordance; the editor title button needs an open document
@@ -148,7 +148,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   );
 
   // Notify the webview when the user updates their keybindings
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const shortcutWatcher = chokidar.watch(getKeybindingsWatchPaths());
   shortcutWatcher.on("all", sendKeybindings);
   system.context.subscriptions.push({ dispose: () => shortcutWatcher.close() });
 
@@ -159,7 +159,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     system.acpChatPanels.setLanguages(serializedLanguages);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // This context key gates webview-only shortcuts until the assistant reports focus.
   executeSetContextCommand(`${POOLSIDE}.webviewFocus`, false);
 }
 
