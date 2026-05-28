@@ -28,7 +28,7 @@ catalog:
   '@vitest/ui': ^3.2.7
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   eslint: ^9.14.0
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  eslint-plugin-svelte: ^3.15.0
   execa: ^9.6.0
   glob: ^11.0.3
   globals: ^16.4.0
@@ -43,7 +43,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   storybook: ^10.5.2
   svelte: ^5.56.6
   svelte-check: ^4.3.2
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  tailwind-variants: ^3.2.2
   tailwindcss: ^4.1.16
   ts-deepmerge: ^7.0.3
   tsdown: ^0.15.6
@@ -52,7 +52,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   typescript: ^5.9.3
   typescript-eslint: ^8.46.3
   vite: ^7.3.6
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  vite-plugin-dts: ^4.5.4
   vitest: ^3.2.7
 
 cleanupUnusedCatalogs: true

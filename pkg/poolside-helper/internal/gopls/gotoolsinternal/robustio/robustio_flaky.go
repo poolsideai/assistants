@@ -23,7 +23,7 @@ func retry(f func() (err error, mayRetry bool)) error {
 		bestErr     error
 		lowestErrno syscall.Errno
 		start       time.Time
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		nextSleep   = 1 * time.Millisecond
 	)
 	for {
 		err, mayRetry := f()

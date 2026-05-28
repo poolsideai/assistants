@@ -1,18 +1,18 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Skip rules_go's nogo analyzer on go-sqlite3.
+
+nogo runs as a fact-generation action on every Go library — the
+go_sdk.nogo `includes`/`excludes` config only controls whether reports
+are emitted, not whether the action runs. For CGO packages the action
+depends on Bazel-generated cgo intermediates (`_cgo_imports.go` etc.)
+which routinely go missing from the remote cache in CI, surfacing as
+"Running nogo on @@...com_github_mattn_go_sqlite3//:go-sqlite3 failed:
+Missing digest". The `no-nogo` tag suppresses nogo for the target
+entirely. See rules_go go/private/actions/archive.bzl:65.
+
+--- a/BUILD.bazel
++++ b/BUILD.bazel
+@@ -1,3 +1,4 @@
+     importpath = "github.com/mattn/go-sqlite3",
++    tags = ["no-nogo"],
+     visibility = ["//visibility:public"],
+ )

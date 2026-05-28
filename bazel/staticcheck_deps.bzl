@@ -1,176 +1,176 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+"""
+Staticcheck analyzer targets for use in the nogo rule.
+Each subpackage exports var Analyzer *analysis.Analyzer, which is the
+interface rules_go nogo expects.
+"""
+
+#
+# To regenerate after bumping honnef.co/go/tools in go.mod:
+#   TOOLS_DIR=$(find ~/.cache/bazel -path "*/honnef.co/go/tools@vX.Y.Z" -type d | head -1)
+#   for suite in staticcheck simple stylecheck quickfix; do
+#     ls "$TOOLS_DIR/$suite/" | grep -E "^(sa|s|st|qf)[0-9]"
+#   done
+# Then update this file with the new list. Disabled checks belong in
+# nogo_config.json, not by omission here.
+STATICCHECK_DEPS = [
+    "@co_honnef_go_tools//staticcheck/sa1000",
+    "@co_honnef_go_tools//staticcheck/sa1001",
+    "@co_honnef_go_tools//staticcheck/sa1002",
+    "@co_honnef_go_tools//staticcheck/sa1003",
+    "@co_honnef_go_tools//staticcheck/sa1004",
+    "@co_honnef_go_tools//staticcheck/sa1005",
+    "@co_honnef_go_tools//staticcheck/sa1006",
+    "@co_honnef_go_tools//staticcheck/sa1007",
+    "@co_honnef_go_tools//staticcheck/sa1008",
+    "@co_honnef_go_tools//staticcheck/sa1010",
+    "@co_honnef_go_tools//staticcheck/sa1011",
+    "@co_honnef_go_tools//staticcheck/sa1012",
+    "@co_honnef_go_tools//staticcheck/sa1013",
+    "@co_honnef_go_tools//staticcheck/sa1014",
+    "@co_honnef_go_tools//staticcheck/sa1015",
+    "@co_honnef_go_tools//staticcheck/sa1016",
+    "@co_honnef_go_tools//staticcheck/sa1017",
+    "@co_honnef_go_tools//staticcheck/sa1018",
+    "@co_honnef_go_tools//staticcheck/sa1019",
+    "@co_honnef_go_tools//staticcheck/sa1020",
+    "@co_honnef_go_tools//staticcheck/sa1021",
+    "@co_honnef_go_tools//staticcheck/sa1023",
+    "@co_honnef_go_tools//staticcheck/sa1024",
+    "@co_honnef_go_tools//staticcheck/sa1025",
+    "@co_honnef_go_tools//staticcheck/sa1026",
+    "@co_honnef_go_tools//staticcheck/sa1027",
+    "@co_honnef_go_tools//staticcheck/sa1028",
+    "@co_honnef_go_tools//staticcheck/sa1029",
+    "@co_honnef_go_tools//staticcheck/sa1030",
+    "@co_honnef_go_tools//staticcheck/sa1031",
+    "@co_honnef_go_tools//staticcheck/sa1032",
+    "@co_honnef_go_tools//staticcheck/sa2000",
+    "@co_honnef_go_tools//staticcheck/sa2001",
+    "@co_honnef_go_tools//staticcheck/sa2002",
+    "@co_honnef_go_tools//staticcheck/sa2003",
+    "@co_honnef_go_tools//staticcheck/sa3000",
+    "@co_honnef_go_tools//staticcheck/sa3001",
+    "@co_honnef_go_tools//staticcheck/sa4000",
+    "@co_honnef_go_tools//staticcheck/sa4001",
+    "@co_honnef_go_tools//staticcheck/sa4003",
+    "@co_honnef_go_tools//staticcheck/sa4004",
+    "@co_honnef_go_tools//staticcheck/sa4005",
+    "@co_honnef_go_tools//staticcheck/sa4006",
+    "@co_honnef_go_tools//staticcheck/sa4008",
+    "@co_honnef_go_tools//staticcheck/sa4009",
+    "@co_honnef_go_tools//staticcheck/sa4010",
+    "@co_honnef_go_tools//staticcheck/sa4011",
+    "@co_honnef_go_tools//staticcheck/sa4012",
+    "@co_honnef_go_tools//staticcheck/sa4013",
+    "@co_honnef_go_tools//staticcheck/sa4014",
+    "@co_honnef_go_tools//staticcheck/sa4015",
+    "@co_honnef_go_tools//staticcheck/sa4016",
+    "@co_honnef_go_tools//staticcheck/sa4017",
+    "@co_honnef_go_tools//staticcheck/sa4018",
+    "@co_honnef_go_tools//staticcheck/sa4019",
+    "@co_honnef_go_tools//staticcheck/sa4020",
+    "@co_honnef_go_tools//staticcheck/sa4021",
+    "@co_honnef_go_tools//staticcheck/sa4022",
+    "@co_honnef_go_tools//staticcheck/sa4023",
+    "@co_honnef_go_tools//staticcheck/sa4024",
+    "@co_honnef_go_tools//staticcheck/sa4025",
+    "@co_honnef_go_tools//staticcheck/sa4026",
+    "@co_honnef_go_tools//staticcheck/sa4027",
+    "@co_honnef_go_tools//staticcheck/sa4028",
+    "@co_honnef_go_tools//staticcheck/sa4029",
+    "@co_honnef_go_tools//staticcheck/sa4030",
+    "@co_honnef_go_tools//staticcheck/sa4031",
+    "@co_honnef_go_tools//staticcheck/sa4032",
+    "@co_honnef_go_tools//staticcheck/sa5000",
+    "@co_honnef_go_tools//staticcheck/sa5001",
+    "@co_honnef_go_tools//staticcheck/sa5002",
+    "@co_honnef_go_tools//staticcheck/sa5003",
+    "@co_honnef_go_tools//staticcheck/sa5004",
+    "@co_honnef_go_tools//staticcheck/sa5005",
+    "@co_honnef_go_tools//staticcheck/sa5007",
+    "@co_honnef_go_tools//staticcheck/sa5008",
+    "@co_honnef_go_tools//staticcheck/sa5009",
+    "@co_honnef_go_tools//staticcheck/sa5010",
+    "@co_honnef_go_tools//staticcheck/sa5011",
+    "@co_honnef_go_tools//staticcheck/sa5012",
+    "@co_honnef_go_tools//staticcheck/sa6000",
+    "@co_honnef_go_tools//staticcheck/sa6001",
+    "@co_honnef_go_tools//staticcheck/sa6002",
+    "@co_honnef_go_tools//staticcheck/sa6003",
+    "@co_honnef_go_tools//staticcheck/sa6005",
+    "@co_honnef_go_tools//staticcheck/sa6006",
+    "@co_honnef_go_tools//staticcheck/sa9001",
+    "@co_honnef_go_tools//staticcheck/sa9002",
+    "@co_honnef_go_tools//staticcheck/sa9003",
+    "@co_honnef_go_tools//staticcheck/sa9004",
+    "@co_honnef_go_tools//staticcheck/sa9005",
+    "@co_honnef_go_tools//staticcheck/sa9006",
+    "@co_honnef_go_tools//staticcheck/sa9007",
+    "@co_honnef_go_tools//staticcheck/sa9008",
+    "@co_honnef_go_tools//staticcheck/sa9009",
+    "@co_honnef_go_tools//simple/s1000",
+    "@co_honnef_go_tools//simple/s1001",
+    "@co_honnef_go_tools//simple/s1002",
+    "@co_honnef_go_tools//simple/s1003",
+    "@co_honnef_go_tools//simple/s1004",
+    "@co_honnef_go_tools//simple/s1005",
+    "@co_honnef_go_tools//simple/s1006",
+    "@co_honnef_go_tools//simple/s1007",
+    "@co_honnef_go_tools//simple/s1008",
+    "@co_honnef_go_tools//simple/s1009",
+    "@co_honnef_go_tools//simple/s1010",
+    "@co_honnef_go_tools//simple/s1011",
+    "@co_honnef_go_tools//simple/s1012",
+    "@co_honnef_go_tools//simple/s1016",
+    "@co_honnef_go_tools//simple/s1017",
+    "@co_honnef_go_tools//simple/s1018",
+    "@co_honnef_go_tools//simple/s1019",
+    "@co_honnef_go_tools//simple/s1020",
+    "@co_honnef_go_tools//simple/s1021",
+    "@co_honnef_go_tools//simple/s1023",
+    "@co_honnef_go_tools//simple/s1024",
+    "@co_honnef_go_tools//simple/s1025",
+    "@co_honnef_go_tools//simple/s1028",
+    "@co_honnef_go_tools//simple/s1029",
+    "@co_honnef_go_tools//simple/s1030",
+    "@co_honnef_go_tools//simple/s1031",
+    "@co_honnef_go_tools//simple/s1032",
+    "@co_honnef_go_tools//simple/s1033",
+    "@co_honnef_go_tools//simple/s1034",
+    "@co_honnef_go_tools//simple/s1035",
+    "@co_honnef_go_tools//simple/s1036",
+    "@co_honnef_go_tools//simple/s1037",
+    "@co_honnef_go_tools//simple/s1038",
+    "@co_honnef_go_tools//simple/s1039",
+    "@co_honnef_go_tools//simple/s1040",
+    "@co_honnef_go_tools//stylecheck/st1000",
+    "@co_honnef_go_tools//stylecheck/st1001",
+    "@co_honnef_go_tools//stylecheck/st1003",
+    "@co_honnef_go_tools//stylecheck/st1005",
+    "@co_honnef_go_tools//stylecheck/st1006",
+    "@co_honnef_go_tools//stylecheck/st1008",
+    "@co_honnef_go_tools//stylecheck/st1011",
+    "@co_honnef_go_tools//stylecheck/st1012",
+    "@co_honnef_go_tools//stylecheck/st1013",
+    "@co_honnef_go_tools//stylecheck/st1015",
+    "@co_honnef_go_tools//stylecheck/st1016",
+    "@co_honnef_go_tools//stylecheck/st1017",
+    "@co_honnef_go_tools//stylecheck/st1018",
+    "@co_honnef_go_tools//stylecheck/st1019",
+    "@co_honnef_go_tools//stylecheck/st1020",
+    "@co_honnef_go_tools//stylecheck/st1021",
+    "@co_honnef_go_tools//stylecheck/st1022",
+    "@co_honnef_go_tools//stylecheck/st1023",
+    "@co_honnef_go_tools//quickfix/qf1001",
+    "@co_honnef_go_tools//quickfix/qf1002",
+    "@co_honnef_go_tools//quickfix/qf1003",
+    "@co_honnef_go_tools//quickfix/qf1004",
+    "@co_honnef_go_tools//quickfix/qf1005",
+    "@co_honnef_go_tools//quickfix/qf1006",
+    "@co_honnef_go_tools//quickfix/qf1007",
+    "@co_honnef_go_tools//quickfix/qf1008",
+    "@co_honnef_go_tools//quickfix/qf1009",
+    "@co_honnef_go_tools//quickfix/qf1010",
+    "@co_honnef_go_tools//quickfix/qf1011",
+    "@co_honnef_go_tools//quickfix/qf1012",
+]
