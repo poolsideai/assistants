@@ -15,7 +15,7 @@ GO_ENUM_VERSION_CMD_ARG := "--version"
 MOCKERY ?= mockery
 MOCKERY_BIN := $(TOOLSBIN)/$(MOCKERY)
 MOCKERY_SRC ?= github.com/vektra/mockery/v3
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+MOCKERY_VERSION ?= v3.7.0
 MOCKERY_VERSION_CMD_ARG := "version"
 
 MOCKGEN ?= mockgen
