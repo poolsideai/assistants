@@ -1,6 +1,6 @@
 {
   "name": "@poolsideai/components",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "version": "2.3.53",
   "private": true,
   "type": "module",
   "imports": {

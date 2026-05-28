@@ -125,9 +125,9 @@ export type IconName =
   | "step-below"
   | "stop"
   | "submit-additional-solid"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "submit-additional"
   | "submit-solid"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "submit"
   | "symbol-code"
   | "symbol-type"
   | "symbol-value"
