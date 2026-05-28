@@ -2,7 +2,7 @@ load("@rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "lsptest",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    testonly = True,
     srcs = ["lsptest.go"],
     importpath = "github.com/poolsideai/assistant/pkg/poolside-helper/internal/lsptest",
     visibility = ["//pkg/poolside-helper:__subpackages__"],
