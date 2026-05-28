@@ -1,11 +1,11 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package acp
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
 func TestEncodeOverrideRules(t *testing.T) {
 	assert.Nil(t, EncodeOverrideRules(nil))
 	assert.Nil(t, EncodeOverrideRules([]string{}))

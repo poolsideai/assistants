@@ -45,27 +45,27 @@ scripts/helper-build-cross-platform.sh poolside-helper "$OS_ARCH"
 # Extract OS from OS_ARCH for file pattern matching
 OS_NAME=$(echo "$OS_ARCH" | cut -d'/' -f1)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Map OS_ARCH to vsce target
+case "$OS_ARCH" in
+  darwin/arm64)  VSCE_TARGET="darwin-arm64" ;;
+  darwin/amd64)  VSCE_TARGET="darwin-x64" ;;
+  linux/amd64)   VSCE_TARGET="linux-x64" ;;
+  linux/arm64)   VSCE_TARGET="linux-arm64" ;;
+  windows/amd64) VSCE_TARGET="win32-x64" ;;
+  windows/arm64) VSCE_TARGET="win32-arm64" ;;
+  *)
+    echo "Unsupported OS_ARCH: $OS_ARCH" >&2
+    exit 1
+    ;;
+esac
+
 # Move binaries to VSCode extension dist folder
 mv poolside-helper-"${OS_NAME}"-* ui/apps/vscode-assistant/dist/
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# package VSIX with platform target
+VERSION=$(jq -r .version ui/apps/vscode-assistant/package.json)
 VSIX_FILE="$REPO_ROOT/ui/apps/vscode-assistant/poolside-assistant-${VERSION}-${VSCE_TARGET}.vsix"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+pnpm -F poolside-assistant exec vsce package --no-dependencies --allow-missing-repository --target "$VSCE_TARGET" \
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__

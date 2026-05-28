@@ -208,11 +208,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "command": "poolside.showSidebar",
         "key": "ctrl+escape",
         "mac": "cmd+escape"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      },
+      {
+        "command": "poolside.togglePlanMode",
+        "key": "shift+tab",
+        "when": "poolside.webviewFocus"
       }
     ],
 __POOL_SYNTHETIC_IMPORT_BASELINE__

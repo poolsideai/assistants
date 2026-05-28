@@ -1,11 +1,11 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { createContext } from "svelte";
 import type { ACPConversationStatusRepository } from "../acp";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { ElicitationRepository } from "./ElicitationRepository.svelte";
+
+const [getElicitationContext, setContext] = createContext<ElicitationRepository>();
+
 export function setElicitationContext(conversationStatus: ACPConversationStatusRepository) {
   return setContext(new ElicitationRepository(conversationStatus));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+export { getElicitationContext };

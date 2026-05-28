@@ -1,21 +1,21 @@
+package acp
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+// Extension method names
+const (
 	ExtensionMethodElicitation string = "_poolside/elicitation"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// ExtensionMethodShowMessage is the JSON-RPC extension notification sent from
+	// the ACP agent to clients to display an ephemeral message. Analogous to LSP's
+	// window/showMessage but through the ACP extension mechanism.
+	ExtensionMethodShowMessage string = "_poolside/show_message"
+	// ExtensionMethodCompactionUpdate is the JSON-RPC extension notification sent
+	// from the ACP agent to clients when trajectory compaction starts or completes.
+	// The "started" phase is transient (never replayed on session load). Only
+	// "completed" is persisted in the trajectory and re-emitted during replay.
+	ExtensionMethodCompactionUpdate string = "_poolside/compaction_update"
 
 	// ExtensionMethodMCPSettings returns server-owned MCP settings for a
 	// session. MCP runtime state is owned by the ACP server, not the helper.
@@ -25,8 +25,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	ExtensionMethodMCPDeleteSecrets     string = "_poolside/mcp/delete_secrets"
 	ExtensionMethodMCPAuthenticate      string = "_poolside/mcp/authenticate"
 	ExtensionMethodMCPSetInputVariable  string = "_poolside/mcp/set_input_variable"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
+
 type SessionRenameRequest struct {
 	SessionID acpsdk.SessionId `json:"sessionId"`
 	Title     string           `json:"title"`
@@ -102,12 +102,12 @@ type MCPSetInputVariableRequest struct {
 
 type MCPSetInputVariableResponse struct{}
 
+// CompactionPhase identifies the lifecycle stage of a compaction run.
+type CompactionPhase string
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type CompactionNotification struct {
 	SessionID acpsdk.SessionId `json:"sessionId,omitempty"` // routes the notification to its ACP session
 	ID        string           `json:"id"`                  // correlates started↔completed
 	Phase     CompactionPhase  `json:"phase"`               // "started" | "completed"
 	Summary   string           `json:"summary,omitempty"`   // populated on "completed" only
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

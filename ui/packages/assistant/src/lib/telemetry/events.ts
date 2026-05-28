@@ -53,7 +53,7 @@ export interface TelemetryActionEventSchema {
   tool_approval_allow_once: { tool_id: string; type: string };
   tool_approval_always_allow: { tool_id: string; type: string };
   tool_approval_deny: { tool_id: string; type: string };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  tool_approval_select: { tool_id: string; type: string; option_id: string };
 
   // Plan Mode
   plan_mode_activate: { plan_file: string };

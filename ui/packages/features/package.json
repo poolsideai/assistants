@@ -24,12 +24,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       "svelte": "./dist/context/index.js",
       "default": "./dist/context/index.js"
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "./elicitation": {
       "types": "./src/elicitation/index.ts",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "development": "./src/elicitation/index.ts",
+      "svelte": "./dist/elicitation/index.js",
+      "default": "./dist/elicitation/index.js"
+    },
     "./keybindings": {
       "types": "./src/keybindings/index.ts",
       "development": "./src/keybindings/index.ts",

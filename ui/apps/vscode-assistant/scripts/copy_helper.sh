@@ -10,9 +10,9 @@ set -x
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # dist is ../dist relative to the script
 DIST_DIR="${SCRIPT_DIR}/../dist"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# TARGET_ARCH is the target architecture to build the extension for. If omitted a universal
+# extension bundling binaries for all architectures will be built.
+TARGET_ARCH="${1:-}"
 
 mkdir -p "$DIST_DIR"
 cd "$DIST_DIR"
@@ -33,37 +33,37 @@ fi
 rm -f -- poolside-helper-* poolside-mlx-sidecar-* poolside-whisper-server-* \
   ./*.tar.gz ./*.checksum ./*.metallib
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+helper_pattern=""
 supplemental_patterns=()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+case "$TARGET_ARCH" in
+  "")
+    ;;
+  darwin-x64)
+    helper_pattern="poolside-helper-darwin-amd64.tar.gz"
+    ;;
+  darwin-arm64)
+    helper_pattern="poolside-helper-darwin-arm64.tar.gz"
     supplemental_patterns+=("poolside-whisper-server-darwin-arm64.tar.gz")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ;;
+  linux-x64)
+    helper_pattern="poolside-helper-linux-amd64.tar.gz"
+    ;;
+  linux-arm64)
+    helper_pattern="poolside-helper-linux-arm64.tar.gz"
+    ;;
+  win32-x64)
+    helper_pattern="poolside-helper-windows-amd64.tar.gz"
+    ;;
+  win32-arm64)
+    helper_pattern="poolside-helper-windows-arm64.tar.gz"
+    ;;
+  *)
+    echo "Unsupported target: $TARGET_ARCH" >&2
+    echo "Supported targets: darwin-x64 darwin-arm64 linux-x64 linux-arm64 win32-x64 win32-arm64" >&2
+    exit 1
+    ;;
+esac
+
 copy_runtime_asset() {
   local pattern="$1"
   local source="$runtime_artifact_dir/$pattern"
@@ -93,14 +93,14 @@ if [[ -n "$runtime_artifact_dir" ]]; then
     done
   fi
 elif [[ -n "$helper_pattern" ]]; then
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  gh release download "$helper_version" --pattern "$helper_pattern" --clobber
   for pattern in "${supplemental_patterns[@]}"; do
     gh release download "$helper_version" --pattern "$pattern" --clobber || \
       echo "Optional helper asset not found: $pattern"
   done
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+else
+  gh release download "$helper_version" --clobber
+fi
 
 shopt -s nullglob
 for f in ./*.tar.gz; do

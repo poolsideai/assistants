@@ -1,5 +1,5 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { getElicitationContext, setElicitationContext } from "./ElicitationRepository.context";
+export { ElicitationRepository } from "./ElicitationRepository.svelte";
 export { FormModel, isEnumField, isNumberField, isSecretField } from "./types";
 export type {
   ArrayField,

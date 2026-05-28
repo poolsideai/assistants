@@ -11,7 +11,7 @@ import {
   type LocalInferenceRepository,
 } from "@poolsideai/features/acp";
 import type { ContextRepository } from "@poolsideai/features/context";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ElicitationRepository } from "@poolsideai/features/elicitation";
 import type { ACPApproval } from "@poolsideai/helperapi";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   type ACPElicitationOutput,
@@ -68,7 +68,7 @@ export class WebviewRPCServer implements Assistant {
     win: WebviewRPCListener,
     messageSender: WebViewRPCResponseSender,
     readonly appState: AppStore,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    readonly elicitationRepo: ElicitationRepository,
     readonly acpTransport: ACPTransport,
     readonly contextRepo: ContextRepository,
     readonly assistantTerminals: AssistantTerminalEventSink,
@@ -216,10 +216,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }));
   };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  togglePlanMode = () => {
     this.getActiveSession?.()?.togglePlanMode();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  };
+
   // Utility handlers
   focusInput = () => {
     focusPrompt();

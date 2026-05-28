@@ -4,8 +4,8 @@ import type { ACPElicitationOutput, ACPElicitationParams } from "@poolsideai/hel
 import { find } from "lodash";
 import type { ACPConversationStatusRepository } from "../acp";
 import type { FieldValue } from "./types";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+interface PendingElicitation {
   request: ACPElicitationParams;
   /** Legacy (host-RPC-delivered) elicitations resolve a local promise. */
   resolve?: (response: ACPElicitationOutput) => void;
@@ -15,8 +15,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
    * with the next didChange push.
    */
   approval?: { agentServer: string; sessionId: string; kind: "elicitation"; id: string };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+export class ElicitationRepository {
   private conversationStatus: ACPConversationStatusRepository;
 
   constructor(conversationStatus: ACPConversationStatusRepository) {
@@ -80,17 +80,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       const next = new Map(this.pendingByElicitationId);
       next.set(request.elicitationId, { request, resolve });
       this.pendingByElicitationId = next;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+  }
+
   accept(elicitationId: string, content: Record<string, unknown>) {
     this.resolve(elicitationId, { action: "accept", content });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   decline(elicitationId: string) {
     this.resolve(elicitationId, { action: "decline" });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   /** Declines the elicitations a given chat shows (see firstPendingForChat). */
   declineAllForChat(sessionId: SessionId | null, agentServer: string | null) {
     for (const [elicitationId, entry] of Array.from(this.pendingByElicitationId)) {
@@ -102,12 +102,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   cancel(elicitationId: string) {
     this.resolve(elicitationId, { action: "cancel" });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   isElicitationPending(elicitationId: string): boolean {
     return this.pendingByElicitationId.has(elicitationId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   hasPendingForSession(sessionId: SessionId, agentServer: string): boolean {
     return (
       find(
@@ -178,7 +178,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   private resolve(elicitationId: string, response: ACPElicitationOutput) {
     const entry = this.pendingByElicitationId.get(elicitationId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (!entry) return;
     if (entry.approval) {
       // Answer through the helper; the entry is removed optimistically and
       // authoritative removal arrives with the next didChange push. A losing
@@ -218,7 +218,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const next = new Map(this.pendingByElicitationId);
     next.delete(elicitationId);
     this.pendingByElicitationId = next;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
 
   private restoreStoreBackedEntry(
     elicitationId: string,
@@ -242,7 +242,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     next.set(elicitationId, entry);
     this.pendingByElicitationId = next;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
 
 function visibleInChat(
   request: ACPElicitationParams,
