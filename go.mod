@@ -42,26 +42,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+require (
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/creack/pty v1.1.24
 	github.com/gordonklaus/ineffassign v0.2.0
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/zalando/go-keyring v0.2.6
 	honnef.co/go/tools v0.7.0
+)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	al.essio.dev/pkg/shellescape v1.5.1 // indirect
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/ProtonMail/go-crypto v1.1.6 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/cloudflare/circl v1.6.3 // indirect
+	github.com/danieljoos/wincred v1.2.2 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/godbus/dbus/v5 v5.1.1-0.20230522191255-76236955d466 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
@@ -93,7 +93,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/rivo/uniseg v0.4.7 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/spf13/pflag v1.0.10 // indirect
 	golang.org/x/crypto v0.52.0 // indirect

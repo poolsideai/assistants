@@ -1,29 +1,29 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package methods
+
+// InitiateMCPOAuthParams represents the parameters for initiating an OAuth flow for an MCP server.
+type InitiateMCPOAuthParams struct {
 	ServerID   string `json:"serverID"`
 	ServerURL  string `json:"serverURL"`
 	ServerName string `json:"serverName"`
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func (p InitiateMCPOAuthParams) MethodName() string {
+	return "poolside/mcpOAuthInitiate"
+}
+
+// InitiateMCPOAuthOutput represents the output of the OAuth initiation.
+type InitiateMCPOAuthOutput struct {
+}
+
+// MCPOAuthURLParams represents the parameters for notifying the client to open an OAuth URL.
+type MCPOAuthURLParams struct {
+	ServerID string `json:"serverID"`
+	AuthURL  string `json:"authURL"`
+}
+
+func (p MCPOAuthURLParams) MethodName() string {
+	return "poolside/mcpOAuthURL"
+}
 
 // MCPOAuthCallbackParams carries an OAuth redirect callback URL
 // (poolside://oauth/callback?code=…&state=…) that a client with the

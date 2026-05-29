@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# These directories are not tracked bazel nor gazelle
+ui
+node_modules
 __POOL_SYNTHETIC_IMPORT_BASELINE__
