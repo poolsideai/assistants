@@ -82,5 +82,5 @@ test:ci --test_env=GITHUB_ACTIONS
 test:ci --test_env=ANTHROPIC_API_KEY
 
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# ensure we add optimization flags when cross-compiling C dependencies for Go
+build --compilation_mode=opt
