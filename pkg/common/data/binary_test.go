@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/spf13/afero"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/stretchr/testify/assert"
 )
 
 func ExampleIsBinaryFile() {
