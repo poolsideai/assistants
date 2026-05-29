@@ -1,5 +1,5 @@
 # gazelle:prefix github.com/poolsideai/assistant
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# gazelle:exclude .claude
 # gazelle:exclude scripts
 
 load("@buildifier_prebuilt//:rules.bzl", "buildifier")
