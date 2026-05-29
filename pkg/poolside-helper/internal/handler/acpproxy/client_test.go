@@ -754,26 +754,26 @@ func TestReadTextFile(t *testing.T) {
 		assert.Equal(t, "b\nc", resp.Content)
 	})
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	t.Run("blank requested line returns empty content", func(t *testing.T) {
+		content := "a\n\nc"
+		c := &acpClient{
+			readFile: func(_ context.Context, _ protocol.DocumentURI) ([]byte, error) {
+				return []byte(content), nil
+			},
+		}
+
+		line := 2
+		limit := 1
+		resp, err := c.ReadTextFile(context.Background(), acpsdk.ReadTextFileRequest{
+			Path:  "/tmp/test.txt",
+			Line:  &line,
+			Limit: &limit,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "", resp.Content)
+	})
+
+	t.Run("line beyond content returns error", func(t *testing.T) {
 		content := "a\nb"
 		c := &acpClient{
 			readFile: func(_ context.Context, _ protocol.DocumentURI) ([]byte, error) {
@@ -782,12 +782,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		}
 
 		line := 100
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		_, err := c.ReadTextFile(context.Background(), acpsdk.ReadTextFileRequest{
 			Path: "/tmp/test.txt",
 			Line: &line,
 		})
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "line is out of range")
 	})
 
 	t.Run("limit only without line starts from beginning", func(t *testing.T) {

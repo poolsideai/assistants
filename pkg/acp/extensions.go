@@ -1,8 +1,8 @@
 package acp
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import (
+	acpsdk "github.com/coder/acp-go-sdk"
+)
 
 // Extension method names
 const (

@@ -6,7 +6,7 @@ go_library(
         "main.go",
         "openapi.go",
         "root_command.go",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "tail.go",
     ],
     importpath = "github.com/poolsideai/assistant/cmd/poolside-helper",
     visibility = ["//visibility:private"],

@@ -2,10 +2,10 @@ module github.com/poolsideai/assistant
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Here to add a `replace` entry to our fork? Remember to create a vX.Y.Z tag in the fork, push it
+// and use it directly, instead of those v0.0.0.-timestamp-revision entries.
+// e.g. replace github.com/a/b v7.42.0 github.com/poolsideai/b v0.0.1
+
 // workaround broken dependency - after version including https://github.com/tliron/kutil/pull/1 is used
 // by lsp can remove
 replace github.com/tliron/kutil v0.3.11 => github.com/tliron/kutil v0.3.26
@@ -27,7 +27,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/iancoleman/strcase v0.3.0 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/muesli/termenv v0.16.0 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -65,7 +65,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/kylelemons/godebug v1.1.0 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/onsi/gomega v1.38.2 // indirect
 	github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7 // indirect
@@ -87,7 +87,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
