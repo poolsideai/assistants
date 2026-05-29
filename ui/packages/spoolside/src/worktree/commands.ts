@@ -143,23 +143,23 @@ function ensureVscodeDependenciesBuilt(worktreeRoot: string): void {
   console.log("[worktree] VS Code assistant built successfully.");
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function ensureDesktopDependenciesBuilt(worktreeRoot: string): void {
+  const viteConfigDist = path.join(worktreeRoot, "ui/config/vite/dist/index.js");
+  const svelteConfigDist = path.join(worktreeRoot, "ui/config/svelte/dist/index.js");
+  if (fs.existsSync(viteConfigDist) && fs.existsSync(svelteConfigDist)) {
+    return;
+  }
+
+  console.log(
+    "[worktree] Desktop dependencies not built — running pnpm turbo build -F @poolsideai/desktop-assistant^...",
+  );
+  execFileSync("pnpm", ["turbo", "build", "-F", "@poolsideai/desktop-assistant^..."], {
+    cwd: worktreeRoot,
+    stdio: "inherit",
+  });
+  console.log("[worktree] Desktop dependencies built successfully.");
+}
+
 async function waitForProcess(
   name: string,
   opts?: { timeoutMs?: number; healthUrl?: string; stableMs?: number },
@@ -528,7 +528,7 @@ async function desktopUp(
   }
 
   const desktopAppDir = path.join(worktreeRoot, "ui/apps/desktop-assistant");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ensureDesktopDependenciesBuilt(worktreeRoot);
   if (isManagedAlive(desktopViteName)) {
     console.log(`[worktree] ${desktopViteName} already running — reusing it.`);
   } else {

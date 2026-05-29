@@ -46,7 +46,7 @@ jobs:
         id: plan
         shell: bash
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           pnpm -s -F @poolsideai/release-helper find-version \

@@ -12,7 +12,7 @@
       ]
     },
     "build": {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "dependsOn": ["build:web", "^build"],
       "env": ["SKIP_DESKTOP_TAURI_BUILD"],
       "passThroughEnv": [
         "CARGO_BUILD_TARGET",
