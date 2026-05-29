@@ -55,7 +55,7 @@ export class TelemetryLogger {
   }
 
   reportError(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    input: ErrorObject | Error,
     {
       tags = undefined,
     }: {
@@ -63,16 +63,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     } = {},
   ) {
     if (this.#disposed) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-      serialized = serializeError(input);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let serialized: ErrorObject;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // determine if input is already serialized and handle accordingly
+    if (input instanceof Error) {
+      serialized = serializeError(input);
+    } else {
+      serialized = input;
+    }
+
+    if (serialized) {
       // drop stack as we will already have included that if present
       const { stack: _, ...kept } = serialized as Record<string, any>;
       this.#output.appendLine(

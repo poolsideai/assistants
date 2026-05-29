@@ -1,7 +1,7 @@
 package humautil
 
 import (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -65,25 +65,25 @@ func TestEnumSchema_ApprovalDecisionType(t *testing.T) {
 	assert.Equal(t, "Secret", names[2])
 	assert.Equal(t, "Tool", names[3])
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+type testIntEnum int
+
+const (
+	testIntEnumOne testIntEnum = 1
+)
+
+func TestEnumSchema_IntegerEnumMatchesJSONDecoding(t *testing.T) {
+	schema := EnumSchema(map[string]testIntEnum{
+		"one": testIntEnumOne,
+	})
+
+	// Simulate JSON decoding into any
+	jsonData := []byte(`{"state": 1}`)
+	var decoded map[string]any
+	err := json.Unmarshal(jsonData, &decoded)
+	require.NoError(t, err)
+
+	decodedValue := decoded["state"]
+
+	assert.Equal(t, schema.Enum[0], decodedValue)
+}

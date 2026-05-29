@@ -306,9 +306,9 @@ func (h *Handler) processFor(serverName string, gCtx *glsp.Context) (*process, *
 		client.lspNotify = func(ctx context.Context, method string, params any) {
 			gCtx.Notify(ctx, method, params)
 		}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		client.lspCall = func(ctx context.Context, method string, params any, result any) error {
+			return gCtx.Call(ctx, method, params, result)
+		}
 		client.activeSession = func() acpsdk.SessionId {
 			proc.mu.Lock()
 			defer proc.mu.Unlock()
@@ -986,11 +986,11 @@ func (h *Handler) Prompt(ctx context.Context, params *methods.ACPPromptParams, g
 	}
 
 	proc, err := h.processReadyForCall(ctx, gCtx, serverName)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if err != nil {
+		return nil, err
+	}
 	_, client := h.processFor(serverName, gCtx)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 	conn, activeSession, err := proc.connForSession()
 	if err != nil {
 		return nil, err
@@ -1001,7 +1001,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}
 	if sessionID == "" {
 		return nil, fmt.Errorf("acpproxy: no active session; call session/new first")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
 	// Reject overlapping prompts before any side effect (live status, task
 	// turn, user-message relay): a second concurrent Prompt on the same agent
 	// connection would interleave two turns in one transcript, and its
@@ -1072,7 +1072,7 @@ func (h *Handler) runTurn(ctx context.Context, params *methods.ACPPromptParams, 
 			}
 		}()
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 	req := params.PromptRequest
 	req.SessionId = sessionID
 
@@ -1132,8 +1132,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}
 
 	return &resp, nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 // activeTurn tracks one running (or recently finished) prompt turn. turnID is
 // the client-generated idempotency key from the prompt's _meta (empty when
 // the client sends none); resp/err are set before done closes.

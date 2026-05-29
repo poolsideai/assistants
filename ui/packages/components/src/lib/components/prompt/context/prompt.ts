@@ -39,9 +39,9 @@ export interface Item extends BaseEntity<"item">, ItemProps {
   sectionId: Section["id"];
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export interface Action extends BaseEntity<"action">, ActionProps {
+  itemId: Item["id"];
+}
 export interface Chip extends BaseEntity<"chip">, ChipProps {}
 
 type Menus = EntityCollection<Menu>;
@@ -167,7 +167,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     submitEl: Writable<HTMLElement | undefined>;
     inputEl: Writable<HTMLElement | undefined>;
   };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  menus: MenusContext;
 }
 
 export interface MenusContext {
@@ -188,7 +188,7 @@ export interface MenusContext {
 
 export interface ItemsContext {
   items: Readable<Items>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  itemsBySection: Readable<ItemsBySection>;
   filtered: Readable<FilterResult | undefined>;
   selected: Readable<Item["id"] | undefined>;
   selectedAction: Readable<Action | undefined>;
@@ -282,36 +282,36 @@ export function createPrompt({
   const chips = writable<Chips>(new Map());
   const chipsByValue = writable<ChipsByValue>(new Map());
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const itemsBySection = derived(items, ($items) => {
+    const out: ItemsBySection = new Map();
+    for (const [id, item] of $items) {
+      if (!item.sectionId) continue;
+      getOrSet(out, item.sectionId, new Set<Item["id"]>()).add(id);
+    }
+    return out;
+  });
+
+  const actionsByItem = derived(actions, ($actions) => {
+    const out: ActionsByItem = new Map();
+    for (const [id, action] of $actions) {
+      getOrSet(out, action.itemId, new Set<Action["id"]>()).add(id);
+    }
+    return out;
+  });
+
+  function deferredStoreUpdate<T>(store: Writable<T>): () => void {
+    let updating = false;
+    return async () => {
+      if (updating) return; // already in the process of updating
+      updating = true;
+      await Promise.resolve();
+      updating = false;
+      store.set(get(store));
+    };
+  }
+
+  const notifyItemsUpdate = deferredStoreUpdate(items);
+  const notifyActionsUpdate = deferredStoreUpdate(actions);
 
   const { onMount: altKeyOnMount, isAltKeyPressed } = createAltKeyStore();
 
@@ -364,7 +364,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let lastMatchQuery: string | undefined;
   const pushedBaseQueries: string[] = [];
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const menusContext: MenusContext = setContext<MenusContext>(MENUS_KEY, {
     menu,
     rules: derived(menus, ($menus) => {
       const menusToCheck: Menu[] = [];
@@ -467,8 +467,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     has: hasMenu,
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const { open, close } = menusContext;
+
   const { select, getInteractiveItemElements } = setContext<ItemsContext>(ITEMS_KEY, {
     items,
     itemsBySection,
@@ -506,14 +506,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     },
 
     register: (id, item, sectionId) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const $items = get(items);
+      $items.set(id, { id, sectionId, ...item });
+      notifyItemsUpdate();
 
       return () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        const $items = get(items);
+        $items.delete(id);
+        notifyItemsUpdate();
       };
     },
 
@@ -616,14 +616,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     actions,
     actionByItem,
     register: (id, action, itemId) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const $actions = get(actions);
+      $actions.set(id, { id, itemId, ...action });
+      notifyActionsUpdate();
 
       return () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        const $actions = get(actions);
+        $actions.delete(id);
+        notifyActionsUpdate();
       };
     },
   });
@@ -797,7 +797,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     suggestion,
     acceptSuggestion,
     submitSuggestion,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    menus: menusContext,
     clear: () => {
       const $editor = get(prompt.editor);
       if (!$editor) return;

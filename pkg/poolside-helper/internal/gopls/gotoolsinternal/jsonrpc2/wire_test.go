@@ -15,7 +15,7 @@ import (
 
 var wireIDTestData = []struct {
 	name    string
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	id      jsonrpc2.ID
 	encoded []byte
 	plain   string
 	quoted  string
@@ -27,13 +27,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		quoted:  `#0`,
 	}, {
 		name:    `number`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		id:      jsonrpc2.NewIntID(43),
 		encoded: []byte(`43`),
 		plain:   `43`,
 		quoted:  `#43`,
 	}, {
 		name:    `string`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		id:      jsonrpc2.NewStringID("life"),
 		encoded: []byte(`"life"`),
 		plain:   `life`,
 		quoted:  `"life"`,
@@ -68,7 +68,7 @@ func TestIDEncode(t *testing.T) {
 func TestIDDecode(t *testing.T) {
 	for _, test := range wireIDTestData {
 		t.Run(test.name, func(t *testing.T) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			var got *jsonrpc2.ID
 			if err := json.Unmarshal(test.encoded, &got); err != nil {
 				t.Fatal(err)
 			}
@@ -82,7 +82,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
 
 func TestErrorEncode(t *testing.T) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	b, err := json.Marshal(jsonrpc2.NewError(0, ""))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +95,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 func TestErrorResponse(t *testing.T) {
 	// originally reported in #39719, this checks that result is not present if
 	// it is an error response
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	r, _ := jsonrpc2.NewResponse(jsonrpc2.NewIntID(3), nil, fmt.Errorf("computing fix edits"))
 	data, err := json.Marshal(r)
 	if err != nil {
 		t.Fatal(err)

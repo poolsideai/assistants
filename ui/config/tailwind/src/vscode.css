@@ -4,10 +4,10 @@
     background-color: transparent;
     border-radius: 0;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  body {
+    background-color: var(--psx-chrome);
+  }
 }
 
 @theme {

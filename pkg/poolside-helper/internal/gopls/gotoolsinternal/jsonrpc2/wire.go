@@ -7,52 +7,52 @@ package jsonrpc2
 import (
 	"encoding/json"
 	"fmt"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	srcjsonrpc2 "github.com/sourcegraph/jsonrpc2"
 )
 
 // this file contains the go forms of the wire specification
 // see http://www.jsonrpc.org/specification for details
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+var (
+	CodeParseError     int64 = srcjsonrpc2.CodeParseError
+	CodeInvalidRequest int64 = srcjsonrpc2.CodeInvalidRequest
+	CodeMethodNotFound int64 = srcjsonrpc2.CodeMethodNotFound
+	CodeInvalidParams  int64 = srcjsonrpc2.CodeInvalidParams
+	CodeInternalError  int64 = srcjsonrpc2.CodeInternalError
+
+	CodeServerOverloaded int64 = -32000
+	CodeUnknown          int64 = -32001
+	CodeServerClosing    int64 = -32002
+	CodeClientClosing    int64 = -32003
+)
+
 var (
 	// ErrParse is used when invalid JSON was received by the server.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ErrParse = NewError(CodeParseError, "JSON RPC parse error")
+	// ErrInvalidRequest is used when the JSON sent is not a valid Request object.
+	ErrInvalidRequest = NewError(CodeInvalidRequest, "JSON RPC invalid request")
 	// ErrMethodNotFound should be returned by the handler when the method does
 	// not exist / is not available.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ErrMethodNotFound = NewError(CodeMethodNotFound, "JSON RPC method not found")
 	// ErrInvalidParams should be returned by the handler when method
 	// parameter(s) were invalid.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ErrInvalidParams = NewError(CodeInvalidParams, "JSON RPC invalid params")
+	// ErrInternal indicates a failure to process a call correctly
+	ErrInternal = NewError(CodeInternalError, "JSON RPC internal error")
+
+	// The following errors are not part of the json specification, but
+	// compliant extensions specific to this implementation.
+
+	// ErrServerOverloaded is returned when a message was refused due to a
+	// server being temporarily unable to accept any new messages.
+	ErrServerOverloaded = NewError(CodeServerOverloaded, "JSON RPC overloaded")
+	// ErrUnknown should be used for all non coded errors.
+	ErrUnknown = NewError(CodeUnknown, "JSON RPC unknown error")
+	// ErrServerClosing is returned for calls that arrive while the server is closing.
+	ErrServerClosing = NewError(CodeServerClosing, "JSON RPC server is closing")
+	// ErrClientClosing is a dummy error returned for calls initiated while the client is closing.
+	ErrClientClosing = NewError(CodeClientClosing, "JSON RPC client is closing")
 )
 
 // wireRequest is sent to a server to represent a Call or Notify operation.
@@ -95,8 +95,8 @@ type wireCombined struct {
 	Error      *WireError       `json:"error,omitempty"`
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// WireError is an alias for the sourcegraph jsonrpc2.Error type.
+type WireError = srcjsonrpc2.Error
 
 // wireVersionTag is a special 0 sized struct that encodes as the jsonrpc version
 // tag.

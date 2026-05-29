@@ -16,14 +16,14 @@ type msg struct {
 	Msg string
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func fakeHandler(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
 	return reply(ctx, &msg{"pong"}, nil)
 }
 
 func TestTestServer(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	server := jsonrpc2.HandlerServer(fakeHandler)
 	tcpTS := NewTCPServer(ctx, server, nil)
 	defer tcpTS.Close()
 	pipeTS := NewPipeServer(server, nil)
@@ -40,7 +40,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			conn := test.connector.Connect(ctx)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			conn.Go(ctx, jsonrpc2.MethodNotFound)
 			var got msg
 			if _, err := conn.Call(ctx, "ping", &msg{"ping"}, &got); err != nil {
 				t.Fatal(err)

@@ -51,7 +51,7 @@ export interface MarkdownHostAdapter {
   openTerminal?: (command: string) => void | Promise<void>;
   writeToClipboard?: (text: string) => void | Promise<void>;
   onCopyError?: (error: Error) => void | Promise<void>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  getSlashCommands?: () => { commands: readonly string[]; skills: readonly string[] };
   getSlashCommandIcon?: (commandName: string) => IconName | undefined;
   trackClick?: MarkdownAction;
   reportUserAction?: (target: string, data?: unknown) => void;

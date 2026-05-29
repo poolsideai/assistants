@@ -18,12 +18,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       "svelte": "./dist/acp/navTypes.js",
       "default": "./dist/acp/navTypes.js"
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "./context": {
       "types": "./src/context/index.ts",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "development": "./src/context/index.ts",
+      "svelte": "./dist/context/index.js",
+      "default": "./dist/context/index.js"
+    },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       "types": "./src/elicitation/index.ts",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -101,7 +101,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@xterm/addon-web-links": "^0.11.0",
     "@xterm/xterm": "^5.5.0",
     "cmdk-sv": "^0.0.19",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "lodash": "catalog:",
     "qrcode-generator": "1.4.4",
     "runed": "^0.37.1"
   },

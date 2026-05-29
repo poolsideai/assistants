@@ -9,46 +9,46 @@ import { runtime, toJsonrpcMethod } from "../orval/clientHelpers";
 import type {
   ACPAgentServerParams,
   ACPCloseSessionParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPDeleteSessionParams,
   ACPNavAbortConversationHandoffParams,
   ACPNavAgentRuntimesState,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavAgentServersState,
+  ACPNavArchiveConversationParams,
   ACPNavCheckAgentRuntimesParams,
   ACPNavConfigCacheState,
   ACPNavConversationHandoffOutput,
   ACPNavConversationHistory,
   ACPNavCreateChatOutput,
   ACPNavCreateChatParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavCreateWorktreeParams,
   ACPNavDeleteConversationParams,
   ACPNavGetConfigCacheParams,
   ACPNavGetConversationHistoryParams,
   ACPNavGetProjectSettingsParams,
   ACPNavInstallAgentServerOutput,
   ACPNavInstallAgentServerParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavListAgentServersParams,
+  ACPNavListParams,
   ACPNavPrepareConversationHandoffParams,
   ACPNavPrepareWorktreeParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavProject,
   ACPNavProjectSettingsState,
   ACPNavReleasePreparedWorktreeOutput,
   ACPNavReleasePreparedWorktreeParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavRemoveProjectParams,
+  ACPNavRemoveWorktreeParams,
   ACPNavRenameConversationParams,
   ACPNavRenameProjectParams,
   ACPNavReorderProjectsParams,
   ACPNavReorderWorktreesParams,
   ACPNavRestoreConversationParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavSetAgentServersParams,
+  ACPNavSetProjectCollapsedParams,
   ACPNavSetProjectSettingsParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavState,
   ACPNavUpsertConfigCacheParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavUpsertConversationParams,
+  ACPNavUpsertProjectParams,
   ACPRenameSessionParams,
   ACPRestartServerOutput,
   CloseSessionResponse,
@@ -57,8 +57,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   GetSecretOutput,
   GetSecretParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  GetUserConfigOutput,
+  GetUserConfigParams,
   ListSecretsOutput,
   ListSecretsParams,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -147,17 +147,17 @@ export const poolsideAcpSessionClose = async (
     aCPCloseSessionParams,
   );
 };
+/**
+ * deletes an ACP session
+ */
+export const poolsideAcpSessionDelete = async (
+  aCPDeleteSessionParams: NonReadonly<ACPDeleteSessionParams>,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acp/session/delete"),
+    aCPDeleteSessionParams,
+  );
+};
 /**
  * discards an uncommitted ACP conversation handoff
  */
@@ -169,17 +169,17 @@ export const poolsideAcpNavAbortConversationHandoff = async (
     aCPNavAbortConversationHandoffParams,
   );
 };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * archives a conversation from the locally active ACP navigation list
+ */
+export const poolsideAcpNavArchiveConversation = async (
+  aCPNavArchiveConversationParams: NonReadonly<ACPNavArchiveConversationParams>,
+): Promise<ACPNavState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/archiveConversation"),
+    aCPNavArchiveConversationParams,
+  );
+};
 /**
  * reports whether the runtimes registry ACP agent distributions launch through are available
  */
@@ -202,17 +202,17 @@ export const poolsideAcpNavCreateChat = async (
     aCPNavCreateChatParams,
   );
 };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * creates a git worktree for an ACP project and stores it locally
+ */
+export const poolsideAcpNavCreateWorktree = async (
+  aCPNavCreateWorktreeParams: NonReadonly<ACPNavCreateWorktreeParams>,
+): Promise<ACPNavProject> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/createWorktree"),
+    aCPNavCreateWorktreeParams,
+  );
+};
 /**
  * deletes conversations with a matching ACP session from local navigation state
  */
@@ -268,25 +268,25 @@ export const poolsideAcpNavInstallAgentServer = async (
     aCPNavInstallAgentServerParams,
   );
 };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * lists locally pinned ACP projects, worktrees, and active conversations
+ */
+export const poolsideAcpNavList = async (
+  aCPNavListParams: NonReadonly<ACPNavListParams>,
+): Promise<ACPNavState> => {
+  return await runtime.jsonrpcCall(toJsonrpcMethod("/poolside/acpNav/list"), aCPNavListParams);
+};
+/**
+ * lists locally enabled ACP agent servers
+ */
+export const poolsideAcpNavListAgentServers = async (
+  aCPNavListAgentServersParams: NonReadonly<ACPNavListAgentServersParams>,
+): Promise<ACPNavAgentServersState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/listAgentServers"),
+    aCPNavListAgentServersParams,
+  );
+};
 /**
  * durably freezes the current ACP session leg before handing a conversation to another agent
  */
@@ -298,50 +298,50 @@ export const poolsideAcpNavPrepareConversationHandoff = async (
     aCPNavPrepareConversationHandoffParams,
   );
 };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * reserves a name for the next ACP worktree without touching the filesystem or database
+ */
+export const poolsideAcpNavPrepareWorktree = async (
+  aCPNavPrepareWorktreeParams: NonReadonly<ACPNavPrepareWorktreeParams>,
+): Promise<ACPNavProject> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/prepareWorktree"),
+    aCPNavPrepareWorktreeParams,
+  );
+};
+/**
+ * releases a name previously reserved by prepareWorktree
+ */
+export const poolsideAcpNavReleasePreparedWorktree = async (
+  aCPNavReleasePreparedWorktreeParams: NonReadonly<ACPNavReleasePreparedWorktreeParams>,
 ): Promise<ACPNavReleasePreparedWorktreeOutput> => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/releasePreparedWorktree"),
+    aCPNavReleasePreparedWorktreeParams,
+  );
+};
+/**
+ * removes an ACP project and its worktrees/conversations from local navigation state
+ */
+export const poolsideAcpNavRemoveProject = async (
+  aCPNavRemoveProjectParams: NonReadonly<ACPNavRemoveProjectParams>,
+): Promise<ACPNavState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/removeProject"),
+    aCPNavRemoveProjectParams,
+  );
+};
+/**
+ * removes a git worktree from disk and from local ACP navigation state
+ */
+export const poolsideAcpNavRemoveWorktree = async (
+  aCPNavRemoveWorktreeParams: NonReadonly<ACPNavRemoveWorktreeParams>,
+): Promise<ACPNavState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/removeWorktree"),
+    aCPNavRemoveWorktreeParams,
+  );
+};
 /**
  * renames a conversation in local ACP navigation state
  */
@@ -397,28 +397,28 @@ export const poolsideAcpNavRestoreConversation = async (
     aCPNavRestoreConversationParams,
   );
 };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * replaces the locally enabled ACP agent servers
+ */
+export const poolsideAcpNavSetAgentServers = async (
+  aCPNavSetAgentServersParams: NonReadonly<ACPNavSetAgentServersParams>,
+): Promise<ACPNavAgentServersState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/setAgentServers"),
+    aCPNavSetAgentServersParams,
+  );
+};
+/**
+ * updates the locally persisted collapsed state for an ACP project
+ */
+export const poolsideAcpNavSetProjectCollapsed = async (
+  aCPNavSetProjectCollapsedParams: NonReadonly<ACPNavSetProjectCollapsedParams>,
+): Promise<ACPNavState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/setProjectCollapsed"),
+    aCPNavSetProjectCollapsedParams,
+  );
+};
 /**
  * updates setup and teardown scripts for an ACP project
  */
@@ -441,28 +441,28 @@ export const poolsideAcpNavUpsertConfigCache = async (
     aCPNavUpsertConfigCacheParams,
   );
 };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * adds or restores a conversation in the locally active ACP navigation list
+ */
+export const poolsideAcpNavUpsertConversation = async (
+  aCPNavUpsertConversationParams: NonReadonly<ACPNavUpsertConversationParams>,
+): Promise<ACPNavState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/upsertConversation"),
+    aCPNavUpsertConversationParams,
+  );
+};
+/**
+ * adds or updates a locally known ACP project or worktree
+ */
+export const poolsideAcpNavUpsertProject = async (
+  aCPNavUpsertProjectParams: NonReadonly<ACPNavUpsertProjectParams>,
+): Promise<ACPNavProject> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/upsertProject"),
+    aCPNavUpsertProjectParams,
+  );
+};
 /**
  * Delete a poolside secret
  */
@@ -479,14 +479,14 @@ export const poolsideGetSecret = async (
 ): Promise<GetSecretOutput> => {
   return await runtime.jsonrpcCall(toJsonrpcMethod("/poolside/getSecret"), getSecretParams);
 };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * retrieves the current user configuration
+ */
+export const poolsideGetUserConfig = async (
+  getUserConfigParams: NonReadonly<GetUserConfigParams>,
+): Promise<GetUserConfigOutput> => {
+  return await runtime.jsonrpcCall(toJsonrpcMethod("/poolside/getUserConfig"), getUserConfigParams);
+};
 /**
  * List poolside secrets
  */

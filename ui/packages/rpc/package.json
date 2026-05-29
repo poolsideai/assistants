@@ -27,10 +27,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       "development": "./src/assistant.ts",
       "default": "./dist/assistant.js"
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "./generics": {
+      "development": "./src/generics.ts",
+      "default": "./dist/generics.js"
+    },
     "./package.json": "./package.json"
   },
   "scripts": {

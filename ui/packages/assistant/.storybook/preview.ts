@@ -23,7 +23,7 @@ const preview = definePreviewConfig({
     (_, { parameters }) => ({
       Component: ElicitationDecorator,
       props: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        pendingElicitationIds: parameters.elicitation?.pendingElicitationIds ?? [],
       },
     }),
     () => ({ Component: Providers }),

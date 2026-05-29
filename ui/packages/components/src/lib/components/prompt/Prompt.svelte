@@ -91,7 +91,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   export const reset = () => prompt.reset();
   export const restore = (text: string) => prompt.restore(text);
   export const setValue = (text: string) => prompt.setValue(text);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  export const menus = prompt.menus;
 </script>
 
 <!--

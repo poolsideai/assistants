@@ -32,7 +32,7 @@ func testHarness(
 	ts := createTestServer(t, handlerV)
 
 	ctx := context.Background()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	sb, err := fake2.NewSandbox(&fake2.SandboxConfig{

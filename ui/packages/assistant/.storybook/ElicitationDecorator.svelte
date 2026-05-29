@@ -5,15 +5,15 @@
 
   interface Props {
     children: Snippet;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    pendingElicitationIds?: string[];
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let { children, pendingElicitationIds = [] }: Props = $props();
 
   const conversationStatus = new ACPConversationStatusRepositoryWriter().publicAPI();
   const elicitation = setElicitationContext(conversationStatus);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  for (const id of pendingElicitationIds) {
+    void elicitation.register({ elicitationId: id, mode: "form", message: "" });
   }
 </script>
 

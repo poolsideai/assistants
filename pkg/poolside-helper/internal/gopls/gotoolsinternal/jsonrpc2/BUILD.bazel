@@ -18,7 +18,7 @@ go_library(
         "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event",
         "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event/keys",
         "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event/label",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "@com_github_sourcegraph_jsonrpc2//:jsonrpc2",
     ],
 )
 

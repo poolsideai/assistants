@@ -35,8 +35,8 @@
   import { saveACPConversationDump } from "../../dumpACPConversation";
   import { menus } from "../../prompt/menus/menus";
   import FilesMenu from "../../prompt/menus/files/FilesMenu.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import SymbolsMenu from "../../prompt/menus/symbols/SymbolsMenu.svelte";
+  import WebsitesMenu from "../../prompt/menus/websites/WebsitesMenu.svelte";
   import SecretsMenu from "../../prompt/menus/secrets/SecretsMenu.svelte";
   import SecretEditMenu from "../../prompt/menus/secrets/SecretEditMenu.svelte";
   import DesktopFilePromptChipInserter from "./DesktopFilePromptChipInserter.svelte";
@@ -44,11 +44,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import DictationWaveform from "./speech/DictationWaveform.svelte";
   import SpeechButton from "./speech/SpeechButton.svelte";
   import { voiceInputStore } from "./speech/voiceInputStore.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { buildACPPromptContent } from "./promptContent";
   import { normalizeDumpEntries } from "../../debugDump";
   import { scopeTrajectoryToConversation } from "../../trajectory";
   import { rpc } from "../../hostRpc";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getContextRepoContext } from "../../../context";
   import { installedSkills } from "./menus/command/InstalledSkillsRepository.svelte";
   import { showDesktopContextMenu } from "./desktopContextMenu";
   import {
@@ -107,7 +107,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const acpConnectionPool = getOptionalACPConnectionPoolContext();
   const chatSession = getACPChatSessionScope();
   const conversations = getACPConversationRepo();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const contextRepo = getContextRepoContext();
   const registry = getACPAgentRegistryRepo();
   const keybindings = getKeybindingService();
   const isTurnActive = $derived(chatSession.isPrompting || chatSession.isRemoteWorking);
@@ -627,11 +627,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     <Prompt.Menu.Root {...menus.files}>
       <FilesMenu />
     </Prompt.Menu.Root>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    <Prompt.Menu.Root {...menus.websites}>
+      <WebsitesMenu />
+    </Prompt.Menu.Root>
+
     {#if supportsSymbolsMenu}
       <Prompt.Menu.Root {...menus.symbols}>
         <SymbolsMenu />

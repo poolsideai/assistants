@@ -53,7 +53,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   type="toggle"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   onAction={() => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (disabled) return;
     checked = !checked;
     onToggle?.(checked);
   }}

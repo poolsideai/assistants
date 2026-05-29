@@ -76,7 +76,7 @@ export const menus = {
     highlightMatch: false,
   },
   symbols: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    value: "symbols",
     rules: [
       {
         trigger: "#",

@@ -75,7 +75,7 @@ func getConfig[T EnumCode]() (convertValueFn func(code T) any, schemaType string
 		schemaType = huma.TypeInteger
 		schemaFormat = "int64"
 		convertValueFn = func(code T) any {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			return float64(reflect.ValueOf(code).Int())
 		}
 	default:
 		// For named types with underlying string/int, check the kind via reflection
@@ -89,7 +89,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			schemaType = huma.TypeInteger
 			schemaFormat = "int64"
 			convertValueFn = func(code T) any {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+				return float64(reflect.ValueOf(code).Int())
 			}
 		}
 	}

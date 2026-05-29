@@ -26,7 +26,7 @@
     getACPProjectRepo,
     type ACPProjectRepository,
   } from "../../../features/ProjectRepository.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getContextRepoContext } from "../../../../context";
 
   // Reserved sentinel values for menu rows that don't map to a real file.
   const PARENT_VALUE = "__file-picker-parent";
@@ -45,7 +45,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const { close } = getMenus();
   const acpChatSession = optionalACPChatSessionContext();
   const acpProjects = optionalACPProjectContext();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const contextRepo = getContextRepoContext();
   type ItemId = Exclude<Parameters<typeof select>[0], HTMLElement>;
 
   // Track which file or folder control the highlighted menu item maps to,
@@ -196,7 +196,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   function handleRemove(path: string) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    contextRepo.removeFile(path);
   }
 
   // Token used to disregard output of previously triggered searches, so in the case

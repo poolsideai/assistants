@@ -18,7 +18,7 @@ import (
 
 // Connector is the interface used to connect to a server.
 type Connector interface {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	Connect(context.Context) jsonrpc2.Conn
 }
 
 // TCPServer is a helper for executing tests against a remote jsonrpc2
@@ -30,32 +30,32 @@ type TCPServer struct {
 	Addr string
 
 	ln     net.Listener
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	framer jsonrpc2.Framer
 }
 
 // NewTCPServer returns a new test server listening on local tcp port and
 // serving incoming jsonrpc2 streams using the provided stream server. It
 // panics on any error.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func NewTCPServer(ctx context.Context, server jsonrpc2.StreamServer, framer jsonrpc2.Framer) *TCPServer {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		panic(fmt.Sprintf("servertest: failed to listen: %v", err))
 	}
 	if framer == nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		framer = jsonrpc2.NewHeaderStream
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	go jsonrpc2.Serve(ctx, ln, server, 0)
 	return &TCPServer{Addr: ln.Addr().String(), ln: ln, framer: framer, connList: &connList{}}
 }
 
 // Connect dials the test server and returns a jsonrpc2 Connection that is
 // ready for use.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (s *TCPServer) Connect(_ context.Context) jsonrpc2.Conn {
 	netConn, err := net.Dial("tcp", s.Addr)
 	if err != nil {
 		panic(fmt.Sprintf("servertest: failed to connect to test instance: %v", err))
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	conn := jsonrpc2.NewConn(s.framer(netConn))
 	s.add(conn)
 	return conn
 }
@@ -63,28 +63,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 // PipeServer is a test server that handles connections over io.Pipes.
 type PipeServer struct {
 	*connList
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	server jsonrpc2.StreamServer
+	framer jsonrpc2.Framer
 }
 
 // NewPipeServer returns a test server that can be connected to via io.Pipes.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func NewPipeServer(server jsonrpc2.StreamServer, framer jsonrpc2.Framer) *PipeServer {
 	if framer == nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		framer = jsonrpc2.NewRawStream
 	}
 	return &PipeServer{server: server, framer: framer, connList: &connList{}}
 }
 
 // Connect creates new io.Pipes and binds them to the underlying StreamServer.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (s *PipeServer) Connect(ctx context.Context) jsonrpc2.Conn {
 	sPipe, cPipe := net.Pipe()
 	serverStream := s.framer(sPipe)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	serverConn := jsonrpc2.NewConn(serverStream)
 	s.add(serverConn)
 	go s.server.ServeStream(ctx, serverConn)
 
 	clientStream := s.framer(cPipe)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	clientConn := jsonrpc2.NewConn(clientStream)
 	s.add(clientConn)
 	return clientConn
 }
@@ -94,10 +94,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 // connection.
 type connList struct {
 	mu    sync.Mutex
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	conns []jsonrpc2.Conn
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (l *connList) add(conn jsonrpc2.Conn) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.conns = append(l.conns, conn)

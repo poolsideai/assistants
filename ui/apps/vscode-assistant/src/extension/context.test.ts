@@ -1,16 +1,16 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { createMockTabGroups, createTextDocument, createVSCodeMock } from "jest-mock-vscode";
 import * as os from "os";
 import * as path from "path";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { vi } from "vitest";
+import * as vscode from "vscode";
+import { Uri } from "vscode";
 import { getWorkspaces, sendActiveFileContext } from "./context";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { System } from "./system";
+
+let mockWorkspaceFolders: vscode.WorkspaceFolder[] | undefined = undefined;
 let mockDefaultWorkingDirectory: string | undefined = undefined;
 let getDefaultCwd: typeof import("./context").getDefaultCwd;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 const { mockMkdirSync } = vi.hoisted(() => ({ mockMkdirSync: vi.fn() }));
 
 vi.mock("fs", async (importOriginal) => {
@@ -18,28 +18,28 @@ vi.mock("fs", async (importOriginal) => {
   return { ...actual, mkdirSync: mockMkdirSync };
 });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+vi.mock("vscode", () => {
+  const mock = createVSCodeMock(vi);
+  return {
+    ...mock,
+    workspace: {
+      ...mock.workspace,
+      get workspaceFolders() {
+        return mockWorkspaceFolders;
+      },
       getConfiguration: () => ({
         get: (key: string) =>
           key === "defaultWorkingDirectory" ? mockDefaultWorkingDirectory : undefined,
       }),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+  };
+});
+
+vi.mock("./system", () => ({}));
+
+vi.mock("./tabs", () => ({
+  isDiffTab: (tab: vscode.Tab) => tab.input instanceof MockTabInputTextDiff,
+  isTextTab: (tab: vscode.Tab) => tab.input instanceof MockTabInputText,
   isOpenInTab: (document: vscode.TextDocument) =>
     vscode.window.tabGroups.all.some((tabGroup) =>
       tabGroup.tabs.some(
@@ -47,54 +47,54 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           tab.input instanceof MockTabInputText && tab.input.uri.fsPath === document.uri.fsPath,
       ),
     ),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}));
+
+vi.mock("./vscode/range", () => ({
+  vscodeLineToAPILine: (line: number) => line + 1,
+  vscodeRangeToAPIRange: (range: vscode.Range) => ({
+    startLine: range.start.line + 1,
+    endLine: range.end.line + 1,
+  }),
+}));
+
+vi.mock("./vscode/uri", () => ({
+  documentToContextPath: (doc: vscode.TextDocument) => ({
+    absolute: doc.uri.fsPath,
+  }),
+}));
+
+class MockTabInputText {
+  constructor(public uri: vscode.Uri) {}
+}
+
+class MockTabInputWebview {
+  constructor(public viewType: string) {}
+}
+
+class MockTabInputTextDiff {
+  constructor(
+    public original: vscode.Uri,
+    public modified: vscode.Uri,
+  ) {}
+}
+
+function createMockSystem() {
+  return {
+    assistant: {
+      rpc: {
+        setContext: vi.fn(),
+      },
+    },
     acpChatPanels: {
       setContext: vi.fn(),
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } as unknown as System;
+}
+
+function setWorkspaceFolders(folders: vscode.WorkspaceFolder[] | undefined) {
+  mockWorkspaceFolders = folders;
+}
+
 // The no-project working directory getDefaultCwd falls back to. Deriving it from the
 // same platform check the implementation makes would only prove the test agrees with
 // the implementation, so the platform is pinned per case below and each branch names
@@ -108,53 +108,53 @@ function setPlatform(platform: NodeJS.Platform) {
   Object.defineProperty(process, "platform", { value: platform, configurable: true });
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+describe("context", () => {
+  const rootUri = Uri.file("/test/workspace");
+
   beforeEach(async () => {
     vi.resetModules();
     ({ getDefaultCwd } = await import("./context"));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    vi.clearAllMocks();
     // clearAllMocks leaves implementations in place, so a test that makes the
     // scratch dir unwritable would otherwise leak into every test after it.
     mockMkdirSync.mockReset();
     // CI runs the unit tests on Linux only, so the Windows branch would never execute
     // unless a case asks for it. Pin the platform so each one picks its own branch.
     setPlatform("linux");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    mockWorkspaceFolders = undefined;
     mockDefaultWorkingDirectory = undefined;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // @ts-ignore
+    vscode.TabInputText = MockTabInputText;
+    // @ts-ignore
+    vscode.TabInputWebview = MockTabInputWebview;
+    // @ts-ignore
+    vscode.TabInputTextDiff = MockTabInputTextDiff;
+  });
+
   afterEach(() => {
     setPlatform(hostPlatform);
     vi.unstubAllEnvs();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  describe("getWorkspaces", () => {
+    it("returns empty array when no workspace folders", () => {
+      setWorkspaceFolders(undefined);
+      expect(getWorkspaces()).toEqual([]);
+    });
+
+    it("maps workspace folders to path, name, and index", () => {
+      setWorkspaceFolders([
+        { uri: Uri.file("/workspace/one"), name: "one", index: 0 },
+        { uri: Uri.file("/workspace/two"), name: "two", index: 1 },
+      ] as vscode.WorkspaceFolder[]);
+
+      expect(getWorkspaces()).toEqual([
+        { path: "/workspace/one", name: "one", index: 0 },
+        { path: "/workspace/two", name: "two", index: 1 },
+      ]);
+    });
+  });
+
   describe("getDefaultCwd", () => {
     it("uses a dedicated scratch directory when no setting is configured", () => {
       mockDefaultWorkingDirectory = undefined;
@@ -235,58 +235,58 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  describe("sendActiveFileContext", () => {
+    it("does not send context when active tab is a diff tab", async () => {
+      const system = createMockSystem();
+
+      const group = {
+        isActive: true,
+        viewColumn: 1,
+        activeTab: {
+          label: "diff",
+          input: new MockTabInputTextDiff(
+            Uri.file("/test/original.ts"),
+            Uri.file("/test/modified.ts"),
+          ),
+          isActive: true,
+          isDirty: false,
+          isPinned: false,
+          isPreview: false,
+        } as vscode.Tab,
+        tabs: [] as vscode.Tab[],
+      };
+      group.tabs = [group.activeTab];
+
+      vi.mocked(vscode.window).tabGroups = createMockTabGroups(vi, [group]);
+
+      await sendActiveFileContext(system);
+
+      expect(system.assistant.rpc.setContext).not.toHaveBeenCalled();
       expect(system.acpChatPanels.setContext).not.toHaveBeenCalled();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+
     it("sends context with no active files when active tab is a webview tab", async () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const system = createMockSystem();
+
+      const group = {
+        isActive: true,
+        viewColumn: 1,
+        activeTab: {
+          label: "webview",
+          input: new MockTabInputWebview("someWebview"),
+          isActive: true,
+          isDirty: false,
+          isPinned: false,
+          isPreview: false,
+        } as vscode.Tab,
+        tabs: [] as vscode.Tab[],
+      };
+      group.tabs = [group.activeTab];
+
+      vi.mocked(vscode.window).tabGroups = createMockTabGroups(vi, [group]);
+
+      await sendActiveFileContext(system);
+
       expect(system.assistant.rpc.setContext).toHaveBeenCalledWith({
         workspaces: [],
         homeDirectory: os.homedir(),
@@ -299,95 +299,95 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         defaultCwd: scratchDir,
         activeFiles: [],
       });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+
+    it("sends context with only workspaces when no active text editor", async () => {
+      const system = createMockSystem();
+
+      setWorkspaceFolders([
+        { uri: Uri.file("/workspace"), name: "workspace", index: 0 },
+      ] as vscode.WorkspaceFolder[]);
+
+      const group = {
+        isActive: true,
+        viewColumn: 1,
+        activeTab: undefined,
+        tabs: [] as vscode.Tab[],
+      };
+
+      vi.mocked(vscode.window).tabGroups = createMockTabGroups(vi, [group]);
+      vi.mocked(vscode.window).visibleTextEditors = [];
+
+      await sendActiveFileContext(system);
+
+      expect(system.assistant.rpc.setContext).toHaveBeenCalledWith({
+        workspaces: [{ path: "/workspace", name: "workspace", index: 0 }],
         homeDirectory: os.homedir(),
         defaultCwd: scratchDir,
         activeFiles: [],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      });
       expect(system.acpChatPanels.setContext).toHaveBeenCalledWith({
         workspaces: [{ path: "/workspace", name: "workspace", index: 0 }],
         homeDirectory: os.homedir(),
         defaultCwd: scratchDir,
         activeFiles: [],
       });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+
+    it("sends context with active file details when text editor is active", async () => {
+      const system = createMockSystem();
+
+      setWorkspaceFolders([
+        { uri: Uri.file("/workspace"), name: "workspace", index: 0 },
+      ] as vscode.WorkspaceFolder[]);
+
+      const doc = createTextDocument(
+        Uri.joinPath(rootUri, "test.ts"),
+        "const x = 1;\nconst y = 2;",
+      );
+
+      const group = {
+        isActive: true,
+        viewColumn: 1,
+        activeTab: {
+          label: "test.ts",
+          input: new MockTabInputText(doc.uri),
+          isActive: true,
+          isDirty: false,
+          isPinned: false,
+          isPreview: false,
+        } as vscode.Tab,
+        tabs: [] as vscode.Tab[],
+      };
+      group.tabs = [group.activeTab];
+
+      vi.mocked(vscode.window).tabGroups = createMockTabGroups(vi, [group]);
+
       const mockSelection = new vscode.Selection(0, 0, 1, 0);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const mockVisibleRange = new vscode.Range(0, 0, 10, 0);
+
+      vi.mocked(vscode.window).visibleTextEditors = [
+        {
+          document: doc,
+          selection: mockSelection,
+          visibleRanges: [mockVisibleRange],
+        } as unknown as vscode.TextEditor,
+      ];
+
+      vi.mocked(vscode.commands.executeCommand).mockResolvedValue([]);
+
+      await sendActiveFileContext(system);
+
+      expect(system.assistant.rpc.setContext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workspaces: [{ path: "/workspace", name: "workspace", index: 0 }],
           homeDirectory: os.homedir(),
           defaultCwd: scratchDir,
           recentFile: expect.objectContaining({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            content: "const x = 1;\nconst y = 2;",
             selectedCode: "const x = 1;\n",
             selection: [1, 2],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          }),
           activeFiles: [
             expect.objectContaining({
               content: "const x = 1;\nconst y = 2;",
@@ -395,8 +395,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
               selection: [1, 2],
             }),
           ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }),
+      );
       expect(system.acpChatPanels.setContext).toHaveBeenCalledWith(
         expect.objectContaining({
           workspaces: [{ path: "/workspace", name: "workspace", index: 0 }],
@@ -416,6 +416,6 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           ],
         }),
       );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+  });
+});

@@ -30,23 +30,23 @@
         "kind": "build",
         "isDefault": true
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+    {
       "label": "desktop-assistant-dev",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "type": "shell",
       "command": "pnpm -F @poolsideai/desktop-assistant dev",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "source": "ts",
+        "applyTo": "closedDocuments",
+        "fileLocation": "absolute",
+        "pattern": "$tsc",
+        "background": {
+          "activeOnStart": true,
           "beginsPattern": "^.*Running.*",
           "endsPattern": "^.*Watching.*"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
       },
       "presentation": {
         "reveal": "always",

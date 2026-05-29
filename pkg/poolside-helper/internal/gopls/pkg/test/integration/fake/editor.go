@@ -35,7 +35,7 @@ type Editor struct {
 	// at construction time, so do not require synchronization.
 	Server     protocol2.Server
 	cancelConn func()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	serverConn jsonrpc2.Conn
 	client     *Client
 	sandbox    *Sandbox
 
@@ -162,7 +162,7 @@ func (e *Editor) Connect(ctx context.Context, connector servertest.Connector, ho
 	conn.Go(bgCtx,
 		protocol2.Handlers(
 			protocol2.ClientHandler(e.client,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+				jsonrpc2.MethodNotFound)))
 
 	if err := e.initialize(ctx); err != nil {
 		return nil, err
@@ -172,7 +172,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
 
 // RPCConn gets the underlying connection to allow calling non-standard LSP methods
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (e *Editor) RPCConn() jsonrpc2.Conn {
 	return e.serverConn
 }
 

@@ -2,7 +2,7 @@
   import type { Snippet } from "svelte";
   import { getPrompt, getChips, getMenus } from "../context/prompt.js";
   import BaseAction, { type ActionBaseProps } from "./BaseAction.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import Icon from "../../icon/index.js";
   import type { Node } from "prosemirror-model";
   import type { ChipProps } from "./InsertAction.svelte";
 
@@ -69,21 +69,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 </script>
 
 <BaseAction {...rest} type="remove" {icon} onAction={handleAction}>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {#snippet accessories()}
+    <div class="remove-accessory flex items-center">
+      <Icon name={icon} />
+    </div>
+  {/snippet}
   {@render children?.()}
 </BaseAction>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+<style lang="postcss">
+  @reference "#tailwind.css";
+  .remove-accessory {
+    @apply hidden;
+  }
+  :global([data-prompt-item]:hover) .remove-accessory,
+  :global([data-prompt-item][data-selected]) .remove-accessory {
+    @apply flex;
+  }
+</style>

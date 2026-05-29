@@ -10,15 +10,15 @@ import {
   type ACPTransport,
   type LocalInferenceRepository,
 } from "@poolsideai/features/acp";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ContextRepository } from "@poolsideai/features/context";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import type { ACPApproval } from "@poolsideai/helperapi";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  type ACPElicitationOutput,
+  type ACPElicitationParams,
   type ACPNavDidChangeParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  type JSONRPCErrorCode,
+  type JSONRPCErrorData,
   type LocalInferenceDidChangeParams,
 } from "@poolsideai/helperapi/schemas";
 import type {
@@ -34,7 +34,7 @@ import type {
   AssistantMessage,
   JSONRPCNotifyBatchResult,
 } from "@poolsideai/rpc/assistant";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { RPCError } from "@poolsideai/rpc/generics";
 import { focusPrompt } from "../../shared/Helpers";
 import { type AppStore } from "../store";
 
@@ -49,7 +49,7 @@ type RPCMessageEvent = Pick<MessageEvent<AssistantMessage>, "data"> &
 
 export type WebViewRPCResponseSender = (
   command: string,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  response: { requestId: string; response?: any; error?: RPCError },
 ) => void;
 
 interface AssistantTerminalEventSink {
@@ -70,7 +70,7 @@ export class WebviewRPCServer implements Assistant {
     readonly appState: AppStore,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     readonly acpTransport: ACPTransport,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    readonly contextRepo: ContextRepository,
     readonly assistantTerminals: AssistantTerminalEventSink,
     readonly acpRepo?: ACPSessionRepository,
     readonly getActiveSession?: () => ACPSession | null,
@@ -103,15 +103,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       const response = await handler.apply(this, payload);
       this.sendMessage(command, { requestId, response });
     } catch (error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const err = error as Error & { code?: JSONRPCErrorCode; data?: JSONRPCErrorData };
+      this.sendMessage(command, {
+        requestId,
+        error: {
+          message: err.message,
+          code: err.code,
+          data: err.data,
+        },
+      });
     }
   }
 
@@ -142,14 +142,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  elicitation = async (params: ACPElicitationParams): Promise<ACPElicitationOutput> => {
+    const output = await this.elicitationRepo.register(params);
+    return {
+      action: output.action,
+      content: output.content,
+    };
+  };
+
   // Helper-owned pending approvals (permission prompts + elicitations)
   // changed: reconcile the complete pushed set. This is how approval cards
   // appear, and how they disappear once answered on ANY surface.
@@ -171,7 +171,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   };
 
   setContext = (context: ActiveFileContext) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // legacy path
     this.appState.update((state) => {
       const newState = { ...state, workspaces: context.workspaces };
       if (context.homeDirectory != null) {
@@ -182,8 +182,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }
       return newState;
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    // acp path
     this.contextRepo.setRecentFile(context.recentFile);
     this.contextRepo.setActiveFiles(context.activeFiles);
   };

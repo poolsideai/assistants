@@ -39,8 +39,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 // Parse creates a new Path from a string representation.
 // The input string can be either absolute or relative, but leading separators
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// are stripped. On Windows, volume names (drive letters or UNC paths) are also
+// stripped, making all paths relative to the volume root.
 // Empty strings and root paths ("/") return nil.
 // The resulting path is normalized (removes ".", "..", and duplicate separators).
 func Parse(s string) Path {
@@ -49,10 +49,10 @@ func Parse(s string) Path {
 	}
 	// Clean the path and remove leading separator
 	s = filepath.Clean(s)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// Extract and remove volume name (e.g., "C:" or "\\server\share" on Windows)
+	// This makes all paths relative to the volume root
+	volume := filepath.VolumeName(s)
+	s = s[len(volume):]
 	if len(s) > 0 && s[0] == filepath.Separator {
 		s = s[1:]
 	}

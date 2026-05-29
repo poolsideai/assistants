@@ -1,6 +1,6 @@
 import chokidar from "chokidar";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { serializeError } from "serialize-error";
 import * as vscode from "vscode";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { affectsConfiguration, getPoolsideConfigurationSection } from "./api/configuration";
@@ -42,7 +42,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   try {
     await doActivate(system);
   } catch (error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    telemetry.reportError(serializeError(error));
   }
 }
 
