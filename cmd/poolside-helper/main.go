@@ -32,7 +32,7 @@ func rootCommandCreate() *cobra.Command {
 	rootCmd.FParseErrWhitelist.UnknownFlags = true
 
 	rootCmd.AddCommand(apiDocsCommand())
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	rootCmd.AddCommand(tailCommand())
 
 	return rootCmd
 }

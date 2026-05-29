@@ -575,10 +575,10 @@ func (c *acpClient) ReadTextFile(ctx context.Context, params acpsdk.ReadTextFile
 		lines := strings.Split(content, "\n")
 		start := 0
 		if params.Line != nil && *params.Line > 0 {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			if *params.Line > len(lines) {
+				return acpsdk.ReadTextFileResponse{}, fmt.Errorf("line is out of range (%d > %d)", *params.Line, len(lines))
+			}
+			start = *params.Line - 1
 		}
 		end := len(lines)
 		if params.Limit != nil && *params.Limit > 0 {
