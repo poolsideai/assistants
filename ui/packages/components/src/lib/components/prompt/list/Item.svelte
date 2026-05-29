@@ -154,8 +154,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       <Icon {...icon} />
     {/if}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div class={["flex min-w-0 grow items-baseline gap-1"]}>
+      <span class="title-highlight min-w-0 shrink-0 truncate">
         {#if titleHighlight}<HighlightedText segments={titleHighlight} />{/if}
       </span>
 
@@ -196,12 +196,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     :global(body:not(.web-app)) & {
       @apply gap-1.5 rounded-md py-0.5 pl-1.5;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      &:not([data-selected]) :global([data-state="matched"]) {
         @apply text-psx-menu-highlight;
       }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      &[data-selected] :global([data-state="matched"]) {
+        @apply text-psx-menu-active-highlight;
       }
     }
 

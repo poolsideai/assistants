@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
 	sb, ed1 := testHarness(t, handler.New(), apiMock, fake.UnpackTxt(simplePythonScenario))
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	err := ed1.Server.DidChangeConfiguration(ctx, &protocol.DidChangeConfigurationParams{

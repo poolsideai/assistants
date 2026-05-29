@@ -1,19 +1,19 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
   import type { ContentBlock, ResourceLink, EmbeddedResource } from "@agentclientprotocol/sdk";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import Icon from "@poolsideai/components/icon";
+  import { slide } from "svelte/transition";
+  import { appState } from "../../hostAdapter";
+  import { rpc } from "../../hostRpc";
+  import { getDirname, getFilenameFromPath, removeRootPathFromFilename } from "../../shared/paths";
   import FileSelection from "../../prompt/menus/context/FileSelection.svelte";
   import { partition } from "lodash";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  interface Props {
+    blocks: ContentBlock[];
+  }
+
+  let { blocks }: Props = $props();
+
   type UserMessageContextItem =
     | (ResourceLink & { type: "resource_link" })
     | (EmbeddedResource & { type: "resource" });
@@ -82,42 +82,42 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const hasResources = resources.length > 0;
     return { hasResources, urlLinks, recentFiles, activeFiles, attachedFiles };
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  let customUI = $derived($appState.environment.capabilities.customUI ?? false);
+
+  function fileFolder(path: string): string {
+    return getDirname(removeRootPathFromFilename(path, $appState.workspaces));
+  }
+</script>
+
 {#snippet fileRow(item: UserMessageContextItem)}
   {@const uri = getURI(item)}
   {@const label = getFileLabel(item)}
   {@const selectedLines = getSelectedLines(item)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <button
+    type="button"
     data-cursor="link"
     class="text-psx-foreground-primary hover:text-psx-link active:outline-hidden group flex items-center gap-x-1 py-px text-left"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onclick={() => rpc.openFile(uri)}
+  >
+    <Icon type="file" name={uri} />
+    <span class="text-psx-foreground-primary group-hover:text-psx-link truncate">
+      {label}
+    </span>
     {#if selectedLines && selectedLines.startLine !== undefined && selectedLines.endLine !== undefined}
       <FileSelection selection={[selectedLines.startLine, selectedLines.endLine]} />
     {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <span class="ml-1 flex-1 truncate text-[12px]">
+      {fileFolder(uri)}
+    </span>
+  </button>
+{/snippet}
+
 {#if hasResources}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div
+    transition:slide={{ duration: 150 }}
     class={["relative -mt-2 flex w-full flex-col self-stretch", customUI ? "" : "-mx-4"]}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  >
     <div class={["relative -mb-px flex justify-end", customUI ? "mr-[18px]" : "mr-[20px]"]}>
       <svg
         width="20"
@@ -137,17 +137,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         />
       </svg>
     </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div
+      class={[
         "border-psx-border from-psx-editor-background flex w-full flex-col justify-end border-t bg-gradient-to-b to-transparent text-left",
         customUI ? "bubble px-3.5 pb-2 pt-3" : "px-4 py-2.5",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      ]}
+    >
       {#if recentFiles.length > 0}
         <span class="title">Recently opened</span>
         {#each recentFiles as item, i (`recent-file-link-${i}`)}
           {@render fileRow(item)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {/each}
       {/if}
 
       {#if activeFiles.length > 0}
@@ -161,37 +161,37 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         <span class="title">Included files</span>
         {#each attachedFiles as item, i (`file-link-${i}`)}
           {@render fileRow(item)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {/each}
+      {/if}
+
+      {#if urlLinks.length > 0}
+        <span class="title">Included websites</span>
         {#each urlLinks as item, i (`url-link-${i}`)}
           {@const uri = getURI(item)}
           {@const title = getTitle(item)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <a
             href={uri}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            class="hover:text-psx-link group flex items-center gap-x-1 py-px"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <Icon name="web" />
             <span class="truncate">{title}</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          </a>
+        {/each}
+      {/if}
+    </div>
     <hr class="border-psx-border mb-1 mt-2 border-t" />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </div>
+{/if}
+
+<style lang="postcss">
+  @reference "#tailwind.css";
+  .title {
+    @apply text-psx-foreground-secondary py-1 text-xs font-medium;
+  }
+
+  .bubble {
+    @apply border-psx-border bg-psx-panel shadow-xs mt-4 rounded-2xl border;
+  }
+</style>

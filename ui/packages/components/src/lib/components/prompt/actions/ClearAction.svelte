@@ -6,7 +6,7 @@
   interface Props extends ActionBaseProps {
     onClear?: () => void;
     behavior?: "always" | "when-focused";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    disabled?: boolean;
     children?: Snippet;
   }
 
@@ -25,7 +25,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   icon="enter"
   {...rest}
   onAction={() => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (disabled) return;
     if (shouldClear) clear();
     close();
     onClear?.();

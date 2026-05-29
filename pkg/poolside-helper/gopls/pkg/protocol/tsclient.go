@@ -59,7 +59,7 @@ type Client interface {
 	WorkspaceFolders(context.Context) ([]WorkspaceFolder, error)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func clientDispatch(ctx context.Context, client Client, reply jsonrpc2.Replier, r jsonrpc2.Request) (bool, error) {
 	defer recoverHandlerPanic(r.Method())
 	switch r.Method() {
 	case "$/logTrace":

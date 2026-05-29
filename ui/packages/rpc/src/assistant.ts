@@ -1,6 +1,6 @@
 import type {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPElicitationOutput,
+  ACPElicitationParams,
   ACPNavDidChangeParams,
   LocalInferenceDidChangeParams,
 } from "@poolsideai/helperapi/schemas";
@@ -20,7 +20,7 @@ import type {
  * assistant instance
  */
 export interface Assistant {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  elicitation(params: ACPElicitationParams): Promise<ACPElicitationOutput>;
   /**
    * The helper's pending-approval set changed (permission prompts and
    * elicitations are helper-owned state). Carries the COMPLETE set; the

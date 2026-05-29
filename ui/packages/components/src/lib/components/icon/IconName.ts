@@ -77,7 +77,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   | "leg"
   | "light"
   | "link"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "load-config"
   | "mcp-alert"
   | "mcp-ready"
   | "mcp"
@@ -92,7 +92,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   | "panel-bottom-open"
   | "pause"
   | "pencil"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "plan"
   | "plus-circle"
   | "plus"
   | "readme"
@@ -105,7 +105,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   | "rotate-ccw"
   | "roundel"
   | "run"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "sandbox"
   | "search"
   | "send"
   | "shield"

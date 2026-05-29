@@ -1,5 +1,5 @@
 import { basename, normalize } from "@poolsideai/lib/path";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { Configuration, Keybindings, Language, WorkspaceFolder } from "@poolsideai/rpc";
 import { get, writable, type Updater, type Writable } from "svelte/store";
 import type { DesktopOpenerInfo } from "./desktopOpeners";
 

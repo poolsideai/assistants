@@ -74,7 +74,7 @@ import Lab from "./glyphs/lab.svelte";
 import Leg from "./glyphs/leg.svelte";
 import Light from "./glyphs/light.svelte";
 import Link from "./glyphs/link.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import LoadConfig from "./glyphs/load-config.svelte";
 import MCPAlert from "./glyphs/mcp-alert.svelte";
 import MCPReady from "./glyphs/mcp-ready.svelte";
 import MCP from "./glyphs/mcp.svelte";
@@ -89,7 +89,7 @@ import PanelBottomClosed from "./glyphs/panel-bottom-closed.svelte";
 import PanelBottomOpen from "./glyphs/panel-bottom-open.svelte";
 import Pause from "./glyphs/pause.svelte";
 import Pencil from "./glyphs/pencil.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import Plan from "./glyphs/plan.svelte";
 import PlusCircle from "./glyphs/plus-circle.svelte";
 import Plus from "./glyphs/plus.svelte";
 import Readme from "./glyphs/readme.svelte";
@@ -102,7 +102,7 @@ import Review from "./glyphs/review.svelte";
 import RotateCcw from "./glyphs/rotate-ccw.svelte";
 import Roundel from "./glyphs/roundel.svelte";
 import Run from "./glyphs/run.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import Sandbox from "./glyphs/sandbox.svelte";
 import Search from "./glyphs/search.svelte";
 import Send from "./glyphs/send.svelte";
 import Shield from "./glyphs/shield.svelte";
@@ -225,7 +225,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   leg: Leg,
   light: Light,
   link: Link,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "load-config": LoadConfig,
   mcp: MCP,
   "mcp-alert": MCPAlert,
   "mcp-ready": MCPReady,
@@ -240,7 +240,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   package: Package,
   pause: Pause,
   pencil: Pencil,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  plan: Plan,
   "plus-circle": PlusCircle,
   plus: Plus,
   readme: Readme,
@@ -253,7 +253,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   "rotate-ccw": RotateCcw,
   roundel: Roundel,
   run: Run,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  sandbox: Sandbox,
   search: Search,
   send: Send,
   shield: Shield,
@@ -378,7 +378,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   leg: { weight: true },
   light: { weight: false },
   link: { weight: true },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "load-config": { weight: true },
   mcp: { weight: true, dashed: true },
   "mcp-alert": { weight: true },
   "mcp-ready": { weight: true },
@@ -393,7 +393,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   package: { weight: true },
   pause: { weight: true },
   pencil: { weight: true },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  plan: { weight: true },
   "plus-circle": { weight: true, gradient: true },
   plus: { weight: true },
   readme: { weight: true },
@@ -406,7 +406,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   "rotate-ccw": { weight: true },
   roundel: { weight: true },
   run: { weight: true },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  sandbox: { weight: true },
   search: { weight: true },
   send: { weight: true },
   shield: { weight: true },

@@ -17,7 +17,7 @@ import type {
   TelemetryEventInputMetadata,
 } from "@poolsideai/rpc";
 import { randomUUID } from "crypto";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { serializeError, type ErrorObject } from "serialize-error";
 import * as vscode from "vscode";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { POOLSIDE } from "../extensionIdentity";
@@ -86,8 +86,8 @@ export class HostRPCServer implements Host {
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       this.system.telemetry.reportError(serializeError(error), { tags: { hostRpc: command } });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const code = "code" in error && typeof error.code === "number" ? error.code : undefined;
+      const data = "data" in error ? error.data : undefined;
       if (requestId !== undefined) {
         this.webview.postMessage({
           command,

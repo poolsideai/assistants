@@ -50,9 +50,9 @@ export function getInitialKeybindings() {
 export async function getInitialAppState(system: System) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const workspaces = getWorkspaces();
   const defaultCwd = getDefaultCwd();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   const [keybindings, colorTheme, fileIconTheme] = await Promise.all([
     getInitialKeybindings(),
     getActiveTheme(),
@@ -61,7 +61,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   return {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    workspaces,
     homeDirectory: os.homedir(),
     defaultCwd,
     keybindings,
@@ -69,7 +69,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     fileIconTheme,
     languages: serializeLanguages(getLanguages()),
     environment: getEnvironment(system),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    isAgenticMode: true,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     isEditorFocused: vscode.window.state.focused,
   };

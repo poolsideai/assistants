@@ -92,7 +92,7 @@ const initialAppState = {
   isAgenticMode: false,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   isEditorFocused: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   ...stripAuthFields(globalThis.POOLSIDE_INITIAL_STATE),
 };
 

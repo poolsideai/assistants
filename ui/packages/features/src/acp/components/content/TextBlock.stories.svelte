@@ -15,11 +15,11 @@
     availableCommands={[
       { name: "plan", description: "Plan the next steps" },
       { name: "goal", description: "Set a goal to keep pursuing" },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {
+        name: "piano-composer",
+        description: "Compose a piano piece",
+        _meta: { "poolside/slash_command_category": "skill" },
+      },
     ]}
   >
     <TextBlock text={args.text} isUser={args.isUser ?? false} />
@@ -51,7 +51,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 <Story
   name="Slash skill pill"
   args={{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    text: "Use /piano-composer for music tasks.",
     isUser: true,
   }}
 />
@@ -67,7 +67,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 <Story
   name="Mixed slash tokens"
   args={{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    text: "Start with /plan and then call /piano-composer afterwards.",
     isUser: true,
   }}
 />

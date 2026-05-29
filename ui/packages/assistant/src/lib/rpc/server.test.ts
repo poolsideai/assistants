@@ -42,7 +42,7 @@ describe("client", () => {
       acpTransport as any,
       {} as any, // contextRepo
       assistantTerminals,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {} as any,
       undefined,
       undefined,
       undefined,

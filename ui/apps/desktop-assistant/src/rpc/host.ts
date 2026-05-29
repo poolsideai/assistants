@@ -876,7 +876,7 @@ export class DesktopHost {
 
   private async dispatchHelperRequest(method: string, params: unknown): Promise<unknown> {
     switch (method) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "poolside/acp/elicitation/create":
         return await this.callWebview("elicitation", [params]);
       case "poolside/jsonrpc/request":
         return await this.callWebview("jsonrpcRequest", [params]);

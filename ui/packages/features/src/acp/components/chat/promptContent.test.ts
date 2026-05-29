@@ -2,12 +2,12 @@ import type { ContentBlock } from "@agentclientprotocol/sdk";
 import { describe, expect, it } from "vitest";
 import { buildACPPromptContent } from "./promptContent";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+describe("buildACPPromptContent", () => {
+  const embedded = { supportsEmbeddedContext: true, supportsImages: true };
+  const baseline = { supportsEmbeddedContext: false, supportsImages: false };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("prefixes the text block, then pasted attachments, then context content blocks", () => {
+    const pasted: ContentBlock[] = [
       {
         type: "resource",
         resource: {
@@ -16,8 +16,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           text: "pasted text",
         },
       },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ];
+    const context: ContentBlock[] = [
       {
         type: "resource",
         resource: {
@@ -26,23 +26,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           text: "const active = true;",
         },
       },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ];
+
+    expect(buildACPPromptContent("hello", pasted, context, embedded)).toEqual([
+      { type: "text", text: "hello" },
+      ...pasted,
+      ...context,
     ]);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("passes context content blocks through unchanged regardless of capabilities", () => {
+    const context: ContentBlock[] = [
       {
         type: "resource",
         resource: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          uri: "/workspace/src/app.ts",
           mimeType: "text/plain",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          text: "const active = true;",
         },
       },
       {
@@ -51,36 +51,36 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         title: "/workspace/README.md",
         uri: "/workspace/README.md",
       },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ];
+
+    expect(buildACPPromptContent("hello", [], context, baseline)).toEqual([
+      { type: "text", text: "hello" },
+      ...context,
     ]);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("converts pasted text and blob resources to links when embedded context is unsupported, and drops images when image support is unsupported", () => {
+    const pasted: ContentBlock[] = [
       {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        type: "resource",
+        resource: {
+          uri: "clipboard://notes.txt",
+          mimeType: "text/plain",
+          text: "pasted text",
+        },
       },
       {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        type: "resource",
+        resource: {
+          uri: "clipboard://archive.zip",
+          mimeType: "application/zip",
+          blob: "AAAA",
+        },
       },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      { type: "image", mimeType: "image/png", data: "abc123" },
+    ];
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(buildACPPromptContent("hello", pasted, [], baseline)).toEqual([
       { type: "text", text: "hello" },
       {
         type: "resource_link",
@@ -99,22 +99,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     ]);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("keeps pasted resources and images intact when both capabilities are supported", () => {
+    const pasted: ContentBlock[] = [
+      {
+        type: "resource",
+        resource: {
+          uri: "clipboard://notes.txt",
+          mimeType: "text/plain",
+          text: "pasted text",
+        },
+      },
+      { type: "image", mimeType: "image/png", data: "abc123" },
+    ];
+
+    expect(buildACPPromptContent("hello", pasted, [], embedded)).toEqual([
+      { type: "text", text: "hello" },
+      ...pasted,
+    ]);
+  });
+});

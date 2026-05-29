@@ -1,12 +1,12 @@
 import type { SessionId } from "@agentclientprotocol/sdk";
 import { poolsideAcpApprovalsRespond, type ACPApproval } from "@poolsideai/helperapi";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ACPElicitationOutput, ACPElicitationParams } from "@poolsideai/helperapi/schemas";
 import { find } from "lodash";
 import type { ACPConversationStatusRepository } from "../acp";
 import type { FieldValue } from "./types";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  request: ACPElicitationParams;
   /** Legacy (host-RPC-delivered) elicitations resolve a local promise. */
   resolve?: (response: ACPElicitationOutput) => void;
   /**
@@ -23,10 +23,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.conversationStatus = conversationStatus;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Map of elicitationId -> pending elicitation awaiting user response
+  private pendingByElicitationId = $state<Map<string, PendingElicitation>>(new Map());
   private approvalsRevision = 0;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   /**
    * Answers typed into a form that has not been resolved yet, by elicitation
    * id. They live here, not in the form component, for two reasons: the
@@ -63,12 +63,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
     return undefined;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   hasPendingForChat(sessionId: SessionId | null, agentServer: string | null): boolean {
     return this.firstPendingForChat(sessionId, agentServer) != null;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  register(request: ACPElicitationParams): Promise<ACPElicitationOutput> {
     if (request.sessionId != null && request.agentServer != null) {
       this.conversationStatus.markWaitingForUser({
         type: "elicitation",
@@ -76,19 +76,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         agentServer: request.agentServer,
       });
     }
+    return new Promise<ACPElicitationOutput>((resolve) => {
+      const next = new Map(this.pendingByElicitationId);
+      next.set(request.elicitationId, { request, resolve });
+      this.pendingByElicitationId = next;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  accept(elicitationId: string, content: Record<string, unknown>) {
+    this.resolve(elicitationId, { action: "accept", content });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  decline(elicitationId: string) {
+    this.resolve(elicitationId, { action: "decline" });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   /** Declines the elicitations a given chat shows (see firstPendingForChat). */
@@ -100,12 +100,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
+  cancel(elicitationId: string) {
+    this.resolve(elicitationId, { action: "cancel" });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  isElicitationPending(elicitationId: string): boolean {
+    return this.pendingByElicitationId.has(elicitationId);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   hasPendingForSession(sessionId: SessionId, agentServer: string): boolean {
@@ -176,8 +176,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private resolve(elicitationId: string, response: ACPElicitationOutput) {
+    const entry = this.pendingByElicitationId.get(elicitationId);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (entry.approval) {
       // Answer through the helper; the entry is removed optimistically and
@@ -215,9 +215,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     // response handler above.
     if (!entry.approval) this.draftsByElicitationId.delete(elicitationId);
     entry.resolve?.(response);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const next = new Map(this.pendingByElicitationId);
+    next.delete(elicitationId);
+    this.pendingByElicitationId = next;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   private restoreStoreBackedEntry(

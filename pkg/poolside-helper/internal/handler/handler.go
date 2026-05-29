@@ -688,11 +688,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		Description: "sets a session config option",
 	}, handler.acpProxyHandler.SetConfigOption)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.ACPDeleteSessionMethod,
+		Description: "deletes an ACP session",
+	}, handler.acpProxyHandler.DeleteSession)
+
 	registerExtensionMethod(handler, JSONRPCOperation{
 		Method:      methods.ACPCloseSessionMethod,
 		Description: "closes an ACP session's agent-side resources, keeping it reopenable",
@@ -728,9 +728,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		Description: "sets an MCP input variable for an ACP session",
 	}, handler.acpProxyHandler.MCPSetInputVariable)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	publishClientSideTypes(handler, methods.ACPElicitationCreateMethod, methods.ACPElicitationParams{},
+		"requests structured user input via ACP elicitation protocol")
+	publishClientSideTypes(handler, methods.ACPElicitationResponseMethod, methods.ACPElicitationOutput{},
 		"publishes the response schema for ACP elicitation requests")
 
 	// Approvals: helper-owned pending permission prompts / elicitations.
@@ -746,8 +746,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}, handler.acpProxyHandler.ListApprovals)
 	publishClientSideTypes(handler, methods.ACPApprovalsDidChangeMethod, methods.ACPApprovalsDidChangeParams{},
 		"pushes the full pending approval set to every surface on change")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	publishClientSideTypes(handler, methods.ACPCompactionUpdateMethod, methods.ACPCompactionNotification{},
+		"notifies the client of a compaction update")
 	publishClientSideTypes(handler, methods.ACPTurnEndedMethod, methods.ACPTurnEndedNotification{},
 		"notifies every surface that an ACP turn has ended")
 	publishClientSideTypes(handler, methods.MCPServersDidChangeParams{}.MethodName(), methods.MCPServersDidChangeParams{},
@@ -815,7 +815,7 @@ func newHandlerBaseState() *PoolsideHandler {
 			if folders := h.GetWorkspaceFolders(); len(folders) > 0 {
 				cfg.WorkingDir = uriToPath(string(folders[0].URI))
 			}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 			cfg.MCPServerInjector = func(ctx context.Context, agentServer string, caps acpsdk.McpCapabilities) ([]acpsdk.McpServer, []methods.MCPServerStatus) {
 				isPool := acpproxy.NormalizeAgentServerName(agentServer) == acpproxy.DefaultAgentServerName
 				result := h.mcpServersHandler.Resolve(ctx, mcpservers.ResolveParams{
@@ -927,7 +927,7 @@ func (h *PoolsideHandler) HandleRemote(originID string, req *glsp.Context) (any,
 func (h *PoolsideHandler) handleCore(req *glsp.Context, originID string) (r any, validMethod bool, validParams bool, err error) {
 	if h.receivedShutdown.Load() && req.Method != "exit" {
 		return r, true, true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			jsonrpc2.NewError(-32602, "shutdown has been received, no message but exit should be sent")
 	}
 
 	ctx, cancel := h.newRequestContext(req.Method)

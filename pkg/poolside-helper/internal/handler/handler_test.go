@@ -153,7 +153,7 @@ func TestJSONRPC(t *testing.T) {
 		require.True(t, validMethod, "expected valid method")
 		assert.Error(t, err)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		assert.Contains(t, tlog.String(), `error="jsonrpc2: code -32603 message: test error`)
 	})
 
 	t.Run("jsonrpc error data is logged", func(t *testing.T) {

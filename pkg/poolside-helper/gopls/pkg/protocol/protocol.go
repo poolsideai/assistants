@@ -21,7 +21,7 @@ import (
 
 var (
 	// RequestCancelledError should be used when a request is cancelled early.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	RequestCancelledError = jsonrpc2.NewError(-32800, "JSON RPC cancelled")
 )
 
 type ClientCloser interface {
@@ -46,12 +46,12 @@ func (c *clientDispatcher) Close() error {
 
 // ClientDispatcher returns a Client that dispatches LSP requests across the
 // given jsonrpc2 connection.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func ClientDispatcher(conn jsonrpc2.Conn) ClientCloser {
 	return &clientDispatcher{sender: clientConn{conn}}
 }
 
 type clientConn struct {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	conn jsonrpc2.Conn
 }
 
 func (c clientConn) Close() error {
@@ -72,7 +72,7 @@ func (c clientConn) Call(ctx context.Context, method string, params interface{},
 
 // ServerDispatcher returns a Server that dispatches LSP requests across the
 // given jsonrpc2 connection.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func ServerDispatcher(conn jsonrpc2.Conn) Server {
 	return &serverDispatcher{sender: clientConn{conn}}
 }
 
@@ -80,8 +80,8 @@ type serverDispatcher struct {
 	sender connSender
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func ClientHandler(client Client, handler jsonrpc2.Handler) jsonrpc2.Handler {
+	return func(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
 		if ctx.Err() != nil {
 			ctx := xcontext.Detach(ctx)
 			return reply(ctx, nil, RequestCancelledError)
@@ -94,8 +94,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func ServerHandler(server Server, handler jsonrpc2.Handler) jsonrpc2.Handler {
+	return func(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
 		if ctx.Err() != nil {
 			ctx := xcontext.Detach(ctx)
 			return reply(ctx, nil, RequestCancelledError)
@@ -108,15 +108,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func Handlers(handler jsonrpc2.Handler) jsonrpc2.Handler {
 	return CancelHandler(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		jsonrpc2.AsyncHandler(
+			jsonrpc2.MustReplyHandler(handler)))
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func CancelHandler(handler jsonrpc2.Handler) jsonrpc2.Handler {
+	handler, canceller := jsonrpc2.CancelHandler(handler)
+	return func(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
 		if req.Method() != "$/cancelRequest" {
 			// TODO(iancottrell): See if we can generate a reply for the request to be cancelled
 			// at the point of cancellation rather than waiting for gopls to naturally reply.
@@ -139,9 +139,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			return sendParseError(ctx, reply, err)
 		}
 		if n, ok := params.ID.(float64); ok {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			canceller(jsonrpc2.NewIntID(int64(n)))
 		} else if s, ok := params.ID.(string); ok {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			canceller(jsonrpc2.NewStringID(s))
 		} else {
 			return sendParseError(ctx, reply, fmt.Errorf("request ID %v malformed", params.ID))
 		}
@@ -149,7 +149,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func Call(ctx context.Context, conn jsonrpc2.Conn, method string, params interface{}, result interface{}) error {
 	id, err := conn.Call(ctx, method, params, result)
 	if ctx.Err() != nil {
 		cancelCall(ctx, clientConn{conn}, id)
@@ -157,7 +157,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	return err
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func cancelCall(ctx context.Context, sender connSender, id jsonrpc2.ID) {
 	ctx = xcontext.Detach(ctx)
 	ctx, done := event.Start(ctx, "protocol.canceller")
 	defer done()
@@ -175,8 +175,8 @@ func UnmarshalJSON(msg json.RawMessage, v any) error {
 	return json.Unmarshal(msg, v)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func sendParseError(ctx context.Context, reply jsonrpc2.Replier, err error) error {
+	return reply(ctx, nil, fmt.Errorf("%w: %s", jsonrpc2.ErrParse, err))
 }
 
 // NonNilSlice returns x, or an empty slice if x was nil.

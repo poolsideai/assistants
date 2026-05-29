@@ -1,10 +1,10 @@
 package methods
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import (
+	"github.com/danielgtaylor/huma/v2"
 	"github.com/poolsideai/assistant/pkg/humautil"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
+
 //go:generate go-enum
 
 // PoolsideErrorCode are our application specific codes (for cases not covered by
@@ -13,14 +13,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 // if it will aid comprehension.
 // ENUM(entity_not_found=1404,conflict=1409,entity_invalid=1422,user_config_invalid=1423,internal_error=1500,agent_install_failed=1502)
 type PoolsideErrorCode int64
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+// ENUM(sandbox_definition)
+type ErrorEntityType string
+
+func (ErrorEntityType) Schema(r huma.Registry) *huma.Schema {
 	return humautil.EnumSchema(_ErrorEntityTypeValue)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func (PoolsideErrorCode) Schema(r huma.Registry) *huma.Schema {
 	return humautil.EnumSchema(_PoolsideErrorCodeValue)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

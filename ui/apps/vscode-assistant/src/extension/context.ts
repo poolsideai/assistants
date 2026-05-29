@@ -1,22 +1,22 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { Selection } from "@poolsideai/rpc";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
 import { System } from "./system";
 import { isDiffTab, isOpenInTab, isTextTab } from "./tabs";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { vscodeLineToAPILine, vscodeRangeToAPIRange } from "./vscode/range";
+import { documentToContextPath } from "./vscode/uri";
+
+export function getWorkspaces() {
+  return (vscode.workspace.workspaceFolders || [])
+    .map((w) => ({
+      path: w.uri.fsPath,
+      name: w.name,
+      index: w.index,
+    }))
+    .sort((a, b) => a.path.localeCompare(b.path));
+}
 
 // Working directory used by the assistant when no folder is open. A dedicated
 // scratch directory keeps the agent's file tools inside a throwaway folder; the
@@ -77,9 +77,9 @@ export async function sendActiveFileContext(system: System) {
     return;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const workspaces = getWorkspaces();
   const defaultCwd = getDefaultCwd();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   const activeEditors = vscode.window.visibleTextEditors.filter((editor) =>
     isOpenInTab(editor.document),
   );
@@ -87,17 +87,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     activeEditors.map(async (editor) => {
       const document = editor.document;
       const content = document.getText();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
       const selectedCode = document.getText(editor.selection) || "";
       const visibleRange = editor.visibleRanges[0];
       const { startLine, endLine } = vscodeRangeToAPIRange(visibleRange);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
       let selection: Selection | undefined;
       if (!editor.selection.isEmpty) {
         const { startLine, endLine } = vscodeRangeToAPIRange(editor.selection);
         selection = [startLine, endLine];
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
       const cachedSymbols = symbolAvailabilityCache.get(document.uri.toString());
       let codeSymbolsAvailable = cachedSymbols?.available;
       if (cachedSymbols?.version !== document.version) {
@@ -111,7 +111,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           available: codeSymbolsAvailable,
         });
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
       return {
         content,
         selectedCode,
@@ -122,16 +122,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         codeSymbolsAvailable,
       };
     }),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
 
   const isTextDocumentActive = activeTab && isTextTab(activeTab);
   const recentEditorIndex = isTextDocumentActive
     ? activeEditors.findIndex((editor) => editor.document.uri.fsPath === activeTab.input.uri.fsPath)
     : -1;
   const recentFile = recentEditorIndex >= 0 ? activeFiles[recentEditorIndex] : undefined;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   const context = {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    workspaces,
     homeDirectory: os.homedir(),
     defaultCwd,
     activeFiles,

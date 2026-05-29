@@ -45,18 +45,18 @@ interface hasCommand {
   command: string;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// TODO: discriminate by specific error codes
+export type RPCError = { message: string } | ({ message: string } & { code: number; data?: any });
+
+export function isRPCError(e: unknown): e is RPCError {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    "message" in e &&
+    typeof (e as RPCError).message === "string"
+  );
+}
+
 export function isUserConfigInvalidError(e: unknown): e is RPCError & { code: number } {
   return isRPCError(e) && "code" in e && e.code === 1423;
 }
@@ -66,7 +66,7 @@ export function isUserConfigInvalidError(e: unknown): e is RPCError & { code: nu
  */
 export type Error<T extends hasCommand> = Pick<T, "command"> & {
   payload: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    error: RPCError;
     requestId: string;
   };
 };

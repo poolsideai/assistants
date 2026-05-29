@@ -1,18 +1,18 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import type { CodeSymbol } from "@poolsideai/rpc";
+  import type { IconName } from "@poolsideai/components/icon";
+  import * as Prompt from "@poolsideai/components/prompt";
+  import { getContextRepoContext } from "../../../../context";
+  import { getFilenameFromPath } from "../../../shared/paths";
+  import { rpc } from "../../../hostRpc";
+
+  let search = $state("");
+
+  function getIcon(kind: CodeSymbol["kind"]) {
+    return `symbol-${kind}` satisfies IconName;
+  }
+
+  const contextRepo = getContextRepoContext();
   let files = $derived(contextRepo.symbolsFiles);
   let fileLabel = $derived(
     files.length === 1 ? getFilenameFromPath(files[0]?.path ?? "") : "active files",
@@ -25,30 +25,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       })),
     ),
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
+{#if contextRepo.hasSymbolsMenu}
+  <Prompt.Menu.Popup.Root bind:search>
+    {#if !search}
+      <Prompt.Menu.Popup.Header title="Add symbols" icon="symbols">
+        {#snippet subtitle()}
+          <span class="truncate">
             Type to filter symbols in <span class="font-medium">{fileLabel}</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          </span>
+        {/snippet}
+      </Prompt.Menu.Popup.Header>
+      <Prompt.Menu.Popup.Separator />
+    {/if}
     {#await getAllCodeSymbols then fileSymbols}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <Prompt.Menu.Popup.List class="max-h-64">
+        <Prompt.Menu.Popup.Empty icon="symbols">
+          <span>
+            No matching symbols in <span class="text-psx-foreground-primary font-medium"
               >{fileLabel}</span
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            >
+          </span>
+        </Prompt.Menu.Popup.Empty>
+
         {#each fileSymbols as { file, symbols } (file.path)}
           {#if symbols.length > 0 && file.path}
             <Prompt.Menu.Popup.Section title={getFilenameFromPath(file.path)}>
@@ -68,7 +68,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             </Prompt.Menu.Popup.Section>
           {/if}
         {/each}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </Prompt.Menu.Popup.List>
+    {/await}
+  </Prompt.Menu.Popup.Root>
+{/if}

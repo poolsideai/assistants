@@ -43,7 +43,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "//pkg/poolside-helper/internal/events",
         "//pkg/poolside-helper/internal/filesystem",
         "//pkg/poolside-helper/internal/gopls/gotoolsinternal/diff",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/jsonrpc2",
         "//pkg/poolside-helper/internal/gopls/pkg/cache",
         "//pkg/poolside-helper/internal/gopls/pkg/file",
         "//pkg/poolside-helper/internal/handler/acpnav",

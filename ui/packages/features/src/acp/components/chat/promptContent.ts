@@ -1,5 +1,5 @@
 import type { ContentBlock, EmbeddedResourceResource } from "@agentclientprotocol/sdk";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { basename } from "@poolsideai/lib/path";
 
 export interface PromptContentOptions {
   supportsEmbeddedContext: boolean;
@@ -9,13 +9,13 @@ export interface PromptContentOptions {
 export function buildACPPromptContent(
   value: string,
   pastedAttachments: ContentBlock[],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  contextContents: ContentBlock[],
   options: PromptContentOptions,
 ): ContentBlock[] {
   return [
     { type: "text", text: value },
     ...promptAttachmentBlocks(pastedAttachments, options),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ...contextContents,
   ];
 }
 
@@ -35,7 +35,7 @@ function promptAttachmentBlocks(
 }
 
 function resourceToLink(resource: EmbeddedResourceResource): ContentBlock {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return resourceLink(basename(resource.uri), resource.uri, resource.uri, resource.mimeType);
 }
 
 function resourceLink(

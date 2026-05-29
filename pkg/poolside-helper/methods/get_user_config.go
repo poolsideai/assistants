@@ -1,16 +1,16 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package methods
+
+type GetUserConfigParams struct{}
+
+type GetUserConfigOutput struct {
 	SettingsFilePaths []string       `json:"settingsFilePaths" doc:"location of all user settings files"`
 	SandboxConfig     map[string]any `json:"sandboxConfig,omitempty" doc:"the current sandbox configuration"`
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func (p GetUserConfigParams) MethodName() string {
+	return "poolside/getUserConfig"
+}
+
+func (p GetUserConfigParams) Description() string {
+	return "retrieves the current user configuration"
+}

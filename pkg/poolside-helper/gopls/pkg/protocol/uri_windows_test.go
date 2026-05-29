@@ -8,10 +8,10 @@ package protocol_test
 
 import (
 	"path/filepath"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"strings"
 	"testing"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/stretchr/testify/require"
 
 	"github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
 )
@@ -29,7 +29,7 @@ func TestURIFromPath(t *testing.T) {
 		t.Fatalf("malformed root path %q", rootPath)
 	}
 	driveLetter := string(rootPath[0])
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	driveLetterLower := strings.ToLower(driveLetter)
 
 	for _, test := range []struct {
 		path, wantFile string
@@ -43,37 +43,37 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		{
 			path:     `C:\Windows\System32`,
 			wantFile: `c:\Windows\System32`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			wantURI:  protocol.DocumentURI("file:///c:/Windows/System32"),
 		},
 		{
 			path:     `C:\Go\src\bob.go`,
 			wantFile: `c:\Go\src\bob.go`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			wantURI:  protocol.DocumentURI("file:///c:/Go/src/bob.go"),
 		},
 		{
 			path:     `c:\Go\src\bob.go`,
 			wantFile: `c:\Go\src\bob.go`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			wantURI:  protocol.DocumentURI("file:///c:/Go/src/bob.go"),
 		},
 		{
 			path:     `\path\to\dir`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			wantFile: driveLetterLower + `:\path\to\dir`,
+			wantURI:  protocol.DocumentURI("file:///" + driveLetterLower + ":/path/to/dir"),
 		},
 		{
 			path:     `\a\b\c\src\bob.go`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			wantFile: driveLetterLower + `:\a\b\c\src\bob.go`,
+			wantURI:  protocol.DocumentURI("file:///" + driveLetterLower + ":/a/b/c/src/bob.go"),
 		},
 		{
 			path:     `c:\Go\src\bob george\george\george.go`,
 			wantFile: `c:\Go\src\bob george\george\george.go`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			wantURI:  protocol.DocumentURI("file:///c:/Go/src/bob%20george/george/george.go"),
+		},
+		{
+			path:     `\\server\share\path\to\file.go`,
+			wantFile: `\\server\share\path\to\file.go`,
+			wantURI:  protocol.DocumentURI("file:////server/share/path/to/file.go"),
 		},
 	} {
 		got := protocol.URIFromPath(test.path)
@@ -95,22 +95,22 @@ func TestParseDocumentURI(t *testing.T) {
 	}{
 		{
 			input:    `file:///c:/Go/src/bob%20george/george/george.go`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			want:     "file:///c:/Go/src/bob%20george/george/george.go",
 			wantPath: `c:\Go\src\bob george\george\george.go`,
 		},
 		{
 			input:    `file:///C%3A/Go/src/bob%20george/george/george.go`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			want:     "file:///c:/Go/src/bob%20george/george/george.go",
 			wantPath: `c:\Go\src\bob george\george\george.go`,
 		},
 		{
 			input:    `file:///c:/path/to/%25p%25ercent%25/per%25cent.go`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			want:     `file:///c:/path/to/%25p%25ercent%25/per%25cent.go`,
 			wantPath: `c:\path\to\%p%ercent%\per%cent.go`,
 		},
 		{
 			input:    `file:///C%3A/`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			want:     `file:///c:/`,
 			wantPath: `c:\`,
 		},
 		{
@@ -123,11 +123,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			want:     "",
 			wantPath: "",
 		},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		{
+			input:    "file:////server/share/path/to/file.go",
+			want:     "file:////server/share/path/to/file.go",
+			wantPath: "\\\\server\\share\\path\\to\\file.go",
+		},
 		// Errors:
 		{
 			input: "https://go.dev/",
@@ -150,9 +150,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		}
 	}
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+func TestUNCPathIsAbsolute(t *testing.T) {
+	docURI := protocol.DocumentURI("file://server/share/path/to/file.go")
+	require.Equal(t, "\\\\server\\share\\path\\to\\file.go", docURI.Path())
+	require.True(t, filepath.IsAbs(docURI.Path()))
+}

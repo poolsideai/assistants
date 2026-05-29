@@ -138,14 +138,14 @@ slow:
 		u.Path = strings.ToLower(string(u.Path[1])) + u.Path[2:]
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// Handle UNC paths (file://server/share/path)
+	if u.Host != "" && u.Path != "" {
+		// Convert to Windows UNC path format: \\[host][path]
+		// Also convert forward slashes to backslashes in the path part
+		uncPath := "\\\\" + u.Host + strings.ReplaceAll(u.Path, "/", "\\")
+		return uncPath, nil
+	}
+
 	return u.Path, nil
 }
 

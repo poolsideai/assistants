@@ -36,10 +36,10 @@ func NormalizePath(path string) (string, error) {
 	return path, nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// MustParseNormalizedPath returns a DocumentURI from a valid
 // normalized path (i.e. a posix path or a /c:/foo/bar windows path)
 // Panics on invalid input, should only be used on deterministically valid paths
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func MustParseNormalizedPath(path string) DocumentURI {
 	d, err := ParseNormalizedPath(path)
 	if err != nil {
 		panic(err)
@@ -49,7 +49,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 // ParseNormalizedPath returns a DocumentURI from a valid
 // normalized path (i.e. a posix path or a /c:/foo/bar windows path), or error
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// URIFromPath is the equivalent for parsing an OS path, not a normalized one.
 func ParseNormalizedPath(path string) (DocumentURI, error) {
 	if !strings.HasPrefix(path, "/") {
 		return "", errors.Errorf("path not normalized %q", path)

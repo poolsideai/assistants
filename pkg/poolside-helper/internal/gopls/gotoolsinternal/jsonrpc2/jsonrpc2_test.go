@@ -90,7 +90,7 @@ func TestCall(t *testing.T) {
 	}
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func prepare(ctx context.Context, t *testing.T, withHeaders bool) (jsonrpc2.Conn, jsonrpc2.Conn, func()) {
 	// make a wait group that can be used to wait for the system to shut down
 	aPipe, bPipe := net.Pipe()
 	a := run(ctx, withHeaders, aPipe)
@@ -103,46 +103,46 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func run(ctx context.Context, withHeaders bool, nc net.Conn) jsonrpc2.Conn {
+	var stream jsonrpc2.Stream
 	if withHeaders {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		stream = jsonrpc2.NewHeaderStream(nc)
 	} else {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		stream = jsonrpc2.NewRawStream(nc)
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	conn := jsonrpc2.NewConn(stream)
 	conn.Go(ctx, testHandler(*logRPC))
 	return conn
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func testHandler(log bool) jsonrpc2.Handler {
+	return func(ctx context.Context, reply jsonrpc2.Replier, req jsonrpc2.Request) error {
 		switch req.Method() {
 		case "no_args":
 			if len(req.Params()) > 0 {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+				return reply(ctx, nil, fmt.Errorf("%w: expected no params", jsonrpc2.ErrInvalidParams))
 			}
 			return reply(ctx, true, nil)
 		case "one_string":
 			var v string
 			if err := json.Unmarshal(req.Params(), &v); err != nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+				return reply(ctx, nil, fmt.Errorf("%w: %s", jsonrpc2.ErrParse, err))
 			}
 			return reply(ctx, "got:"+v, nil)
 		case "one_number":
 			var v int
 			if err := json.Unmarshal(req.Params(), &v); err != nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+				return reply(ctx, nil, fmt.Errorf("%w: %s", jsonrpc2.ErrParse, err))
 			}
 			return reply(ctx, fmt.Sprintf("got:%d", v), nil)
 		case "join":
 			var v []string
 			if err := json.Unmarshal(req.Params(), &v); err != nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+				return reply(ctx, nil, fmt.Errorf("%w: %s", jsonrpc2.ErrParse, err))
 			}
 			return reply(ctx, path.Join(v...), nil)
 		default:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			return jsonrpc2.MethodNotFound(ctx, reply, req)
 		}
 	}
 }

@@ -1,10 +1,10 @@
 import { initializeStatefulModule as initializeHelperClientRPC } from "@poolsideai/helperapi";
 import type {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPElicitationOutput,
+  ACPElicitationParams,
   ACPNavDidChangeParams,
 } from "@poolsideai/helperapi/schemas";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import os from "os";
 import path from "path";
 import vscode, { env } from "vscode";
 import {
@@ -60,8 +60,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "--api-version=2",
         "--accept-multiclient",
         "--build-flags=-tags=fts5",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        `--log-dest=${path.join(os.tmpdir(), "poolside-helper-dlv.log")}`, // can't write to stdout, or will error
+        // "--log-dest=/tmp/poolside-helper-dlv.log", // can't write to stdout, or will error
         // If you're having issues with delve itself, you can enable logging by uncommenting
         // the following lines:
         // "--log",
@@ -149,15 +149,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   client.onRequest("poolside/searchSymbolDefinitions", searchSymbolDefinitions);
   client.onRequest("poolside/getDiagnostics", getDiagnostics);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  client.onRequest(
+    "poolside/acp/elicitation/create",
+    (params: ACPElicitationParams): Promise<ACPElicitationOutput> => {
       return system.acpChatPanels.routeInbound(
         "poolside/acp/elicitation/create",
         params,
       ) as Promise<ACPElicitationOutput>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+  );
   client.onNotification(
     "poolside/mcpOAuthURL",
     async (params: { serverID: string; authURL: string }) => {

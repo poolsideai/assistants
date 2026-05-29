@@ -30,9 +30,9 @@
     <TextBlock {...block} {isUser} {allowVisualizations} {streaming} {scrollElement} />
   {:else if block.type === "image"}
     <ImageBlock {...block} {workspaceFolders} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {:else if block.type === "resource_link" && !isUser}
     <ResourceLinkBlock {...block} {workspaceFolders} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {:else if block.type === "resource" && !isUser}
     <ResourceBlock {...block} />
   {/if}
 {/each}

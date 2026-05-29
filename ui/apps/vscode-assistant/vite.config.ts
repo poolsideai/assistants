@@ -70,7 +70,7 @@ function vscode(): PluginOption {
 
           await build({
             watch: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            ignoreWatch: ["dist", `src/${assetsDir}`, "node_modules"],
             minify: false,
             onSuccess() {
               if (buildCount++ > 1) {

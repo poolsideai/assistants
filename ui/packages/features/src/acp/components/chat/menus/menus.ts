@@ -5,7 +5,7 @@ export const acpMenus = {
     rules: [
       {
         trigger: "/",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        triggerRegExp: /(?<=^|\s)\/(?!\s)/g,
         // Pushed config menus complete to `/command ` and use the remaining
         // text as their filter query.
         queryRegExp: /^\S*(?:\s.*)?$/,

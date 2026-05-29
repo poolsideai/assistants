@@ -1,16 +1,16 @@
 import type { AttachedUrl } from "@poolsideai/rpc";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { describe, expect, it } from "vitest";
+import { ContextRepositoryWriter } from "./ContextRepository.svelte";
+
+describe("ContextRepositoryWriter", () => {
+  describe("asPromptContentBlocks", () => {
+    it("returns an empty array when no files or urls are attached", () => {
+      const repo = new ContextRepositoryWriter();
+      expect(repo.asPromptContentBlocks(true)).toEqual([]);
+    });
+
     it("emits active files, attached files, and recent files as embedded resources", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const repo = new ContextRepositoryWriter();
       repo.setRecentFile({
         path: "/workspace/src/recent.ts",
         content: "const recent = true;",
@@ -24,33 +24,33 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           cursorLine: 3,
         },
       ]);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      repo.attachFile({
+        path: "/workspace/src/other.ts",
+        content: "const attached = true;",
+      });
+
+      expect(repo.asPromptContentBlocks(true)).toEqual([
+        {
+          type: "resource",
+          resource: {
+            uri: "/workspace/src/app.ts",
+            mimeType: "text/plain",
+            text: "const active = true;",
+            _meta: {
               recent: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              active: true,
+              selection: { startLine: 2, endLine: 4 },
+              visibleRange: { startLine: 1, endLine: 8 },
+              cursorLine: 3,
+            },
+          },
+        },
+        {
+          type: "resource",
+          resource: {
+            uri: "/workspace/src/other.ts",
+            mimeType: "text/plain",
+            text: "const attached = true;",
             _meta: {
               recent: false,
               active: false,
@@ -67,95 +67,95 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
               recent: true,
               active: false,
             },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          },
+        },
+      ]);
+    });
+
     it("deduplicates files by path, keeping active before attached before recent", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const repo = new ContextRepositoryWriter();
       repo.setRecentFile({
         path: "/workspace/src/app.ts",
         content: "const recent = true;",
       });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      repo.attachFile({
+        path: "/workspace/src/app.ts",
         content: "const attached = true;",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      });
       repo.setActiveFiles([
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {
+          path: "/workspace/src/app.ts",
           content: "const active = true;",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        },
       ]);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+      expect(repo.asPromptContentBlocks(true)).toEqual([
+        {
+          type: "resource",
+          resource: {
+            uri: "/workspace/src/app.ts",
+            mimeType: "text/plain",
+            text: "const active = true;",
             _meta: {
               recent: true,
               active: true,
             },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          },
+        },
+      ]);
+    });
+
+    it("emits resource_link for files without content, even when embedded context is supported", () => {
+      const repo = new ContextRepositoryWriter();
+      repo.attachFile({
+        path: "/workspace/src/content.ts",
+        content: "const attached = true;",
+      });
+      repo.attachFile({ path: "/workspace/README.md" });
+
+      expect(repo.asPromptContentBlocks(true)).toEqual([
+        {
+          type: "resource",
+          resource: {
+            uri: "/workspace/src/content.ts",
+            mimeType: "text/plain",
+            text: "const attached = true;",
             _meta: {
               recent: false,
               active: false,
             },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          },
+        },
+        {
+          type: "resource_link",
+          name: "README.md",
+          title: "/workspace/README.md",
+          uri: "/workspace/README.md",
           _meta: {
             recent: false,
             active: false,
           },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        },
+      ]);
+    });
+
+    it("emits resource_link for all files when embedded context is unsupported", () => {
+      const repo = new ContextRepositoryWriter();
       repo.setRecentFile({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        path: "/workspace/src/app.ts",
         content: "const recent = true;",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      });
+      repo.attachFile({
+        path: "/workspace/src/other.ts",
+        content: "const attached = true;",
+      });
+
+      expect(repo.asPromptContentBlocks(false)).toEqual([
+        {
+          type: "resource_link",
+          name: "other.ts",
+          title: "/workspace/src/other.ts",
+          uri: "/workspace/src/other.ts",
           _meta: {
             recent: false,
             active: false,
@@ -170,49 +170,49 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             recent: true,
             active: false,
           },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        },
+      ]);
+    });
+
+    it("appends attached urls after files as resource_links", () => {
+      const repo = new ContextRepositoryWriter();
+      repo.attachFile({
+        path: "/workspace/src/app.ts",
         content: "const attached = true;",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      });
+      const url: AttachedUrl = {
+        url: "https://example.com/docs/path",
+        content: "page",
+      };
+      repo.attachUrl({ status: "attached", ...url });
+
+      expect(repo.asPromptContentBlocks(true)).toEqual([
+        {
+          type: "resource",
+          resource: {
+            uri: "/workspace/src/app.ts",
+            mimeType: "text/plain",
             text: "const attached = true;",
             _meta: {
               recent: false,
               active: false,
             },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          },
+        },
+        {
+          type: "resource_link",
+          name: "example.com/docs/path",
+          title: "example.com/docs/path",
+          uri: "https://example.com/docs/path",
+        },
+      ]);
+    });
+  });
+
   describe("setActiveFiles", () => {
     it("deduplicates active files by path", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const repo = new ContextRepositoryWriter();
+
       repo.setActiveFiles([
         { path: "/workspace/src/app.ts", content: "first" },
         { path: "/workspace/src/app.ts", content: "second" },
@@ -232,17 +232,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
       expect(repo.recentFile?.path).toBe("/workspace/recent.ts");
       expect(repo.attachedFiles.map((f) => f.path)).toEqual(["/workspace/prompt.ts"]);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+
     it("keeps recentFile when given undefined or a file without a path", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const repo = new ContextRepositoryWriter();
       repo.setRecentFile({ path: "/workspace/recent.ts", content: "recent" });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
       repo.setRecentFile(undefined);
       repo.setRecentFile({ content: "no path" });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
       expect(repo.recentFile?.path).toBe("/workspace/recent.ts");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
 
     it("clears recentFile explicitly", () => {
       const repo = new ContextRepositoryWriter();
@@ -252,53 +252,53 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
       expect(repo.recentFile).toBeUndefined();
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  describe("removeFile", () => {
     it("removes prompt-attached files without clearing recentFile", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const repo = new ContextRepositoryWriter();
       repo.setRecentFile({ path: "/workspace/a.ts", content: "a" });
       repo.attachFile({ path: "/workspace/a.ts", content: "attached a" });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      repo.attachFile({ path: "/workspace/b.ts", content: "b" });
+
+      repo.removeFile("/workspace/a.ts");
+
       expect(repo.recentFile?.path).toBe("/workspace/a.ts");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      expect(repo.attachedFiles.map((f) => f.path)).toEqual(["/workspace/b.ts"]);
+    });
+  });
+
+  describe("attachUrl", () => {
+    it("dedupes urls by url string", () => {
+      const repo = new ContextRepositoryWriter();
+      repo.attachUrl({
+        status: "attached",
+        url: "https://example.com/a",
+        content: "x",
+      });
+      repo.attachUrl({
+        status: "attached",
+        url: "https://example.com/a",
+        content: "y",
+      });
+      expect(repo.attachedUrls).toHaveLength(1);
+    });
+  });
+
+  describe("reset", () => {
+    it("clears attached files and urls", () => {
+      const repo = new ContextRepositoryWriter();
+      repo.attachFile({ path: "/workspace/a.ts", content: "a" });
+      repo.attachUrl({
+        status: "attached",
+        url: "https://example.com/a",
+        content: "x",
+      });
+
+      repo.reset();
+
+      expect(repo.attachedFiles).toEqual([]);
+      expect(repo.attachedUrls).toEqual([]);
+    });
+  });
+});

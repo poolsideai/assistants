@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	acpsdk "github.com/coder/acp-go-sdk"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 	"github.com/poolsideai/assistant/pkg/acp"
 )
 
@@ -308,15 +308,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 type ACPRestartServerOutput struct{}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// elicitation types are not yet in sdk
 type ACPElicitationParams struct {
 	ACPAgentServerParams
 	ElicitationRequest
 }
 
 type ACPElicitationOutput ElicitationResponse
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+type ACPCompactionNotification acp.CompactionNotification
 
 // ACPTurnEndedNotification is emitted by the helper after every prompt
 // settles. Unlike agent-owned compaction phases, this terminal boundary is

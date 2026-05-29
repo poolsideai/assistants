@@ -41,9 +41,9 @@ const maxReadTextFileResponseBytes = 5 * 1024 * 1024
 // bypassing the ACP JSON-RPC bridge.
 type lspNotifyFn func(ctx context.Context, method string, params any)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// lspCallFn sends a raw LSP request to the VS Code extension and awaits the response.
+type lspCallFn func(ctx context.Context, method string, params any, result any) error
+
 type acpClient struct {
 	notify        notifyFn
 	request       requestFn
@@ -72,7 +72,7 @@ var _ interface {
 
 // HandleExtensionMethod receives ACP extension notifications from the
 // pool acp subprocess and converts them to appropriate LSP notifications.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (c *acpClient) HandleExtensionMethod(ctx context.Context, method string, params json.RawMessage) (any, error) {
 	switch method {
 	case acphelpers.ExtensionMethodShowMessage:
 		var notif acphelpers.ShowMessageNotification
@@ -88,28 +88,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			})
 		}
 		return nil, nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	case acphelpers.ExtensionMethodElicitation:
+		var req methods.ACPElicitationParams
+		if err := json.Unmarshal(params, &req); err != nil {
+			return nil, fmt.Errorf("acpproxy: unmarshal elicitation params: %w", err)
+		}
 		resp, err := c.requestElicitation(ctx, req.ElicitationRequest)
 		if err != nil {
 			return nil, err
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		}
+		return resp, nil
+	case acphelpers.ExtensionMethodCompactionUpdate:
+		var notif methods.ACPCompactionNotification
+		if err := json.Unmarshal(params, &notif); err != nil {
+			slog.Error("acpproxy: failed to unmarshal compaction_update", "error", err)
+			return nil, nil
+		}
 		// Legacy agents omit sessionId. Keep those notifications unscoped:
 		// guessing from the process's active session is both ambiguous during a
 		// concurrent session/load and unsafe while that operation holds proc.mu.
 		// The UI has a conservative live-prompt fallback for this legacy shape.
 		c.asyncNotifications.enqueue(c.routeCompactionUpdate, methods.ACPCompactionUpdateMethod, notif)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		return nil, nil
 	case methods.ACPClaudeSDKMessageMethod:
 		var notif methods.ACPClaudeSDKMessageNotification
 		if err := json.Unmarshal(params, &notif); err != nil {

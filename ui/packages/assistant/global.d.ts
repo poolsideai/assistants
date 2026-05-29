@@ -16,7 +16,7 @@ declare global {
     fileIconTheme?: FileIconTheme;
     userSettings?: Configuration;
     environment?: Environment;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    workspaces?: WorkspaceFolder[];
     homeDirectory?: string;
   };
   var POOLSIDE_INITIAL_ACP_CHAT_STATE:

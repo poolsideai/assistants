@@ -72,7 +72,7 @@ const baseMarkdownSerializer = new MarkdownSerializer(
       state.closeBlock(node);
     },
     chip: (state, node) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      state.text(node.textContent, false);
     },
     text: (state, node) => {
       state.text(node.textContent, false);

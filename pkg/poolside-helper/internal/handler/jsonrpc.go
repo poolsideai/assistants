@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"log/slog"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
 	pkgerrors "github.com/pkg/errors"
 	"github.com/tliron/glsp"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/jsonrpc2"
 	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
@@ -117,8 +117,8 @@ func registerSerializedJSONRPCUnvalidated[In any, Out any](
 			return nil, err
 		}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		result, err := handler(ctx, typed, lspReq)
+		return result, errorToWire(err)
 	}
 }
 
@@ -168,11 +168,11 @@ func registerJSONRPCMethod[In any, Out any](
 			return nil, err
 		}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		result, err := handler(ctx, typed, lspReq)
+		return result, errorToWire(err)
+	}
+}
+
 // Keep invalid-JSON and invalid-type errors distinct without allocating an
 // untyped object graph on every successful production request.
 func decodeJSONRPCInput[In any](params json.RawMessage) (*In, error) {
@@ -186,32 +186,32 @@ func decodeJSONRPCInput[In any](params json.RawMessage) (*In, error) {
 	return typed, nil
 }
 
+func errorToWire(err error) error {
+	if err == nil {
+		return nil
+	}
+	var rpcErr *methods.JSONRPCError
+	if errors.As(err, &rpcErr) {
+		wire := &jsonrpc2.WireError{
+			Code:    int64(rpcErr.Code),
+			Message: rpcErr.Message,
+		}
+		if rpcErr.Data != nil {
+			if data, marshalErr := json.Marshal(rpcErr.Data); marshalErr == nil {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			} else {
+				slog.Warn("failed to marshal JSONRPCError.Data", "error", marshalErr)
+			}
+		}
+		return wire
+	}
+	var wireErr *jsonrpc2.WireError
+	if errors.As(err, &wireErr) {
+		return wireErr
+	}
+	return &jsonrpc2.WireError{
+		Code:    jsonrpc2.CodeInternalError,
+		Message: err.Error(),
 	}
 }
 

@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
@@ -376,9 +376,9 @@ func (p *process) startLocked(ctx context.Context, cfg startConfig, client *acpC
 // spawnAndInitializeLocked must be called with p.mu held.
 func (p *process) spawnAndInitializeLocked(ctx context.Context, cfg startConfig, client *acpClient, initReq acpsdk.InitializeRequest) error {
 	env, err := buildProcessEnv(cfg)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if err != nil {
 		return err
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
 	binary, err := resolveExecutablePath(cfg.binary, env)
 	if err != nil {
 		return missingRuntimeLaunchError(cfg.serverName, cfg.binary, err)
@@ -393,7 +393,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	if cfg.processDir != "" {
 		cmd.Dir = cfg.processDir
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return fmt.Errorf("acpproxy: stdin pipe: %w", err)

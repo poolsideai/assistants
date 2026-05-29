@@ -7,39 +7,39 @@
 
 export * from "./_aCPCloseSessionParamsMeta";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./_aCPElicitationParamsMeta";
 export * from "./_closeSessionResponseMeta";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 export * from "./aCPAgentServerBinaryDistribution";
 export * from "./aCPAgentServerBinaryDistributionEnv";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPAgentServerConfig";
 export * from "./aCPAgentServerConfigBinary";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPAgentServerConfigDefaultConfigOptions";
+export * from "./aCPAgentServerConfigEnv";
 export * from "./aCPAgentServerParams";
 export * from "./aCPCloseSessionParams";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPCompactionNotification";
+export * from "./aCPDeleteSessionParams";
+export * from "./aCPElicitationOutput";
+export * from "./aCPElicitationOutputContent";
+export * from "./aCPElicitationParams";
 export * from "./aCPNavAbortConversationHandoffParams";
 export * from "./aCPNavAgentRuntimesState";
 export * from "./aCPNavAgentRuntimeStatus";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavAgentServersState";
+export * from "./aCPNavAgentServersStateAgentServers";
+export * from "./aCPNavArchiveConversationParams";
 export * from "./aCPNavCheckAgentRuntimesParams";
 export * from "./aCPNavConfigCacheEntry";
 export * from "./aCPNavConfigCacheState";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavConversation";
 export * from "./aCPNavConversationHandoffOutput";
 export * from "./aCPNavConversationHistory";
 export * from "./aCPNavConversationLeg";
 export * from "./aCPNavConversationLiveStatus";
 export * from "./aCPNavCreateChatOutput";
 export * from "./aCPNavCreateChatParams";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavCreateWorktreeParams";
 export * from "./aCPNavDeleteConversationParams";
 export * from "./aCPNavDidChangeParams";
 export * from "./aCPNavGetConfigCacheParams";
@@ -47,30 +47,30 @@ export * from "./aCPNavGetConversationHistoryParams";
 export * from "./aCPNavGetProjectSettingsParams";
 export * from "./aCPNavInstallAgentServerOutput";
 export * from "./aCPNavInstallAgentServerParams";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavListAgentServersParams";
+export * from "./aCPNavListParams";
 export * from "./aCPNavPrepareConversationHandoffParams";
 export * from "./aCPNavPrepareWorktreeParams";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavProject";
 export * from "./aCPNavProjectSettings";
 export * from "./aCPNavProjectSettingsState";
 export * from "./aCPNavReleasePreparedWorktreeOutput";
 export * from "./aCPNavReleasePreparedWorktreeParams";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavRemoveProjectParams";
+export * from "./aCPNavRemoveWorktreeParams";
 export * from "./aCPNavRenameConversationParams";
 export * from "./aCPNavRenameProjectParams";
 export * from "./aCPNavReorderProjectsParams";
 export * from "./aCPNavReorderWorktreesParams";
 export * from "./aCPNavRestoreConversationParams";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavSetAgentServersParams";
+export * from "./aCPNavSetAgentServersParamsAgentServers";
+export * from "./aCPNavSetProjectCollapsedParams";
 export * from "./aCPNavSetProjectSettingsParams";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavState";
 export * from "./aCPNavUpsertConfigCacheParams";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavUpsertConversationParams";
+export * from "./aCPNavUpsertProjectParams";
 export * from "./aCPRenameSessionParams";
 export * from "./aCPRestartServerOutput";
 export * from "./aCPTurnEndedNotification";
@@ -85,9 +85,9 @@ export * from "./getDiagnosticsOutput";
 export * from "./getDiagnosticsParams";
 export * from "./getSecretOutput";
 export * from "./getSecretParams";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./getUserConfigOutput";
 export * from "./getUserConfigOutputSandboxConfig";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./getUserConfigParams";
 export * from "./listSecretsOutput";
 export * from "./listSecretsParams";
 __POOL_SYNTHETIC_IMPORT_BASELINE__

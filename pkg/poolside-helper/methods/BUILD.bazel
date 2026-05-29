@@ -16,7 +16,7 @@ go_library(
         "error_codes.go",
         "error_codes_enum.go",
         "get_diagnostics.go",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "get_user_config.go",
         "git.go",
         "github.go",
         "invoke_lsp.go",
@@ -35,11 +35,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     importpath = "github.com/poolsideai/assistant/pkg/poolside-helper/methods",
     visibility = ["//visibility:public"],
     deps = [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/acp",
         "//pkg/humautil",
         "//pkg/poolside-helper/gopls/pkg/protocol",
         "@com_github_coder_acp_go_sdk//:acp-go-sdk",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "@com_github_danielgtaylor_huma_v2//:huma",
         "@com_github_pkg_errors//:errors",
     ],
 )
