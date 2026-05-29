@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { execFileSync, execSync, spawn, type ChildProcess } from "node:child_process";
 import * as crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -38,17 +38,17 @@ export class DesktopTarget {
     const appDir = path.join(repoRoot, "ui/apps/desktop-assistant");
     const viteConfigDist = path.join(repoRoot, "ui/config/vite/dist/index.js");
     const svelteConfigDist = path.join(repoRoot, "ui/config/svelte/dist/index.js");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (!fs.existsSync(viteConfigDist) || !fs.existsSync(svelteConfigDist)) {
+      console.log(
+        "[spoolside] Desktop dependencies not built — running pnpm turbo build -F @poolsideai/desktop-assistant^...",
+      );
+      execFileSync("pnpm", ["turbo", "build", "-F", "@poolsideai/desktop-assistant^..."], {
         cwd: repoRoot,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        stdio: "inherit",
+      });
+      console.log("[spoolside] Desktop dependencies built successfully.");
+    }
+
     // Spawning the `tauri` script below skips the `dev` script's
     // download:binaries step, so fetch the helper/sidecar binaries here. The
     // script reuses complete version-stamped binaries without a network call;

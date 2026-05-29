@@ -98,13 +98,13 @@ export class VscodeTarget {
     if (opts.dev) {
       const distDir = path.join(extensionDir, "dist");
       if (!fs.existsSync(distDir)) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        console.log(
+          "[spoolside] Extension not built — running pnpm turbo build -F poolside-assistant...",
+        );
+        execFileSync("pnpm", ["turbo", "build", "-F", "poolside-assistant"], {
           cwd: repoRoot,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          stdio: "inherit",
+        });
         if (!fs.existsSync(distDir)) {
           throw new Error(`Build completed but ${distDir} still missing.`);
         }
