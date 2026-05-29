@@ -43,8 +43,8 @@
         "${workspaceFolder}/../poolside-books-api-demo/",
         "${workspaceFolder}"
       ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "outFiles": [
+        "${workspaceFolder}/ui/apps/vscode-assistant/dist/**/*.{js,cjs}"
       ]
     },
     {
@@ -58,9 +58,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "${workspaceFolder}/../poolside-books-api-demo",
         "${workspaceFolder}"
       ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "outFiles": [
+        "${workspaceFolder}/ui/apps/vscode-assistant/dist/**/*.{js,cjs}"
+      ],
       "env": {
         "HTTPS_PROXY": "${env:HTTPS_PROXY}",
         "HTTP_PROXY": "${env:HTTP_PROXY}"
