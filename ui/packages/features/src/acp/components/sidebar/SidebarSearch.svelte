@@ -19,7 +19,7 @@
   }: Props = $props();
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<div class="flex items-center gap-1 px-2 py-2">
   <SearchField bind:value {placeholder} class="flex-1" />
   <SidebarIconButton
     icon="history"

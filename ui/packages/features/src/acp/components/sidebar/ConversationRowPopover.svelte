@@ -57,8 +57,8 @@
     onContextMenu,
   }: Props = $props();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const sidebar = getAcpSidebarController();
+  const reviewKey = $derived(sidebar.reviewSessionKey(session));
   let rowElement = $state<HTMLDivElement | null>(null);
 
   // Svelte evaluates transition params when the outro starts, so this reads
@@ -122,11 +122,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   onDestroy(() => {
     if (rowElement) sidebar.unmountConversationPreviewRow(reviewKey, rowElement);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
 </script>
 
 <div
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  bind:this={rowElement}
   role="presentation"
   out:fly|global={{ x: -32, opacity: 0, duration: exitDuration(), easing: cubicIn }}
   onoutrostart={handleOutroStart}
@@ -135,7 +135,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   onpointerleave={() => sidebar.leaveConversationPreview(reviewKey)}
   onpointerdown={() => sidebar.cancelConversationPreviewOpen(reviewKey)}
   class={[
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "outline-hidden hover:bg-psx-menu-hover-background group relative flex w-full min-w-0 items-center rounded-[6px]",
     // Source-list selection, styled in the desktop stylesheet off this class
     // rather than here: the fill and its ring are desktop-only — see app.css.
     selected && desktop ? "desktop-sidebar-row-selected" : "",
