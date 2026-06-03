@@ -58,11 +58,11 @@
   const updatedAtLabel = $derived(
     session.updatedAt ? formatRelativeTimeWithoutAgo(session.updatedAt) : null,
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   // Waiting for user input (elicitation / permission prompt) shows an amber dot
   // rather than the working spinner: the agent is blocked on the user, not busy.
   const showTimeColumnIndicator = $derived(working && !waitingForUser);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const actionButtonClass =
     "text-psx-foreground-secondary hover:text-psx-foreground-primary outline-hidden focus-visible:outline-psx-focus flex size-6 shrink-0 items-center justify-center rounded-[5px] focus-visible:outline-2 transition-colors duration-200 ease-out";
 </script>
 
@@ -106,26 +106,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       oncontextmenu={(event) => onContextMenu?.(event)}
     >
       {@render agentIconSlot()}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <span
+        class={[
           "flex min-w-0 flex-1 items-center gap-1",
           desktop ? "text-[13px]/[16px]" : "text-sm",
           working && !waitingForUser && !desktop && !titleClass && "font-semibold",
           isDraft && "text-psx-foreground-secondary",
           titleClass,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        ]}
+      >
         {#if showDraftIcon}
           <Icon name="pencil" size={12} class="shrink-0" aria-hidden="true" />
         {/if}
         <span class="min-w-0 truncate">{title}</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </span>
     </button>
 
     <!-- Keep the action gutter stable so hovering never relayouts the row. -->
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div
       class="pointer-events-none relative z-10 flex min-w-[2rem] shrink-0 items-center justify-end"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    >
       {#if shortcutHint}
         <Kbd
           label={shortcutHint}
@@ -174,9 +174,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           <Icon name="archive" size={14} />
         </button>
       </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </div>
   {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</div>
 
 <style lang="postcss">
   .sidebar-agent-icon-slot {
