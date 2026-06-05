@@ -42,11 +42,11 @@
 
   <span class="text-auto flex min-w-0 items-baseline gap-1.5 text-current">
     <span class="shrink-0">Run Shell Command:</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <span
+      class="block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-mono opacity-90"
+    >
       {displayCommand}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </span>
   </span>
 
   {#if status}

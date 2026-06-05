@@ -3,7 +3,7 @@ load("@rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "acpproxy",
     srcs = [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "agent_registry.go",
         "claude_auth_probe.go",
         "client.go",
         "elicitation.go",
@@ -38,7 +38,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 go_test(
     name = "acpproxy_test",
     srcs = [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "agent_registry_test.go",
         "claude_auth_probe_test.go",
         "client_test.go",
         "events_test.go",

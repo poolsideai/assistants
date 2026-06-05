@@ -6,7 +6,7 @@ import {
   getToolCommandHeads,
   getToolCommandLabel,
   getToolDescription,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  getToolSearchQuery,
   isPermissionDeniedToolCall,
 } from "./toolStatus";
 
@@ -75,77 +75,77 @@ describe("ACP tool status helpers", () => {
     expect(getToolCommandLabel(tool)).toBe("cd, echo");
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("extracts shell commands from ACP argv raw input", () => {
+    const tool = {
+      kind: "execute",
+      title: "Run shell command",
+      rawInput: {
+        command: ["/bin/zsh", "-lc", 'git commit -m "feat: improve ACP tool rendering"'],
+      },
+    } as const;
+
+    expect(getToolCommand(tool)).toBe('git commit -m "feat: improve ACP tool rendering"');
+    expect(getToolCommandHead(tool)).toBe("git");
+    expect(getToolCommandLabel(tool)).toBe("git");
+  });
+
+  it("does not parse multiline shell command titles from their last colon", () => {
+    const command = `git commit -m "$(cat <<'EOF'
+feat: improve ACP tool rendering
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+EOF
+)"`;
+    const tool = {
+      kind: "execute",
+      title: command,
+      rawInput: undefined,
+    } as const;
+
+    expect(getToolCommand(tool)).toBe(command);
+    expect(getToolCommandHead(tool)).toBe("git");
+    expect(getToolCommandLabel(tool)).toBe("git");
+    expect(getToolDescription(tool)).toBeUndefined();
+  });
+
+  it("prefers parsed ACP commands over multiline title fallback", () => {
+    const tool = {
+      kind: "execute",
+      title: `git commit -m "$(cat <<'EOF'
+feat: improve ACP tool rendering
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+EOF
+)"`,
+      rawInput: {
+        command: [
+          "/bin/zsh",
+          "-lc",
+          `git commit -m "$(cat <<'EOF'
+feat: improve ACP tool rendering
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+EOF
+)"`,
+        ],
+        parsed_cmd: [
+          {
+            cmd: `git commit -m "$(cat <<'EOF'
+feat: improve ACP tool rendering
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+EOF
+)"`,
+            type: "unknown",
+          },
+        ],
+      },
+    } as const;
+
+    expect(getToolCommandHead(tool)).toBe("git");
+    expect(getToolCommandLabel(tool)).toBe("git");
+  });
+
   it("prefers Poolside command head metadata over raw input and title fallbacks", () => {
     const tool = {
       kind: "execute",
@@ -174,30 +174,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       "cd, npm and 1 more command",
     );
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  it("extracts search queries from raw input", () => {
+    expect(
+      getToolSearchQuery({ kind: "search", title: "Search", rawInput: { query: "tool_call" } }),
+    ).toBe("tool_call");
+    expect(
+      getToolSearchQuery({ kind: "search", title: "Grep", rawInput: { pattern: "ToolHeader" } }),
+    ).toBe("ToolHeader");
+  });
+
+  it("extracts search queries from normalized search titles", () => {
+    expect(getToolSearchQuery({ kind: "search", title: "Search tool_call in src/acp" })).toBe(
+      "tool_call",
+    );
+    expect(getToolSearchQuery({ kind: "search", title: "Search ToolHeader" })).toBe("ToolHeader");
+  });
+
+  it("does not extract search queries from non-search tools", () => {
+    expect(
+      getToolSearchQuery({
+        kind: "execute",
+        title: "Search tool_call",
+        rawInput: { query: "tool_call" },
+      }),
+    ).toBeUndefined();
+  });
 });

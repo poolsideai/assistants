@@ -155,12 +155,12 @@ export const markdownHost: MarkdownHostAdapter = {
     );
   },
   getSlashCommands() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let chatSession;
+    try {
+      chatSession = getACPChatSessionScope();
+    } catch {
+      return { skills: [], commands: [] };
+    }
     return resolvedSlashCommandNames(chatSession.availableCommands, installedSkills.commands);
   },
   getSlashCommandIcon: slashCommandIcon,

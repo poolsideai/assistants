@@ -1,10 +1,10 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { TurnMetadata } from "../../../TurnMaterializer";
+import type { ToolCall } from "../../../types";
 import type { SessionEventGroupItem } from "../../SessionEventsState.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getDiffPath, getLocationPath, getRawInputPath } from "../../shared/toolPaths";
+import { isExecCommandToolCall } from "./execCommandTool";
 import { isMcpToolCall, isSkillToolCall } from "./toolCategory";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 type ToolCallKind = NonNullable<ToolCall["kind"]>;
 
 /**
@@ -14,26 +14,26 @@ type ToolCallKind = NonNullable<ToolCall["kind"]>;
  */
 type ToolGroupKind = ToolCallKind | "mcp" | "skill";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const EDIT_KINDS = new Set<ToolCall["kind"]>(["edit", "delete", "move"]);
+
+export function summarizeToolGroup(events: SessionEventGroupItem[], turn?: TurnMetadata): string {
+  const tools = events
+    .map((item) => item.event)
+    .filter((event): event is ToolCall => event.eventKind === "tool_call");
+  const editedFiles = new Set<string>();
+  let commandCount = 0;
   let mcpCount = 0;
   let skillCount = 0;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  for (const tool of tools) {
+    if (EDIT_KINDS.has(tool.kind)) {
+      for (const path of getEditedPaths(tool)) {
+        editedFiles.add(path);
+      }
       // Counted as an edit; don't also tally it as a command/MCP/skill. Without
       // this, an edit-kind MCP/skill tool lands in two categories at once.
       continue;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
     // MCP tools and skills are broken out from the command count so the summary
     // reads "…, used 2 MCP tools" rather than lumping them into "ran N commands".
     if (isMcpToolCall(tool)) {
@@ -41,12 +41,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     } else if (isSkillToolCall(tool)) {
       skillCount++;
     } else if (isExecCommandToolCall(tool) || tool.kind === "execute") {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      commandCount += commandInvocationCount(tool);
+    }
+  }
+
+  const parts: string[] = [];
+  const duration = formatDuration(turn?.startedAt, turn?.endedAt);
   if (turn?.interrupted) {
     parts.push(duration ? `Interrupted after ${duration}` : "Interrupted");
   } else if (duration) {
@@ -56,7 +56,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   if (commandCount > 0) parts.push(`ran ${countOf(commandCount, "command")}`);
   if (mcpCount > 0) parts.push(`used ${countOf(mcpCount, "MCP tool")}`);
   if (skillCount > 0) parts.push(`used ${countOf(skillCount, "skill")}`);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   // Every count was zero and the turn had no duration (e.g. a group of only
   // read/search tools): fall back to a plain step count like the live label —
   // "think" filler stays out of the count unless it is all there is, matching
@@ -66,9 +66,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return sentenceCase(countOf(realSteps > 0 ? realSteps : tools.length, "step"));
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return sentenceCase(parts.join(", "));
+}
+
 /**
  * Label for a group formed while the turn streams — "grouped" mode folds each
  * run of completed tools, "compact" folds the whole turn — e.g. "Read 2 files,
@@ -164,41 +164,41 @@ function countOf(count: number, noun: string): string {
   return `${count} ${count === 1 ? noun : `${noun}s`}`;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function getEditedPaths(tool: ToolCall): string[] {
+  const paths = new Set<string>();
+  for (const path of [getLocationPath(tool), getDiffPath(tool), getRawInputPath(tool)]) {
+    if (path) paths.add(path);
+  }
+  for (const item of tool.content ?? []) {
+    if (item.type === "diff" && item.path) paths.add(item.path);
+  }
+  return [...paths];
+}
+
+function commandInvocationCount(tool: ToolCall): number {
+  const rawInput = asRecord(tool.rawInput);
+  const commands = rawInput?.commands;
+  if (Array.isArray(commands)) {
+    const count = commands.filter((item) => typeof item === "string" && item.length > 0).length;
+    if (count > 0) return count;
+  }
+  return 1;
+}
+
+function formatDuration(startedAt: string | undefined, endedAt: string | undefined): string | null {
+  if (!startedAt || !endedAt) return null;
+  const started = Date.parse(startedAt);
+  const ended = Date.parse(endedAt);
+  if (!Number.isFinite(started) || !Number.isFinite(ended) || ended <= started) return null;
+  const minutes = Math.max(1, Math.round((ended - started) / 60_000));
+  return `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+}
+
+function sentenceCase(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  if (value == null || typeof value !== "object" || Array.isArray(value)) return;
+  return value as Record<string, unknown>;
+}

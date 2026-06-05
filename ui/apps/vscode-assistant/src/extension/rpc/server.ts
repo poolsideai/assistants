@@ -9,7 +9,7 @@ import type {
   AcpChatPanelMetadata,
   AssistantTerminalCommandMode,
   AssistantTerminalTab,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  CloseAcpChatOptions,
   Host,
   HostMessage,
   OpenAcpChatOptions,
@@ -63,7 +63,7 @@ export class HostRPCServer implements Host {
     private webview: vscode.Webview,
     private options: {
       acpChatPanels?: AcpChatPanels;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      getAcpChatPanelConversationId?: () => string;
     } = {},
   ) {}
   async getFileIconDefinition(_iconName: string): Promise<string | undefined> {
@@ -118,7 +118,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   async createAssistantTerminal(
     worktreePath: string,
     command?: string,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    env?: Record<string, string>,
     commandMode?: AssistantTerminalCommandMode,
     cwd?: string,
   ): Promise<AssistantTerminalTab> {
@@ -142,7 +142,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const terminal = vscode.window.createTerminal({
       name: "poolside",
       cwd: resolvedCwd || undefined,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      env,
       ...commandLaunch,
       iconPath: {
         dark: vscode.Uri.parse(
@@ -209,7 +209,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   async jsonrpc<I, O>(methodName: string, params: I): Promise<O> {
     const client = await getHelperSingleton(this.system);
     const result = await client.sendRequest(methodName, params);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const conversationId = this.options.getAcpChatPanelConversationId?.();
     if (this.options.acpChatPanels && conversationId) {
       let sessionId: string | undefined;
       switch (methodName) {
@@ -223,11 +223,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           break;
       }
       if (sessionId) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        this.options.acpChatPanels.attachSessionId(
+          conversationId,
+          agentServerFromParams(params),
+          sessionId,
+        );
       }
     }
     return result;
@@ -245,9 +245,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   revealSourceControl = revealSourceControl;
   ready = () => {
     if (this.options.acpChatPanels) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const conversationId = this.options.getAcpChatPanelConversationId?.();
+      if (conversationId) {
+        this.options.acpChatPanels.panelReady(conversationId);
       }
       return;
     }
@@ -271,8 +271,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     await this.system.acpChatPanels.openSession(opts);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async closeAcpChat(opts: CloseAcpChatOptions): Promise<void> {
+    this.system.acpChatPanels.closeSession(opts);
   }
 
   updateAcpChatPanelMetadata(metadata: AcpChatPanelMetadata): void {

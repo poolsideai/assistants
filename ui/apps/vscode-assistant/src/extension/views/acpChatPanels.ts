@@ -7,7 +7,7 @@ import type {
 import type {
   AcpChatPanelMetadata,
   ActiveFileContext,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  CloseAcpChatOptions,
   Configuration,
   Keybindings,
   Language,
@@ -25,9 +25,9 @@ export const POOLSIDE_ACP_CHAT_VIEW_TYPE = "poolside-acp-chat" as const;
 export const DEFAULT_AGENT_SERVER = "poolside";
 
 export interface AcpChatPanelState {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  conversationId: string;
   agentServer: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  sessionId?: string;
   agentName?: string;
   agentIconUrl?: string;
   cwd?: string;
@@ -38,7 +38,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 export interface AcpChatPanelInitialState {
   kind: "pending" | "session";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  conversationId: string;
   agentServer?: string;
   sessionId?: string;
   cwd?: string;
@@ -50,7 +50,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 interface PanelEntry {
   panel: vscode.WebviewPanel;
   rpcServer: HostRPCServer;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  conversationId: string;
   agentServer?: string;
   sessionId?: string;
   agentName?: string;
@@ -80,8 +80,8 @@ function normalizeAgentServer(agentServer: string | undefined): string {
   return agentServer || DEFAULT_AGENT_SERVER;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function newConversationId(): string {
+  return `conversation:${randomUUID()}`;
 }
 
 function panelTitle(sessionTitle: string | undefined): string {
@@ -98,8 +98,8 @@ function agentNameFromServer(agentServer: string): string {
  * never hosts the chat in ACP mode; instead it calls `openAcpChat` on the host
  * which delegates to this manager.
  *
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ * Panel keys are conversation IDs. The protocol session ID is kept on the
+ * entry only for routing ACP messages and syncing view state.
  */
 export class AcpChatPanels {
   private panels = new Map<string, PanelEntry>();
@@ -166,7 +166,7 @@ export class AcpChatPanels {
     const initial: AcpChatPanelInitialState = opts.sessionId
       ? {
           kind: "session",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          conversationId,
           agentServer,
           sessionId: opts.sessionId,
           cwd: opts.cwd,
@@ -174,9 +174,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           readOnly: opts.readOnly,
           fallbackCwds: cloneStringArray(opts.fallbackCwds),
         }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      : { kind: "pending", conversationId };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await this.bindPanel(panel, initial, {
       agentName: opts.agentName,
       agentIconUrl: opts.agentIconUrl,
       sessionTitle: opts.sessionTitle,
@@ -186,12 +186,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   async focusInput(): Promise<void> {
     const entry = this.mostRecentPanel();
     if (!entry) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const conversationId = newConversationId();
+      this.focusInputWhenReady.add(conversationId);
       try {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        await this.openSession({ conversationId });
       } catch (error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        this.focusInputWhenReady.delete(conversationId);
         throw error;
       }
       return;
@@ -206,15 +206,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     void this.postToPanel(entry, "togglePlanMode", []);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  closeSession(session: string | CloseAcpChatOptions): void {
+    const conversationId = typeof session === "string" ? session : session.conversationId;
+    const entry = this.panels.get(conversationId);
     if (!entry) return;
     entry.panel.dispose();
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  panelReady(conversationId: string): void {
+    const entry = this.panels.get(conversationId);
     if (!entry) return;
     this.replayHostState(entry);
     const replayAgentExit = this.pendingAgentExits.get(conversationId);
@@ -222,7 +222,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       this.pendingAgentExits.delete(conversationId);
       replayAgentExit();
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (this.focusInputWhenReady.delete(conversationId)) {
       void this.focusEntryInput(entry);
     }
   }
@@ -294,34 +294,34 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   /**
    * Called when the extension observes a successful `session/new` response
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+   * from a panel's outbound RPC. The panel is identified by its conversation
+   * id; the protocol session ID is attached for routing.
    */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  attachSessionId(conversationId: string, agentServer: string, sessionId: string): void {
+    const entry = this.panels.get(conversationId);
+    if (!entry) return;
     agentServer = normalizeAgentServer(agentServer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    entry.agentServer = agentServer;
+    entry.sessionId = sessionId;
+    entry.agentName ??= agentNameFromServer(agentServer);
+    entry.lastTouchedAt = Date.now();
+    this.applyPanelNavState(entry);
     this.syncPanelViewState(entry);
   }
 
   acpNavDidChange(state: ACPNavState, opts: { syncViewState?: boolean } = {}): void {
     this.navConversations.clear();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const archivedConversationIds = new Set<string>();
     for (const conversation of state.conversations ?? []) {
       if (!conversation.active || conversation.archived) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        archivedConversationIds.add(conversation.id);
         continue;
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.navConversations.set(conversation.id, conversation);
     }
 
     for (const entry of Array.from(this.panels.values())) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (archivedConversationIds.has(entry.conversationId)) {
         entry.panel.dispose();
         continue;
       }
@@ -349,19 +349,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   /**
    * Webview panel serializer entrypoint. Rebinds a restored panel back into
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+   * the map under its conversation id.
    */
   async adoptPanel(panel: vscode.WebviewPanel, state: AcpChatPanelState): Promise<void> {
     const agentServer = normalizeAgentServer(state.agentServer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (this.panels.has(state.conversationId)) {
       panel.dispose();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.panels.get(state.conversationId)!.panel.reveal();
       return;
     }
 
     const initial: AcpChatPanelInitialState = {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      kind: state.sessionId ? "session" : "pending",
+      conversationId: state.conversationId,
       agentServer,
       sessionId: state.sessionId,
       cwd: state.cwd,
@@ -397,13 +397,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     const rpcServer = new HostRPCServer(this.system, panel.webview, {
       acpChatPanels: this,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      getAcpChatPanelConversationId: () => initial.conversationId,
     });
     const messageDisposable = panel.webview.onDidReceiveMessage(rpcServer.route.bind(rpcServer));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const entry: PanelEntry = {
       panel,
       rpcServer,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      conversationId: initial.conversationId,
       agentServer: initial.agentServer,
       sessionId: initial.sessionId,
       agentName: metadata.agentName,
@@ -411,22 +411,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       sessionTitle: metadata.sessionTitle,
       lastTouchedAt: Date.now(),
       iconRequestId: 0,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      disposables: [messageDisposable],
     };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const viewStateDisposable = panel.onDidChangeViewState(() => {
+      entry.lastTouchedAt = Date.now();
       this.syncPanelViewState(entry);
       this.broadcastActiveAgent();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+
+    entry.disposables.push(viewStateDisposable);
+    this.panels.set(entry.conversationId, entry);
     this.broadcastActiveAgent();
 
     panel.onDidDispose(() => {
       for (const d of entry.disposables) d.dispose();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (this.panels.get(entry.conversationId) === entry) {
+        this.panels.delete(entry.conversationId);
         this.pendingAgentExits.delete(entry.conversationId);
       }
       this.broadcastActiveAgent();
@@ -450,7 +450,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const { agentServer, message } = unwrapBridgeMessage(params);
     const sessionId = sessionIdFromMessage(message);
     if (sessionId) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const entry = this.panelForSession(agentServer, sessionId);
       if (entry) {
         entry.lastTouchedAt = Date.now();
         void this.postToPanel(entry, "jsonrpcNotify", [params]);
@@ -467,7 +467,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const { agentServer, message } = unwrapBridgeMessage(params);
     const sessionId = sessionIdFromMessage(message);
     const entry = sessionId
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      ? this.panelForSession(agentServer, sessionId)
       : this.mostRecentPanelForAgent(agentServer);
     if (!entry) {
       throw new Error(
@@ -495,7 +495,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const agentServer = agentServerFromParams(params);
     const sessionId = sessionIdFromParams(params);
     const entry = sessionId
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      ? this.panelForSession(agentServer, sessionId)
       : this.mostRecentPanelForAgent(agentServer);
     if (!entry) {
       throw new Error(
@@ -525,13 +525,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   private panelsForAgent(agentServer: string): PanelEntry[] {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return Array.from(this.panels.values()).filter((entry) => entry.agentServer === agentServer);
+  }
+
+  private panelForSession(agentServer: string, sessionId: string): PanelEntry | undefined {
+    agentServer = normalizeAgentServer(agentServer);
+    return Array.from(this.panels.values()).find(
+      (entry) => entry.agentServer === agentServer && entry.sessionId === sessionId,
     );
   }
 
@@ -583,7 +583,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.syncPanelViewState(entry);
     const posted = await this.postToPanel(entry, "focusInput", []);
     if (!posted) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.focusInputWhenReady.add(entry.conversationId);
     }
   }
 
@@ -659,7 +659,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       return;
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const conversation = this.navConversations.get(entry.conversationId);
     if (conversation?.title) {
       entry.sessionTitle = conversation.title;
     }
@@ -782,9 +782,9 @@ function isAcpChatPanelState(state: unknown): state is AcpChatPanelState {
   return (
     typeof state === "object" &&
     state !== null &&
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    typeof (state as AcpChatPanelState).conversationId === "string" &&
     typeof (state as AcpChatPanelState).agentServer === "string" &&
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ((state as AcpChatPanelState).sessionId === undefined ||
       typeof (state as AcpChatPanelState).sessionId === "string") &&
     ((state as AcpChatPanelState).agentName === undefined ||
       typeof (state as AcpChatPanelState).agentName === "string") &&

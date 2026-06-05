@@ -9,13 +9,13 @@ import {
 } from "../../../../localAgentIcon";
 
 export function agentServerOptions(repo: ACPSessionRepository): string[] {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return repo.agents.agentServerNames.length > 0
+    ? repo.agents.agentServerNames
+    : [DEFAULT_AGENT_SERVER];
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function selectedAgentServer(scope: ACPChatSessionScope): string {
+  return scope.activeAgentServer || DEFAULT_AGENT_SERVER;
 }
 
 export function agentName(registry: AcpAgentRegistryRepository, agentServer: string): string {
@@ -99,8 +99,8 @@ export function agentBrandTint(
 }
 
 export function shouldResetSessionForAgentSelection(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  scope: ACPChatSessionScope,
   agentServer: string,
 ): boolean {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return scope.activeAgentServer !== agentServer || scope.sessionAgentServer !== agentServer;
 }

@@ -10,7 +10,7 @@ import {
 } from "./agentServers";
 
 describe("resolveAgentServers", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("adds the default Poolside registry server to custom config", () => {
     const servers = resolveAgentServers({
       echo: {
         command: "node",
@@ -19,8 +19,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
 
     expect(servers[DEFAULT_AGENT_SERVER]).toEqual({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      command: "",
+      args: undefined,
     });
     expect(servers).not.toHaveProperty(LOCAL_AGENT_SERVER);
     expect(servers.echo).toEqual({
@@ -29,7 +29,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("preserves configured Poolside entries", () => {
     const servers = resolveAgentServers({
       [DEFAULT_AGENT_SERVER]: {
         command: "pool",
@@ -42,31 +42,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
 
     expect(servers[DEFAULT_AGENT_SERVER]).toEqual({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      command: "pool",
+      args: ["custom-acp"],
       default_config_options: { mode: "plan" },
     });
     expect(Object.keys(servers)).toEqual([DEFAULT_AGENT_SERVER, "echo"]);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("replaces legacy self placeholders for Poolside entries", () => {
+    for (const command of ["{{SELF}}", "{{$SELF}}"]) {
+      const servers = resolveAgentServers({
+        [DEFAULT_AGENT_SERVER]: {
+          command,
+          args: ["acp"],
+          default_config_options: { mode: "plan" },
+        },
+      });
+
+      expect(servers[DEFAULT_AGENT_SERVER]).toEqual({
+        command: "",
+        args: undefined,
+        default_config_options: { mode: "plan" },
+      });
+    }
+  });
+
   it("treats legacy default as an alias for Poolside", () => {
     const servers = resolveAgentServers({
       [LEGACY_DEFAULT_AGENT_SERVER]: {

@@ -1,13 +1,13 @@
 import { Providers } from "@poolsideai/components/storybook";
 import { definePreviewConfig } from "@poolsideai/storybook-config";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import ACPContextDecorator from "./ACPContextDecorator.svelte";
 import ElicitationDecorator from "./ElicitationDecorator.svelte";
 import "./globals.css";
 
 const preview = definePreviewConfig({
   decorators: [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    () => ({
+      Component: ACPContextDecorator,
     }),
     (_, { parameters }) => ({
       Component: ElicitationDecorator,

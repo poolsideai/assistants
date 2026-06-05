@@ -1,79 +1,79 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { describe, expect, it } from "vitest";
+import type { SessionEventGroupItem } from "../../SessionEventsState.svelte";
 import { summarizeLiveToolGroup, summarizeToolGroup } from "./toolGroupSummary";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+describe("summarizeToolGroup", () => {
+  it("summarizes duration, unique edited files, and command count", () => {
+    const events: SessionEventGroupItem[] = [
+      {
+        index: 0,
+        event: {
+          eventKind: "tool_call",
+          toolCallId: "edit-1",
+          title: "Edit src/app.ts",
+          kind: "edit",
+          status: "completed",
+          rawInput: { path: "/repo/src/app.ts" },
+        },
+      },
+      {
+        index: 1,
+        event: {
+          eventKind: "tool_call",
+          toolCallId: "edit-2",
+          title: "Edit src/app.ts",
+          kind: "edit",
+          status: "completed",
+          content: [
+            {
+              type: "diff",
+              path: "/repo/src/app.ts",
+              oldText: "a",
+              newText: "b",
+            },
+          ],
+        },
+      },
+      {
+        index: 2,
+        event: {
+          eventKind: "tool_call",
+          toolCallId: "run-1",
+          title: "exec_command",
+          kind: "execute",
+          status: "completed",
+          rawInput: { cmd: "pnpm test" },
+        },
+      },
+    ];
+
+    expect(
+      summarizeToolGroup(events, {
+        startedAt: "2026-06-02T10:00:00.000Z",
+        endedAt: "2026-06-02T10:04:30.000Z",
+        startIndex: 0,
+        endIndex: 2,
+      }),
+    ).toBe("Worked for 5 minutes, edited 1 file, ran 1 command");
+  });
+
+  it("omits duration when turn timestamps are unavailable", () => {
+    expect(
+      summarizeToolGroup([
+        {
+          index: 0,
+          event: {
+            eventKind: "tool_call",
+            toolCallId: "run-1",
+            title: "exec_command",
+            kind: "execute",
+            status: "completed",
+            rawInput: { commands: ["pnpm lint", "pnpm test"] },
+          },
+        },
+      ] satisfies SessionEventGroupItem[]),
     ).toBe("Ran 2 commands");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
 
   it("marks an interrupted turn", () => {
     expect(
@@ -114,7 +114,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       "2 steps",
     );
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+});
 
 describe("summarizeLiveToolGroup", () => {
   it("joins per-kind counts in a stable order", () => {

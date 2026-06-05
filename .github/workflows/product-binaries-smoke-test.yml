@@ -1,5 +1,5 @@
 # simplest possible smoke for now
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+name: helper smoke test
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ on:
       - '.github/workflows/product-binaries-smoke-test.yml'
 
 jobs:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  e2e-helper:
     strategy:
       fail-fast: false
       matrix:
@@ -29,7 +29,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       contents: read
 
     env:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      # Ensure helper writes logs/sessions/trajectories inside the workspace
       XDG_STATE_HOME: ${{ github.workspace }}/.state
 
     steps:
@@ -51,7 +51,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           echo "HELPER_BIN=$PWD/poolside-helper${ext}" >> "$GITHUB_ENV"
 
       # the simplest of smoke tests fow now: does it start without crashing
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      - name: Run helper smoke test
         # shouldn't be slow
         timeout-minutes: 5
         run: |

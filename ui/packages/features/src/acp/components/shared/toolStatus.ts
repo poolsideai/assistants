@@ -32,15 +32,15 @@ export function getToolCommand(tool: ToolDisplayFields): string | undefined {
   const command = rawInput?.cmd ?? rawInput?.command;
   if (typeof command === "string" && command.length > 0) return command;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const parsedCommand = getParsedCommand(rawInput?.parsed_cmd);
+  if (parsedCommand) return parsedCommand;
+
+  const shellCommand = getShellCommand(command);
+  if (shellCommand) return shellCommand;
+
   if (tool.title) {
     const separator = tool.title.lastIndexOf(":");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (separator !== -1 && !hasLineBreak(tool.title)) {
       const titleCommand = tool.title.slice(separator + 1).trim();
       if (isCommandLike(titleCommand, tool.kind)) return titleCommand;
     }
@@ -79,28 +79,28 @@ export function getToolCommandLabel(tool: ToolDisplayFields): string | undefined
   return getToolCommandHead(tool);
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function getToolSearchQuery(tool: ToolDisplayFields): string | undefined {
+  if (tool.kind !== "search") return;
+
+  const rawInput = asRecord(tool.rawInput);
+  const query = [
+    rawInput?.query,
+    rawInput?.pattern,
+    rawInput?.regex,
+    rawInput?.search,
+    rawInput?.searchTerm,
+    rawInput?.search_term,
+  ]
+    .map(asString)
+    .find(Boolean);
+  if (query) return query;
+
+  if (!tool.title || hasLineBreak(tool.title)) return;
+
+  const titleMatch = /^Search\s+(.+?)(?:\s+in\s+.+)?$/i.exec(tool.title.trim());
+  return titleMatch?.[1]?.trim();
+}
+
 export function getToolDescription(tool: ToolDisplayFields): string | undefined {
   const rawInput = asRecord(tool.rawInput);
   const description = rawInput?.description;
@@ -108,7 +108,7 @@ export function getToolDescription(tool: ToolDisplayFields): string | undefined 
 
   const command = getToolCommand(tool);
   if (!tool.title || !command) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  if (hasLineBreak(tool.title)) return;
 
   const separator = tool.title.lastIndexOf(":");
   if (separator === -1) return;
@@ -125,10 +125,10 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
   return value as Record<string, unknown>;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function asString(value: unknown): string | undefined {
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
 function stringList(value: unknown): string[] {
   if (!Array.isArray(value) || !value.every((item): item is string => typeof item === "string")) {
     return [];
@@ -136,34 +136,34 @@ function stringList(value: unknown): string[] {
   return value.filter((item) => item.length > 0);
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function getParsedCommand(value: unknown): string | undefined {
+  if (!Array.isArray(value)) return;
+
+  for (const item of value) {
+    const parsed = asRecord(item);
+    const cmd = parsed?.cmd;
+    if (typeof cmd === "string" && cmd.length > 0) return cmd;
+  }
+}
+
+function getShellCommand(value: unknown): string | undefined {
+  if (!Array.isArray(value) || !value.every((item): item is string => typeof item === "string")) {
+    return;
+  }
+
+  const shellFlagIndex = value.findIndex((part) => part === "-c" || part === "-lc");
+  if (shellFlagIndex >= 0) {
+    const command = value[shellFlagIndex + 1];
+    return command && command.length > 0 ? command : undefined;
+  }
+
+  return value.length > 0 ? value.join(" ") : undefined;
+}
+
+function hasLineBreak(value: string): boolean {
+  return /[\r\n]/.test(value);
+}
+
 function isCommandLike(value: string, kind: ToolDisplayFields["kind"]): boolean {
   if (kind && kind !== "execute" && kind !== "other") return false;
   return value.length > 0 && /^[\w./-]+(?:\s|$)/.test(value);

@@ -70,7 +70,7 @@ type ACPNavConversation struct {
 	Active             bool                          `json:"active"`
 	Archived           bool                          `json:"archived"`
 	WorkingDirectories []string                      `json:"workingDirectories"`
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	Metadata           json.RawMessage               `json:"metadata,omitempty"`
 	LiveStatus         *ACPNavConversationLiveStatus `json:"liveStatus,omitempty"`
 }
 

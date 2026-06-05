@@ -110,7 +110,7 @@ pub async fn create_assistant_terminal(
     state: State<'_, TerminalState>,
     worktree_path: String,
     command: Option<String>,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    env: Option<HashMap<String, String>>,
     command_mode: Option<AssistantTerminalCommandMode>,
     cwd: Option<String>,
     cols: Option<u16>,
@@ -166,10 +166,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         .master
         .take_writer()
         .map_err(|error| error.to_string())?;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let startup_command = command
+        .as_deref()
+        .map(str::trim)
+        .filter(|command| !command.is_empty());
     let login_shell = crate::shell_env::login_shell();
     let shell = shell_for_terminal(
         login_shell.clone(),
@@ -203,9 +203,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
     if let Some(terminal_env) = env.as_ref() {
         for (key, value) in terminal_env {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            shell_command.env(key, value);
+        }
+    }
     if use_zsh_integration {
         match zsh_terminal_env(&app, env.as_ref()) {
             Ok(integration_env) => {
@@ -748,28 +748,28 @@ fn shell_for_terminal(
     command_mode: AssistantTerminalCommandMode,
 ) -> ShellSpec {
     if cfg!(windows) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if let Some(command) = command {
+            if let Ok(comspec) = env::var("COMSPEC") {
+                return ShellSpec {
+                    program: comspec,
+                    args: vec!["/Q".to_string(), "/C".to_string(), command.to_string()],
                     write_startup_command: command_mode
                         == AssistantTerminalCommandMode::Interactive,
                     use_zsh_integration: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                };
+            }
+            return ShellSpec {
+                program: "powershell.exe".to_string(),
+                args: vec![
+                    "-NoLogo".to_string(),
+                    "-NoProfile".to_string(),
+                    "-Command".to_string(),
+                    command.to_string(),
+                ],
                 write_startup_command: command_mode == AssistantTerminalCommandMode::Interactive,
                 use_zsh_integration: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            };
+        }
         if let Ok(comspec) = env::var("COMSPEC") {
             return ShellSpec {
                 program: comspec,
@@ -857,7 +857,7 @@ fn created_at_millis() -> u128 {
         .map(|duration| duration.as_millis())
         .unwrap_or_default()
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 // A timestamp alone is not unique: terminals created in the same millisecond
 // (e.g. several tabs restored from a saved layout at once) would collide and
 // silently overwrite each other's records, crossing their output streams.
@@ -868,20 +868,20 @@ fn next_terminal_id() -> String {
     format!("terminal-{}-{}", created_at_millis(), sequence)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[cfg(not(windows))]
     fn command_terminals_start_interactive_shell() {
         let shell = shell_for_terminal(
             "/bin/zsh".to_string(),
             Some("pnpm clean\nexit"),
             AssistantTerminalCommandMode::Interactive,
         );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+        assert_eq!(shell.program, "/bin/zsh");
         assert_eq!(shell.args, vec!["-il".to_string()]);
         assert!(shell.write_startup_command);
         assert_eq!(shell.use_zsh_integration, cfg!(target_os = "macos"));
@@ -903,19 +903,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         );
         assert!(!shell.write_startup_command);
         assert!(!shell.use_zsh_integration);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+
+    #[test]
+    #[cfg(not(windows))]
+    fn empty_command_terminals_remain_interactive() {
         let shell = shell_for_terminal(
             "/bin/zsh".to_string(),
             None,
             AssistantTerminalCommandMode::Interactive,
         );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+        assert_eq!(shell.program, "/bin/zsh");
+        assert_eq!(shell.args, vec!["-il".to_string()]);
         assert!(!shell.write_startup_command);
         assert_eq!(shell.use_zsh_integration, cfg!(target_os = "macos"));
     }
@@ -1002,5 +1002,5 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             .expect("metadata update");
 
         assert_eq!(update.cwd, Some("C:/Users/poolie/project".to_string()));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+}

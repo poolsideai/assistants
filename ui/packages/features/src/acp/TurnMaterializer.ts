@@ -3,7 +3,7 @@ import { isHandoffContextBlock } from "./features/session/handoffContext";
 import { isHostContextBlock, stripInjectedContextBlock } from "./features/session/hostContext";
 import { ACP_USER_MESSAGE_STEER_META_KEY } from "./features/session/steering";
 import { unwrapUserMessageBlock } from "./features/session/userMessageBoundary";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { applyShellToolOverride } from "./shellToolOverride";
 import type { AgentMessage, AgentThought, SessionEvent, ToolCall, UserMessage } from "./types";
 
 export type { SessionEvent } from "./types";
@@ -18,19 +18,19 @@ export const MAX_AGENT_THOUGHT_TEXT_CHARS = 64 * 1024;
 export const MAX_AGENT_THOUGHT_CONTENT_BYTES = 256 * 1024;
 const ESTIMATED_CONTENT_BLOCK_OVERHEAD_BYTES = 256;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type TurnMetadata = {
+  startedAt: string;
+  endedAt: string;
+  startIndex: number;
+  endIndex: number;
   interrupted?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+};
+
+type CurrentTurnMetadata = {
+  startedAt: string;
+  startIndex: number;
+};
+
 const chunkKindMap: Record<string, MessageKind> = {
   user_message_chunk: "user_message",
   agent_message_chunk: "agent_message",
@@ -44,13 +44,13 @@ const chunkKindMap: Record<string, MessageKind> = {
  */
 export class TurnMaterializer {
   private _events: SessionEvent[] = [];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private _turns: TurnMetadata[] = [];
   private _plan: Plan | null = null;
   private messageIndex = new Map<string, number>();
   private explicitMessageRelationships = new Map<string, string>();
   private toolCallIndex = new Map<string, number>();
   private lastMessageKey: string | null = null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private currentTurn: CurrentTurnMetadata | null = null;
 
   get events(): readonly SessionEvent[] {
     return this._events;
@@ -60,10 +60,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return this._plan;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  get turns(): readonly TurnMetadata[] {
+    return this._turns;
+  }
+
   get currentTurnStartIndex(): number | null {
     return this.currentTurn?.startIndex ?? null;
   }
@@ -106,22 +106,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.explicitMessageRelationships.clear();
     this.toolCallIndex.clear();
     this.lastMessageKey = null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this._turns = [];
+    this.currentTurn = null;
   }
 
   resetContinuation(): void {
     this.lastMessageKey = null;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  startTurn(startedAt: Date | string = new Date()): void {
+    this.currentTurn = {
+      startedAt: isoTimestamp(startedAt),
+      startIndex: this._events.length,
+    };
+  }
+
+  completeOpenToolCalls(endedAt?: Date | string): void {
     for (const event of this._events) {
       if (
         event.eventKind === "tool_call" &&
@@ -131,12 +131,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         event.status = "completed";
       }
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (endedAt !== undefined) {
+      this.finishCurrentTurn(endedAt);
+    }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  cancelOpenToolCalls(endedAt?: Date | string): void {
     for (const event of this._events) {
       if (
         event.eventKind === "tool_call" &&
@@ -146,9 +146,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         event.status = "cancelled";
       }
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (endedAt !== undefined) {
       this.finishCurrentTurn(endedAt, { interrupted: true });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
   }
 
   private applyMessageChunk(
@@ -240,14 +240,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   private applyToolCall(update: SessionUpdate & { sessionUpdate: "tool_call" }): void {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const normalizedUpdate = applyShellToolOverride(update);
+    const { sessionUpdate: _, ...rest } = normalizedUpdate;
     const idx = this._events.length;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.toolCallIndex.set(normalizedUpdate.toolCallId, idx);
+    this._events.push({
+      eventKind: "tool_call",
+      ...rest,
+    } as ToolCall);
     this.lastMessageKey = null;
   }
 
@@ -276,27 +276,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   private applyModeChange(update: SessionUpdate & { sessionUpdate: "current_mode_update" }): void {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this._events.push({
+      eventKind: "mode_change",
+      currentModeId: update.currentModeId,
+    });
     this.lastMessageKey = null;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   private finishCurrentTurn(
     endedAt: Date | string,
     { interrupted = false }: { interrupted?: boolean } = {},
   ): void {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (!this.currentTurn) return;
+    this._turns.push({
+      startedAt: this.currentTurn.startedAt,
+      endedAt: isoTimestamp(endedAt),
+      startIndex: this.currentTurn.startIndex,
+      endIndex: this._events.length - 1,
       ...(interrupted ? { interrupted } : {}),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+    this.currentTurn = null;
+  }
 }
 
 function getClaudeParentToolUseId(meta: Record<string, unknown> | null | undefined): string | null {
@@ -358,7 +358,7 @@ export function getSessionUpdateMessageId(update: {
   const stepId = update._meta?.[STEP_ID_META_KEY];
   return typeof stepId === "string" ? stepId : null;
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 /**
  * The updates that stream incrementally from the remote agent during a turn.
  * Drives both the "last remote message id" bookkeeping and the coalesced
@@ -377,9 +377,9 @@ export function isStreamingChunk(update: SessionUpdate): boolean {
   }
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function isoTimestamp(value: Date | string): string {
+  return typeof value === "string" ? value : value.toISOString();
+}
 
 // Agents may reorder plan entries between updates (e.g. moving completed items
 // around). Keep entries at their first-seen position so the rendered todo list

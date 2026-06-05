@@ -459,80 +459,80 @@ describe("TurnMaterializer", () => {
     });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("normalizes loaded sed shell calls to read tools", () => {
+    const items = applyAll([
+      {
+        sessionUpdate: "tool_call",
+        toolCallId: "tc1",
+        title: "exec_command",
+        kind: "execute",
+        rawInput: { command: "sed -n '1,120p' ui/packages/features/src/acp/TurnMaterializer.ts" },
+      } as SessionUpdate,
+    ]);
+
+    expect(items[0]).toMatchObject({
+      eventKind: "tool_call",
+      kind: "read",
+      title: "Read TurnMaterializer.ts",
+      locations: [{ path: "ui/packages/features/src/acp/TurnMaterializer.ts" }],
+    });
+  });
+
+  it("normalizes loaded rg shell calls to search tools", () => {
+    const items = applyAll([
+      {
+        sessionUpdate: "tool_call",
+        toolCallId: "tc1",
+        title: "shell",
+        kind: "execute",
+        rawInput: { command: ["bash", "-lc", 'rg -n "tool_call" ui/packages/features/src/acp'] },
+      } as SessionUpdate,
+    ]);
+
+    expect(items[0]).toMatchObject({
+      eventKind: "tool_call",
+      kind: "search",
+      title: "Search tool_call in ui/packages/features/src/acp",
+    });
+  });
+
+  it("normalizes loaded find shell calls to search tools", () => {
+    const items = applyAll([
+      {
+        sessionUpdate: "tool_call",
+        toolCallId: "tc1",
+        title: "container.exec",
+        kind: "execute",
+        rawInput: { command: ["find", "ui/packages/features/src/acp", "-name", "*.ts"] },
+      } as SessionUpdate,
+    ]);
+
+    expect(items[0]).toMatchObject({
+      eventKind: "tool_call",
+      kind: "search",
+      title: "List ui/packages/features/src/acp",
+      locations: [{ path: "ui/packages/features/src/acp" }],
+    });
+  });
+
+  it("leaves non-read/search shell calls unchanged", () => {
+    const items = applyAll([
+      {
+        sessionUpdate: "tool_call",
+        toolCallId: "tc1",
+        title: "exec_command",
+        kind: "execute",
+        rawInput: { command: "pnpm test" },
+      } as SessionUpdate,
+    ]);
+
+    expect(items[0]).toMatchObject({
+      eventKind: "tool_call",
+      kind: "execute",
+      title: "exec_command",
+    });
+  });
+
   it("completes open tool calls when a turn is finalized", () => {
     const m = new TurnMaterializer();
     m.apply(toolCall("tc1", "Generate image"));
@@ -546,34 +546,34 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(m.events[1]).toMatchObject({ toolCallId: "tc2", status: "failed" });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("tracks turn ranges from prompt lifecycle metadata", () => {
+    const m = new TurnMaterializer();
+    m.startTurn("2026-06-02T10:00:00.000Z");
     expect(m.currentTurnStartIndex).toBe(0);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    m.apply(toolCall("tc1", "Read file"));
+    m.apply(textChunk("agent_message_chunk", "done"));
+
+    m.completeOpenToolCalls("2026-06-02T10:03:00.000Z");
     expect(m.currentTurnStartIndex).toBeNull();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    expect(m.events[0]).toMatchObject({
+      eventKind: "tool_call",
+    });
+    expect(m.turns).toEqual([
+      {
+        startedAt: "2026-06-02T10:00:00.000Z",
+        endedAt: "2026-06-02T10:03:00.000Z",
+        startIndex: 0,
+        endIndex: 1,
+      },
+    ]);
+    expect(m.events[1]).toEqual({
+      eventKind: "agent_message",
+      messageId: null,
+      content: [{ type: "text", text: "done" }],
+    });
+  });
+
   it("cancels open tool calls when a turn is cancelled", () => {
     const m = new TurnMaterializer();
     m.apply(toolCall("tc1", "Generate image"));

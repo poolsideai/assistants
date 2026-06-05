@@ -7,14 +7,14 @@
   import type { ToolCall } from "../../../types";
   import ExecCommandToolHeader from "./ExecCommandToolHeader.svelte";
   import { getExecCommand, getExecOutput } from "./execCommandTool";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { WorkspaceFolder } from "@poolsideai/rpc";
 
   interface Props {
     event: ToolCall;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    workspaceFolders?: WorkspaceFolder[];
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let { event, workspaceFolders = [] }: Props = $props();
 
   let command = $derived(getExecCommand(event) ?? "exec_command");
   let output = $derived(getExecOutput(event));
@@ -24,7 +24,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<ToolRoot tool={event} {workspaceFolders}>
   <ExecCommandToolHeader {command} {status} />
 
   <ToolBody>

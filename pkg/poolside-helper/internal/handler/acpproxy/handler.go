@@ -412,7 +412,7 @@ func (h *Handler) initializedProcess(gCtx *glsp.Context, serverName string) (*pr
 }
 
 func (h *Handler) processReadyForCall(ctx context.Context, gCtx *glsp.Context, serverName string) (*process, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	_ = ctx
 	proc, err := h.initializedProcess(gCtx, serverName)
 	if err != nil {
 		return nil, err
@@ -601,7 +601,7 @@ func (h *Handler) NewSession(ctx context.Context, params *methods.ACPNewSessionP
 	resp, err := proc.newSessionLocked(ctx, req)
 	proc.mu.Unlock()
 	if err != nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		h.refreshAuthAfterCallError(ctx, params.AgentServer, err)
 		return nil, err
 	}
 	if claudeAuthResult != nil {
@@ -660,8 +660,8 @@ func (h *Handler) LoadSession(ctx context.Context, params *methods.ACPLoadSessio
 	resp, err := proc.loadSessionLocked(ctx, req)
 	proc.mu.Unlock()
 	if err != nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		h.refreshAuthAfterCallError(ctx, params.AgentServer, err)
+		return resp, err
 	}
 	if flushErr := client.waitForSessionUpdates(ctx); flushErr != nil {
 		return nil, preserveACPError("acpproxy: load session notifications", flushErr)

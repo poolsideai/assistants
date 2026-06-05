@@ -478,7 +478,7 @@ export class DesktopHost {
   async createAssistantTerminal(
     worktreePath: string,
     command?: string,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    env?: Record<string, string>,
     commandMode?: AssistantTerminalCommandMode,
     cwd?: string,
     cols?: number,

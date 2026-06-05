@@ -34,10 +34,10 @@ export type ToolCall = { eventKind: "tool_call" } & Omit<ACPToolCall, "status"> 
 
 export type ToolCallDiffContent = ExtractUnionMember<ToolCallContent, "diff">;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type ModeChange = {
+  eventKind: "mode_change";
+  currentModeId: string;
+};
 
 export type SessionHandoff = {
   eventKind: "handoff";

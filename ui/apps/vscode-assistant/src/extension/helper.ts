@@ -152,10 +152,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return system.acpChatPanels.routeInbound(
+        "poolside/acp/elicitation/create",
+        params,
+      ) as Promise<ACPElicitationOutput>;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   client.onNotification(
@@ -166,18 +166,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   );
   client.onNotification("poolside/acpNav/didChange", (params: ACPNavDidChangeParams) => {
     system.assistant.updateAttentionCount(params.state.conversations);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    system.acpChatPanels.acpNavDidChange(params.state);
     if (system.assistant.isReady) {
       void system.assistant.rpc.acpNavDidChange(params);
     }
   });
 
   client.onNotification("poolside/jsonrpc/notify", (params: any) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    void system.acpChatPanels.routeInbound("poolside/jsonrpc/notify", params);
   });
 
   client.onNotification("poolside/acp/serverDidExit", (params: any) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    void system.acpChatPanels.routeInbound("poolside/acp/serverDidExit", params);
   });
 
   client.onNotification("poolside/acp/approvals/didChange", (params: any) => {
@@ -194,7 +194,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 
   client.onRequest("poolside/jsonrpc/request", (params: any) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return system.acpChatPanels.routeInbound("poolside/jsonrpc/request", params);
   });
 
   await client.start();

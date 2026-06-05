@@ -159,10 +159,10 @@ export {
   getCurrentAssistantTerminalRepo,
   setAssistantTerminalContext,
 } from "./features/AssistantTerminalRepository.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export {
+  ACPChatSessionScopeWriter,
+  getACPChatSessionScope,
+  setACPChatSessionScope,
 } from "./features/ChatSessionScope.svelte";
 export type { ACPChatSessionScope } from "./features/ChatSessionScope.svelte";
 export {
@@ -231,8 +231,8 @@ export { ACP_SESSION_NEW_EVENT, ACP_SESSION_TITLE_EVENT } from "./features/Sessi
 export type { ACPSession } from "./features/Session.svelte";
 export { enableAcpTranscriptBatching } from "./features/session/transcriptBatching";
 export { default as AcpProvider } from "./features/SessionProvider.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export {
+  ACPSessionRepositoryWriter,
   getACPContext,
   getACPSessionRepo,
   setACPContext,

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Badge } from "@poolsideai/components/badge";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import Icon from "@poolsideai/components/icon";
   import { formatError } from "@poolsideai/lib/errors";
   import { InfoMessageType } from "@poolsideai/rpc";
   import { onDestroy, onMount, tick } from "svelte";
@@ -127,8 +127,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onShowProjectSettings: (path?: string | null) => void;
     onShowChat: () => void;
     currentWorkspaceFolders: WorkspaceFolder[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    activeConversationId?: string | null;
+    activeSession?: ACPSession | null;
     newTabAvailability?: DesktopNewTabAvailability;
     onActiveConversationIdChange?: (id: string | null) => string | null | void;
   }
@@ -183,10 +183,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onShowProjectSettings,
     onShowChat,
     currentWorkspaceFolders,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    activeConversationId = null,
+    activeSession = null,
     newTabAvailability,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onActiveConversationIdChange,
   }: Props = $props();
 
   const conversations = getACPConversationRepo();
@@ -202,9 +202,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       await expandCollapsedWorkspace(cwd);
       return await onNewConversation(cwd);
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    getActiveConversationId: () => activeConversationId,
+    getActiveSession: () => activeSession,
+    setActiveConversationId: (id) => onActiveConversationIdChange?.(id),
     // Don't highlight the active conversation while a non-chat destination (e.g.
     // Connectors) is open — otherwise the sidebar shows two active items.
     isChatActive: () => currentView === "chat",
@@ -262,7 +262,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let canAddFolderToWorkspace = $derived(
     Boolean($appState.environment.capabilities.addFolderToWorkspace),
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let isLoading = $derived(sidebar.isLoading);
   let hasAgentUpdate = $derived(agentUpdates.updates.some((update) => update.kind !== "install"));
   const CHATS_GROUP_KEY = "CHAT";
   let chatsSectionContentVisible = $derived(!chatsSectionCollapsed);

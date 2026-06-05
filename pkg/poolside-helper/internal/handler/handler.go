@@ -75,7 +75,7 @@ type PoolsideHandler struct {
 	config           *Config
 	workspaceFolders []protocol.WorkspaceFolder
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	pprofStarted   sync.Once
 	abortListeners map[string][]func()
 
 	// A cache based on workspace directory paths to cache the checkers for paths
@@ -634,16 +634,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}, handler.acpProxyHandler.Logout)
 
 	// NewSession, LoadSession, and ResumeSession can take well over the default 5s serialized
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// timeout: ACP subprocess spin-up, agent-side auth checks, and the
+	// session-creation work in the agent itself all stack up. They sit in the
+	// same no-deadline bucket as Initialize, Authenticate, and Prompt; the
+	// helper still cancels them when the client drops the request.
+	registerUnserializedExtensionMethodUntypedNoDeadline(handler, JSONRPCOperation{
 		Method:      methods.ACPNewSessionMethod,
 		Description: "creates a new ACP session",
 	}, handler.acpProxyHandler.NewSession)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	registerUnserializedExtensionMethodUntypedNoDeadline(handler, JSONRPCOperation{
 		Method:      methods.ACPLoadSessionMethod,
 		Description: "loads an existing ACP session",
 	}, handler.acpProxyHandler.LoadSession)

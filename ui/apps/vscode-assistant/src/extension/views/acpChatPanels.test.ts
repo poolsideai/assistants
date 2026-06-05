@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { AcpChatPanels } from "./acpChatPanels";
 
 interface MockPanel {
   active: boolean;
@@ -91,12 +91,12 @@ vi.mock("vscode", () => ({
 }));
 
 vi.mock("./getWebviewHtml", () => ({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  getWebviewHtml: vi.fn(async (_system, webview, _view, variables) => {
+    (webview as any).initialState = variables.find(
+      (variable: { key: string }) => variable.key === "POOLSIDE_INITIAL_ACP_CHAT_STATE",
+    )?.value;
+    return "<html></html>";
+  }),
 }));
 
 vi.mock("../helper", () => ({
@@ -147,12 +147,12 @@ describe("AcpChatPanels", () => {
 
     expect(createdPanels).toHaveLength(1);
     expect(createdPanels[0].webview.postMessage).not.toHaveBeenCalled();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const initialState = initialACPChatState(createdPanels[0]);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(initialState.kind).toBe("pending");
+    expect(initialState.conversationId).toMatch(/^conversation:/);
+
+    panels.panelReady(initialState.conversationId);
 
     expect(createdPanels[0].reveal).toHaveBeenCalledOnce();
     expect(createdPanels[0].webview.postMessage).toHaveBeenCalledWith(
@@ -167,17 +167,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const panels = createPanels();
 
     vi.setSystemTime(new Date("2026-01-01T00:00:01Z"));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await panels.openSession({
+      conversationId: "conversation:older",
+      agentServer: "poolside",
+      sessionId: "older",
+    });
     vi.setSystemTime(new Date("2026-01-01T00:00:02Z"));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await panels.openSession({
+      conversationId: "conversation:newer",
+      agentServer: "poolside",
+      sessionId: "newer",
+    });
 
     await panels.focusInput();
 
@@ -193,7 +193,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }),
     );
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   test("reuses an open pending panel instead of creating another", async () => {
     const panels = createPanels();
 
@@ -236,24 +236,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(createdPanels).toHaveLength(2);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  test("uses conversation id, not session id, as the panel key", async () => {
+    const panels = createPanels();
+
+    await panels.openSession({
+      conversationId: "conversation:stable",
+      agentServer: "poolside",
+      sessionId: "session-1",
+    });
+    await panels.openSession({
+      conversationId: "conversation:stable",
+      agentServer: "poolside",
+      sessionId: "session-2",
+    });
+
+    expect(createdPanels).toHaveLength(1);
+    expect(createdPanels[0].reveal).toHaveBeenCalledOnce();
+  });
+
   test("reveals the existing panel when opened by session id without a conversation id", async () => {
     const panels = createPanels();
 
@@ -271,20 +271,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(createdPanels[0].reveal).toHaveBeenCalledOnce();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  test("attachSessionId keeps the panel keyed by conversation id", async () => {
+    const panels = createPanels();
+
+    await panels.openSession({ conversationId: "conversation:pending" });
+    panels.attachSessionId("conversation:pending", "poolside", "session-created");
+    await panels.openSession({
+      conversationId: "conversation:pending",
+      agentServer: "poolside",
+      sessionId: "session-created",
+    });
+
+    expect(createdPanels).toHaveLength(1);
+    expect(createdPanels[0].reveal).toHaveBeenCalledOnce();
+  });
 
   test("uses the agent icon URL for a non-poolside tab icon", async () => {
     vi.stubGlobal(
@@ -633,10 +633,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   });
 });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+function initialACPChatState(panel: MockPanel): { kind: string; conversationId: string } {
+  return (panel.webview as any).initialState;
+}
 
 function svgResponse(svg: string): Response {
   return new Response(svg, {

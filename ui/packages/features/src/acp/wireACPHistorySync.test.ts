@@ -30,23 +30,23 @@ describe("wireACPHistorySync", () => {
 
     emitter.dispatchEvent(
       new CustomEvent(ACP_SESSION_NEW_EVENT, {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        detail: { sessionId: "s-123", agentServer: "default", conversationId: "conv-1" },
       }),
     );
     emitter.dispatchEvent(
       new CustomEvent(ACP_SESSION_TITLE_EVENT, {
         detail: {
           sessionId: "s-123",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          agentServer: "default",
+          conversationId: "conv-1",
+          title: "Renamed session",
         },
       }),
     );
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(history.showSession).toHaveBeenCalledWith("conv-1");
+    expect(history.refresh).toHaveBeenCalledWith("/workspace");
+    expect(history.updateSessionTitle).toHaveBeenCalledWith("conv-1", "Renamed session");
 
     stop();
   });
@@ -78,7 +78,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     stop();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("upserts new sessions under their session cwd", () => {
     const emitter = new EventTarget();
     const history = {
       ...mockHistory(),
@@ -106,9 +106,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       "/workspace/worktree",
       expect.objectContaining({
         sessionId: "s-123",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        id: "conv-1",
         agentServer: "claude-acp",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        cwd: "/workspace/worktree",
       }),
     );
 
@@ -132,7 +132,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       new CustomEvent(ACP_SESSION_NEW_EVENT, {
         detail: {
           sessionId: "s-123",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          conversationId: "conv-2",
           agentServer: "claude-acp",
           cwd: "/workspace/worktree",
           title: "First prompt title",
@@ -143,7 +143,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(history.upsertConversation).toHaveBeenCalledWith(
       "/workspace/worktree",
       expect.objectContaining({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        id: "conv-2",
         sessionId: "s-123",
         title: "First prompt title",
       }),
@@ -223,11 +223,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     emitter.dispatchEvent(
       new CustomEvent(ACP_SESSION_NEW_EVENT, {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        detail: { sessionId: "s-123", agentServer: "default", conversationId: "conv-1" },
       }),
     );
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(history.showSession).toHaveBeenCalledWith("conv-1");
     expect(history.refresh).not.toHaveBeenCalled();
 
     stop();
@@ -246,17 +246,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     stop();
     emitter.dispatchEvent(
       new CustomEvent(ACP_SESSION_NEW_EVENT, {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        detail: { sessionId: "s-123", agentServer: "default", conversationId: "conv-1" },
       }),
     );
     emitter.dispatchEvent(
       new CustomEvent(ACP_SESSION_TITLE_EVENT, {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        detail: {
+          sessionId: "s-123",
+          agentServer: "default",
+          conversationId: "conv-1",
+          title: "Renamed session",
+        },
       }),
     );
 

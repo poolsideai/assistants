@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { ACPConversationSummary } from "../../navTypes";
   import { DEFAULT_AGENT_SERVER, LOCAL_AGENT_SERVER } from "../../agentServers";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import ConversationRowPopover from "./ConversationRowPopover.svelte";
   import { getAcpSidebarController } from "./SidebarController.svelte";
 
   interface Props {
@@ -11,7 +11,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expanded: boolean;
     visibleLimit: number;
     indent?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    desktop?: boolean;
     rowIconSlotSize?: number;
     rowLeadingPaddingClass?: string;
     onToggleExpanded: (workspacePath: string) => void;
@@ -32,7 +32,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expanded,
     visibleLimit,
     indent = false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    desktop = false,
     rowIconSlotSize,
     rowLeadingPaddingClass = "pl-2",
     onToggleExpanded,
@@ -61,7 +61,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   >
     {#each visibleSessions as session (`${sidebar.getSessionAgentServer(session)}:${session.id}`)}
       {@const row = sidebar.rowState(session)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <ConversationRowPopover
         {session}
         agentName={row.agentName}
         iconUrl={row.iconUrl}
@@ -75,7 +75,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         waitingForUser={row.waitingForUser}
         unread={row.unread}
         shortcutHint={sessionShortcutHint?.(session)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {desktop}
         isExiting={() => isSessionExiting?.(session) === true}
         onOpen={() => sidebar.openSession(session)}
         onArchive={(event) => onArchiveSession?.(session, event)}

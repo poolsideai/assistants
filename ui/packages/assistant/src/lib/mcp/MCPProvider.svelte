@@ -10,25 +10,25 @@
   interface Props {
     children: Snippet;
     acp?: ACPSessionRepository | null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    activeConversationId?: string | null;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let { children, acp = null, activeConversationId = null }: Props = $props();
 
   let stopConnectorRefresh: (() => void) | undefined;
 
   if (acp) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const repo = new ACPMCPSettingsRepositoryWriter(acp, {
+      getActiveSession: () => {
+        const session = acp.getSessionByConversationId(activeConversationId);
+        return session
+          ? {
+              agentServer: session.agentServer,
+              sessionId: session.sessionId,
+            }
+          : null;
+      },
+    });
     setACPMCPSettingsContext(repo.publicAPI());
 
     // Same-webview fallback trigger: keeps connector mutations refreshing

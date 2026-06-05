@@ -51,7 +51,7 @@
 
   const sidebar = getAcpSidebarController();
   const renaming = $derived(sidebar.isRenamingConversation(session.id));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const title = $derived(session.title || "Untitled Conversation");
   // A draft (not-yet-started) conversation has no session id yet.
   const isDraft = $derived(session.sessionId === null);
   const showDraftIcon = $derived(session.draftPromptPresent === true);

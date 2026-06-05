@@ -127,15 +127,15 @@ describe("AssistantTerminalRepositoryWriter", () => {
     await repo.resize("terminal-1", 100, 24);
     await repo.deleteTab("terminal-1");
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(sender).toHaveBeenNthCalledWith(1, "createAssistantTerminal", [
+      "/repo",
+      "pnpm test",
       undefined,
       undefined,
       undefined,
       undefined,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      undefined,
+    ]);
     expect(sender).toHaveBeenNthCalledWith(2, "writeAssistantTerminal", ["terminal-1", "input"]);
     expect(sender).toHaveBeenNthCalledWith(3, "resizeAssistantTerminal", ["terminal-1", 100, 24]);
     expect(sender).toHaveBeenNthCalledWith(4, "deleteAssistantTerminal", ["terminal-1"]);

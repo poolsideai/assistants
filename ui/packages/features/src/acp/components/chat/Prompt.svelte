@@ -105,7 +105,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const chatSession = getACPChatSessionScope();
   const conversations = getACPConversationRepo();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   const registry = getACPAgentRegistryRepo();
@@ -140,9 +140,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const resolvedDisabled = $derived(disabled || localModelMissing);
   const resolvedSubmitDisabled = $derived(
     Boolean(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      submitDisabled ||
         localModelMissing ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        chatSession.isSessionSetupPending ||
         (chatSession.isPrompting && !chatSession.canEnqueuePrompt) ||
         // A turn started on another surface is running: sending would be
         // rejected by the helper (one turn per conversation), and the local
@@ -159,10 +159,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     | undefined
   >();
   let activeSessionCwd = $derived(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    chatSession.sessionInfo?.cwd || chatSession.pendingSessionCwd || resolveSessionCwd($appState),
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let promptValue = $state("");
+  let hasPromptContent = $derived(promptValue.trim().length > 0);
   // The phone composer is a single-line pill (see mobile-remote app.css): the
   // field fills the row and the footer shrinks to the compose actions, leaving
   // no room for config controls there. They move to a slim accessory strip
@@ -242,7 +242,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 
   async function sendPrompt(value: string, { sendNow = false } = {}): Promise<void> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (chatSession.isSessionSetupPending) return;
     const content = promptContent(value);
     clearDraftSidebarPreview();
     const conversationId = chatSession.pendingConversationId ?? chatSession.conversationId;
@@ -258,12 +258,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     contextRepo.reset();
     pastedAttachments?.clear();
     onSubmit?.(value);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (chatSession.isPrompting) {
       if (sendNow && chatSession.canSteerPrompt) {
         await chatSession.steerPrompt(value, content);
         return;
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      chatSession.enqueuePrompt({
         text: value,
         content,
         cwd: activeSessionCwd,
@@ -314,11 +314,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           break;
         }
         const cwd = activeSessionCwd;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        chatSession.createSession(
+          cwd,
+          chatSession.activeAgentServer,
+          chatSession.pendingConversationId,
+        );
         break;
       }
 
@@ -338,7 +338,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }
 
       case AcpSlashCommand.plan: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        void chatSession.togglePlanMode();
         break;
       }
     }
@@ -350,7 +350,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       return openAgentConfigMenu();
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const matchingConfigOption = chatSession.configOptions.find((option) => option.id === command);
 
     if (matchingConfigOption) {
       if (matchingConfigOption.type === "boolean") {
@@ -392,7 +392,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   function openAgentConfigMenu(): boolean {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (chatSession.canChangeAgent) {
       setTimeout(() => pushPromptMenu(configMenuValue(AGENT_CONFIG_OPTION_ID)), 0);
     }
     return true;
@@ -412,8 +412,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return buildACPPromptContent(
       value,
       pastedAttachments?.contentBlocks() ?? [],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      contextRepo.asPromptContentBlocks(chatSession.promptContentOptions.supportsEmbeddedContext),
+      chatSession.promptContentOptions,
     );
   }
 
@@ -508,10 +508,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   );
   let draftPrompt = $derived(draftKey ? (draftPrompts.get(draftKey) ?? "") : "");
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  $effect(() => {
+    promptValue = draftPrompt;
+  });
+
   // Dictation lands in this prompt: the text present when recording started
   // is kept, and the transcript is appended after it once transcription ends.
   let dictationBase = "";
@@ -542,7 +542,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   );
 
   function handleDraftPromptChange(value: string): void {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    promptValue = value;
     if (value) {
       // Surface a draft in the sidebar as soon as the user starts composing, so
       // it can be left and returned to (no send required).

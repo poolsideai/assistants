@@ -9,8 +9,8 @@ import type { ACPSessionMetadataSnapshot } from "./features/session/SessionMetad
 
 interface ACPHistorySyncTarget {
   refresh?: (cwd?: string) => Promise<void>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  hideSession: (conversationId: string) => void;
+  showSession: (conversationId: string) => void;
   upsertConversation?: (
     workspacePath: string,
     session: {
@@ -27,12 +27,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       conversationId: null;
       conversationKind: null;
       agentId: null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      metadata?: ACPSessionMetadataSnapshot;
       workingDirectories: string[];
       _meta: Record<string, unknown>;
     },
   ) => Promise<unknown>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  updateSessionTitle: (conversationId: string, title: string) => void;
   touchSession?: (conversationId: string) => void;
 }
 
@@ -47,7 +47,7 @@ interface ACPHistorySyncOptions {
 interface ACPSessionEventDetail {
   sessionId: string;
   agentServer: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  conversationId: string;
   cwd?: string;
   workspacePath?: string;
   workingDirectories?: string[];
@@ -73,7 +73,7 @@ export function wireACPHistorySync({
   const upsertNewSession = (
     sessionId: string,
     agentServer: string,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    conversationId: string,
     cwd?: string,
     workspacePath?: string,
     workingDirectories?: string[],
@@ -84,7 +84,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const navCwd = cwd || navWorkspacePath;
     if (history.upsertConversation) {
       void history.upsertConversation(navWorkspacePath, {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        id: conversationId,
         sessionId,
         agentServer,
         cwd: navCwd,
@@ -116,12 +116,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       title,
     } = (event as CustomEvent<ACPSessionEventDetail>).detail;
     capture?.bindConversationSession(agentServer, conversationId, sessionId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    history.showSession(conversationId);
     upsertNewSession(
       sessionId,
       agentServer,
       conversationId,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      cwd,
       workspacePath,
       workingDirectories,
       title,
@@ -135,10 +135,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   };
 
   const handleSessionTitle = (event: Event) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const { conversationId, title } = (
       event as CustomEvent<ACPSessionEventDetail & { title: string }>
     ).detail;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    history.updateSessionTitle(conversationId, title);
   };
 
   const handlePendingConversationAgent = (event: Event) => {

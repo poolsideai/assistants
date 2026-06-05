@@ -1,15 +1,15 @@
 import type { ACPDebugCaptureAPI } from "./debugDump";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import {
+  ACP_SESSION_CLOSE_EVENT,
+  ACP_SESSION_DELETE_EVENT,
+  type ACPClosedSession,
 } from "./navTypes";
 
 interface ACPSessionSyncTarget {
   sessionId: string | null;
   sessionAgentServer?: string | null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  pendingConversationId?: string | null;
+  clearActiveSession: () => void;
 }
 
 interface ACPSessionSyncOptions {
@@ -40,12 +40,12 @@ export function wireACPSessionSync({
         !session.sessionAgentServer ||
         session.sessionAgentServer === deletedAgentServer)
     ) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      session.clearActiveSession();
     }
   };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const handleSessionClose = (event: Event) => {
+    const detail = (event as CustomEvent<ACPClosedSession>).detail;
     if (detail?.conversationId) {
       capture?.resetConversationCollecting(
         detail.agentServer,
@@ -59,31 +59,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       sessions?.releaseClosedSession(detail);
     }
     if (session && closedSessionMatches(session, detail)) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      session.clearActiveSession();
+    }
+  };
+
   emitter.addEventListener(ACP_SESSION_DELETE_EVENT, handleSessionDelete);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  emitter.addEventListener(ACP_SESSION_CLOSE_EVENT, handleSessionClose);
 
   return () => {
     emitter.removeEventListener(ACP_SESSION_DELETE_EVENT, handleSessionDelete);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    emitter.removeEventListener(ACP_SESSION_CLOSE_EVENT, handleSessionClose);
   };
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+function closedSessionMatches(
+  session: ACPSessionSyncTarget,
+  detail: ACPClosedSession | undefined,
+): boolean {
+  if (!detail) return false;
+  const sameAgentServer =
+    !session.sessionAgentServer || session.sessionAgentServer === detail.agentServer;
+  if (!sameAgentServer) return false;
+  if (detail.sessionId && session.sessionId === detail.sessionId) return true;
+  return Boolean(
+    detail.conversationId &&
+      session.sessionId === null &&
+      session.pendingConversationId === detail.conversationId,
+  );
+}

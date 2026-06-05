@@ -25,11 +25,11 @@
   import { getReadableFileInfo, shortenDirectoryPathsInText } from "../../shared/paths";
   import Tooltip from "../ui/Tooltip.svelte";
   import { getToolNameLabel, getToolPath, isMcpOutputFilePath } from "./toolPaths";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import {
+    getToolCommandLabel,
+    getToolSearchQuery,
+    isPermissionDeniedToolCall,
+  } from "./toolStatus";
 
   type Props = SvelteHTMLElements["div"] & {
     expandable?: boolean;
@@ -57,7 +57,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   );
   const isPermissionDenied = $derived(isPermissionDeniedToolCall(tool));
   const commandLabel = $derived(getToolCommandLabel(tool));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const searchQuery = $derived(getToolSearchQuery(tool));
   const displayTitle = $derived(
     shortenDirectoryPathsInText(tool.title, context.workspaceFolders, context.homeDirectory),
   );

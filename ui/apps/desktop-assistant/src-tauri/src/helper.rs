@@ -17,7 +17,7 @@ use lsp_types::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+use tauri::{async_runtime, App, AppHandle, Emitter, Manager};
 use tauri_plugin_shell::{
     process::{Command, CommandChild, CommandEvent},
     ShellExt,
@@ -892,7 +892,7 @@ impl HelperProcess {
                         "development"
                     } else {
                         "production"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                    }
                 },
                 "workspaceFolders": null
             }),

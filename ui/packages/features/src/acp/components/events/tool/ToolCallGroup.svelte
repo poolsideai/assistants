@@ -10,12 +10,12 @@
   import UserMessage from "../UserMessage.svelte";
   import Icon from "@poolsideai/components/icon";
   import type { WorkspaceFolder } from "@poolsideai/rpc";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { TurnMetadata } from "../../../TurnMaterializer";
   import { summarizeLiveToolGroup, summarizeToolGroup } from "./toolGroupSummary";
 
   interface Props {
     events: SessionEventGroupItem[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    turn?: TurnMetadata;
     /** Present on groups formed while the turn streams: uses count labels instead of turn summaries. */
     live?: boolean;
     /**

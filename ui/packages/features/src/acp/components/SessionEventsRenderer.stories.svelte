@@ -7,7 +7,7 @@
   const { Story } = defineMeta({
     component: SessionEvents,
     args: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      events,
       workspaceFolders: storyWorkspaceFolders,
     },
   });

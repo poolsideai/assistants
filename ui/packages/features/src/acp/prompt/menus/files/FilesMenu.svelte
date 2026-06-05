@@ -19,8 +19,8 @@
   import { classifyFileSearchQuery, searchProjectFiles } from "./fileSearch.js";
   import { decideFilePickerAction, type KeyboardSnapshot } from "./filesMenuKeyboard.js";
   import {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    getACPChatSessionScope,
+    type ACPChatSessionScope,
   } from "../../../features/ChatSessionScope.svelte";
   import {
     getACPProjectRepo,
@@ -43,7 +43,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const { editor } = getPrompt();
   const { selected: selectedItemId, selectedAction, items: itemsStore, select } = getItems();
   const { close } = getMenus();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const acpChatSession = optionalACPChatSessionContext();
   const acpProjects = optionalACPProjectContext();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   type ItemId = Exclude<Parameters<typeof select>[0], HTMLElement>;
@@ -358,9 +358,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   const handleSearch = searchFiles;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function optionalACPChatSessionContext(): ACPChatSessionScope | null {
     try {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return getACPChatSessionScope();
     } catch {
       return null;
     }

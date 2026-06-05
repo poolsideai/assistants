@@ -1,6 +1,6 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import type { Snippet } from "svelte";
+  import { setContextRepoContext } from "../src/context";
   import { setACPAgentRegistryContext } from "../src/acp/features/AgentRegistryRepository.svelte";
   import { setACPAgentServersContext } from "../src/acp/features/AgentServersRepository.svelte";
   import { setACPConversationContext } from "../src/acp/features/ConversationRepository.svelte";
@@ -9,26 +9,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { setACPProjectContext } from "../src/acp/features/ProjectRepository.svelte";
   import { setACPContext } from "../src/acp/features/SessionRepository.svelte";
   import { setACPWorktreeContext } from "../src/acp/features/WorktreeRepository";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { setAssistantTerminalContext } from "../src/acp/features/AssistantTerminalRepository.svelte";
+  import { appState } from "../src/acp/hostAdapter";
+
+  interface Props {
+    children?: Snippet;
+  }
+
+  let { children }: Props = $props();
+
+  const repo = setACPContext();
+
+  setACPProjectContext();
   setACPGithubContext();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  setACPConversationContext();
+  setACPLocalHistoryContext();
+  setACPAgentServersContext({ appState, sessionRepo: repo });
+  setACPWorktreeContext();
+  setACPAgentRegistryContext();
+  setAssistantTerminalContext();
+  setContextRepoContext();
+</script>
+
+{@render children?.()}

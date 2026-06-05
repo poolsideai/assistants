@@ -37,7 +37,7 @@ func (h *PoolsideHandler) initialize(gCtx *glsp.Context, params *protocol.Initia
 		return nil, err
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	defer slog.Info("initialized", "workspace_folders", params.WorkspaceFolders)
 
 	/**
 	 * Soft, non-blocking dependencies. Place any slow initialization processes here, as work in initialize delays the helper

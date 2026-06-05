@@ -14,24 +14,24 @@ import {
   shouldResetSessionForAgentSelection,
 } from "./agentConfig";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function repo(overrides: Record<string, any> = {}): ACPSessionRepository {
   return {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    agents: {
+      agentServerNames: ["poolside", "codex"],
+    },
     sessionAgentServer: "poolside",
     ...overrides,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } as unknown as ACPSessionRepository;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function scope(overrides: Partial<ACPChatSessionScope> = {}): ACPChatSessionScope {
+  return {
+    activeAgentServer: "poolside",
+    sessionAgentServer: "poolside",
+    ...overrides,
+  } as ACPChatSessionScope;
+}
+
 function registry(
   agents: Record<string, { id?: string; name: string } | string>,
 ): AcpAgentRegistryRepository {
@@ -44,9 +44,9 @@ function registry(
 }
 
 describe("agent config menu helpers", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("falls back to the default Poolside agent when no agent servers are configured", () => {
+    expect(agentServerOptions(repo({ agents: { agentServerNames: [] } }))).toEqual(["poolside"]);
+    expect(selectedAgentServer(scope({ activeAgentServer: "" }))).toBe("poolside");
   });
 
   it("uses Poolside and registry display names for agent labels", () => {
@@ -103,10 +103,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 
   it("resets the current draft when switching away from the selected session agent", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(shouldResetSessionForAgentSelection(scope(), "poolside")).toBe(false);
+    expect(shouldResetSessionForAgentSelection(scope(), "codex")).toBe(true);
     expect(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      shouldResetSessionForAgentSelection(scope({ activeAgentServer: "codex" }), "codex"),
     ).toBe(true);
   });
 });

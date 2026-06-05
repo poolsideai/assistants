@@ -27,8 +27,8 @@ go_library(
         "migrations/20260521120000_conversation_working_directories.up.sql",
         "migrations/20260525120000_agent_server_binaries.down.sql",
         "migrations/20260525120000_agent_server_binaries.up.sql",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "migrations/20260601120000_conversation_metadata.down.sql",
+        "migrations/20260601120000_conversation_metadata.up.sql",
         "migrations/20260616120000_config_cache_prompt_capabilities.down.sql",
         "migrations/20260616120000_config_cache_prompt_capabilities.up.sql",
         "migrations/20260618120000_project_display_order.down.sql",

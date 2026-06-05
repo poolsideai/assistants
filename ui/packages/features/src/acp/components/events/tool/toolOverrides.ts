@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { WorkspaceFolder } from "@poolsideai/rpc";
 import type { Component } from "svelte";
 import { isSubagentTool } from "../../../subagents";
 import type { ToolCall } from "../../../types";
@@ -24,7 +24,7 @@ import { isWriteStdinToolCall } from "./writeStdinTool";
 
 export type ToolOverrideProps = {
   event: ToolCall;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  workspaceFolders?: WorkspaceFolder[];
 };
 
 export type ToolOverride = {

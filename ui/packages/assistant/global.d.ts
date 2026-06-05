@@ -20,18 +20,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     homeDirectory?: string;
   };
   var POOLSIDE_INITIAL_ACP_CHAT_STATE:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    | {
+        kind: "pending";
+        conversationId: string;
+        agentServer?: string;
         agentName?: string;
         agentIconUrl?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        cwd?: string;
+        workingDirectories?: string[];
+      }
     | {
         kind: "session";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        conversationId: string;
         agentServer: string;
         sessionId: string;
         agentName?: string;

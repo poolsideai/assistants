@@ -7,7 +7,7 @@ import { appState, type Environment } from "./store";
 describe("IdentityManager", () => {
   let defaultEnvironment: Environment;
   let defaultUri: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let defaultIsHelperSupported: boolean;
 
   beforeAll(() => {
     vi.stubGlobal(
@@ -24,14 +24,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const state = get(appState);
     defaultEnvironment = state.environment;
     defaultUri = state.userSettings.uri;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    defaultIsHelperSupported = state.isHelperSupported;
     appState.update((current) => ({
       ...current,
       userSettings: {
         ...current.userSettings,
         uri: "https://api.poolsi.de",
       },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      isHelperSupported: true,
       environment: {
         ...current.environment,
         assistantHost: "desktop",
@@ -47,7 +47,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         ...current.userSettings,
         uri: defaultUri,
       },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      isHelperSupported: defaultIsHelperSupported,
       environment: defaultEnvironment,
     }));
   });
@@ -56,29 +56,29 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     vi.unstubAllGlobals();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("renders desktop app content without platform auth", () => {
+    const component = render(IdentityManagerTestWrapper);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(component.queryByTestId("identity-manager-desktop-drag-region")).not.toBeInTheDocument();
+    expect(component.getByTestId("identity-manager-child")).toBeInTheDocument();
+  });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("renders vscode app content without platform auth", () => {
+    appState.update((current) => ({
+      ...current,
+      environment: {
+        ...current.environment,
+        assistantHost: "vscode",
+      },
+    }));
+
+    const component = render(IdentityManagerTestWrapper);
+
+    expect(component.getByTestId("identity-manager-child")).toBeInTheDocument();
   });
 
   it("does not overlay signed-in app content with the identity drag region", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const component = render(IdentityManagerTestWrapper);
 
     expect(component.queryByTestId("identity-manager-desktop-drag-region")).not.toBeInTheDocument();
     expect(component.getByTestId("identity-manager-child")).toBeInTheDocument();

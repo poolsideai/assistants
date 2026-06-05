@@ -1,46 +1,46 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { describe, expect, it } from "vitest";
+import type { SessionEvent } from "../types";
 import {
   SessionEventsState,
   ToolCallExpansionState,
   toolActivityFrom,
 } from "./SessionEventsState.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+describe("SessionEventsState", () => {
   it("keeps a completed turn summarized while a later turn streams live", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const events = [
+      tool("edit-1", "edit", "completed"),
+      tool("run-1", "execute", "completed"),
+      { eventKind: "user_message", messageId: "u2", content: [] },
+      tool("read-1", "read", "completed"),
+      tool("read-2", "read", "completed"),
+    ] satisfies SessionEvent[];
+
+    const state = new SessionEventsState({
+      events,
+      isPrompting: true,
+      turns: [
+        {
+          startedAt: "2026-06-02T10:00:00.000Z",
+          endedAt: "2026-06-02T10:01:00.000Z",
+          startIndex: 0,
+          endIndex: 1,
+        },
+      ],
+    });
+
+    const groups = state.grouped.filter((item) => item.kind === "event_group");
+
     expect(groups).toHaveLength(1);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(groups[0]).toMatchObject({
+      turn: { startIndex: 0, endIndex: 1 },
+    });
     const liveReads = state.grouped.filter(
       (item) => item.kind === "event" && item.event.eventKind === "tool_call",
     );
     expect(liveReads).toHaveLength(2);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
   it("keeps pre-reply finished tools summarized while the reply streams without turn metadata", () => {
     const events = [
       { eventKind: "user_message", messageId: "u1", content: [] },
@@ -65,17 +65,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(liveReads).toHaveLength(2);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("groups all finished tools as summaries when the session is idle", () => {
+    const state = new SessionEventsState({
+      events: [tool("edit-1", "edit", "completed"), tool("run-1", "execute", "completed")],
+      isPrompting: false,
+    });
+
+    expect(state.grouped).toHaveLength(1);
+    expect(state.grouped[0]).toMatchObject({
+      kind: "event_group",
+    });
+  });
 
   it("summarizes tools on both sides of a steer as one completed turn", () => {
     const state = new SessionEventsState({
@@ -1749,8 +1749,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       event: { eventKind: "agent_message", content: [{ text: "Done" }] },
     });
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+});
+
 describe("pinned expanded tools (PE-2402)", () => {
   it("holds the grouped fold boundary at a pinned tool until it is collapsed", () => {
     const events = [
@@ -1963,19 +1963,19 @@ function steerMessage(text: string): SessionEvent {
   };
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function tool(
+  toolCallId: string,
   kind: "edit" | "execute" | "read" | "search" | "think",
   status: "completed" | "in_progress" | "pending" | "cancelled" | "failed",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+): SessionEvent {
+  return {
+    eventKind: "tool_call",
+    toolCallId,
+    title: toolCallId,
+    kind,
+    status,
+  };
+}
 
 function execCommandOther(toolCallId: string): SessionEvent {
   // kind "other" plus a title that is not "Run"/"exec_command" makes

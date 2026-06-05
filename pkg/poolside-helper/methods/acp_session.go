@@ -311,10 +311,10 @@ type ACPRestartServerOutput struct{}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 type ACPElicitationParams struct {
 	ACPAgentServerParams
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ElicitationRequest
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type ACPElicitationOutput ElicitationResponse
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
