@@ -187,7 +187,7 @@ export class AssistantTerminalRepositoryWriter {
   async createTab(
     worktreePath = this.currentWorktreePath,
     command?: string,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    env?: Record<string, string>,
     commandMode?: AssistantTerminalCommandMode,
     cwd?: string,
   ): Promise<AssistantTerminalTab | undefined> {

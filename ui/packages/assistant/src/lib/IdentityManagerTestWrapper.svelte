@@ -2,6 +2,6 @@
   import IdentityManager from "./IdentityManager.svelte";
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<IdentityManager>
+  <div data-testid="identity-manager-child">App Content</div>
+</IdentityManager>

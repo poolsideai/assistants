@@ -230,9 +230,9 @@ export async function deactivate() {
 }
 
 async function openNewConversation(system: System) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  await system.acpChatPanels.openSession({});
 }
 
 async function focusInput(system: System) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  await system.acpChatPanels.focusInput();
 }

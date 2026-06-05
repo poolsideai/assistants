@@ -28,7 +28,7 @@
 <div data-testid="prompt-mock-root">
   {@render promptBanners?.()}
   {@render promptCommandItems?.()}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div data-testid="prompt-session-key">{draftKey}</div>
   <div data-testid="prompt-config-controls-visibility">
     {showConfigControls ? "visible" : "hidden"}
   </div>

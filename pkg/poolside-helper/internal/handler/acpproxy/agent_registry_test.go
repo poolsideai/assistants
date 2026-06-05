@@ -1,55 +1,55 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package acpproxy
+
+import (
+	"context"
 	"fmt"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestFetchRegistryAgentServerConfig(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`{
+			"version": "1.0.0",
+			"agents": [
+				{
+					"id": "poolside",
+					"distribution": {
+						"binary": {
+							"darwin-aarch64": {
+								"archive": "https://example.com/pool.tar.gz",
 								"sha256": "0123456789abcdef",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+								"cmd": "./pool",
+								"args": ["acp"]
+							}
+						}
+					}
+				}
+			]
+		}`))
+	}))
+	t.Cleanup(server.Close)
+
+	cfg, err := fetchRegistryAgentServerConfig(context.Background(), server.URL, "poolside")
+	require.NoError(t, err)
+
+	assert.Equal(t, AgentServerConfig{
 		Type: "registry",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		Binary: map[string]AgentServerBinaryDistribution{
+			"darwin-aarch64": {
+				Archive: "https://example.com/pool.tar.gz",
 				SHA256:  "0123456789abcdef",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+				Cmd:     "./pool",
+				Args:    []string{"acp"},
+			},
+		},
+	}, cfg)
+}
+
 func TestDefaultPoolsideAgentServerConfigRefreshesRegistry(t *testing.T) {
 	isolateRegistryConfigCache(t)
 	var requestCount int
@@ -160,46 +160,46 @@ func useRegistryURL(t *testing.T, url string) {
 	})
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestAgentServerConfigFromRegistryDistribution(t *testing.T) {
+	t.Run("converts npx distributions", func(t *testing.T) {
+		cfg, ok := agentServerConfigFromRegistryDistribution(acpRegistryDistribution{
+			NPX: &acpRegistryPackageDistribution{
+				Package: "example-acp@1.0.0",
+				Args:    []string{"--acp"},
+				Env:     map[string]string{"EXAMPLE": "1"},
+			},
+		})
+
+		require.True(t, ok)
+		assert.Equal(t, AgentServerConfig{
 			Type:    "registry",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			Command: "npx",
+			Args:    []string{"-y", "example-acp@1.0.0", "--acp"},
+			Env:     map[string]string{"EXAMPLE": "1"},
+		}, cfg)
+	})
+
+	t.Run("converts binary distributions", func(t *testing.T) {
+		cfg, ok := agentServerConfigFromRegistryDistribution(acpRegistryDistribution{
+			Binary: map[string]AgentServerBinaryDistribution{
+				"linux-x86_64": {
+					Archive: "https://example.com/agent.tar.gz",
 					SHA256:  "0123456789abcdef",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+					Cmd:     "./agent",
+				},
+			},
+		})
+
+		require.True(t, ok)
+		assert.Equal(t, AgentServerConfig{
 			Type: "registry",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			Binary: map[string]AgentServerBinaryDistribution{
+				"linux-x86_64": {
+					Archive: "https://example.com/agent.tar.gz",
 					SHA256:  "0123456789abcdef",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+					Cmd:     "./agent",
+				},
+			},
+		}, cfg)
+	})
+}

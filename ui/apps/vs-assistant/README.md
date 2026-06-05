@@ -28,7 +28,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
    suffice.
 2. Install Visual Studio 2022, and make sure that you pick the extension
    development workload in the setup.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+3. Create a shared drive with this repository as its root.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
    `pnpm run download:binaries` to fetch the highest published `helper/v*`
    runtime produced by a VS Code or Desktop release (this needs the `gh` CLI

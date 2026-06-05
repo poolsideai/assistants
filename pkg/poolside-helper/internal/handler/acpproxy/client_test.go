@@ -399,7 +399,7 @@ func TestHandleExtensionMethodElicitationUsesRequestSessionIDForLiveStatus(t *te
 	}
 
 	raw, err := json.Marshal(methods.ACPElicitationParams{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		ElicitationRequest: methods.ElicitationRequest{
 			SessionID:       "request-session",
 			Mode:            methods.ElicitationMode("form"),
 			Message:         "Need input",

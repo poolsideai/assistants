@@ -29,13 +29,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 )
 
 const (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	DefaultAgentServerName       = "poolside"
 	LocalAgentServerName         = methods.LocalAgentServerName
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	LegacyDefaultAgentServerName = "default"
+	npmConfigCacheEnvKey         = "npm_config_cache"
+	npmConfigCacheEnvKeyUpper    = "NPM_CONFIG_CACHE"
+	authenticateUpdateMethod     = acpsdk.AgentMethodAuthenticate + "/update"
+	initializeHandshakeTimeout   = 30 * time.Second
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 )
 
@@ -51,11 +51,11 @@ var (
 	processSignalExitGrace = time.Second
 )
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+var legacySelfCommands = map[string]struct{}{
+	"{{SELF}}":  {},
+	"{{$SELF}}": {},
+}
+
 // userShellEnvProvider is swapped in tests; production uses the shared
 // shell-environment capture (which the server also applies process-wide at
 // startup — the per-agent merge here keeps agent launches correct even when
@@ -190,7 +190,7 @@ type startConfig struct {
 	env        map[string]string
 	// processDir is the working directory for the subprocess itself (e.g. repo root for go run).
 	processDir string
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	onExit     func(serverName string, err error)
 }
 
 type AgentServerConfig struct {
@@ -244,7 +244,7 @@ func NormalizeAgentServers(agentServers map[string]AgentServerConfig) map[string
 	for name, cfg := range agentServers {
 		normalizedName := NormalizeAgentServerName(name)
 		if normalizedName == DefaultAgentServerName {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			normalized[DefaultAgentServerName] = mergeDefaultAgentServerConfig(cfg)
 			continue
 		}
 		if normalizedName == LocalAgentServerName {
@@ -265,10 +265,10 @@ func NormalizeAgentServerName(serverName string) string {
 
 func defaultAgentServerConfig() AgentServerConfig {
 	return AgentServerConfig{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		Command: "",
+	}
+}
+
 func defaultLocalAgentServerConfig() AgentServerConfig {
 	return AgentServerConfig{
 		Type:    "local",
@@ -276,17 +276,17 @@ func defaultLocalAgentServerConfig() AgentServerConfig {
 	}
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func mergeDefaultAgentServerConfig(cfg AgentServerConfig) AgentServerConfig {
+	merged := defaultAgentServerConfig()
 	merged.Type = cfg.Type
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if cfg.Command != "" && !isLegacySelfCommand(cfg.Command) {
+		merged.Command = cfg.Command
+		merged.Args = cfg.Args
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	merged.Env = cfg.Env
+	merged.Binary = cfg.Binary
+	merged.DefaultConfigOptions = cfg.DefaultConfigOptions
+	return merged
 }
 
 func mergeLocalAgentServerConfig(cfg AgentServerConfig) AgentServerConfig {
@@ -304,9 +304,9 @@ func mergeLocalAgentServerConfig(cfg AgentServerConfig) AgentServerConfig {
 	return merged
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func isLegacySelfCommand(command string) bool {
+	_, ok := legacySelfCommands[command]
+	return ok
 }
 
 func defaultInitializeRequest() acpsdk.InitializeRequest {
@@ -336,13 +336,13 @@ func elicitationCapabilities() *acpsdk.ElicitationCapabilities {
 	}
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func buildInitializeRequest(req *acpsdk.InitializeRequest) acpsdk.InitializeRequest {
 	if req == nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		return defaultInitializeRequest()
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	initReq := *req
+	if initReq.ProtocolVersion == 0 {
+		initReq.ProtocolVersion = acpsdk.ProtocolVersionNumber
 	}
 	if initReq.ClientCapabilities.Elicitation == nil {
 		initReq.ClientCapabilities.Elicitation = elicitationCapabilities()
@@ -414,14 +414,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	stderrTail := newLineTail(20)
+	stderrDone := make(chan struct{})
+	go func() {
+		defer close(stderrDone)
 		scanStderr(cfg.serverName, stderr, stderrTail, func(err error) {
 			p.failActivePromptsFor(cmd, err)
 		})
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}()
 
 	// Tee stdout to a sniffer that forwards auth progress notifications to the
 	// webview. The Go SDK only routes underscore-prefixed methods through
@@ -441,11 +441,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		stdin.Close()
 		_ = killProcessTree(cmd)
 		_ = cmd.Wait()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		select {
+		case <-stderrDone:
+		case <-time.After(100 * time.Millisecond):
+		}
+		return initializeError(err, stderrTail.String())
 	}
 
 	exited := make(chan struct{})
@@ -721,15 +721,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		return fmt.Errorf("acpproxy: unknown agent server %q", serverName)
 	}
 	if shouldResolveBundledPoolsideBinary(serverName, serverCfg) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		resolved, err := defaultPoolsideAgentServerConfig(ctx)
+		if err != nil {
+			return err
+		}
 		resolved.Type = serverCfg.Type
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		resolved.DefaultConfigOptions = serverCfg.DefaultConfigOptions
+		resolved.Env = mergeStringMaps(resolved.Env, serverCfg.Env)
+		serverCfg = resolved
+	}
 	if cfg.AgentServerEnvProvider != nil {
 		env, err := cfg.AgentServerEnvProvider(ctx, serverName)
 		if err != nil {
@@ -742,24 +742,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}
 
 	startCfg := startConfig{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-		}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-	} else {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		serverName: serverName,
+		env:        serverCfg.Env,
+		onExit:     onExit,
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	if len(serverCfg.Binary) > 0 {
+		binary, args, env, err := PrepareRegistryBinary(ctx, serverName, serverCfg.Binary)
+		if err != nil {
+			return err
+		}
+		startCfg.binary = binary
+		startCfg.extraArgs = args
+		startCfg.env = mergeStringMaps(startCfg.env, env)
+	} else {
+		startCfg.binary = serverCfg.Command
+		startCfg.extraArgs = append([]string{}, serverCfg.Args...)
+	}
+	startCfg.processDir = cfg.WorkingDir
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -863,7 +863,7 @@ func (p *process) failActivePromptsFor(cmd *exec.Cmd, err error) {
 func buildProcessEnv(cfg startConfig) ([]string, error) {
 	env := os.Environ()
 	env = shellenv.Merge(env, userShellEnvProvider())
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	env = filterThirdPartyEnv(env)
 	if shouldUsePoolsideNPMCache(cfg) {
 		cacheDir, err := poolsideNPMCacheDir()
 		if err != nil {
@@ -997,7 +997,7 @@ func envValue(env []string, key string) string {
 }
 
 func shouldUsePoolsideNPMCache(cfg startConfig) bool {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if filepath.Base(cfg.binary) != "npx" {
 		return false
 	}
 	return !mapHasAnyKey(cfg.env, npmConfigCacheEnvKey, npmConfigCacheEnvKeyUpper)
@@ -1158,37 +1158,37 @@ func mapHasAnyKey[V any](m map[string]V, keys ...string) bool {
 	return false
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type lineTail struct {
+	mu    sync.Mutex
+	lines []string
+	limit int
+}
+
+func newLineTail(limit int) *lineTail {
+	return &lineTail{limit: limit}
+}
+
+func (t *lineTail) Add(line string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if t.limit <= 0 {
+		return
+	}
+	t.lines = append(t.lines, line)
+	if len(t.lines) > t.limit {
+		copy(t.lines, t.lines[len(t.lines)-t.limit:])
+		t.lines = t.lines[:t.limit]
+	}
+}
+
+func (t *lineTail) String() string {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	return strings.TrimSpace(strings.Join(t.lines, "\n"))
+}
+
 type initializeHandshakeError struct {
 	err error
 }
@@ -1197,13 +1197,13 @@ func (e *initializeHandshakeError) Error() string { return e.err.Error() }
 
 func (e *initializeHandshakeError) Unwrap() error { return e.err }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func initializeError(err error, stderrTail string) error {
+	if strings.TrimSpace(stderrTail) == "" {
 		return &initializeHandshakeError{err: fmt.Errorf("acpproxy: initialize: %w", err)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
 	return &initializeHandshakeError{err: fmt.Errorf("acpproxy: initialize: %w; subprocess stderr:\n%s", err, stderrTail)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 type mcpConnectorCredentialsError struct{}
 
 func (*mcpConnectorCredentialsError) Error() string {
@@ -1214,11 +1214,11 @@ func scanStderr(serverName string, r io.Reader, tail *lineTail, reportRuntimeErr
 	scanner := bufio.NewScanner(r)
 	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 	for scanner.Scan() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		line := scanner.Text()
+		if tail != nil {
+			tail.Add(line)
+		}
+		slog.Info("acpproxy: subprocess stderr", "server", serverName, "line", line)
 		if reportRuntimeError != nil {
 			if err := classifyRuntimeStderr(line); err != nil {
 				reportRuntimeError(err)

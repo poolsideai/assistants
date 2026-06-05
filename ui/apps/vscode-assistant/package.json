@@ -142,7 +142,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         },
         "poolside.agentServers": {
           "default": {},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          "markdownDescription": "Named ACP servers available to the Poolside ACP client. The Poolside server is available as `default` from the ACP registry unless that entry is configured here. Each entry requires `command`; optional `args`, `env`, and `default_config_options` are passed to that server.",
           "type": "object",
           "additionalProperties": {
             "type": "object",
@@ -152,7 +152,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             "properties": {
               "command": {
                 "type": "string",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                "description": "Executable name or path."
               },
               "args": {
                 "type": "array",

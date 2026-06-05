@@ -52,10 +52,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   openSettings(setting?: string): void;
   openTerminal(command?: string, cwd?: string): void;
   listAssistantTerminals(worktreePath: string): Promise<AssistantTerminalTab[]>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  createAssistantTerminal(
+    worktreePath: string,
+    command?: string,
+    env?: Record<string, string>,
     commandMode?: AssistantTerminalCommandMode,
     cwd?: string,
     /**
@@ -66,7 +66,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
      */
     cols?: number,
     rows?: number,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ): Promise<AssistantTerminalTab>;
   deleteAssistantTerminal(terminalId: string): Promise<void>;
   writeAssistantTerminal(terminalId: string, data: string): Promise<void>;
   clearAssistantTerminal(terminalId: string): Promise<void>;
@@ -78,7 +78,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   reportEvent(name: TelemetryEventInputEventType, data: TelemetryEventInputMetadata): void;
   setACPAgentServers(agentServers: ACPAgentServers, defaultAgentServer?: string): Promise<void>;
   openAcpChat(opts: OpenAcpChatOptions): Promise<void>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  closeAcpChat(opts: CloseAcpChatOptions): Promise<void>;
   updateAcpChatPanelMetadata(metadata: AcpChatPanelMetadata): void;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   showInfoMessage(message: string, type?: InfoMessageType): void;
@@ -180,13 +180,13 @@ export type ACPAgentServers = Record<string, ACPAgentServerConfig>;
 /**
  * OpenAcpChatOptions controls the host's `openAcpChat` RPC.
  *
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ * - When neither `agentServer` nor `conversationId` is set, the host reveals or
  *   creates the single "pending" chat panel (the empty agent-picker state).
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ * - When `conversationId` is set, the host reveals or creates the panel for that conversation.
  * - `agentName` and `sessionTitle` are used to set the editor tab title.
  */
 export interface OpenAcpChatOptions {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  conversationId?: string;
   agentServer?: string;
   sessionId?: string;
   agentName?: string;
@@ -213,12 +213,12 @@ export interface AcpChatPanelMetadata {
   allowCustomMcp?: boolean | null;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export interface CloseAcpChatOptions {
+  conversationId: string;
+  agentServer?: string;
+  sessionId?: string;
+}
+
 /**
  * Client-side, user-controlled configuration, i.e.
  * VSCode preferences. Treat with caution

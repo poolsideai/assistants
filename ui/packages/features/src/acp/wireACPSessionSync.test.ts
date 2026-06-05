@@ -17,11 +17,11 @@ describe("wireACPSessionSync", () => {
     stop();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("clears active session when deleted session matches current session", () => {
     const emitter = new EventTarget();
     const session = {
       sessionId: "s-123",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      clearActiveSession: vi.fn(),
     };
 
     const stop = wireACPSessionSync({
@@ -31,7 +31,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     emitter.dispatchEvent(new CustomEvent(ACP_SESSION_DELETE_EVENT, { detail: "s-123" }));
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(session.clearActiveSession).toHaveBeenCalled();
 
     stop();
   });
@@ -40,7 +40,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const emitter = new EventTarget();
     const session = {
       sessionId: "s-123",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      clearActiveSession: vi.fn(),
     };
 
     const stop = wireACPSessionSync({
@@ -50,7 +50,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     emitter.dispatchEvent(new CustomEvent(ACP_SESSION_DELETE_EVENT, { detail: "s-456" }));
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(session.clearActiveSession).not.toHaveBeenCalled();
 
     stop();
   });
@@ -60,7 +60,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const session = {
       sessionId: "s-123",
       sessionAgentServer: "poolside",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      clearActiveSession: vi.fn(),
     };
 
     const stop = wireACPSessionSync({
@@ -74,7 +74,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }),
     );
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(session.clearActiveSession).not.toHaveBeenCalled();
 
     stop();
   });
@@ -83,7 +83,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const emitter = new EventTarget();
     const session = {
       sessionId: null,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      clearActiveSession: vi.fn(),
     };
 
     const stop = wireACPSessionSync({
@@ -93,35 +93,35 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     emitter.dispatchEvent(new CustomEvent(ACP_SESSION_DELETE_EVENT, { detail: "s-123" }));
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(session.clearActiveSession).not.toHaveBeenCalled();
 
     stop();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("clears active session when closed session matches current session", () => {
+    const emitter = new EventTarget();
+    const session = {
+      sessionId: "s-123",
+      sessionAgentServer: "poolside",
+      clearActiveSession: vi.fn(),
+    };
+
+    const stop = wireACPSessionSync({
+      emitter,
+      session,
+    });
+
+    emitter.dispatchEvent(
+      new CustomEvent(ACP_SESSION_CLOSE_EVENT, {
+        detail: { sessionId: "s-123", agentServer: "poolside" },
+      }),
+    );
+
+    expect(session.clearActiveSession).toHaveBeenCalled();
+
+    stop();
+  });
+
   it("stops event collection when a session is closed", () => {
     const emitter = new EventTarget();
     const capture = {
@@ -171,52 +171,52 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     stop();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("clears pending active session when closed conversation matches pending conversation", () => {
+    const emitter = new EventTarget();
+    const session = {
+      sessionId: null,
+      sessionAgentServer: "poolside",
+      pendingConversationId: "conversation:123",
+      clearActiveSession: vi.fn(),
+    };
+
+    const stop = wireACPSessionSync({
+      emitter,
+      session,
+    });
+
+    emitter.dispatchEvent(
+      new CustomEvent(ACP_SESSION_CLOSE_EVENT, {
+        detail: { conversationId: "conversation:123", agentServer: "poolside" },
+      }),
+    );
+
+    expect(session.clearActiveSession).toHaveBeenCalled();
+
+    stop();
+  });
+
+  it("does not clear session when closed session belongs to another agent server", () => {
+    const emitter = new EventTarget();
+    const session = {
+      sessionId: "s-123",
+      sessionAgentServer: "poolside",
+      clearActiveSession: vi.fn(),
+    };
+
+    const stop = wireACPSessionSync({
+      emitter,
+      session,
+    });
+
+    emitter.dispatchEvent(
+      new CustomEvent(ACP_SESSION_CLOSE_EVENT, {
+        detail: { sessionId: "s-123", agentServer: "other" },
+      }),
+    );
+
+    expect(session.clearActiveSession).not.toHaveBeenCalled();
+
+    stop();
+  });
 });

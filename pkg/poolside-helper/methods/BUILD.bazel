@@ -11,7 +11,7 @@ go_library(
         "acp_session.go",
         "client_origin.go",
         "doc.go",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "elicitation.go",
         "environment.go",
         "error_codes.go",
         "error_codes_enum.go",
@@ -20,7 +20,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "git.go",
         "github.go",
         "invoke_lsp.go",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "jsonrpc_error.go",
         "local_inference.go",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         "mcp_servers.go",

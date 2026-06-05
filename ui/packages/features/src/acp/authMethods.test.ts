@@ -36,7 +36,7 @@ describe("parseAuthMethods", () => {
         id: "openai",
         name: "Use OpenAI API key",
         description: "Requires setting the `OPENAI_API_KEY` environment variable",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        command: undefined,
         args: ["--auth-type=openai"],
         env: undefined,
       },
@@ -45,64 +45,64 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         id: "qwen-oauth",
         name: "Qwen OAuth",
         description: "Qwen OAuth (free tier discontinued 2026-04-15)",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        command: undefined,
         args: ["--auth-type=qwen-oauth"],
         env: undefined,
       },
     ]);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("parses Zed-style terminal-auth metadata", () => {
+    const input: SdkAuthMethod[] = [
+      {
+        id: "setup",
+        name: "CLI Setup",
+        description: "Run setup in a terminal",
+        _meta: {
+          "terminal-auth": {
+            command: "agent",
+            args: ["login"],
+            env: { AGENT_HOME: "/tmp/agent" },
+          },
+        },
+      },
+    ];
+    expect(parseAuthMethods(input)).toEqual([
+      {
+        type: "terminal",
+        id: "setup",
+        name: "CLI Setup",
+        description: "Run setup in a terminal",
+        command: "agent",
+        args: ["login"],
+        env: { AGENT_HOME: "/tmp/agent" },
+      },
+    ]);
+  });
+
+  it("treats cli type auth as terminal auth", () => {
+    const input = [
+      {
+        id: "login",
+        name: "Login",
+        type: "cli",
+        command: "agent",
+        args: ["login"],
+      },
+    ] as unknown as SdkAuthMethod[];
+    expect(parseAuthMethods(input)).toEqual([
+      {
+        type: "terminal",
+        id: "login",
+        name: "Login",
+        description: undefined,
+        command: "agent",
+        args: ["login"],
+        env: undefined,
+      },
+    ]);
+  });
+
   it("parses top-level type/args (forward-compatible with SDK upgrade)", () => {
     const input = [
       {

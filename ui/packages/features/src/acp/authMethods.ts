@@ -24,7 +24,7 @@ export interface ACPAuthMethodTerminal {
   id: string;
   name: string;
   description?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  command?: string;
   args?: string[];
   env?: Record<string, string>;
 }
@@ -67,7 +67,7 @@ function parseAuthMethod(raw: Record<string, unknown>): ACPAuthMethod | null {
   >;
   const type = readType(raw, meta);
   const description = readString(raw.description);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const terminalAuth = readTerminalAuth(meta);
   switch (type) {
     case "terminal":
       return {
@@ -75,9 +75,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         id,
         name,
         description,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        command: readString(raw.command ?? meta.command) ?? terminalAuth?.command,
+        args: readStringArray(raw.args ?? meta.args) ?? terminalAuth?.args,
+        env: readStringMap(raw.env ?? meta.env) ?? terminalAuth?.env,
       };
     case "env_var":
       return {
@@ -89,43 +89,43 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         vars: readEnvVars(raw.vars ?? meta.vars),
       };
     default:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (terminalAuth) {
+        return {
+          type: "terminal",
+          id,
+          name,
+          description,
+          command: terminalAuth.command,
+          args: terminalAuth.args,
+          env: terminalAuth.env,
+        };
+      }
       return { type: "agent", id, name, description };
   }
 }
 
 function readType(raw: Record<string, unknown>, meta: Record<string, unknown>): ACPAuthMethodType {
   const value = readString(raw.type) ?? readString(meta.type);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  if (value === "cli") return "terminal";
   if (value === "terminal" || value === "env_var" || value === "agent") {
     return value;
   }
   return "agent";
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function readTerminalAuth(
+  meta: Record<string, unknown>,
+): Pick<ACPAuthMethodTerminal, "command" | "args" | "env"> | null {
+  const value = meta["terminal-auth"];
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const terminalAuth = value as Record<string, unknown>;
+  const command = readString(terminalAuth.command);
+  const args = readStringArray(terminalAuth.args);
+  const env = readStringMap(terminalAuth.env);
+  if (!command && !args && !env) return null;
+  return { command, args, env };
+}
+
 function readString(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }

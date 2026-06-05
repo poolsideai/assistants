@@ -13,6 +13,6 @@ func (h *PoolsideHandler) GetUserConfig(
 	ctx context.Context, params *methods.GetUserConfigParams, gCtx *glsp.Context,
 ) (*methods.GetUserConfigOutput, error) {
 	return &methods.GetUserConfigOutput{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		SettingsFilePaths: []string{},
 	}, nil
 }

@@ -1,5 +1,5 @@
 import { getContext, setContext } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { TurnMetadata } from "../TurnMaterializer";
 import type { SessionEvent, ToolCall } from "../types";
 
 export type SessionEventGroupItem = { event: SessionEvent; index: number };
@@ -120,34 +120,34 @@ export function toolActivityFrom(state: {
 
 export type GroupedItem =
   | { id: string; kind: "event"; event: SessionEvent; index: number; liveThought?: boolean }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | {
+      id: string;
+      kind: "event_group";
+      events: SessionEventGroupItem[];
+      turn?: TurnMetadata;
       /**
        * Set on groups formed while the turn streams and kept on interrupted
        * turns' groups; absent on end-of-turn summaries.
        */
       live?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    };
 
 export interface SessionEventsProps {
   readonly events: SessionEvent[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  readonly turns?: readonly TurnMetadata[];
+  readonly isPrompting?: boolean;
   readonly toolActivity?: ToolActivityMode;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type GroupMode = {
+  turn?: TurnMetadata;
   live?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+};
+
+type CurrentGroup = GroupMode & {
+  events: SessionEventGroupItem[];
+};
+
 /**
  * The live turn's two-slot tail, shared by "grouped" and "compact": the rows at
  * the bottom of the transcript that never fold, so the transcript does not
@@ -197,7 +197,7 @@ export class SessionEventsState {
     const liveTail = this.liveTailFor(events, latestUserMessageIndex, isPrompting);
     const compactFolds = this.compactFoldsFor(events, liveTail);
     const interruptedCompactFolds = this.interruptedCompactFoldsFor(events);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let currentGroup: CurrentGroup | null = null;
 
     // Every thought renders — standalone or inside a fold. The latest one,
     // while it is still trailing and a prompt is in flight, renders live
@@ -217,7 +217,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     function flushGroup() {
       if (!currentGroup) return;
       const { events: groupEvents, turn, live } = currentGroup;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const tools = groupEvents.filter((item) => item.event.eventKind === "tool_call");
       if (tools.length >= 2) {
         result.push({
           // Anchor the id on the first tool, matching the compact folds, so an
@@ -226,12 +226,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           // (remounting would collapse an expanded group).
           id: `group-${tools[0].index}`,
           kind: "event_group",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          events: groupEvents,
+          turn,
           live,
         });
       } else {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        for (const item of groupEvents) {
           result.push({
             id: `event-${item.index}`,
             kind: "event",
@@ -246,14 +246,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       currentGroup = null;
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const addToGroup = (item: SessionEventGroupItem, mode: GroupMode) => {
       if (currentGroup && (currentGroup.turn !== mode.turn || currentGroup.live !== mode.live)) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        flushGroup();
+      }
+      currentGroup ??= { ...mode, events: [] };
+      currentGroup.events.push(item);
+    };
+
     // A steer can be the last event in a settled tool sequence when the agent
     // interrupts its active tool instead of continuing with another one. Keep
     // that terminal steer inside the completed fold too. The active turn is
@@ -365,9 +365,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }
 
       const mode = this.groupModeForTool(event, i, latestUserMessageIndex, liveTail);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+      if (mode) {
+        addToGroup({ event, index: i }, mode);
       } else if (SessionEventsState.isBufferable(event)) {
         const nextMode = this.nextGroupModeForTool(events, i, latestUserMessageIndex, liveTail);
         // Streaming groups never absorb messages: while the turn is live, agent
@@ -379,13 +379,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         // absorb via their membership fold above, never here.
         const absorbs = nextMode && (!nextMode.live || isSteerMessage(event));
         if (absorbs) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          addToGroup({ event, index: i }, nextMode);
         } else if (isSteerMessage(event) && addSteerToExistingGroup({ event, index: i })) {
           continue;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        } else {
+          flushGroup();
+          result.push({ id: `event-${i}`, kind: "event", event, index: i });
+        }
       } else {
         flushGroup();
         result.push({ id: `event-${i}`, kind: "event", event, index: i });
@@ -403,23 +403,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
    * group rather than a stack of them, and errors summarize with everything
    * else — the same rule "compact" and the end-of-turn summary already use.
    */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private isFinishedTool(event: SessionEvent): event is ToolCall {
+    return (
+      event.eventKind === "tool_call" &&
+      event.status !== undefined &&
+      event.status !== "pending" &&
+      event.status !== "in_progress"
+    );
+  }
+
   private groupModeForTool(
     event: SessionEvent,
     index: number,
     latestUserMessageIndex: number,
     liveTail: LiveTail | null,
   ): GroupMode | null {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const turn = this.findTurnForIndex(index);
+    if (turn) {
       // An interrupted turn keeps its streaming shape rather than compacting
       // into the whole-turn summary a naturally completed turn gets: in
       // "grouped" mode agent messages stay outside the fold and split the tool
@@ -441,8 +441,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         return { turn, live: true };
       }
       return this.isFinishedTool(event) ? { turn } : null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    if (this.props.isPrompting) {
       // Tools from earlier turns stay summarized while a new reply streams
       // (#171); the current turn's tools render live.
       if (index < latestUserMessageIndex) {
@@ -457,10 +457,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         return { live: true };
       }
       return null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
     return this.isFinishedTool(event) ? {} : null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   /**
    * `groupModeForTool`'s counterpart for settled thoughts: thoughts collapse
    * with the tools around them rather than splitting the fold. Once the turn
@@ -875,9 +875,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (SessionEventsState.isBufferable(e)) continue;
       return this.groupModeForTool(e, j, latestUserMessageIndex, liveTail);
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return null;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   private readonly turnByIndex = $derived.by(() => {
     const turns = this.props.turns;
     const lookup = new Map<number, TurnMetadata>();
@@ -890,9 +890,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return lookup;
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private findTurnForIndex(index: number): TurnMetadata | undefined {
     return this.turnByIndex.get(index);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
 
   private latestUserMessageIndex(events: readonly SessionEvent[]): number {
     for (let i = events.length - 1; i >= 0; i--) {

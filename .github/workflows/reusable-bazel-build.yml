@@ -17,10 +17,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 #     build:
 #       uses: ./.github/workflows/reusable-bazel-build.yml
 #       with:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#         bazel_target: //cmd/poolside-helper:poolside-helper
+#         binary_name: poolside-helper
+#         tag: helper/v1.2.3
+#         tag_prefix: helper/
 #         sign_windows: true
 #         sign_darwin: true
 #       secrets: inherit
@@ -30,11 +30,11 @@ on:
   workflow_call:
     inputs:
       bazel_target:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        description: "Base Bazel target (e.g. //cmd/poolside-helper:poolside-helper). Cross targets are derived by appending _{goos}_{goarch}."
         type: string
         required: true
       binary_name:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        description: "Output binary name (e.g. poolside-helper). Used for renaming and packaging."
         type: string
         required: true
       tag:

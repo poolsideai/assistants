@@ -3,10 +3,10 @@
   import { slide } from "svelte/transition";
   import { getACPChatSessionScope } from "../../features/ChatSessionScope.svelte";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const chatSession = getACPChatSessionScope();
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#if chatSession.compacting}
   <div
     class="border-psx-border bg-psx-editor-background text-psx-foreground-secondary mx-px flex items-center gap-1.5 rounded-full border px-2 py-1.5 text-sm"
     transition:slide={{ duration: 200 }}

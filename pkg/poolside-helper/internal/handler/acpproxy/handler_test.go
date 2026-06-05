@@ -1498,7 +1498,7 @@ func TestCloseSession(t *testing.T) {
 func dummyConfig() ConfigFn {
 	return func() HandlerConfig {
 		return HandlerConfig{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			WorkingDir: "/tmp",
 			AgentServers: map[string]AgentServerConfig{
 				DefaultAgentServerName: {
 					Command: "/nonexistent",

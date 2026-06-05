@@ -122,7 +122,7 @@
       {@render genericToolCall()}
     {/snippet}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <ToolOverrideComponent {event} {workspaceFolders} />
   </Boundary>
 {:else}
   {@render genericToolCall()}

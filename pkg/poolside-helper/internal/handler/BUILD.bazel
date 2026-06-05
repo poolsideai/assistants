@@ -59,7 +59,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "//pkg/poolside-helper/internal/handler/secrets",
         "//pkg/poolside-helper/internal/handler/voiceinput",
         "//pkg/poolside-helper/internal/lsptypes",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/poolside-helper/internal/mcp",
         "//pkg/poolside-helper/logging",
         "//pkg/poolside-helper/methods",
         "//pkg/workspace/ignore",

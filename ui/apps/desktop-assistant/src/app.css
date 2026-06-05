@@ -319,7 +319,7 @@
     --vscode-terminal-background: var(--vscode-editor-background);
     --vscode-terminalCursor-foreground: #005cc5;
     --vscode-terminalCursor-background: #d1d5da;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --vscode-terminal-selectionBackground: rgb(3 102 214 / 28%);
     --vscode-terminal-selectionForeground: #24292e;
     --vscode-terminal-ansiBlack: #24292e;
     --vscode-terminal-ansiRed: #d73a49;
@@ -459,7 +459,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     --vscode-terminal-background: var(--vscode-editor-background);
     --vscode-terminalCursor-foreground: #c8e1ff;
     --vscode-terminalCursor-background: #24292e;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --vscode-terminal-selectionBackground: rgb(51 146 255 / 42%);
     --vscode-terminal-selectionForeground: #e1e4e8;
     --vscode-terminal-ansiBlack: #24292e;
     --vscode-terminal-ansiRed: #f14c4c;

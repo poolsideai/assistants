@@ -3,21 +3,21 @@ import type { ACPAgentServers } from "@poolsideai/rpc";
 export const DEFAULT_AGENT_SERVER = "poolside";
 export const LOCAL_AGENT_SERVER = "local";
 export const LEGACY_DEFAULT_AGENT_SERVER = "default";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const LEGACY_SELF_PLACEHOLDERS = new Set(["{{SELF}}", "{{$SELF}}"]);
 
 export function resolveAgentServers(agentServers?: ACPAgentServers | null): ACPAgentServers {
   const input = agentServers ?? {};
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const configuredPoolside = input[DEFAULT_AGENT_SERVER] ?? input[LEGACY_DEFAULT_AGENT_SERVER];
+  const shouldUseConfiguredPoolside =
+    configuredPoolside?.command && !LEGACY_SELF_PLACEHOLDERS.has(configuredPoolside.command);
   const resolved: ACPAgentServers = {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    [DEFAULT_AGENT_SERVER]: shouldUseConfiguredPoolside
+      ? configuredPoolside
+      : {
+          ...configuredPoolside,
+          command: "",
+          args: undefined,
+        },
   };
 
   if (input[LOCAL_AGENT_SERVER]) {

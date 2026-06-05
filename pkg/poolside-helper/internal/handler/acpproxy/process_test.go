@@ -22,7 +22,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 func TestBuildInitializeRequest(t *testing.T) {
 	t.Run("uses helper defaults when request is omitted", func(t *testing.T) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		req := buildInitializeRequest(nil)
 
 		assert.Equal(t, acpsdk.ProtocolVersion(acpsdk.ProtocolVersionNumber), req.ProtocolVersion)
 		require.NotNil(t, req.ClientInfo)
@@ -35,7 +35,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		assert.Nil(t, req.ClientCapabilities.Elicitation.Url)
 	})
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	t.Run("preserves caller handshake", func(t *testing.T) {
 		title := "VS Code"
 		req := buildInitializeRequest(&acpsdk.InitializeRequest{
 			ProtocolVersion: acpsdk.ProtocolVersion(99),
@@ -50,7 +50,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			ClientCapabilities: acpsdk.ClientCapabilities{
 				Terminal: true,
 			},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		})
 
 		assert.Equal(t, acpsdk.ProtocolVersion(99), req.ProtocolVersion)
 		require.NotNil(t, req.Meta)
@@ -666,40 +666,40 @@ func TestScanForAuthUpdates(t *testing.T) {
 	})
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestLineTail(t *testing.T) {
+	tail := newLineTail(2)
+	tail.Add("first")
+	tail.Add("second")
+	tail.Add("third")
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	assert.Equal(t, "second\nthird", tail.String())
+}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestInitializeError(t *testing.T) {
+	t.Run("preserves original error when stderr is empty", func(t *testing.T) {
+		err := initializeError(assert.AnError, "")
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		assert.ErrorIs(t, err, assert.AnError)
+		assert.NotContains(t, err.Error(), "subprocess stderr")
 	})
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	t.Run("includes subprocess stderr", func(t *testing.T) {
+		err := initializeError(assert.AnError, "npm error E404\nnot found")
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		assert.ErrorIs(t, err, assert.AnError)
+		assert.Contains(t, err.Error(), "subprocess stderr:")
+		assert.Contains(t, err.Error(), "npm error E404")
 	})
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestScanStderrCapturesTail(t *testing.T) {
+	tail := newLineTail(3)
+
 	scanStderr("poolside", strings.NewReader("one\ntwo\nthree\nfour\n"), tail, nil)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	assert.Equal(t, "two\nthree\nfour", tail.String())
+}
+
 func TestScanStderrReportsMCPConnectorCredentialsError(t *testing.T) {
 	reported := make(chan error, 1)
 	line := `2026-07-30T10:58:16.647Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when AuthRequired(AuthRequiredError { www_authenticate_header: "Bearer resource_metadata=\"https://mcp.grafana.com/.well-known/oauth-protected-resource\"" })`
@@ -801,7 +801,7 @@ func TestPromptCleanupDoesNotDeleteReplacementProcessCancel(t *testing.T) {
 }
 
 func TestNormalizeAgentServers(t *testing.T) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	t.Run("adds default Poolside registry server to custom config", func(t *testing.T) {
 		servers := NormalizeAgentServers(map[string]AgentServerConfig{
 			"echo": {
 				Command: "node",
@@ -810,7 +810,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		})
 
 		assert.Equal(t, AgentServerConfig{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			Command: "",
 		}, servers[DefaultAgentServerName])
 		assert.NotContains(t, servers, LocalAgentServerName)
 		assert.NotContains(t, servers, LegacyDefaultAgentServerName)
@@ -828,7 +828,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		assert.Equal(t, AgentServerConfig{Type: "local"}, servers[LocalAgentServerName])
 	})
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	t.Run("preserves configured Poolside entries", func(t *testing.T) {
 		servers := NormalizeAgentServers(map[string]AgentServerConfig{
 			DefaultAgentServerName: {
 				Command: "pool",
@@ -837,28 +837,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		})
 
 		assert.Equal(t, AgentServerConfig{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			Command: "pool",
+			Args:    []string{"custom-acp"},
 		}, servers[DefaultAgentServerName])
 	})
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	t.Run("replaces legacy self placeholders for Poolside entries", func(t *testing.T) {
+		for _, command := range []string{"{{SELF}}", "{{$SELF}}"} {
+			servers := NormalizeAgentServers(map[string]AgentServerConfig{
+				DefaultAgentServerName: {
+					Command:              command,
+					Args:                 []string{"acp"},
+					DefaultConfigOptions: map[string]string{"mode": "plan"},
+				},
+			})
+
+			assert.Equal(t, AgentServerConfig{
+				Command:              "",
+				DefaultConfigOptions: map[string]string{"mode": "plan"},
+			}, servers[DefaultAgentServerName])
+		}
+	})
+
 	t.Run("treats legacy default as Poolside alias", func(t *testing.T) {
 		servers := NormalizeAgentServers(map[string]AgentServerConfig{
 			LegacyDefaultAgentServerName: {

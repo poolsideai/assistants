@@ -2,5 +2,5 @@
   "extends": "@poolsideai/tsconfig/svelte",
   "include": ["**/*.js", "**/*.ts", "**/*.svelte"],
   "references": [{ "path": "./tsconfig.node.json" }],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "exclude": ["node_modules", "dist", "src/extension"]
 }

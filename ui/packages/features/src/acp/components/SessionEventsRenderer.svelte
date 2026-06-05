@@ -18,7 +18,7 @@
   import ToolCallGroup from "./events/tool/ToolCallGroup.svelte";
   import { CopyToClipboard } from "./ui";
   import type { WorkspaceFolder } from "@poolsideai/rpc";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { TurnMetadata } from "../TurnMaterializer";
   import {
     VIRTUALIZE_THRESHOLD,
     OVERSCAN_PX,
@@ -27,10 +27,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   } from "./chat/threadVirtualization";
 
   interface Props {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    events: SessionEvent[];
     items?: GroupedItem[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    turns?: readonly TurnMetadata[];
+    isPrompting?: boolean;
     /**
      * Drives the fallback grouping built here from `events`; when the
      * pre-grouped `items` prop is passed, the owner's timeline state has
@@ -75,14 +75,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   const eventsState = new SessionEventsState({
     get events() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return events;
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    get turns() {
+      return turns;
+    },
+    get isPrompting() {
+      return isPrompting;
+    },
     get toolActivity() {
       return toolActivity;
     },

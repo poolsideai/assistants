@@ -922,7 +922,7 @@ func (s *Store) upsertConversationTx(ctx context.Context, db dbExecutor, c metho
 	if err != nil {
 		return fmt.Errorf("encoding conversation working directories: %w", err)
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	metadataJSON := strings.TrimSpace(rawJSONOrDefault(c.Metadata, ""))
 	_, err = db.ExecContext(ctx, `
 INSERT INTO conversations(id, workspace_path, agent_server, session_id, cwd, title, nickname, updated_at, active, archived, working_directories_json, metadata_json, created_at, touched_at)
 VALUES (?, ?, ?, NULLIF(?, ''), ?, ?, ?, ?, 1, 0, ?, ?, ?, ?)
@@ -935,16 +935,16 @@ ON CONFLICT(id) DO UPDATE SET
   session_id = COALESCE(conversations.session_id, excluded.session_id),
   cwd = excluded.cwd,
   working_directories_json = excluded.working_directories_json,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  metadata_json = CASE WHEN excluded.metadata_json != '' THEN excluded.metadata_json ELSE conversations.metadata_json END,
   title = CASE WHEN excluded.title != '' THEN excluded.title ELSE conversations.title END,
   nickname = CASE WHEN excluded.nickname != '' THEN excluded.nickname ELSE conversations.nickname END,
   updated_at = CASE WHEN excluded.updated_at != '' THEN excluded.updated_at ELSE conversations.updated_at END,
   active = 1,
   archived = 0,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  touched_at = CASE
+    WHEN excluded.session_id IS NULL AND excluded.updated_at = '' THEN conversations.touched_at
+    ELSE excluded.touched_at
+  END
 `, c.ID, c.WorkspacePath, c.AgentServer, c.SessionID, c.Cwd, c.Title, c.Nickname, c.UpdatedAt, workingDirectoriesJSON, metadataJSON, now, now)
 	if err != nil {
 		return fmt.Errorf("upserting conversation: %w", err)
@@ -1685,7 +1685,7 @@ ORDER BY
 		var c methods.ACPNavConversation
 		var active, archived int
 		var workingDirectoriesJSON string
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		var metadataJSON string
 		if err := rows.Scan(
 			&c.ID,
 			&c.WorkspacePath,
@@ -1698,16 +1698,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			&active,
 			&archived,
 			&workingDirectoriesJSON,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			&metadataJSON,
 		); err != nil {
 			return nil, fmt.Errorf("scanning conversation: %w", err)
 		}
 		if err := decodeJSONField(workingDirectoriesJSON, &c.WorkingDirectories); err != nil {
 			return nil, fmt.Errorf("decoding conversation working directories: %w", err)
 		}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		if strings.TrimSpace(metadataJSON) != "" {
+			c.Metadata = json.RawMessage(metadataJSON)
+		}
 		c.WorkingDirectories = normalizeWorkingDirectories(c.WorkingDirectories, c.Cwd)
 		c.Active = active != 0
 		c.Archived = archived != 0

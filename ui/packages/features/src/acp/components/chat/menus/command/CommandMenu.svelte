@@ -40,7 +40,7 @@
   let { onCommand, promptCommandItems, fallbackSkills = [] }: Props = $props();
 
   const registry = getACPAgentRegistryRepo();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const chatSession = getACPChatSessionScope();
   const { close, search } = Prompt.getMenus();
 
   type SelectSessionConfigOption = SessionConfigOption & {
@@ -54,7 +54,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   };
 
   const selectOptions = $derived(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    chatSession.configOptions.filter(
       (option): option is SelectSessionConfigOption => option.type === "select",
     ),
   );
@@ -118,7 +118,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   );
 
   function configSubtitle(option: SelectSessionConfigOption): string {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const pending = chatSession.pendingConfigOption(option.id);
     if (!pending) return selectedValueName(option);
     const target = selectedValueName({ ...option, currentValue: pending.value });
     if (pending.error) return `Failed to switch to ${target}`;
@@ -175,16 +175,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     <Prompt.Menu.Popup.Separator />
 
     <Prompt.Menu.Popup.Section title="Config">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {#if chatSession.isPreparingSessionOptions || chatSession.isConfigCacheLoading}
         <Prompt.Menu.Popup.Item title="Loading session options" icon="loading" disabled />
       {/if}
 
       <Prompt.Menu.Popup.Item
         title={AGENT_CONFIG_OPTION_LABEL}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        subtitle={agentName(registry, selectedAgentServer(chatSession))}
         icon="sparkles"
         keywords={["agent", "agents"]}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        disabled={!chatSession.canChangeAgent}
       >
         <Prompt.Actions.Push
           menu={configMenuValue(AGENT_CONFIG_OPTION_ID)}
@@ -208,7 +208,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
               ? "Exit plan mode"
               : "Switch to build mode"
             : "Switch to plan mode"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          icon={chatSession.isPlanModeActive ? "code" : "plan"}
           keywords={["mode"]}
           accessories={planModeHint ? planModeAccessories : undefined}
         >

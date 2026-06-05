@@ -2,16 +2,16 @@
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+holds packages either implementing or relating to Helper. Helper client
+implementors should use this README, `methods/`, and the generated helper API
+bindings in `../../ui/packages/helperapi`.
 
 Communication between the editor and the poolside-helper happens over
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 defined by LSP. While some LSP features may be implemented, the methods supported by
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+methods with `poolside/` to avoid collisions.
 
 e.g.
 

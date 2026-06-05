@@ -68,7 +68,7 @@ tokio = { version = "1", features = ["sync", "time"] }
 libc = "0.2"
 
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+tauri-plugin-single-instance = "2"
 # Self-update via the CrabNebula Cloud feed. Desktop-only (there is no mobile
 # build). The minisign public key + updater endpoint live in tauri.conf.json
 # under plugins.updater; the private signing key is supplied in CI via

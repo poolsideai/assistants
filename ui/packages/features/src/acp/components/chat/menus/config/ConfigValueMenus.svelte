@@ -43,13 +43,13 @@
   const registry = getACPAgentRegistryRepo();
   const agentServers = getACPAgentServersRepo();
   const repo = getACPSessionRepo();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const chatSession = getACPChatSessionScope();
 
   // The collaboration option keeps its (unlisted) value menu even though the
   // command menu hides its row: typing its exact id still opens the picker,
   // and the typed-command handler in Prompt relies on the registration.
   const selectOptions = $derived(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    chatSession.configOptions.filter(
       (option) => option.type === "select" && !isAgentPickerOptionId(option.id),
     ),
   );
@@ -59,12 +59,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const agentMenuValue = configMenuValue(AGENT_CONFIG_OPTION_ID);
 
   async function handleAgentSelect(agentServer: string): Promise<void> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (shouldResetSessionForAgentSelection(chatSession, agentServer)) {
       rememberLastUsedAgent(agentServer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      chatSession.createSession(
+        chatSession.pendingSessionCwd ?? resolveSessionCwd($appState),
         agentServer,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        chatSession.pendingConversationId,
       );
     }
   }
@@ -83,7 +83,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   async function handleConfigSelect(optionId: string, value: string): Promise<void> {
     try {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      await chatSession.setConfigOption(optionId, value);
     } catch (error) {
       console.error("Failed to set ACP session config option", error);
     }
@@ -144,8 +144,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function valueKeywords(optionId: string, optionName: string, group: SelectOptionGroup): string[] {
+    return [optionId, optionName, group.name].filter((v): v is string => Boolean(v));
   }
 </script>
 
@@ -156,7 +156,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
       <Prompt.Menu.Popup.Section>
         {#each agentServerOptions(repo) as agentServer (agentServer)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          {@const isSelected = agentServer === selectedAgentServer(chatSession)}
           {@const agentPinned = isPinnedDefaultAgent(agentServer)}
           {@const iconUrl = agentPickerIconUrl(registry, agentServer)}
           {#snippet agentIcon()}
@@ -224,7 +224,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
               {@const appearance = configValueAppearance(option, value.value)}
               {@const isSelected = value.value === option.currentValue}
               {@const pinned = isPinnedDefault(option.id, value.value)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              {@const pending = chatSession.pendingConfigOption(option.id)}
               {@const isPending = pending?.value === value.value && !pending.error}
               {@const isFailed = pending?.value === value.value && pending.error}
               {#snippet accessories()}
@@ -255,7 +255,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 title={value.name}
                 subtitle={valueDescription(value) ?? group.name}
                 icon={valueIcon}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                keywords={valueKeywords(option.id, option.name, group)}
                 class="group"
                 {accessories}
               >

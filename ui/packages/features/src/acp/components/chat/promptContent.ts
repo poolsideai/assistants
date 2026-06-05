@@ -1,11 +1,11 @@
 import type { ContentBlock, EmbeddedResourceResource } from "@agentclientprotocol/sdk";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+export interface PromptContentOptions {
+  supportsEmbeddedContext: boolean;
+  supportsImages: boolean;
+}
+
 export function buildACPPromptContent(
   value: string,
   pastedAttachments: ContentBlock[],

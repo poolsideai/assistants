@@ -6,7 +6,7 @@
   import { onDestroy, onMount } from "svelte";
   import type { ACPSession } from "../features/Session.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { rpc } from "../hostRpc";
   import {
     ACP_DESKTOP_CONVERSATIONS_EVENT,
     type ACPConversationSummary,
@@ -49,9 +49,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     fillWidth?: boolean;
     collapsible?: boolean;
     showHeaderActions?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    activeConversationId?: string | null;
+    activeSession?: ACPSession | null;
+    onActiveConversationIdChange?: (id: string | null) => void;
   }
 
   let {
@@ -66,9 +66,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     fillWidth = false,
     collapsible = true,
     showHeaderActions = true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    activeConversationId = null,
+    activeSession = null,
+    onActiveConversationIdChange,
   }: Props = $props();
 
   const conversations = getACPConversationRepo();
@@ -77,9 +77,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const sidebar = setAcpSidebarController({
     onShowChat,
     onNewConversation,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    getActiveConversationId: () => activeConversationId,
+    getActiveSession: () => activeSession,
+    setActiveConversationId: (id) => onActiveConversationIdChange?.(id),
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     isChatActive: () => true,
   });
@@ -103,7 +103,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let exitingConversationIds = $state(new Set<string>());
   let rowExitAnimating = $derived(rowExitAnimation.animating);
   const conversationArchiveCountdown = new UndoCountdown(() => {});
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let isLoading = $derived(sidebar.isLoading);
   let groupedHistorySessions = $derived(groupSessions(history.sessions ?? [], searchQuery));
 
   const {
@@ -265,7 +265,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       );
     } finally {
       setConversationExiting(conversationId, false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
   }
 
   async function handleArchiveSession(

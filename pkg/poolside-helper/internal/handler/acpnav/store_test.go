@@ -724,42 +724,42 @@ func TestCreateWorktreeFailingExplicitNameDoesNotRemoveExistingDirectory(t *test
 	require.FileExists(t, filepath.Join(existingPath, "keep.txt"))
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestStoreConversationMetadata(t *testing.T) {
+	ctx := context.Background()
+	store, err := Open(ctx, filepath.Join(t.TempDir(), "acpnav.db"))
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, store.Close()) })
+
+	require.NoError(t, store.UpsertConversation(ctx, methods.ACPNavConversation{
+		ID:            "conv-1",
+		WorkspacePath: "/repo",
+		AgentServer:   "poolside",
+		SessionID:     "s-1",
+		Cwd:           "/repo",
+		Metadata:      []byte(`{"processes":["pnpm test"],"explored":[],"edited":[]}`),
+	}))
+
+	state, err := store.List(ctx)
+	require.NoError(t, err)
+	require.Len(t, state.Conversations, 1)
+	require.JSONEq(t, `{"processes":["pnpm test"],"explored":[],"edited":[]}`, string(state.Conversations[0].Metadata))
+
+	require.NoError(t, store.UpsertConversation(ctx, methods.ACPNavConversation{
+		ID:            "conv-1",
+		WorkspacePath: "/repo",
+		AgentServer:   "poolside",
+		SessionID:     "s-1",
+		Cwd:           "/repo",
+		Title:         "Updated title",
+	}))
+
+	state, err = store.List(ctx)
+	require.NoError(t, err)
+	require.Len(t, state.Conversations, 1)
+	require.Equal(t, "Updated title", state.Conversations[0].Title)
+	require.JSONEq(t, `{"processes":["pnpm test"],"explored":[],"edited":[]}`, string(state.Conversations[0].Metadata))
+}
+
 func TestUpdateConversationTitleByAgentSession(t *testing.T) {
 	ctx := context.Background()
 	store, err := Open(ctx, filepath.Join(t.TempDir(), "acpnav.db"))
@@ -1282,46 +1282,46 @@ func TestStoreSessionlessConversationAssociatesSessionLater(t *testing.T) {
 	require.Equal(t, "First prompt", state.Conversations[0].Title)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestStoreSessionlessConversationNoopUpsertKeepsSortPosition(t *testing.T) {
+	ctx := context.Background()
+	store, err := Open(ctx, filepath.Join(t.TempDir(), "acpnav.db"))
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, store.Close()) })
+
+	require.NoError(t, store.UpsertConversation(ctx, methods.ACPNavConversation{
+		ID:            "old-draft",
+		WorkspacePath: "/repo",
+		AgentServer:   "poolside",
+		Cwd:           "/repo",
+		Title:         "Old draft",
+	}))
+	require.NoError(t, store.UpsertConversation(ctx, methods.ACPNavConversation{
+		ID:            "new-draft",
+		WorkspacePath: "/repo",
+		AgentServer:   "poolside",
+		Cwd:           "/repo",
+		Title:         "New draft",
+	}))
+	_, err = store.db.ExecContext(ctx, `UPDATE conversations SET touched_at = ? WHERE id = ?`, "2026-05-11T09:00:00Z", "old-draft")
+	require.NoError(t, err)
+	_, err = store.db.ExecContext(ctx, `UPDATE conversations SET touched_at = ? WHERE id = ?`, "2026-05-11T10:00:00Z", "new-draft")
+	require.NoError(t, err)
+
+	require.NoError(t, store.UpsertConversation(ctx, methods.ACPNavConversation{
+		ID:            "old-draft",
+		WorkspacePath: "/repo",
+		AgentServer:   "poolside",
+		Cwd:           "/repo",
+		Title:         "Old draft",
+	}))
+
+	state, err := store.List(ctx)
+	require.NoError(t, err)
+	require.Len(t, state.Conversations, 2)
+	require.Equal(t, "new-draft", state.Conversations[0].ID)
+	require.Equal(t, "old-draft", state.Conversations[1].ID)
+}
+
 func TestStoreAgentServers(t *testing.T) {
 	ctx := context.Background()
 	store, err := Open(ctx, filepath.Join(t.TempDir(), "acpnav.db"))
@@ -1347,7 +1347,7 @@ func TestStoreAgentServers(t *testing.T) {
 			},
 		},
 		"default": {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			Command: "pool",
 			Args:    []string{"acp"},
 		},
 	}, &defaultAgentServer, nil))
@@ -1355,7 +1355,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	agentServers, err := store.ListAgentServers(ctx)
 	require.NoError(t, err)
 	require.Equal(t, methods.ACPAgentServerConfig{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		Command: "pool",
 		Args:    []string{"acp"},
 	}, agentServers["poolside"])
 	require.Equal(t, methods.ACPAgentServerConfig{
