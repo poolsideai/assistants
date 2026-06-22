@@ -36,7 +36,7 @@ const (
 	ACPCancelMethod               = acpMethodPrefix + acpsdk.AgentMethodSessionCancel
 	ACPSetModeMethod              = acpMethodPrefix + acpsdk.AgentMethodSessionSetMode
 	ACPSetConfigOptionMethod      = acpMethodPrefix + acpsdk.AgentMethodSessionSetConfigOption
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ACPDeleteSessionMethod        = acpMethodPrefix + acpsdk.AgentMethodSessionDelete
 	ACPCloseSessionMethod         = acpMethodPrefix + acpsdk.AgentMethodSessionClose
 	ACPRenameSessionMethod        = acpMethodPrefix + acp.ExtensionMethodSessionRename
 	ACPRestartServerMethod        = acpMethodPrefix + "server/restart"
@@ -106,7 +106,7 @@ type ACPListSessionsParams struct {
 
 type ACPDeleteSessionParams struct {
 	ACPAgentServerParams
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	acpsdk.DeleteSessionRequest
 }
 
 type ACPCloseSessionParams struct {
@@ -221,7 +221,7 @@ func (p *ACPListSessionsParams) UnmarshalJSON(b []byte) error {
 }
 
 func (p *ACPDeleteSessionParams) UnmarshalJSON(b []byte) error {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return decodeACPParams(b, &p.AgentServer, &p.DeleteSessionRequest)
 }
 
 func (p *ACPCloseSessionParams) UnmarshalJSON(b []byte) error {
@@ -296,7 +296,7 @@ type (
 	ACPCancelOutput               = struct{}
 	ACPSetModeOutput              = acpsdk.SetSessionModeResponse
 	ACPSetConfigOptionOutput      = acpsdk.SetSessionConfigOptionResponse
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ACPDeleteSessionOutput        = acpsdk.DeleteSessionResponse
 	ACPCloseSessionOutput         = acpsdk.CloseSessionResponse
 	ACPRenameSessionOutput        = acp.SessionRenameResponse
 	ACPMCPSettingsOutput          = acp.MCPSettingsResponse

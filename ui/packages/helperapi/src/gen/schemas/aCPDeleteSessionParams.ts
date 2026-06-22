@@ -4,12 +4,12 @@
  * poolside helper
  * OpenAPI spec version: 0.1.0
  */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { _ACPDeleteSessionParamsMeta } from "./_aCPDeleteSessionParamsMeta";
 
 export interface ACPDeleteSessionParams {
   /** A URL to the JSON Schema for this object. */
   readonly $schema?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  _meta?: _ACPDeleteSessionParamsMeta;
   agentServer?: string;
   sessionId: string;
 }

@@ -84,7 +84,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     ]
   },
   "dependencies": {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@agentclientprotocol/sdk": "^0.28.1",
     "@iconify-json/logos": "^1.2.11",
     "@iconify/svelte": "^5.2.2",
     "@melt-ui/svelte": "catalog:",
