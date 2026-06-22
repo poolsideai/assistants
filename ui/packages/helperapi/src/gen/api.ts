@@ -54,7 +54,7 @@ import type {
   CloseSessionResponse,
   DeleteSecretOutput,
   DeleteSecretParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  DeleteSessionResponse,
   GetSecretOutput,
   GetSecretParams,
   GetUserConfigOutput,
@@ -152,7 +152,7 @@ export const poolsideAcpSessionClose = async (
  */
 export const poolsideAcpSessionDelete = async (
   aCPDeleteSessionParams: NonReadonly<ACPDeleteSessionParams>,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+): Promise<DeleteSessionResponse> => {
   return await runtime.jsonrpcCall(
     toJsonrpcMethod("/poolside/acp/session/delete"),
     aCPDeleteSessionParams,

@@ -6,10 +6,10 @@
  */
 
 export * from "./_aCPCloseSessionParamsMeta";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./_aCPDeleteSessionParamsMeta";
 export * from "./_aCPElicitationParamsMeta";
 export * from "./_closeSessionResponseMeta";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./_deleteSessionResponseMeta";
 export * from "./aCPAgentServerBinaryDistribution";
 export * from "./aCPAgentServerBinaryDistributionEnv";
 export * from "./aCPAgentServerConfig";
@@ -78,7 +78,7 @@ export * from "./closeSessionResponse";
 export * from "./codeDescription";
 export * from "./deleteSecretOutput";
 export * from "./deleteSecretParams";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./deleteSessionResponse";
 export * from "./diagnostic";
 export * from "./diagnosticRelatedInformation";
 export * from "./getDiagnosticsOutput";

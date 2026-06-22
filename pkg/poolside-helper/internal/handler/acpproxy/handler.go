@@ -740,13 +740,13 @@ func (h *Handler) DeleteSession(ctx context.Context, params *methods.ACPDeleteSe
 		return nil, err
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	resp, err := conn.DeleteSession(ctx, params.DeleteSessionRequest)
+	if err != nil {
 		h.refreshAuthAfterCallError(ctx, params.AgentServer, err)
 		return nil, preserveACPError("acpproxy: delete session", err)
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return &resp, nil
 }
 
 // CloseSession releases an idle session's agent-side resources (e.g. a

@@ -75,7 +75,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     ]
   },
   "dependencies": {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@agentclientprotocol/sdk": "^0.28.1",
     "@melt-ui/svelte": "catalog:",
     "@poolsideai/components": "workspace:*",
     "@poolsideai/features": "workspace:*",
