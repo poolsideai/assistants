@@ -15,11 +15,11 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
 	"github.com/spf13/afero"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/common/data"
+	"github.com/poolsideai/assistant/pkg/common/sync/bufferpool"
+	"github.com/poolsideai/assistant/pkg/git"
+	"github.com/poolsideai/assistant/pkg/workspace/afero2billy"
+	"github.com/poolsideai/assistant/pkg/workspace/path"
 )
 
 const defaultLRUSize = 100000

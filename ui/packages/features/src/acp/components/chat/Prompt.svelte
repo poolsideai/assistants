@@ -32,7 +32,7 @@
     acpMenus,
     configMenuValue,
   } from "./menus/menus";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { saveACPConversationDump } from "../../dumpACPConversation";
   import { menus } from "../../prompt/menus/menus";
   import FilesMenu from "../../prompt/menus/files/FilesMenu.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -104,7 +104,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     void installedSkills.refresh();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const acpConnectionPool = getOptionalACPConnectionPoolContext();
   const chatSession = getACPChatSessionScope();
   const conversations = getACPConversationRepo();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -323,7 +323,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }
 
       case AcpSlashCommand.dump: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        void dumpActiveACPConversation();
         break;
       }
 
@@ -463,9 +463,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   onDestroy(flushDraftSidebarPreview);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function dumpActiveACPConversation(): Promise<void> {
+    if (!acpConnectionPool) {
+      rpc.showInfoMessage("ACP dump is unavailable", InfoMessageType.error);
       return;
     }
 
@@ -473,9 +473,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const entries = scopeTrajectoryToConversation(
       acpConnectionPool.debug.dump(server),
       chatSession.sessionId,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    );
     const data = JSON.stringify(entries, null, 2);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await saveACPConversationDump(data, $appState.environment.assistantHost);
   }
 
   async function loadACPConversation(): Promise<void> {
@@ -486,13 +486,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       const file = input.files?.[0];
       if (!file) return;
       try {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (!acpConnectionPool) {
+          rpc.showInfoMessage("ACP dump loading is unavailable", InfoMessageType.error);
+          return;
+        }
+
         const entries = normalizeDumpEntries(JSON.parse(await file.text()));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        await acpConnectionPool.debug.load(entries, chatSession.activeAgentServer);
         rpc.showInfoMessage("ACP dump loaded", InfoMessageType.info);
       } catch (error) {
         console.error("Failed to load ACP dump", error);

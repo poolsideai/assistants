@@ -1,7 +1,7 @@
 {
   "name": "@poolsideai/svelte-config",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "private": true,
   "description": "Common svelte configuration",
   "type": "module",
   "exports": "./dist/index.js",

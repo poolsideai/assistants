@@ -5,7 +5,7 @@
 package file
 
 import (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	protocol2 "github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
 )
 
 // Modification represents a modification to a file.

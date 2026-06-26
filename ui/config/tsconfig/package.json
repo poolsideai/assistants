@@ -1,7 +1,7 @@
 {
   "name": "@poolsideai/tsconfig",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "private": true,
   "description": "Common typescript configuration",
   "type": "module",
   "exports": {
@@ -10,7 +10,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   },
   "scripts": {
     "check:format": "prettier . --check --cache --ignore-path ../../.gitignore",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "fix:format": "prettier . --write --cache --ignore-path ../../.gitignore"
   },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

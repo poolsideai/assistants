@@ -1,8 +1,8 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { InfoMessageType } from "@poolsideai/rpc";
 import type { ACPDumpEntry } from "./debugDump";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { rpc } from "./hostRpc";
+
+export async function saveACPConversationDump(data: string, assistantHost: string): Promise<void> {
   await saveJsonFile(`acp-dump-${timestampForFilename()}.json`, data, assistantHost, "ACP dump");
 }
 
@@ -16,47 +16,47 @@ export async function saveACPTrajectory(
   const filename = `acp-trajectory-${stem}-${timestampForFilename()}.json`;
   await saveJsonFile(filename, JSON.stringify(entries, null, 2), assistantHost, "ACP trajectory");
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 async function saveJsonFile(
   filename: string,
   data: string,
   assistantHost: string,
   label: string,
 ): Promise<void> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  try {
+    const savedPath = await rpc.saveTextFile({
       title: `Save ${label}`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      defaultFileName: filename,
+      contents: data,
+      filters: [{ name: "JSON", extensions: ["json"] }],
+    });
+    if (savedPath) {
       rpc.showInfoMessage(`${label} saved to ${savedPath}`, InfoMessageType.info);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    return;
+  } catch (error) {
+    if (assistantHost === "desktop") {
       console.error(`Failed to save ${label}`, error);
       rpc.showInfoMessage(`Failed to save ${label}`, InfoMessageType.error);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return;
+    }
+    console.debug("Host saveTextFile unavailable; falling back to browser download", error);
+  }
+
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
   rpc.showInfoMessage(`${label} saved`, InfoMessageType.info);
 }
 
 function sanitizeFileStem(value: string): string {
   return value.replace(/[^A-Za-z0-9._-]+/g, "_");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+function timestampForFilename(): string {
+  return new Date().toISOString().replace(/[-:]/g, "").replace(/\..*$/, "").replace("T", "-");
+}

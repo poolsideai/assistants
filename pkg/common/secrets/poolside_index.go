@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/common/userconfig"
 )
 
 const (

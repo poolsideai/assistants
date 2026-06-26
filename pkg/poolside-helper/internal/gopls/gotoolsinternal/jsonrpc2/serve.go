@@ -13,7 +13,7 @@ import (
 	"os"
 	"time"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/event"
 )
 
 // NOTE: This file provides an experimental API for serving multiple remote

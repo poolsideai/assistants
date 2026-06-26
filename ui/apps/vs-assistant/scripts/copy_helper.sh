@@ -17,7 +17,7 @@ cd "$HELPER_DIR"
 REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
 helper_version="$(bash "$REPO_ROOT/scripts/resolve-helper-release.sh")"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+gh release download "$helper_version" --pattern '*windows*' --clobber
 
 for f in *.tar.gz; do
   tar -xvf "$f"

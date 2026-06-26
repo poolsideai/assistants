@@ -1,7 +1,7 @@
 {
   "name": "@poolsideai/components",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "private": true,
   "type": "module",
   "imports": {
     "#tailwind.css": "./src/lib/components/tailwind.css"

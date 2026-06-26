@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/acpregistry"
 )
 
 func TestPrepareRegistryBinary(t *testing.T) {

@@ -3,6 +3,6 @@ load("@rules_go//go:def.bzl", "go_library")
 go_library(
     name = "immutable",
     srcs = ["immutable.go"],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    importpath = "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/util/immutable",
     visibility = ["//visibility:public"],
 )

@@ -14,9 +14,9 @@ import (
 	"reflect"
 	"testing"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/event/export/eventtest"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/jsonrpc2"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/stack/stacktest"
 )
 
 var logRPC = flag.Bool("logrpc", false, "Enable jsonrpc2 communication logging")

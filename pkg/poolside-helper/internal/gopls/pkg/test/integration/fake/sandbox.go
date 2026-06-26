@@ -13,8 +13,8 @@ import (
 
 	"golang.org/x/tools/txtar"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/robustio"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/testenv"
 )
 
 // Sandbox holds a collection of temporary resources to use for working with Go

@@ -480,7 +480,7 @@ export class AcpChatPanels {
   }
 
   private routeAgentServerDidExit(params: unknown): void {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    for (const entry of this.panels.values()) {
       entry.lastTouchedAt = Date.now();
       void this.postToPanel(entry, "acpAgentServerDidExit", [params]).then((posted) => {
         if (posted || this.panels.get(entry.conversationId) !== entry) return;

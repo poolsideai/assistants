@@ -11,9 +11,9 @@ import (
 	"strings"
 	"sync"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/common/userconfig"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/acpregistry"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 const assistantConfigFilename = "assistant.json"

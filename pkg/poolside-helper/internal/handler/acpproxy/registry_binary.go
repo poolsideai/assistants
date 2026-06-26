@@ -18,7 +18,7 @@ import (
 	"runtime"
 	"strings"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/acpregistry"
 )
 
 func PrepareRegistryBinary(ctx context.Context, serverName string, binaries map[string]AgentServerBinaryDistribution) (string, []string, map[string]string, error) {

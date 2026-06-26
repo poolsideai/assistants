@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/event/label"
 )
 
 // Event holds the information about an event of note that occurred.

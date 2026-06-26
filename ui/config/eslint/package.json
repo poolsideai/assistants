@@ -1,7 +1,7 @@
 {
   "name": "@poolsideai/eslint-config",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "private": true,
   "description": "Common eslint configuration",
   "type": "module",
   "imports": {
@@ -18,7 +18,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "check:format": "prettier . --check --cache --ignore-path ../../.gitignore",
     "check:lint": "pnpm build && eslint --no-error-on-unmatched-pattern './src/**/*.ts'",
     "check:types": "tsc --project tsconfig.check.json",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "fix:format": "prettier . --write --cache --ignore-path ../../.gitignore",
     "fix:lint": "pnpm build && eslint --no-error-on-unmatched-pattern './src/**/*.ts' --fix",
     "prepare": "turbo build --output-logs errors-only",
     "prepublishOnly": "turbo build"

@@ -3,12 +3,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    importpath = "github.com/poolsideai/assistant/pkg/common/version",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "github.com/poolsideai/assistant/pkg/common/version.Commit": "{GIT_COMMIT}",
+        "github.com/poolsideai/assistant/pkg/common/version.BuildTime": "{BUILD_TIME}",
+        "github.com/poolsideai/assistant/pkg/common/version.Tag": "{STABLE_VERSION_TAG}",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 

@@ -41,5 +41,5 @@ done
 if ! echo "$PATH" | tr ':' '\n' | grep -qx "$HOME/.local/bin"; then
   echo ""
   echo "Add ~/.local/bin to your PATH (if not already):"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
 fi

@@ -20,25 +20,25 @@ import (
 	protocol "github.com/tliron/glsp/protocol_3_16"
 
 	acpsdk "github.com/coder/acp-go-sdk"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	protocol3 "github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/jsonrpc2"
+	cache2 "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/cache"
+	file2 "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/file"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/acpnav"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/acpproxy"
 	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/approvals"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/filesearch"
 	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/localinference"
 
 	githandler "github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/git"
 	githubhandler "github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/github"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/mcpservers"
 	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/remoteaccess"
 	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/remoteterminal"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	secretshandler "github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/secrets"
 	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/voiceinput"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
+	"github.com/poolsideai/assistant/pkg/workspace/ignore"
 )
 
 // PoolsideHandler embeds the regular protocol.Handler but overrides the Handle method to allow us

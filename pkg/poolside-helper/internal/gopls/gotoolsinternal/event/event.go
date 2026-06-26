@@ -7,9 +7,9 @@ package event
 import (
 	"context"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	core2 "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/event/core"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/event/keys"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/event/label"
 )
 
 // Exporter is a function that handles events.

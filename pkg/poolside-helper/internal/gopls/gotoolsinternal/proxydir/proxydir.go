@@ -15,7 +15,7 @@ import (
 	"path/filepath"
 	"strings"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/testenv"
 )
 
 // WriteModuleVersion creates a directory in the proxy dir for a module.

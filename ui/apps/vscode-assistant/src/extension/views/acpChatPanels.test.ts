@@ -485,35 +485,35 @@ describe("AcpChatPanels", () => {
       expect.objectContaining({ command: "togglePlanMode" }),
     );
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  test("broadcasts agent server exits to panels with stale agent metadata", async () => {
+    const panels = createPanels();
+
+    await panels.openSession({
+      conversationId: "conversation:poolside",
+      agentServer: "poolside",
+      sessionId: "session-poolside",
+    });
+    await panels.openSession({
+      conversationId: "conversation:claude",
+      agentServer: "claude-acp",
+      sessionId: "session-claude",
+    });
+
+    await panels.routeInbound("poolside/acp/serverDidExit", {
+      agentServer: "claude-acp",
+      error: "exit status 1",
+    });
+
+    for (const panel of createdPanels) {
+      expect(panel.webview.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          command: "acpAgentServerDidExit",
+          payload: [{ agentServer: "claude-acp", error: "exit status 1" }],
+        }),
+      );
+    }
+  });
 
   // A panel that misses an agent exit keeps prompting the restarted agent
   // with a stale sessionId and every approval gets denied (PE-2362), so

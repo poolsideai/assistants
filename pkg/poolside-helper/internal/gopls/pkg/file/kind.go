@@ -7,7 +7,7 @@ package file
 import (
 	"fmt"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
 )
 
 // Kind describes the kind of the file in question.

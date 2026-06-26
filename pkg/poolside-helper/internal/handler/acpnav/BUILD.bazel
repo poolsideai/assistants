@@ -46,7 +46,7 @@ go_library(
         "migrations/20260716120000_conversation_legs.down.sql",
         "migrations/20260716120000_conversation_legs.up.sql",
     ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    importpath = "github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/acpnav",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/common/userconfig",

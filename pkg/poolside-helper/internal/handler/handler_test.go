@@ -17,10 +17,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tliron/glsp"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/jsonrpc2"
 	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/acpproxy"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/lsptest"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 func TestJSONRPC(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
 )
 
 // uriToPath converts a file:// URI to a filesystem path. If the input is

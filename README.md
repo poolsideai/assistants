@@ -82,14 +82,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 ## License
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Poolside Assistant is licensed under the Apache License 2.0.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
+
+## Trademarks
+
+For usage of Poolside's brand, please see our [Trademark Guidelines](https://poolside.ai/legal/trademark-guidelines).
+
 ---
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__

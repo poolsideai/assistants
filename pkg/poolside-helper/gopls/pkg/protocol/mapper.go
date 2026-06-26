@@ -52,7 +52,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/util/bug"
 )
 
 // A Mapper wraps the content of a file and provides mapping

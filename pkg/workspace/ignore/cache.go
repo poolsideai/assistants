@@ -4,7 +4,7 @@ import (
 	"container/list"
 	"sync"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/workspace/path"
 )
 
 // lruCache implements a thread-safe LRU cache for storing boolean values

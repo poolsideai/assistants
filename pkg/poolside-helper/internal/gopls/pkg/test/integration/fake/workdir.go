@@ -18,9 +18,9 @@ import (
 	"sync"
 	"time"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	protocol2 "github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/robustio"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/util/slices"
 )
 
 // RelativeTo is a helper for operations relative to a given directory.

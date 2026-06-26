@@ -9,8 +9,8 @@ import (
 
 	acpsdk "github.com/coder/acp-go-sdk"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/mcp"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 const resolveTimeout = 10 * time.Second

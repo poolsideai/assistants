@@ -6,8 +6,8 @@ import (
 	"github.com/tliron/glsp"
 	protocol "github.com/tliron/glsp/protocol_3_16"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	protocol3 "github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/lsptypes"
 )
 
 func (h *PoolsideHandler) WorkspaceDidChangeWorkspaceFolders(ctx context.Context, params *protocol3.DidChangeWorkspaceFoldersParams, lspCtx *glsp.Context) (any, error) {

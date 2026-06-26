@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/util/constraints"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/util/persistent"
 )
 
 func TestSet(t *testing.T) {

@@ -14,7 +14,7 @@ import (
 
 	"golang.org/x/oauth2"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/mcp/oauthex"
 )
 
 // oauthFlowTimeout is the maximum time to wait for the user to complete the

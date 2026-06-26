@@ -4,7 +4,7 @@
 
 // Package difftest supplies a set of tests that will operate on any
 // implementation of a diff algorithm as exposed by
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// "github.com/poolsideai/assistant/pkg/poolside-helper/gopls/gotoolsinternal/diff"
 package difftest_test
 
 import (
@@ -14,8 +14,8 @@ import (
 	"strings"
 	"testing"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/diff/difftest"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/testenv"
 )
 
 func TestVerifyUnified(t *testing.T) {

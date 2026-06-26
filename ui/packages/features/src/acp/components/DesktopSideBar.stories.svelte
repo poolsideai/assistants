@@ -112,7 +112,7 @@
       agentServer: "claude-code",
       sessionId: "session-claude-2",
       cwd: "/Users/poolie/code/assistant",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      title: "Investigate flaky helper test",
       updatedAt: minutesAgo(60),
       active: true,
       archived: false,

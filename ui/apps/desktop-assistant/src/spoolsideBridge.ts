@@ -71,10 +71,10 @@ const refs = new Map<string, Element>();
 const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
 const webIssues: WebIssue[] = [];
 let webIssueCaptureStarted = false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+let getACPDebugAPI: (() => ACPDebugAPI | undefined) | undefined;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function startSpoolsideBridge(getDebugAPI?: () => ACPDebugAPI | undefined) {
+  getACPDebugAPI = getDebugAPI;
   const params = new URLSearchParams(window.location.search);
   const bridgeUrl =
     params.get("spoolsideBridgeUrl") ??
@@ -320,7 +320,7 @@ function acpDebugBridge(): {
   dumpJSON: () => string;
   load: (entries: string) => Promise<void>;
 } {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const bridge = getACPDebugAPI?.();
   if (!bridge) {
     throw new Error("ACP debug bridge is not available");
   }

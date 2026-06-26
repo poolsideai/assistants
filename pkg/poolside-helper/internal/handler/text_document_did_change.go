@@ -5,7 +5,7 @@ import (
 
 	"github.com/tliron/glsp"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/events"
 )
 
 func (h *PoolsideHandler) OnTextDocumentDidChange(ctx context.Context, event events.TextDocumentDidChange, call glsp.CallFunc) {

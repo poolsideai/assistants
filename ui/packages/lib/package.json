@@ -1,7 +1,7 @@
 {
   "name": "@poolsideai/lib",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "private": true,
   "description": "Reusable library functions",
   "type": "module",
   "exports": {

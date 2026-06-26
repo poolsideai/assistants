@@ -1,63 +1,63 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Grant license policy for repository dependency license checks.
+#
+# Grant is allow-list based: any license not listed here is denied. This policy
+# allows common permissive, weak-copyleft, documentation, and data licenses that
+# are acceptable for repository dependencies, while leaving proprietary,
+# source-available, strong copyleft, and network-copyleft licenses denied by omission.
+# Examples intentionally not allowed: AGPL-*, GPL-*, SSPL-*, BUSL-*, Elastic-*,
+# PolyForm-*, LicenseRef-Proprietary, and unknown/non-SPDX license strings.
+#
+# Run the repeatable repository check from the repository root:
+#   scripts/license-check.sh
+
+format: table
+quiet: false
+verbose: false
+
+disable-file-search: false
+
+# Deny packages that have no detected license and deny unparsable/non-SPDX
+# license identifiers. This makes proprietary and unknown licenses fail closed.
+require-license: true
+require-known-license: true
+
+allow:
+  # Public-domain-equivalent / no-condition / very permissive.
+  - 0BSD
+  - CC0-1.0
+  - Unlicense
+  - WTFPL
+
+  # Common permissive licenses.
+  - Apache-2.0
+  - Apache-1.1
+  - MIT
+  - MIT-0
+  - ISC
+  - BSD-2-Clause
+  - BSD-3-Clause
+  - BSD-4-Clause
+  - BSD-Source-Code
+  - BlueOak-1.0.0
+  - BSL-1.0
+  - Zlib
+  - Libpng
+  - IJG
+  - NCSA
+  - PostgreSQL
+  - Python-2.0
+  - Ruby
+  - X11
+
+  # Reviewed weak-copyleft / documentation / data licenses already present in
+  # repository dependencies. Strong copyleft and network-copyleft licenses remain
+  # denied by omission.
+  - MPL-2.0
+  - Artistic-2.0
+  - Unicode-3.0
+  - CC-BY-3.0
   - OFL-1.1 # Covers the bundled JetBrains Mono fonts.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+ignore-packages: []
+summary: false
+only-unlicensed: false

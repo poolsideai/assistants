@@ -7,11 +7,11 @@ import (
 
 	"github.com/tliron/glsp"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/events"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/diff"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/jsonrpc2"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/file"
 )
 
 func (h *PoolsideHandler) TextDocumentDidChange(ctx context.Context, params *protocol.DidChangeTextDocumentParams, lspCtx *glsp.Context) (any, error) {

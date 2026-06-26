@@ -6,11 +6,11 @@ declare const packageJson: {
   name: "poolside-assistant";
   displayName: "Poolside Assistant";
   version: "0.0.0";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private: true;
   description: "The power of Poolside, right in your editor";
   categories: ["Machine Learning"];
   keywords: ["ai", "chat"];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  license: "SEE LICENSE IN LICENSE";
   qna: "mailto:feedback@poolside.ai";
   author: {
     name: "Poolside";

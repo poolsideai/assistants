@@ -3,7 +3,7 @@ name = "desktop-assistant"
 version = "0.1.0"
 description = "The Poolside desktop assistant shell."
 authors = ["Poolside <hello@poolside.ai>"]
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+publish = false
 edition = "2021"
 
 [lib]

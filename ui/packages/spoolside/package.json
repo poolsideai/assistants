@@ -14,7 +14,7 @@
     "test:unit": "vitest run --config vitest.config.ts"
   },
   "dependencies": {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@poolsideai/assistant": "workspace:*",
     "diff": "^7.0.0",
     "jsonc-parser": "^3.3.1",
     "playwright": "catalog:",

@@ -10,11 +10,11 @@ import (
 	"sync"
 	"time"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/event"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/robustio"
+	file2 "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/file"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/label"
 )
 
 // A memoizedFS is a file source that memoizes reads, to reduce IO.

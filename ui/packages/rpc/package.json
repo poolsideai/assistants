@@ -1,7 +1,7 @@
 {
   "name": "@poolsideai/rpc",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "private": true,
   "description": "Inter process communication protocol for poolside assistants",
   "repository": {
     "url": "https://github.com/poolsideai/assistant"

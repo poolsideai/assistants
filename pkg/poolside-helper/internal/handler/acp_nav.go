@@ -6,7 +6,7 @@ import (
 	"github.com/tliron/glsp"
 
 	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/acpproxy"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 func (h *PoolsideHandler) ACPNavList(ctx context.Context, req *methods.ACPNavListParams, gCtx *glsp.Context) (methods.ACPNavState, error) {

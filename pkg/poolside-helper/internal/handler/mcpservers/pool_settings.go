@@ -9,8 +9,8 @@ import (
 	"github.com/tliron/glsp"
 	"gopkg.in/yaml.v3"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/common/userconfig"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 // poolGlobalSettingsFile is the user-global poolside settings file the agent

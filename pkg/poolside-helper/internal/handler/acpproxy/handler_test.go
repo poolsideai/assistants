@@ -17,7 +17,7 @@ import (
 	"github.com/tliron/glsp"
 
 	acphelpers "github.com/poolsideai/assistant/pkg/acp"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 func newGlspContext(
@@ -143,7 +143,7 @@ func TestInitialize(t *testing.T) {
 		h := NewHandler(dummyConfig(), nil, nil)
 		gCtx := newGlspContext(nil, nil)
 		proc, _ := h.processFor(DefaultAgentServerName, gCtx)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		proc.state = processState{kind: processStateRunning}
 		proc.initResp = &acpsdk.InitializeResponse{
 			ProtocolVersion: acpsdk.ProtocolVersionNumber,
 			AuthMethods:     []acpsdk.AuthMethod{},
@@ -166,7 +166,7 @@ func TestRestartServer(t *testing.T) {
 	h := NewHandler(dummyConfig(), nil, nil)
 	gCtx := newGlspContext(nil, nil)
 	proc, _ := h.processFor(DefaultAgentServerName, gCtx)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	proc.state = processState{kind: processStateRunning}
 	proc.stdin = nopWriteCloser{}
 	proc.initResp = &acpsdk.InitializeResponse{ProtocolVersion: acpsdk.ProtocolVersionNumber}
 	proc.session = "s-123"
@@ -175,7 +175,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 	require.NoError(t, err)
 	require.NotNil(t, resp)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	assert.Equal(t, processStateUnstarted, proc.state.kind)
 	assert.Nil(t, proc.initResp)
 	assert.Empty(t, proc.session)
 }
@@ -403,7 +403,7 @@ func TestSessionMethodsRequireSession(t *testing.T) {
 	h := NewHandler(dummyConfig(), nil, nil)
 	gCtx := newGlspContext(nil, nil)
 	proc, _ := h.processFor(DefaultAgentServerName, gCtx)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	proc.state = processState{kind: processStateRunning}
 	proc.conn = &acpsdk.ClientSideConnection{}
 	proc.initResp = &acpsdk.InitializeResponse{
 		ProtocolVersion: acpsdk.ProtocolVersionNumber,

@@ -12,8 +12,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	pkgerrors "github.com/pkg/errors"
 	"github.com/tliron/glsp"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/jsonrpc2"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 // JSONRPCOperation captures metadata for a single JSONRPC method.

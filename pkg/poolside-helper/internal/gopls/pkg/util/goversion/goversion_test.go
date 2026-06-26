@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/util/goversion"
 )
 
 func TestMessage(t *testing.T) {

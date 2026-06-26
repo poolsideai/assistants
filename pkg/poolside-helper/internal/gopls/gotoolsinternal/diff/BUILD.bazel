@@ -7,7 +7,7 @@ go_library(
         "ndiff.go",
         "unified.go",
     ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    importpath = "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/diff",
     visibility = ["//visibility:public"],
     deps = ["//pkg/poolside-helper/internal/gopls/gotoolsinternal/diff/lcs"],
 )

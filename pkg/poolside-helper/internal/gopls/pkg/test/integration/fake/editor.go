@@ -17,14 +17,14 @@ import (
 	"strings"
 	"sync"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	protocol2 "github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/jsonrpc2"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/jsonrpc2/servertest"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/xcontext"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/test/integration/fake/glob"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/util/bug"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/util/pathutil"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/util/slices"
 )
 
 // Editor is a fake client editor.  It keeps track of client state and can be

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"sync/atomic"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/memoize"
 )
 
 // New Creates a new cache for gopls operation results, using the given file

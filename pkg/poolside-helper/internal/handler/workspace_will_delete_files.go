@@ -5,7 +5,7 @@ import (
 
 	"github.com/tliron/glsp"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/lsptypes"
 )
 
 func (h *PoolsideHandler) OnWorkspaceWillDeleteFiles(ctx context.Context, params lsptypes.DeleteFilesParams, call glsp.CallFunc) {

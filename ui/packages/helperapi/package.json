@@ -1,7 +1,7 @@
 {
   "name": "@poolsideai/helperapi",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "private": true,
   "repository": {
     "url": "https://github.com/poolsideai/assistant"
   },

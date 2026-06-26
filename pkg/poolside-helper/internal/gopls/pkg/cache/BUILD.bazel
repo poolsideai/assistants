@@ -8,7 +8,7 @@ go_library(
         "fs_memoized.go",
         "fs_overlay.go",
     ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    importpath = "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/cache",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/poolside-helper/gopls/pkg/protocol",

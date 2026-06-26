@@ -5,8 +5,8 @@ import (
 
 	"github.com/tliron/glsp"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/common/future"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 func (h *PoolsideHandler) Abort(ctx context.Context, params *methods.AbortParams, gCtx *glsp.Context) (*methods.AbortOutput, error) {

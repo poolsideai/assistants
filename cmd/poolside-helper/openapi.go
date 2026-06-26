@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/spf13/cobra"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/helpercli"
 )
 
 func apiDocsCommand() *cobra.Command {
