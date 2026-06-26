@@ -8,7 +8,7 @@ go_library(
         "ignore.go",
         "options.go",
     ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    importpath = "github.com/poolsideai/assistant/pkg/workspace/ignore",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/common/data",

@@ -5,8 +5,8 @@
 package fake
 
 import (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	protocol2 "github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/diff"
 )
 
 // NewEdit creates an edit replacing all content between the 0-based

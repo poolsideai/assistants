@@ -7,7 +7,7 @@ package fake
 import (
 	"fmt"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/proxydir"
 )
 
 // WriteProxy creates a new proxy file tree using the txtar-encoded content,

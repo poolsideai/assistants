@@ -16,55 +16,55 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+RUST_MANIFEST="${PWD}/ui/apps/desktop-assistant/src-tauri/Cargo.toml"
+
 # mr boxington (mbx) wraps cargo with a machine-wide build cache so every
 # worktree shares compiled artifacts: https://mr-boxington.jdx.dev
 # It is the desktop assistant's cargo runner (tauri.conf.json > build.runner).
 MBX_VERSION="1.11.1"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+setup_rust() {
+    echo ""
+    echo -e "${BOLD}${CYAN}=== Rust Setup ===${RESET}"
+
+    local has_rustup=false
+    if command -v rustup >/dev/null 2>&1; then
+        has_rustup=true
+    fi
+
+    if ! command -v rustc >/dev/null 2>&1 || ! command -v cargo >/dev/null 2>&1; then
+        if [ "$has_rustup" = true ]; then
+            echo -e "${CYAN}Installing stable Rust toolchain with rustup...${RESET}"
+            rustup toolchain install stable --profile minimal
+            rustup default stable
+            export PATH="${HOME}/.cargo/bin:${PATH}"
+        else
+            echo -e "${RED}Error: rustc and cargo are required for the desktop assistant${RESET}"
+            echo "Install Rust with rustup, then rerun make setup:"
+            echo -e "  ${CYAN}curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh${RESET}"
+            exit 1
+        fi
+    fi
+
+    if ! command -v rustc >/dev/null 2>&1; then
+        echo -e "${RED}Error: rustc is still unavailable after Rust setup${RESET}"
+        exit 1
+    fi
+
+    if ! command -v cargo >/dev/null 2>&1; then
+        echo -e "${RED}Error: cargo is still unavailable after Rust setup${RESET}"
+        exit 1
+    fi
+
+    echo -e "  ${GREEN}✓${RESET} $(rustc --version)"
+    echo -e "  ${GREEN}✓${RESET} $(cargo --version)"
+
+    if [ -f "$RUST_MANIFEST" ]; then
+        echo -e "${CYAN}Fetching Rust dependencies for desktop assistant...${RESET}"
+        cargo fetch --locked --manifest-path "$RUST_MANIFEST"
+    fi
+}
+
 setup_mbx() {
     echo ""
     echo -e "${BOLD}${CYAN}=== mr boxington Setup (shared Rust build cache) ===${RESET}"
@@ -218,6 +218,6 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+setup_rust
 setup_mbx

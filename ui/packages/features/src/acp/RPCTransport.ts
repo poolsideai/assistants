@@ -34,17 +34,17 @@ export class RPCTransport implements Stream, ACPTransport {
     { resolve: (value: unknown) => void; reject: (reason: unknown) => void }
   >();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  constructor(
+    helperApiClient: HelperAPIClient,
+    agentServer = DEFAULT_AGENT_SERVER,
+    private readonly debugLog?: ACPDebugLog,
+  ) {
     this.agentServer = normalizeAgentServerName(agentServer);
     const transport = this;
 
     this.writable = new WritableStream({
       async write(msg: AnyMessage) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        transport.debugLog?.record(transport.agentServer, "outgoing", msg);
         if (!("method" in msg) && "id" in msg && msg.id != null) {
           // Response from SDK (e.g. after handling requestPermission) —
           // resolve the pending promise so it flows back to the caller.
@@ -106,7 +106,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (!("jsonrpc" in msg)) {
       throw new Error("transport: missing jsonrpc version field");
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.debugLog?.record(this.agentServer, "incoming", msg);
     this.readableCtl.enqueue(msg as AnyMessage);
   }
 

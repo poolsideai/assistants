@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/stack"
 )
 
 func TestProcess(t *testing.T) {
@@ -156,15 +156,15 @@ file3.go:30: functionC
 panic: oops
 
 goroutine 53 [running]:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+github.com/poolsideai/assistant/pkg/poolside-helper/gopls/gotoolsinternal/jsonrpc2_test.testHandler.func1(0x1240c20, 0xc000013350, 0xc0000133b0, 0x1240ca0, 0xc00002ab00, 0x3, 0x3)
 	/work/tools/internal/jsonrpc2/jsonrpc2_test.go:160 +0x74c
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+github.com/poolsideai/assistant/pkg/poolside-helper/gopls/gotoolsinternal/jsonrpc2.(*Conn).Run(0xc000204330, 0x1240c20, 0xc000204270, 0x1209570, 0xc000212120, 0x1242700)
 	/work/tools/internal/jsonrpc2/jsonrpc2.go:187 +0x777
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+github.com/poolsideai/assistant/pkg/poolside-helper/gopls/gotoolsinternal/jsonrpc2_test.run.func1(0x123ebe0, 0xc000206018, 0x123ec20, 0xc000206010, 0xc0002080a0, 0xc000204330, 0x1240c20, 0xc000204270, 0xc000212120)
 	/work/tools/internal/jsonrpc2/jsonrpc2_test.go:131 +0xe2
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+created by github.com/poolsideai/assistant/pkg/poolside-helper/gopls/gotoolsinternal/jsonrpc2_test.run
 	/work/tools/internal/jsonrpc2/jsonrpc2_test.go:121 +0x263
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+FAIL    github.com/poolsideai/assistant/pkg/poolside-helper/gopls/gotoolsinternal/jsonrpc2    0.252s
 FAIL
 `,
 		expect: `
@@ -174,15 +174,15 @@ panic: oops
 
 1 goroutines, 1 unique
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+github.com/poolsideai/assistant/pkg/poolside-helper/gopls/gotoolsinternal/jsonrpc2_test.testHandler.func1(0x1240c20, 0xc000013350, 0xc0000133b0, 0x1240ca0, 0xc00002ab00, 0x3, 0x3)
 	/work/tools/internal/jsonrpc2/jsonrpc2_test.go:160 +0x74c
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+github.com/poolsideai/assistant/pkg/poolside-helper/gopls/gotoolsinternal/jsonrpc2.(*Conn).Run(0xc000204330, 0x1240c20, 0xc000204270, 0x1209570, 0xc000212120, 0x1242700)
 	/work/tools/internal/jsonrpc2/jsonrpc2.go:187 +0x777
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+github.com/poolsideai/assistant/pkg/poolside-helper/gopls/gotoolsinternal/jsonrpc2_test.run.func1(0x123ebe0, 0xc000206018, 0x123ec20, 0xc000206010, 0xc0002080a0, 0xc000204330, 0x1240c20, 0xc000204270, 0xc000212120)
 	/work/tools/internal/jsonrpc2/jsonrpc2_test.go:131 +0xe2
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+created by github.com/poolsideai/assistant/pkg/poolside-helper/gopls/gotoolsinternal/jsonrpc2_test.run
 	/work/tools/internal/jsonrpc2/jsonrpc2_test.go:121 +0x263
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+FAIL    github.com/poolsideai/assistant/pkg/poolside-helper/gopls/gotoolsinternal/jsonrpc2    0.252s
 FAIL
 `,
 	}} {

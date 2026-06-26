@@ -1,11 +1,11 @@
 {
   "name": "@poolsideai/desktop-assistant",
   "version": "0.0.0",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "private": true,
   "description": "The Poolside desktop assistant shell.",
   "repository": {
     "type": "git",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "url": "https://github.com/poolsideai/assistant"
   },
   "author": {
     "name": "Poolside",

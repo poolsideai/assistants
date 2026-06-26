@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 func TestDefaultLoggerFollowsLevelChange(t *testing.T) {

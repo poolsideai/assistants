@@ -10,7 +10,7 @@ go_library(
         "oauthex.go",
         "resource_meta.go",
     ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    importpath = "github.com/poolsideai/assistant/pkg/poolside-helper/internal/mcp/oauthex",
     visibility = ["//pkg/poolside-helper:__subpackages__"],
     deps = ["@org_golang_x_net//publicsuffix"],
 )

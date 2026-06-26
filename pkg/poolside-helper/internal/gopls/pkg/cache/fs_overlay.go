@@ -10,10 +10,10 @@ import (
 	"os"
 	"sync"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/xcontext"
+	file2 "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/file"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/util/bug"
 )
 
 // An overlayFS is a file.Source that keeps track of overlays on top of a

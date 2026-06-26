@@ -13,11 +13,11 @@ import (
 
 	acpsdk "github.com/coder/acp-go-sdk"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	acphelpers "github.com/poolsideai/assistant/pkg/acp"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/acpnav"
 	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/approvals"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 	"github.com/tliron/glsp"
 )
 

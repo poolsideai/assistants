@@ -23,9 +23,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 	acpsdk "github.com/coder/acp-go-sdk"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/common/version"
 	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/shellenv"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 const (
@@ -36,7 +36,7 @@ const (
 	npmConfigCacheEnvKeyUpper    = "NPM_CONFIG_CACHE"
 	authenticateUpdateMethod     = acpsdk.AgentMethodAuthenticate + "/update"
 	initializeHandshakeTimeout   = 30 * time.Second
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	processRestartBackoff        = 3 * time.Second
 )
 
 // How long a stopping subprocess gets to exit on its own after its stdin
@@ -94,25 +94,25 @@ type process struct {
 	promptRuntimeErr error
 	promptCancels    map[uint64]context.CancelCauseFunc
 	nextPromptID     uint64
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+type processStateKind uint8
+
+const (
+	processStateUnstarted processStateKind = iota
+	processStateRunning
+	processStateExited
+)
+
+type processState struct {
+	kind     processStateKind
+	exitedAt time.Time
+}
+
+func (p *process) isRunningLocked() bool {
+	return p.state.kind == processStateRunning
+}
+
 func (p *process) isRunning() bool {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -144,28 +144,28 @@ func (p *process) adoptSessionLocked(id acpsdk.SessionId, probe bool) {
 	p.sessionIsProbe = probe
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// resetLocked clears all runtime fields that are tied to one subprocess
+// instance and records the lifecycle state that should follow.
+func (p *process) resetLocked(state processState) {
+	p.cmd = nil
+	p.conn = nil
+	p.initResp = nil
+	p.session = ""
 	p.sessionIsProbe = false
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	p.stdin = nil
 	p.exited = nil
 	p.onStop = nil
 	p.claudeAuthVerified = false
 	p.promptRuntimeErr = nil
 	p.promptCancels = nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	p.state = state
 }
 
 func (p *process) initializedConn() (*acpsdk.ClientSideConnection, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if !p.isRunningLocked() {
 		return nil, fmt.Errorf("acpproxy: not initialized; call initialize first")
 	}
 
@@ -352,8 +352,8 @@ func buildInitializeRequest(req *acpsdk.InitializeRequest) acpsdk.InitializeRequ
 
 // startLocked spawns the subprocess and performs the ACP handshake.
 // It must be called with p.mu held.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (p *process) startLocked(ctx context.Context, cfg startConfig, client *acpClient, initReq acpsdk.InitializeRequest) error {
+	if p.isRunningLocked() {
 		return nil
 	}
 
@@ -412,7 +412,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("acpproxy: start: %w", err)
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	slog.Info("acpproxy: subprocess started", "server", cfg.serverName, "pid", cmd.Process.Pid)
 
 	stderrTail := newLineTail(20)
 	stderrDone := make(chan struct{})
@@ -463,7 +463,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			cfg.onExit(cfg.serverName, nil)
 		}
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	p.state = processState{kind: processStateRunning}
 
 	go p.watchExit(cfg.serverName, cmd, exited, cfg.onExit)
 	go p.watchDisconnect(cfg.serverName, cmd, conn, cfg.onExit)
@@ -519,7 +519,7 @@ func (p *process) markExited(cmd *exec.Cmd) bool {
 		return false
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	p.resetLocked(processState{kind: processStateExited, exitedAt: time.Now()})
 	return true
 }
 
@@ -535,10 +535,10 @@ func (p *process) markDisconnected(cmd *exec.Cmd, conn *acpsdk.ClientSideConnect
 	return true
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// newSessionLocked creates a new ACP session on an already-running process,
 // replacing any existing session. Must be called with p.mu held.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (p *process) newSessionLocked(ctx context.Context, req acpsdk.NewSessionRequest) (*acpsdk.NewSessionResponse, error) {
+	if !p.isRunningLocked() {
 		return nil, fmt.Errorf("acpproxy: not initialized; call initialize first")
 	}
 
@@ -560,10 +560,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	return &resp, nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// loadSessionLocked loads an existing ACP session on an already-running process,
 // replacing any existing session. Must be called with p.mu held.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (p *process) loadSessionLocked(ctx context.Context, req acpsdk.LoadSessionRequest) (*acpsdk.LoadSessionResponse, error) {
+	if !p.isRunningLocked() {
 		return nil, fmt.Errorf("acpproxy: not initialized; call initialize first")
 	}
 
@@ -623,7 +623,7 @@ func (p *process) stop() error {
 			closeErr = p.stdin.Close()
 		}
 		serverName, cmd, exited, onStop := p.serverName, p.cmd, p.exited, p.onStop
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		p.resetLocked(processState{})
 		return serverName, cmd, exited, onStop, closeErr
 	}()
 
@@ -703,18 +703,18 @@ func (p *process) supportsSessionClose() bool {
 type ConfigFn func() HandlerConfig
 
 // ensureStarted lazily initializes the subprocess on first use.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (p *process) ensureStarted(ctx context.Context, cfgFn ConfigFn, serverName string, client *acpClient, initReq *acpsdk.InitializeRequest, onExit func(serverName string, err error)) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if p.isRunningLocked() {
 		return nil
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if err := p.waitForRestartBackoffLocked(ctx); err != nil {
+		return err
+	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	cfg := cfgFn()
 	agentServers := NormalizeAgentServers(cfg.AgentServers)
 	serverCfg, ok := agentServers[serverName]
 	if !ok {
@@ -761,9 +761,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}
 	startCfg.processDir = cfg.WorkingDir
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return p.startLocked(ctx, startCfg, client, buildInitializeRequest(initReq))
+}
+
 func shouldResolveBundledPoolsideBinary(serverName string, cfg AgentServerConfig) bool {
 	if cfg.Type == "registry" || cfg.Command != "" || len(cfg.Binary) > 0 {
 		return false
@@ -771,34 +771,34 @@ func shouldResolveBundledPoolsideBinary(serverName string, cfg AgentServerConfig
 	return serverName == DefaultAgentServerName || serverName == LocalAgentServerName
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// waitForRestartBackoffLocked keeps repeated starts from thrashing after a
+// subprocess exits. It must be called with p.mu held.
+func (p *process) waitForRestartBackoffLocked(ctx context.Context) error {
+	if p.state.kind != processStateExited {
+		return nil
+	}
+
+	retryAt := p.state.exitedAt.Add(processRestartBackoff)
+	delay := time.Until(retryAt)
+	if delay <= 0 {
+		return nil
+	}
+
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 func (p *process) connForSession() (*acpsdk.ClientSideConnection, acpsdk.SessionId, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if !p.isRunningLocked() {
 		return nil, "", fmt.Errorf("acpproxy: not initialized; call initialize first")
 	}
 

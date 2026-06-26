@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 const resultLimit = 25

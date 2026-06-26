@@ -21,9 +21,9 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/common/userconfig"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/dbmigrate"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 const migrationsTable = "acp_nav_migrations"

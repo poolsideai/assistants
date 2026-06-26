@@ -7,7 +7,7 @@
 //
 // To run:
 //
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// $ cd $GOPATH/src/github.com/poolsideai/assistant/pkg/poolside-helper/gopls
 // $ go run release/release.go -version=<version>
 package main
 

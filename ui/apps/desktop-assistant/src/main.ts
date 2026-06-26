@@ -9,7 +9,7 @@ import {
   type Notifier,
 } from "@poolsideai/features/acp";
 import { InfoMessageType } from "@poolsideai/rpc";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { homeDir } from "@tauri-apps/api/path";
@@ -292,8 +292,8 @@ interface StartOptions {
 export async function start({ onShellInteractive, onInitialScreenSettled }: StartOptions = {}) {
   logStartupDiagnostic("start.begin");
   const desktopInstance = spoolsideDesktopInstance();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let acpDebugAPI: ACPDebugAPI | undefined;
+  startSpoolsideBridge(() => acpDebugAPI);
 
   const target = document.getElementById("app");
 
@@ -360,8 +360,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         : navigator.userAgent.includes("Windows")
           ? "win32"
           : "linux",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      assistantHostVersion: assistantVersion,
+      assistantVersion,
       assistantProduct: "desktop-assistant",
       desktopInstance,
       desktopFileOpenerId: desktopSettings.fileOpenerId,
@@ -728,9 +728,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       tauriDragDropSubscriber,
       onShellInteractive,
       onInitialScreenSettled,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      onACPConnectionPoolReady: (pool) => {
+        acpDebugAPI = pool.debug;
+      },
       onACPAttentionCountChange: (count) => {
         if (count === lastAttentionBadgeCount) return;
         lastAttentionBadgeCount = count;

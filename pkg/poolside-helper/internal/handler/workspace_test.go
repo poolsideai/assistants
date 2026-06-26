@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	protocol "github.com/tliron/glsp/protocol_3_16"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	protocol2 "github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
 )
 
 func TestApplyWorkspaceFolderChange(t *testing.T) {

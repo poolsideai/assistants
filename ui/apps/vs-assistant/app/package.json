@@ -1,7 +1,7 @@
 {
   "name": "@poolsideai/vs-assistant",
   "version": "1.4.0",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "private": true,
   "description": "The Poolside app to run in a tool window in Visual Studio.",
   "repository": {
     "type": "git",

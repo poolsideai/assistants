@@ -15,9 +15,9 @@ import (
 	"testing"
 	"unicode/utf8"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	diff2 "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/diff"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/diff/difftest"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/testenv"
 )
 
 func TestApply(t *testing.T) {
@@ -162,9 +162,9 @@ func TestToUnified(t *testing.T) {
 }
 
 func TestRegressionOld001(t *testing.T) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	a := "// Copyright 2019 The Go Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style\n// license that can be found in the LICENSE file.\n\npackage diff_test\n\nimport (\n\t\"fmt\"\n\t\"math/rand\"\n\t\"strings\"\n\t\"testing\"\n\n\t\"golang.org/x/tools/gopls/internal/lsp/diff\"\n\t\"github.com/poolsideai/assistant/pkg/poolside-helper/gopls/gotoolsinternal/diff/difftest\"\n\t\"golang.org/x/tools/gopls/internal/span\"\n)\n"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	b := "// Copyright 2019 The Go Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style\n// license that can be found in the LICENSE file.\n\npackage diff_test\n\nimport (\n\t\"fmt\"\n\t\"math/rand\"\n\t\"strings\"\n\t\"testing\"\n\n\t\"github.com/google/safehtml/template\"\n\t\"golang.org/x/tools/gopls/internal/lsp/diff\"\n\t\"github.com/poolsideai/assistant/pkg/poolside-helper/gopls/gotoolsinternal/diff/difftest\"\n\t\"golang.org/x/tools/gopls/internal/span\"\n)\n"
 	diffs := diff2.Strings(a, b)
 	got, err := diff2.Apply(a, diffs)
 	if err != nil {

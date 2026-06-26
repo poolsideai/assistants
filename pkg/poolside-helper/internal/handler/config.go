@@ -8,7 +8,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	pkgerrors "github.com/pkg/errors"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/acpproxy"
 )
 
 type ClientCapabilitiesConfig struct {

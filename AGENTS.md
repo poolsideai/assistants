@@ -66,44 +66,44 @@ before/after screenshots as PR evidence — see
 - Run `pnpm fix:format` before pushing UI changes; `gofmt` is enforced for Go.
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+
+For code under `ui/`, use `ui/README.md` as the canonical walkthrough of the
+workspace, Svelte patterns, and apps.
+
+- This project uses Node.js and pnpm. Check the root `.tool-versions` file for
+  versions.
+- Always use `pnpm`, never `npm`.
+- Prefer scoped installs such as `pnpm install --filter @poolsideai/<app>...`
+  (note the trailing `...`) over a top-level install when working on one app or
+  package.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+- Check type errors with editor diagnostics if available; otherwise use
+  `pnpm check:types`.
+- Fix formatting issues with `pnpm fix:format`.
+- Run unit tests with `pnpm test:unit` or a focused package command such as
+  `pnpm -F poolside-assistant test:unit`.
+- Run unit tests in watch mode with `pnpm test:unit:watch`, or scope the same
+  script with `pnpm -F <package>`.
+- Run Storybook development servers with a scoped package command such as
+  `pnpm -F @poolsideai/assistant storybook`, or with
+  `pnpm exec turbo storybook --affected` when using the Turbo task directly.
+  Run Storybook tests with `pnpm test:storybook` and watch mode with
+  `pnpm test:storybook:watch`.
+
+## Go
+
+- Order files by importance to readers: exported types, tests, and methods
+  first; helper methods and unexported types later.
+- Suffix methods that must be called when a lock is called Locked, e.g. `startLocked`
+
+### Tests
+- In tests, use `testify` `assert`/`require` rather than `t.Error`.
+- Use `require` in tests to eliminate possible runtime panics, for example
+  `require.Len(t, someSlice, 1)` before accessing a slice index.
+- Prefer `assert` for independent post-conditions so one test run reports every
+  failure, not just the first one.
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+
+Before adding to this file, ask whether the detail belongs
 in a scoped `AGENTS.md`, a package README, or an app README.

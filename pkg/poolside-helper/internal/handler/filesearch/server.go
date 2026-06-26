@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"sync"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	protocol "github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 	"github.com/tliron/glsp"
 )
 

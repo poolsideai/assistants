@@ -24,8 +24,8 @@ main() {
 cleanup() {
   local addr="${HELPER_OPENAPI_ADDR:-127.0.0.1:18080}"
   local port="${addr##*:}"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  local pid
+  pid=$(lsof -i :"${port}" -t || true)
 
   if [[ -n "$pid" ]]; then
     kill "$pid"

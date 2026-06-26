@@ -13,7 +13,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"time"
 
 	acpsdk "github.com/coder/acp-go-sdk"
 	"github.com/stretchr/testify/assert"
@@ -88,12 +88,12 @@ func TestMarkExited(t *testing.T) {
 			initResp: &acpsdk.InitializeResponse{ProtocolVersion: acpsdk.ProtocolVersionNumber},
 			session:  "s1",
 			stdin:    nopWriteCloser{},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			state:    processState{kind: processStateRunning},
 		}
 
 		require.True(t, proc.markExited(cmd))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		assert.Equal(t, processStateExited, proc.state.kind)
+		assert.WithinDuration(t, time.Now(), proc.state.exitedAt, time.Second)
 		assert.Nil(t, proc.cmd)
 		assert.Nil(t, proc.conn)
 		assert.Nil(t, proc.initResp)
@@ -106,13 +106,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		staleCmd := &exec.Cmd{}
 		conn := &acpsdk.ClientSideConnection{}
 		proc := &process{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			cmd:   activeCmd,
+			conn:  conn,
+			state: processState{kind: processStateRunning},
 		}
 
 		require.False(t, proc.markExited(staleCmd))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		assert.Equal(t, processStateRunning, proc.state.kind)
 		assert.Same(t, activeCmd, proc.cmd)
 		assert.Same(t, conn, proc.conn)
 	})
@@ -186,25 +186,25 @@ func TestWatchDisconnect(t *testing.T) {
 	assert.Nil(t, proc.conn)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestStopResetsToUnstarted(t *testing.T) {
+	proc := &process{
+		cmd:      &exec.Cmd{},
+		conn:     &acpsdk.ClientSideConnection{},
+		initResp: &acpsdk.InitializeResponse{ProtocolVersion: acpsdk.ProtocolVersionNumber},
+		session:  "s1",
+		stdin:    nopWriteCloser{},
+		state:    processState{kind: processStateRunning},
+	}
+
+	require.NoError(t, proc.stop())
+	assert.Equal(t, processStateUnstarted, proc.state.kind)
+	assert.Nil(t, proc.cmd)
+	assert.Nil(t, proc.conn)
+	assert.Nil(t, proc.initResp)
+	assert.Empty(t, proc.session)
+	assert.Nil(t, proc.stdin)
+}
+
 func TestStopFiresOnStop(t *testing.T) {
 	t.Run("running process fires onStop", func(t *testing.T) {
 		var calls int
@@ -233,43 +233,43 @@ func TestStopFiresOnStop(t *testing.T) {
 	})
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestEnsureStartedBackoff(t *testing.T) {
+	t.Run("waits after exit and respects context cancellation", func(t *testing.T) {
+		proc := &process{state: processState{kind: processStateExited, exitedAt: time.Now()}}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+		defer cancel()
+
+		configCalls := 0
+		err := proc.ensureStarted(ctx, func() HandlerConfig {
+			configCalls++
+			return HandlerConfig{}
+		}, DefaultAgentServerName, nil, nil, nil)
+
+		require.ErrorIs(t, err, context.DeadlineExceeded)
+		assert.Zero(t, configCalls, "config should not be read until retry delay has elapsed")
+	})
+
+	t.Run("reads fresh config after backoff", func(t *testing.T) {
+		proc := &process{state: processState{kind: processStateExited, exitedAt: time.Now().Add(-processRestartBackoff)}}
+		configCalls := 0
+
+		err := proc.ensureStarted(context.Background(), func() HandlerConfig {
+			configCalls++
+			return HandlerConfig{
+				AgentServers: map[string]AgentServerConfig{
+					DefaultAgentServerName: {
+						Command: "/nonexistent",
+					},
+				},
+			}
+		}, DefaultAgentServerName, nil, nil, nil)
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "start")
+		assert.Equal(t, 1, configCalls)
+	})
+}
+
 func TestSupportsSessionClose(t *testing.T) {
 	capsProc := func(caps acpsdk.AgentCapabilities) *process {
 		return &process{

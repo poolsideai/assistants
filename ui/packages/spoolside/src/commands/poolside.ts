@@ -7,8 +7,8 @@
  * that interact with VS Code chrome (command palette, quick-input) use `page`.
  */
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { DEBUG_RPC_EVENTS, requestDebugRPCInWindow } from "@poolsideai/assistant/debug-rpc";
+import { ACP_DEBUG_RPC_METHODS } from "@poolsideai/assistant/debug-rpc/acp";
 import type { SpoolsideTarget } from "../targets/types.js";
 import { commandPalette, sleep, stripQuotes } from "../utils.js";
 
@@ -669,9 +669,9 @@ async function handleGetACPDump(args: string[], mgr: SpoolsideTarget): Promise<s
   const rawFrame = mgr.getPoolsideRawFrame();
   if (!rawFrame) throw new Error("Raw frame not available");
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const json = await rawFrame.evaluate(requestDebugRPCInWindow<string>, {
+    events: DEBUG_RPC_EVENTS,
+    method: ACP_DEBUG_RPC_METHODS.dumpJSON,
   });
 
   if (args[0]) {
@@ -697,11 +697,11 @@ async function handleLoadACPDump(args: string[], mgr: SpoolsideTarget): Promise<
     json = readFileSync(source, "utf-8");
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  await rawFrame.evaluate(requestDebugRPCInWindow, {
+    events: DEBUG_RPC_EVENTS,
+    method: ACP_DEBUG_RPC_METHODS.loadDump,
+    params: { entries: json },
+  });
   return "ACP dump loaded";
 }
 

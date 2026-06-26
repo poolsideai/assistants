@@ -4,7 +4,7 @@
 
 // Package difftest supplies a set of tests that will operate on any
 // implementation of a diff algorithm as exposed by
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// "github.com/poolsideai/assistant/pkg/poolside-helper/gopls/gotoolsinternal/diff"
 package difftest
 
 // There are two kinds of tests, semantic tests, and 'golden data' tests.
@@ -17,7 +17,7 @@ package difftest
 import (
 	"testing"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	diff2 "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/diff"
 )
 
 const (

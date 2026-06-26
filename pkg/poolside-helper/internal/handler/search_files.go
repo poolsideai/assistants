@@ -4,8 +4,8 @@ import (
 	"context"
 	"path/filepath"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/filesearch"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 func (h *PoolsideHandler) searchFileWorkspaceFolders(ctx context.Context) []filesearch.WorkspaceFolder {

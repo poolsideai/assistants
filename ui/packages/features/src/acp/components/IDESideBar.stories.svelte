@@ -44,7 +44,7 @@
       agentServer: "claude-code",
       sessionId: "session-claude-2",
       cwd: workspacePath,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      title: "Investigate flaky helper test",
       updatedAt: minutesAgo(60),
       active: true,
       archived: false,

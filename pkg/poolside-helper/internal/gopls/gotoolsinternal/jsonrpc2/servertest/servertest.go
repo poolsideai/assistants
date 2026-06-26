@@ -13,7 +13,7 @@ import (
 	"strings"
 	"sync"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/jsonrpc2"
 )
 
 // Connector is the interface used to connect to a server.

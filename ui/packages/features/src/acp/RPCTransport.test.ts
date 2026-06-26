@@ -333,10 +333,10 @@ describe("RPCTransport", () => {
   describe("ACP debug dump", () => {
     it("records Pool-compatible outgoing requests and incoming responses", async () => {
       const agentServer = "debug-dump-agent";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const debugLog = new ACPDebugLog();
       debugLog.setSessionCollecting(agentServer, "s1", true);
       const client = mockHelperApiClient();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const transport = new RPCTransport(client, agentServer, debugLog);
 
       const writer = transport.writable.getWriter();
       await writer.write({
@@ -348,7 +348,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       writer.releaseLock();
       await readOne(transport);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      expect(debugLog.dump(agentServer)).toEqual([
         {
           _direction: "outgoing",
           _type: "request",
@@ -368,10 +368,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     it("correlates incoming agent requests with outgoing client responses", async () => {
       const agentServer = "debug-permission-agent";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const debugLog = new ACPDebugLog();
       debugLog.setSessionCollecting(agentServer, "s1", true);
       const client = mockHelperApiClient();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const transport = new RPCTransport(client, agentServer, debugLog);
 
       const promise = transport.sendRequest({
         jsonrpc: "2.0",
@@ -389,7 +389,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       writer.releaseLock();
       await promise;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      expect(debugLog.dump(agentServer)).toEqual([
         {
           _direction: "incoming",
           _type: "request",

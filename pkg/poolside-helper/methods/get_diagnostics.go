@@ -1,7 +1,7 @@
 package methods
 
 import (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	protocol2 "github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
 )
 
 type GetDiagnosticsParams struct {

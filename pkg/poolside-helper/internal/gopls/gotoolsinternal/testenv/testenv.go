@@ -22,7 +22,7 @@ import (
 
 	"golang.org/x/mod/modfile"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/goroot"
 )
 
 // packageMainIsDevel reports whether the module containing package main

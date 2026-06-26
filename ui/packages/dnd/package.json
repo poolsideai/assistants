@@ -1,7 +1,7 @@
 {
   "name": "@poolsideai/dnd",
   "version": "2.3.53",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "private": true,
   "description": "Framework-agnostic, pointer-event drag-and-drop primitives",
   "type": "module",
   "exports": {

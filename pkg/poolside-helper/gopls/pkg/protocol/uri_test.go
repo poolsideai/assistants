@@ -9,7 +9,7 @@ package protocol_test
 import (
 	"testing"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
 )
 
 // TestURIFromPath tests the conversion between URIs and filenames. The test cases

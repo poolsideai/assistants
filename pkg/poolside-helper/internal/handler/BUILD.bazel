@@ -32,7 +32,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "workspace_did_rename_files.go",
         "workspace_will_delete_files.go",
     ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    importpath = "github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/common/future",

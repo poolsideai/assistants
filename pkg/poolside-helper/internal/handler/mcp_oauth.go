@@ -8,9 +8,9 @@ import (
 	pkgerrors "github.com/pkg/errors"
 	"github.com/tliron/glsp"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/mcp"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 func (h *PoolsideHandler) InitiateMCPOAuth(ctx context.Context, params *methods.InitiateMCPOAuthParams, gCtx *glsp.Context) (*methods.InitiateMCPOAuthOutput, error) {

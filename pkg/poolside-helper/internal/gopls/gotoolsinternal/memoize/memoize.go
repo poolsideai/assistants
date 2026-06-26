@@ -26,7 +26,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/xcontext"
 )
 
 // Function is the type of a function that can be memoized.

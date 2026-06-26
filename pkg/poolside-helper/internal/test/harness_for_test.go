@@ -14,12 +14,12 @@ import (
 
 	"github.com/sourcegraph/jsonrpc2"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
+	jsonrpc3 "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/jsonrpc2"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/jsonrpc2/servertest"
+	fake2 "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/test/integration/fake"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/server"
 )
 
 // creates a fake editor and sandbox connected to provided handler and API, with provided files

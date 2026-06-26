@@ -15,7 +15,7 @@ import (
 	"github.com/tliron/glsp"
 
 	"github.com/poolsideai/assistant/pkg/common/userconfig"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 type Server struct {

@@ -7,7 +7,7 @@ package glob_test
 import (
 	"testing"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/test/integration/fake/glob"
 )
 
 func TestParseErrors(t *testing.T) {

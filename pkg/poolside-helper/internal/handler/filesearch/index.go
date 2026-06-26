@@ -12,9 +12,9 @@ import (
 	"github.com/sahilm/fuzzy"
 	"github.com/spf13/afero"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/common/data"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
+	"github.com/poolsideai/assistant/pkg/workspace/ignore"
 )
 
 type searchIndex struct {

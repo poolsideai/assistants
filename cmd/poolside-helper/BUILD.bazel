@@ -8,7 +8,7 @@ go_library(
         "root_command.go",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    importpath = "github.com/poolsideai/assistant/cmd/poolside-helper",
     visibility = ["//visibility:private"],
     deps = [
         "//pkg/common/version",

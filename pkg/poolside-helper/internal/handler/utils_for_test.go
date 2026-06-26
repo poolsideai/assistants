@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	protocol "github.com/tliron/glsp/protocol_3_16"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/lsptest"
 )
 
 // newHandlerInitialized returns a New handler that is then initialized with

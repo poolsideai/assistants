@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/robustio"
 )
 
 func checkOSLink(t *testing.T, err error) {

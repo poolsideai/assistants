@@ -5,7 +5,7 @@ import (
 
 	"github.com/tliron/glsp"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 func (h *PoolsideHandler) runtimeFiles(ctx context.Context, req *methods.RuntimeFilesParams, gCtx *glsp.Context) (*methods.RuntimeFilesOutput, error) {

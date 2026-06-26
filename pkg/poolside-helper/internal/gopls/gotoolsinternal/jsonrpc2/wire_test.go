@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"testing"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/jsonrpc2"
 )
 
 var wireIDTestData = []struct {

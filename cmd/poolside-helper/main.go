@@ -8,8 +8,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	"github.com/spf13/cobra"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/common/version"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/logging"
 )
 
 func main() {

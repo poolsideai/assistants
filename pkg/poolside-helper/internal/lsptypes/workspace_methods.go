@@ -1,7 +1,7 @@
 package lsptypes
 
 import (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
 )
 
 // FileURI is a newtype that works the same as protocol.DocumentURI but

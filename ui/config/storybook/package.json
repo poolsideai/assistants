@@ -1,7 +1,7 @@
 {
   "name": "@poolsideai/storybook-config",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "private": true,
   "description": "Common storybook configuration",
   "type": "module",
   "exports": {

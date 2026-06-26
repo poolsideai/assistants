@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"os"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 // logLevel is shared across the process to allow dynamic log level changes

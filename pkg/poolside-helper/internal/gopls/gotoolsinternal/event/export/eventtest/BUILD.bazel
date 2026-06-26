@@ -4,7 +4,7 @@ go_library(
     name = "eventtest",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     srcs = ["eventtest.go"],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    importpath = "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/event/export/eventtest",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/poolside-helper/internal/gopls/gotoolsinternal/event",

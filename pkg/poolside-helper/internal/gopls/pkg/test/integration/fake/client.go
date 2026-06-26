@@ -12,8 +12,8 @@ import (
 	"path/filepath"
 	"sync/atomic"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/test/integration/fake/glob"
 )
 
 // ClientHooks are a set of optional hooks called during handling of

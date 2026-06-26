@@ -27,26 +27,26 @@ pub fn save_on_bounds_changes<R: Runtime>(window: &WebviewWindow<R>) {
 }
 
 fn start_bounds_save_worker<R: Runtime>(app_handle: tauri::AppHandle<R>) -> mpsc::Sender<()> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    start_bounds_save_worker_with_scheduler(BOUNDS_SAVE_DEBOUNCE, move || {
+        schedule_save_bounds(&app_handle)
+    })
+}
+
+fn start_bounds_save_worker_with_scheduler<F>(
+    debounce: Duration,
+    mut schedule_save_bounds: F,
+) -> mpsc::Sender<()>
+where
+    F: FnMut() + Send + 'static,
+{
     let (tx, rx) = mpsc::channel();
     thread::spawn(move || {
         while rx.recv().is_ok() {
             loop {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                match rx.recv_timeout(debounce) {
                     Ok(()) => continue,
                     Err(mpsc::RecvTimeoutError::Timeout) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                        schedule_save_bounds();
                         break;
                     }
                     Err(mpsc::RecvTimeoutError::Disconnected) => return,
@@ -57,27 +57,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     tx
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+fn schedule_save_bounds<R: Runtime>(app_handle: &tauri::AppHandle<R>) {
+    let save_app_handle = app_handle.clone();
+    schedule_save_bounds_with_runner(
+        |save_bounds| app_handle.run_on_main_thread(save_bounds),
+        move || save_bounds(&save_app_handle),
+    );
+}
+
+fn schedule_save_bounds_with_runner<RunOnMainThread, SaveBounds, Error>(
+    run_on_main_thread: RunOnMainThread,
+    save_bounds: SaveBounds,
+) where
+    RunOnMainThread: FnOnce(SaveBounds) -> Result<(), Error>,
+    SaveBounds: FnOnce() + Send + 'static,
+    Error: std::fmt::Display,
+{
+    if let Err(err) = run_on_main_thread(save_bounds) {
+        eprintln!("failed to schedule window state save after bounds change: {err}");
+    }
+}
+
 fn save_bounds<R: Runtime>(app_handle: &tauri::AppHandle<R>) {
     if let Err(err) = app_handle.save_window_state(StateFlags::all()) {
         eprintln!("failed to save window state after bounds change: {err}");
@@ -99,7 +99,7 @@ fn filename_for_slot(slot: Option<&str>) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    use std::sync::{Arc, Mutex};
 
     #[test]
     fn uses_default_filename_without_spoolside_slot() {
@@ -130,47 +130,47 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             ".window-state-spoolside-s2.json"
         );
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    #[test]
+    fn background_bounds_save_enqueues_main_thread_save_without_running_it() {
+        let window_state_cache = Arc::new(Mutex::new(()));
+        let main_thread_event_guard = window_state_cache.lock().unwrap();
+        let (queued_save_tx, queued_save_rx) = mpsc::channel::<Box<dyn FnOnce() + Send>>();
+        let (save_ran_tx, save_ran_rx) = mpsc::channel();
+        let cache_for_save = Arc::clone(&window_state_cache);
+
+        let bounds_save_tx =
+            start_bounds_save_worker_with_scheduler(Duration::from_millis(1), move || {
+                let cache_for_save = Arc::clone(&cache_for_save);
+                let save_ran_tx = save_ran_tx.clone();
+                schedule_save_bounds_with_runner(
+                    |save_bounds| {
+                        queued_save_tx
+                            .send(Box::new(save_bounds) as Box<dyn FnOnce() + Send>)
+                            .unwrap();
+                        Ok::<(), &str>(())
+                    },
+                    move || {
+                        let _cache_guard = cache_for_save.lock().unwrap();
+                        save_ran_tx.send(()).unwrap();
+                    },
+                );
+            });
+
+        bounds_save_tx.send(()).unwrap();
+        let queued_save = queued_save_rx
+            .recv_timeout(Duration::from_secs(1))
+            .expect("bounds save worker blocked instead of enqueueing the save");
+
+        assert!(
+            save_ran_rx.try_recv().is_err(),
+            "background worker ran the save instead of enqueueing it"
+        );
+
+        drop(main_thread_event_guard);
+        queued_save();
+        save_ran_rx
+            .recv_timeout(Duration::from_secs(1))
+            .expect("queued save did not run after the main-thread lock was released");
+    }
 }

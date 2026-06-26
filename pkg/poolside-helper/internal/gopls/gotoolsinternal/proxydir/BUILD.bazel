@@ -4,7 +4,7 @@ go_library(
     name = "proxydir",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     srcs = ["proxydir.go"],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    importpath = "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/proxydir",
     visibility = ["//visibility:public"],
     deps = ["//pkg/poolside-helper/internal/gopls/gotoolsinternal/testenv"],
 )

@@ -13,7 +13,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "workdir.go",
         "workdir_windows.go",
     ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    importpath = "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/pkg/test/integration/fake",
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/poolside-helper/gopls/pkg/protocol",

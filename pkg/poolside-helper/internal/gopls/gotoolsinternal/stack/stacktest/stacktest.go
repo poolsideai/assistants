@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	stack2 "github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/stack"
 )
 
 // this is only needed to support pre 1.14 when testing.TB did not have Cleanup

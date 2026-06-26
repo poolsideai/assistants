@@ -3,7 +3,7 @@ package server
 import (
 	"github.com/tliron/glsp/server"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler"
 	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/shellenv"
 )
 

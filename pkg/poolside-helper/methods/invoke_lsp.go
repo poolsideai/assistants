@@ -6,7 +6,7 @@ import (
 
 	pkgerrors "github.com/pkg/errors"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	protocol2 "github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
 )
 
 // InvokeLSPCommand is useful for callbacks via LSP `command` fields, as poolside.invokeLSP is

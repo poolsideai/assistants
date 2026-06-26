@@ -32,7 +32,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "secrets.go",
         "voice_input.go",
     ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    importpath = "github.com/poolsideai/assistant/pkg/poolside-helper/methods",
     visibility = ["//visibility:public"],
     deps = [
 __POOL_SYNTHETIC_IMPORT_BASELINE__

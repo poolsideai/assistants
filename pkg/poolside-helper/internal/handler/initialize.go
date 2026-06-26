@@ -13,14 +13,14 @@ import (
 	"github.com/tliron/glsp"
 	protocol "github.com/tliron/glsp/protocol_3_16"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/common/goroutine"
+	"github.com/poolsideai/assistant/pkg/common/version"
+	protocol2 "github.com/poolsideai/assistant/pkg/poolside-helper/gopls/pkg/protocol"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/filesystem"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/acpnav"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/acpproxy"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/logging"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 )
 
 // initialize is the first method received by the LSP server from client. Until a response has been received no

@@ -10,7 +10,7 @@ import (
 	"time"
 	"unsafe"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/gopls/gotoolsinternal/event/label"
 )
 
 // Exporter is a function that handles events.
