@@ -39,7 +39,7 @@ cd "$REPO_ROOT"
 # build steps
 node_modules/.bin/turbo build --filter=./ui/apps/vscode-assistant
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Build poolside-helper for the specified OS/architecture.
 scripts/helper-build-cross-platform.sh poolside-helper "$OS_ARCH"
 
 # Extract OS from OS_ARCH for file pattern matching
@@ -66,9 +66,9 @@ mv poolside-helper-"${OS_NAME}"-* ui/apps/vscode-assistant/dist/
 VERSION=$(jq -r .version ui/apps/vscode-assistant/package.json)
 VSIX_FILE="$REPO_ROOT/ui/apps/vscode-assistant/poolside-assistant-${VERSION}-${VSCE_TARGET}.vsix"
 pnpm -F poolside-assistant exec vsce package --no-dependencies --allow-missing-repository --target "$VSCE_TARGET" \
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  -o "$VSIX_FILE"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+if [[ ! -f "$VSIX_FILE" ]]; then
   echo "Error: No VSIX file found" >&2
   exit 1
 fi

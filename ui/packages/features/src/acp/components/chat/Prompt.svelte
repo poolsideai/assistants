@@ -548,12 +548,12 @@
       // it can be left and returned to (no send required).
       chatSession.ensureDraftPersisted();
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Mirror the composed text as the draft's sidebar title (front-end only),
+    // reverting to "New conversation" when the draft is emptied. Skip while a
+    // send is in flight so a just-sent conversation isn't reset before the agent
+    // retitles it.
     const draftConversationId = chatSession.pendingConversationId;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (draftConversationId && !chatSession.isSending) {
       scheduleDraftSidebarPreview(draftConversationId, value, { updateTitle: true });
     } else if (chatSession.conversationId && !chatSession.isSending) {
       scheduleDraftSidebarPreview(chatSession.conversationId, value, { updateTitle: false });
