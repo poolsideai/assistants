@@ -12,9 +12,9 @@
   const projectSettingsNavItem = SETTINGS_NAV_ITEMS["project-settings"];
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<DesktopSettingsPanelFrame
+  title={projectSettingsNavItem.label}
+  breadcrumbs={[{ label: projectSettingsNavItem.label, icon: projectSettingsNavItem.icon }]}
+>
   <DesktopProjectSettingsIndex expandedProjectPath={projectPath} embedded />
 </DesktopSettingsPanelFrame>

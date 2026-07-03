@@ -8,7 +8,7 @@
   import { shortenHomeDirectoryInText } from "../../shared/paths";
   import ProjectSettingsView from "../ProjectSettingsView.svelte";
   import DesktopSettingsPanelFrame from "./DesktopSettingsPanelFrame.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import SettingsSection from "./SettingsSection.svelte";
   import { SETTINGS_NAV_ITEMS } from "./settingsSections";
 
   interface Props {
@@ -51,64 +51,64 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 </script>
 
 {#snippet projectSettingsIndexContent()}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div class="settings-section-stack">
+    {#if rootProjects.length === 0}
+      <SettingsSection title="Projects" subtitle="No projects are configured.">
+        <p class="text-psx-foreground-secondary px-3 pb-3 pt-3 text-[13px]/[18px]">
+          No projects yet.
+        </p>
+      </SettingsSection>
+    {:else}
+      {#each rootProjects as project (project.path)}
         <SettingsSection
           title={project.name}
           subtitle={shortenHomeDirectoryInText(project.path, $appState.homeDirectory)}
           subtitleClass="font-mono"
         >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <button
+            type="button"
             class="text-psx-foreground-primary outline-hidden hover:bg-psx-menu-hover-background/50 focus-visible:outline-psx-focus flex min-h-10 w-full items-center gap-2 px-3 py-2 text-left transition duration-200 focus-visible:outline-2"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            aria-label="{isProjectExpanded(project.path)
+              ? 'Hide'
+              : 'Show'} settings for {project.name}"
+            aria-expanded={isProjectExpanded(project.path)}
+            onclick={() => toggleProject(project.path)}
+          >
+            <Icon
+              name="chevron"
+              size={16}
               class={[
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                "text-psx-foreground-tertiary shrink-0 transition-transform",
+                isProjectExpanded(project.path) ? "" : "rotate-[-90deg]",
               ]}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            />
+            <span class="min-w-0 text-[12px]/[18px]">
+              {isProjectExpanded(project.path) ? "Hide settings" : "Show settings"}
+            </span>
+          </button>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          {#if isProjectExpanded(project.path)}
+            <div class="outline-psx-border outline" transition:slide={{ duration: 160 }}>
+              <ProjectSettingsView
+                projectPath={project.path}
+                projectName={project.name}
+                embeddedDesktopContent
+              />
+            </div>
+          {/if}
+        </SettingsSection>
+      {/each}
+    {/if}
   </div>
 {/snippet}
 
 {#if embedded}
   {@render projectSettingsIndexContent()}
 {:else}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <DesktopSettingsPanelFrame
+    title={projectSettingsNavItem.label}
+    breadcrumbs={[{ label: projectSettingsNavItem.label, icon: projectSettingsNavItem.icon }]}
+  >
     {@render projectSettingsIndexContent()}
   </DesktopSettingsPanelFrame>
 {/if}

@@ -3064,9 +3064,9 @@ Workspace: \`/tmp/project-a\`
 
     await fireEvent.click(screen.getByRole("button", { name: "Projects" }));
     expectSettingsHeader("Projects");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Add-project now lives only in the sidebar, not the settings index.
+    expect(screen.queryByRole("button", { name: "Add Project" })).toBeNull();
+    await fireEvent.click(screen.getByRole("button", { name: "Show settings for project-a" }));
     expectSettingsHeader("Projects");
     const projectGuidelines = screen.getByRole("textbox", {
       name: "Project Guidelines for Agent",
@@ -3091,22 +3091,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         userPrompt: "Use pnpm",
       }),
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await fireEvent.click(screen.getByRole("button", { name: "Show settings for project-b" }));
     expect(screen.getAllByRole("textbox", { name: "Project Guidelines for Agent" })).toHaveLength(
       2,
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await fireEvent.click(screen.getByRole("button", { name: "Hide settings for Project Alpha" }));
     expectSettingsHeader("Projects");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(screen.getByRole("button", { name: "Show settings for Project Alpha" })).toHaveAttribute(
       "aria-expanded",
       "false",
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(screen.getByRole("button", { name: "Hide settings for project-b" })).toHaveAttribute(
       "aria-expanded",
       "true",
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await fireEvent.click(screen.getByRole("button", { name: "Show settings for Project Alpha" }));
+    expect(screen.getByRole("button", { name: "Hide settings for Project Alpha" })).toHaveAttribute(
       "aria-expanded",
       "true",
     );
@@ -3114,8 +3114,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       2,
     );
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await fireEvent.click(screen.getByRole("button", { name: "Keyboard Shortcuts" }));
+    expectSettingsHeader("Keyboard Shortcuts");
 
     await fireEvent.click(screen.getByRole("button", { name: "Agents" }));
     expectSettingsHeader("Agents");
@@ -3202,7 +3202,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(reexpandedToggle).toHaveAttribute("aria-expanded", "true");
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("adds projects from the desktop sidebar", async () => {
     hostMessageSender.mockImplementation((method: string) => {
       if (method === "selectProjectFolder") {
         return Promise.resolve({ path: "/tmp/project-b", name: "project-b" });
@@ -3219,7 +3219,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       initialState: state({ assistantHost: "desktop", defaultCwd: "/tmp/project-a" }),
     });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await fireEvent.click(await screen.findByRole("button", { name: "Add project" }));
 
     await waitFor(() =>
       expect(repositories.acpProjectRepo.upsertProject).toHaveBeenCalledWith({
@@ -3228,9 +3228,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }),
     );
     expect(repositories.acpConversationRepo.refresh).toHaveBeenCalled();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(
+      await screen.findByRole("button", { name: "More actions for project-b" }),
+    ).toBeInTheDocument();
     // Adding a project drops the user into a ready-to-type draft conversation.
     await waitFor(() =>
       expect(repositories.acpRepo.createSession).toHaveBeenCalledWith(
@@ -3254,7 +3254,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     await fireEvent.click(await screen.findByRole("button", { name: "Settings" }));
     await fireEvent.click(screen.getByRole("button", { name: "Projects" }));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await fireEvent.click(screen.getByRole("button", { name: "Show settings for project-a" }));
 
     await fireEvent.click(screen.getByRole("button", { name: "Delete Project" }));
     let dialog = within(screen.getByRole("dialog", { name: "Delete project?" }));

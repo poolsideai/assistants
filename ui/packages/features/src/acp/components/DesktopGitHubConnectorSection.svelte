@@ -5,7 +5,7 @@
   import type { GitHubAuthStatusOutput } from "@poolsideai/helperapi";
   import { getACPGithubRepo } from "../features/GithubRepository.svelte";
   import { GITHUB_COLOR_MODES, type GitHubColorMode } from "../github/githubStatus";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import SettingsSection from "./settings/SettingsSection.svelte";
 
   interface Props {
     showHeading?: boolean;
@@ -71,41 +71,41 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#if showHeading}
+  <h2 class="text-psx-foreground-primary px-1 text-sm font-medium">GitHub</h2>
+{/if}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<SettingsSection
   title="GitHub Awareness"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  subtitle="Surfaces pull-request status, checks, and comments for your worktrees. Uses the GitHub CLI when available, otherwise a personal access token."
+>
+  <div class="px-3 pb-3 pt-3">
     <div class="flex items-start gap-2.5">
       <div class="min-w-0 flex-1">
         {#if loading}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <div class="text-psx-foreground-secondary flex items-center gap-2 text-[13px]/[18px]">
+            <span class="flex size-3 shrink-0 items-center justify-center"
+              ><Spinner size={12} /></span
+            >
+            <span>Checking GitHub access…</span>
           </div>
         {:else if status}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <div class="flex items-center gap-2 text-[13px]/[18px]">
+            <span class="flex size-3 shrink-0 items-center justify-center">
+              <span
+                class={[
+                  "size-2 rounded-full",
+                  connected ? "bg-psx-diff-insert-foreground" : "bg-psx-foreground-tertiary",
+                ]}
+                aria-hidden="true"
+              ></span>
+            </span>
             {#if status.source === "cli"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              <span>Connected via GitHub CLI{status.login ? ` as ${status.login}` : ""}</span>
             {:else if status.source === "token"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              <span>Connected with token{status.login ? ` as ${status.login}` : ""}</span>
             {:else}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              <span class="text-psx-foreground-secondary">Not connected</span>
             {/if}
           </div>
 
@@ -165,28 +165,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       </div>
     </div>
   </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</SettingsSection>
+
+<SettingsSection
   title="Worktree Status Color"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  subtitle="When a worktree's branch icon should turn green."
+>
+  <div class="flex flex-col gap-1.5 px-3 pb-3 pt-3">
+    {#each GITHUB_COLOR_MODES as mode (mode.value)}
+      <label class="flex cursor-pointer items-start gap-2 text-[13px]/[18px]">
+        <input
+          type="radio"
+          name="github-color-mode"
+          value={mode.value}
+          checked={github.colorMode === mode.value}
+          onchange={() => selectColorMode(mode.value)}
+          class="accent-psx-focus mt-0.5"
+        />
+        <span class="min-w-0">
+          <span class="text-psx-foreground-primary">{mode.label}</span>
+          <span class="text-psx-foreground-secondary block">{mode.detail}</span>
+        </span>
+      </label>
+    {/each}
   </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</SettingsSection>

@@ -27,7 +27,7 @@
     primaryPillButtonClass,
     secondaryPillButtonClass,
   } from "./settings/pillButtonStyles";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import SettingsSection from "./settings/SettingsSection.svelte";
   import ConfirmationDialog from "./ui/ConfirmationDialog.svelte";
   import Tooltip from "./ui/Tooltip.svelte";
 
@@ -795,17 +795,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 {#if visibleError}
   <SettingsSection title="Models Error" subtitle="The local model catalog could not be loaded.">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div class="text-psx-error-foreground px-3 pb-3 pt-3 text-[13px]/[18px]">
+      {visibleError}
+    </div>
+  </SettingsSection>
 {/if}
 
 <SettingsSection title="Recommended Models" subtitle={recommendedModelsSubtitle}>
   <div class="model-catalog flex flex-col gap-3 px-3 pb-4 pt-3">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div
       class="text-psx-foreground-secondary flex flex-col items-start gap-1 pl-4 text-[12px]/[17px]"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    >
       <span class="inline-flex min-w-0 items-center gap-1">
         <span>Models downloaded to</span>
         {#if inferenceState?.modelsDirectory}
@@ -824,32 +824,32 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       </span>
     </div>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {#if repo.loading && !inferenceState}
+      <div
+        class="text-psx-foreground-secondary flex items-center justify-center gap-2 py-10 text-xs"
+      >
+        <Spinner size={14} />
+        Loading models
+      </div>
+    {:else if models.length === 0}
+      <div class="text-psx-foreground-secondary py-10 text-center text-xs">
+        No local model catalog available
+      </div>
     {:else if poolsideModels.length > 0}
       <div class="model-catalog-grid">
         {#each poolsideModels as model (model.id)}
           {@render modelCard(model)}
         {/each}
       </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {:else}
       <div class="text-psx-foreground-secondary py-8 text-center text-xs">
         No recommended models available
       </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {/if}
+  </div>
+</SettingsSection>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#if models.length > 0}
   <SettingsSection
     title="Hugging Face models"
     subtitle="Search MLX models on Hugging Face and manage installed ones."
@@ -901,10 +901,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         <p class="text-psx-foreground-secondary text-[13px]/[18px]">
           No Hugging Face models installed. Search to find installable MLX models.
         </p>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {/if}
+    </div>
+  </SettingsSection>
+{/if}
 
 {#if deleteConfirmModel}
   {@const deleteModel = deleteConfirmModel}

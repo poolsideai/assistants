@@ -18,7 +18,7 @@
   } from "./chat/desktopLayoutPersistence";
   import type { DesktopSplitSurface } from "./chat/desktopSplitsCache";
   import RegistryAgentIcon from "./RegistryAgentIcon.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import SettingsSection from "./settings/SettingsSection.svelte";
 
   type ClearStatus = "idle" | "clearing" | "error";
 
@@ -308,11 +308,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<SettingsSection
   title="Default Layout"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  subtitle="Use Window > Save Layout as Default to save a new default."
+>
+  <div class="flex min-w-0 flex-col items-start gap-3 px-3 pb-3 pt-3">
     <div
       class="border-psx-border bg-psx-panel relative grid aspect-[16/10] w-full min-w-0 max-w-[440px] gap-1 rounded-[6px] border p-1"
       style={layoutPreviewGridStyle}
@@ -326,13 +326,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         <span class="size-[6px] rounded-full border border-black/10 bg-[#ffbd2e]"></span>
         <span class="size-[6px] rounded-full border border-black/10 bg-[#28c840]"></span>
       </span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <div
         class={[
           "flex min-h-0 min-w-0 flex-col gap-1 pl-[5px] pr-1 pt-5",
           showBottomPreview ? "row-span-2" : "",
         ]}
         aria-hidden="true"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      >
         {@render placeholderLine("w-8", "bg-psx-border/70")}
         {@render placeholderLine("w-6", "bg-psx-border/55")}
         {@render placeholderLine("mt-1 w-7", "bg-psx-border/55")}
@@ -343,25 +343,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       </div>
       {#if showRightPreview}
         <div
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          class={[
             "border-psx-border min-h-0 min-w-0 border-l pl-1",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            showBottomPreview ? "row-span-2" : "",
+          ]}
         >
           {@render surfacePreview(rightPreview)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        </div>
       {/if}
       {#if showBottomPreview}
         <div class="border-psx-border min-h-0 min-w-0 border-t pt-1">
           {@render surfacePreview(bottomPreview)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        </div>
       {/if}
     </div>
     {#if !layout}
       <p class="text-psx-foreground-tertiary text-[12px]/[16px]">
         No default set — new conversations open a single chat panel.
       </p>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {/if}
 
     <div class="flex min-w-0 items-start gap-2">
       <Switch
@@ -402,22 +402,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       </span>
     </label>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {#if layout}
+      <button
+        type="button"
+        class="text-psx-error-foreground outline-hidden hover:bg-psx-menu-hover-background focus-visible:outline-psx-focus inline-flex h-8 items-center gap-1.5 rounded-[6px] px-2 text-[13px]/[16px] focus-visible:outline-2"
+        disabled={clearStatus === "clearing"}
+        onclick={clearDefaultLayout}
+      >
+        Clear default layout
+      </button>
+    {/if}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {#if clearStatus === "error"}
+      <p class="text-psx-error-foreground truncate text-[13px]/[18px]" title={error}>{error}</p>
+    {/if}
   </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</SettingsSection>
 
 {#snippet surfacePreview(surface: SurfacePreview | undefined)}
   <div class="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[5px]">

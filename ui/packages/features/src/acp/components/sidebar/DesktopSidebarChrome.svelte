@@ -108,7 +108,7 @@
       <SidebarIconButton
         icon={collapsed ? "sidebar-left-closed" : "sidebar-left-open"}
         label={collapsed ? "Show sidebar" : "Hide sidebar"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        size={16}
         buttonSize="size-[22px]"
         dragRegion
         title={toggleTooltip}

@@ -50,7 +50,7 @@ export const SETTINGS_HEADINGS: Record<SettingsSection, { title: string; subtitl
       "Configure preferences, local models, voice recognition, MCP connections, and ACP agents.",
   },
   preferences: { title: "General", subtitle: "Appearance and API settings." },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  shortcuts: { title: "Keyboard Shortcuts", subtitle: "Keyboard shortcuts for the app." },
   models: {
     title: "On-Device Models",
     subtitle: "Install and choose local MLX models.",
@@ -78,8 +78,8 @@ export const SETTINGS_NAV_ITEMS: Record<
 > = {
   preferences: { label: "General", icon: "gear" },
   "project-settings": { label: "Projects", icon: "folder" },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  shortcuts: { label: "Keyboard Shortcuts", icon: "keyboard" },
+  models: { label: "On-Device Models", icon: "on-device" },
   voice: { label: "Voice Recognition", icon: "microphone" },
   connectors: { label: "Connectors", icon: "mcp" },
   github: { label: "GitHub", icon: "github" },

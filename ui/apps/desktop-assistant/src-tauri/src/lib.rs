@@ -60,10 +60,10 @@ pub fn run() {
                     if let Err(err) = helper::open_helper_logs(app) {
                         eprintln!("failed to open helper logs: {err}");
                     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                } else if let Some(theme_preference) =
+                    settings::theme_preference_for_menu_id(event.id().as_ref())
+                {
+                    settings::set_desktop_theme_preference_from_menu(app.clone(), theme_preference);
                 } else if event.id() == settings::NEW_CONVERSATION_MENU_ID {
                     if let Err(err) = app.emit(settings::NEW_CONVERSATION_EVENT, ()) {
                         eprintln!("failed to emit new conversation command: {err}");
@@ -233,7 +233,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             navigation::create_main_window(app)?;
             startup_timing::mark("native.windowCreated");
             settings::warm_boot_caches(app.handle());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            settings::sync_theme_menu_items_from_settings(app.handle());
             system_accent::observe_system_accent_changes(app.handle());
 
             // Apply the per-worktree dock icon tint for spoolside launches.

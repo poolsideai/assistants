@@ -69,7 +69,7 @@ import History from "./glyphs/history.svelte";
 import IDE from "./glyphs/ide.svelte";
 import Info from "./glyphs/info.svelte";
 import Key from "./glyphs/key.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import Keyboard from "./glyphs/keyboard.svelte";
 import Lab from "./glyphs/lab.svelte";
 import Leg from "./glyphs/leg.svelte";
 import Light from "./glyphs/light.svelte";
@@ -82,7 +82,7 @@ import Microphone from "./glyphs/microphone.svelte";
 import Minus from "./glyphs/minus.svelte";
 import More from "./glyphs/more.svelte";
 import New from "./glyphs/new.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import OnDevice from "./glyphs/on-device.svelte";
 import Output from "./glyphs/output.svelte";
 import Package from "./glyphs/package.svelte";
 import PanelBottomClosed from "./glyphs/panel-bottom-closed.svelte";
@@ -219,8 +219,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   history: History,
   ide: IDE,
   info: Info,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  key: Key,
+  keyboard: Keyboard,
   lab: Lab,
   leg: Leg,
   light: Light,
@@ -233,7 +233,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   minus: Minus,
   more: More,
   new: New,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "on-device": OnDevice,
   output: Output,
   "panel-bottom-closed": PanelBottomClosed,
   "panel-bottom-open": PanelBottomOpen,
@@ -372,8 +372,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   history: { weight: true },
   ide: { weight: true },
   info: { weight: true },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  key: { weight: true },
+  keyboard: { weight: true },
   lab: { weight: true },
   leg: { weight: true },
   light: { weight: false },
@@ -386,7 +386,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   minus: { weight: true },
   more: { weight: true },
   new: { weight: true },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "on-device": { weight: true },
   output: { weight: true },
   "panel-bottom-closed": { weight: true },
   "panel-bottom-open": { weight: true },

@@ -1,5 +1,5 @@
 <script lang="ts">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { SettingsSectionCard as SettingsSection } from "../acp";
   import { chordFromEvent, formatChord, type Platform } from "./chord";
   import { COMMAND_GROUPS, defaultChord, type CommandId, type KeybindingHost } from "./commands";
   import { getKeybindingService } from "./context";
@@ -77,62 +77,62 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 <svelte:window onkeydowncapture={onRecordKeydown} />
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#each groups as group (group.category)}
+  <SettingsSection title={group.category}>
+    <ul class="divide-psx-border/70 flex flex-col divide-y">
+      {#each group.commands as command (command.id)}
+        {@const hint = hintFor(command.id)}
+        {@const recording = recordingId === command.id}
+        <li
+          class={[
+            "grid min-h-14 grid-cols-[minmax(0,1fr)_minmax(7rem,auto)] items-center gap-3 px-3 py-2.5 transition-colors",
+            recording ? "bg-psx-menu-hover-background/50" : "hover:bg-psx-editor-background/35",
+          ]}
+        >
+          <div class="flex min-w-0 flex-col">
+            <span class="text-psx-foreground-primary truncate text-sm/[18px] font-medium"
+              >{command.title}</span
+            >
+            {#if command.description}
+              <span class="text-psx-foreground-secondary mt-0.5 truncate text-[13px]/[17px]"
+                >{command.description}</span
+              >
+            {/if}
+          </div>
+          {#if editable}
+            <button
+              type="button"
+              data-keybinding-row={command.id}
+              aria-label={`Change shortcut for ${command.title}`}
+              onclick={() => (recording ? stopRecording() : startRecording(command.id))}
               class={[
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                "focus-visible:outline-psx-focus justify-self-end rounded-[6px] px-2 py-1 text-sm/[16px] shadow-[inset_0_-2px_0_0_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.05),_0_1px_3px_rgba(0,0,0,0.05)] outline transition-colors",
+                recording
+                  ? "outline-psx-focus bg-psx-editor-background text-psx-foreground-secondary ring-3 ring-psx-focus/20"
+                  : "outline-psx-border bg-psx-background text-psx-foreground-secondary hover:border-psx-button-secondary-hover-border hover:bg-psx-menu-hover-background hover:text-psx-foreground-primary",
               ]}
             >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              {#if recording}
+                Recording...
               {:else if hint}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                {hint}
               {:else}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                Not set
               {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            </button>
+          {:else if hint}
+            <kbd
+              class="border-psx-border bg-psx-background text-psx-foreground-secondary justify-self-end rounded-[6px] border px-2 py-1 font-mono text-xs/[16px] shadow-sm"
+              >{hint}</kbd
+            >
+          {:else}
+            <span
+              class="text-psx-foreground-tertiary justify-self-end rounded-[6px] px-2 py-1 font-mono text-xs/[16px]"
+              >Not set</span
+            >
+          {/if}
+        </li>
+      {/each}
+    </ul>
+  </SettingsSection>
+{/each}

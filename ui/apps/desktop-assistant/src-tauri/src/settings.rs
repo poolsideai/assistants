@@ -20,7 +20,7 @@ use base64::{engine::general_purpose::STANDARD, Engine as _};
 use semver::Version;
 use serde::{Deserialize, Serialize};
 use tauri::{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    menu::{CheckMenuItem, Menu, MenuItem, MenuItemKind, PredefinedMenuItem, Submenu},
     AppHandle, Emitter, Manager, Runtime, State, Url,
 };
 
@@ -53,9 +53,9 @@ pub const OPEN_SETTINGS_MENU_ID: &str = "poolside-open-settings";
 pub const CHECK_FOR_UPDATES_MENU_ID: &str = "poolside-check-for-updates";
 pub const CHANGELOG_MENU_ID: &str = "poolside-changelog";
 pub const OPEN_HELPER_LOGS_MENU_ID: &str = "poolside-open-helper-logs";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+pub const SET_SYSTEM_THEME_MENU_ID: &str = "poolside-set-system-theme";
+pub const SET_LIGHT_THEME_MENU_ID: &str = "poolside-set-light-theme";
+pub const SET_DARK_THEME_MENU_ID: &str = "poolside-set-dark-theme";
 pub const NEW_CONVERSATION_MENU_ID: &str = "poolside-new-conversation";
 pub const NEW_PROJECT_MENU_ID: &str = "poolside-new-project";
 pub const OPEN_IN_IDE_MENU_ID: &str = "poolside-open-in-ide";
@@ -392,7 +392,7 @@ pub async fn set_desktop_theme_preference(
     app_handle: AppHandle,
     theme_preference: DesktopThemePreference,
 ) -> Result<DesktopSettingsResponse, String> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    persist_desktop_theme_preference(&app_handle, theme_preference).await
 }
 
 #[tauri::command]
@@ -749,10 +749,10 @@ pub fn build_menu<R: Runtime>(app_handle: &AppHandle<R>) -> tauri::Result<Menu<R
     remove_default_close_window_items(&menu)?;
     append_desktop_tab_menu_items(app_handle, &ensure_window_menu(app_handle, &menu)?)?;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let view_menu = ensure_view_menu(app_handle, &menu)?;
     prepend_navigation_menu_items(app_handle, &view_menu)?;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    append_appearance_menu_items(app_handle, &view_menu)?;
+
     let helper_logs = MenuItem::with_id(
         app_handle,
         OPEN_HELPER_LOGS_MENU_ID,
@@ -760,8 +760,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         true,
         None::<&str>,
     )?;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    view_menu.append(&PredefinedMenuItem::separator(app_handle)?)?;
+    view_menu.append(&helper_logs)?;
 
     insert_file_menu(app_handle, &menu)?;
     insert_edit_menu(app_handle, &menu)?;
@@ -948,76 +948,76 @@ fn insert_edit_menu<R: Runtime>(app_handle: &AppHandle<R>, menu: &Menu<R>) -> ta
     Ok(())
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+pub fn theme_preference_for_menu_id(menu_id: &str) -> Option<DesktopThemePreference> {
+    match menu_id {
+        SET_SYSTEM_THEME_MENU_ID => Some(DesktopThemePreference::System),
+        SET_LIGHT_THEME_MENU_ID => Some(DesktopThemePreference::Light),
+        SET_DARK_THEME_MENU_ID => Some(DesktopThemePreference::Dark),
+        _ => None,
+    }
+}
+
+pub fn set_desktop_theme_preference_from_menu(
+    app_handle: AppHandle,
+    theme_preference: DesktopThemePreference,
+) {
+    tauri::async_runtime::spawn(async move {
+        if let Err(err) = persist_desktop_theme_preference(&app_handle, theme_preference).await {
+            eprintln!("failed to update desktop theme preference from menu: {err}");
+        }
+    });
+}
+
+async fn persist_desktop_theme_preference(
+    app_handle: &AppHandle,
+    theme_preference: DesktopThemePreference,
+) -> Result<DesktopSettingsResponse, String> {
+    let settings = set_theme_preference(read_settings(app_handle)?, theme_preference);
+    write_and_emit_settings(app_handle, settings).await
+}
+
+fn append_appearance_menu_items<R: Runtime>(
+    app_handle: &AppHandle<R>,
+    view_menu: &Submenu<R>,
+) -> tauri::Result<()> {
+    let system = CheckMenuItem::with_id(
+        app_handle,
+        SET_SYSTEM_THEME_MENU_ID,
+        "System",
+        true,
+        true,
+        None::<&str>,
+    )?;
+    let theme_separator = PredefinedMenuItem::separator(app_handle)?;
+    let light = CheckMenuItem::with_id(
+        app_handle,
+        SET_LIGHT_THEME_MENU_ID,
+        "Light",
+        true,
+        false,
+        Some("Cmd+Shift+K"),
+    )?;
+    let dark = CheckMenuItem::with_id(
+        app_handle,
+        SET_DARK_THEME_MENU_ID,
+        "Dark",
+        true,
+        false,
+        Some("Cmd+Shift+L"),
+    )?;
+    let appearance = Submenu::with_items(
+        app_handle,
+        "Appearance",
+        true,
+        &[&system, &theme_separator, &light, &dark],
+    )?;
+
+    append_separator_if_needed(app_handle, view_menu)?;
+    view_menu.append(&appearance)?;
+
+    Ok(())
+}
+
 fn append_desktop_tab_menu_items<R: Runtime>(
     app_handle: &AppHandle<R>,
     window_menu: &Submenu<R>,
@@ -1137,29 +1137,29 @@ fn ensure_window_menu<R: Runtime>(
     Ok(window_menu)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+fn ensure_view_menu<R: Runtime>(
+    app_handle: &AppHandle<R>,
+    menu: &Menu<R>,
+) -> tauri::Result<Submenu<R>> {
+    if let Some(view_menu) = submenu_by_text(menu, "View")? {
+        return Ok(view_menu);
+    }
+
+    let view_menu = Submenu::with_items(app_handle, "View", true, &[])?;
+    let insert_at = menu
+        .items()?
+        .iter()
+        .position(|item| {
+            item.as_submenu()
+                .and_then(|submenu| submenu.text().ok())
+                .is_some_and(|text| text == "Window")
+        })
+        .unwrap_or_else(|| menu.items().map(|items| items.len()).unwrap_or(0));
+    menu.insert(&view_menu, insert_at)?;
+
+    Ok(view_menu)
+}
+
 fn remove_default_close_window_items<R: Runtime>(menu: &Menu<R>) -> tauri::Result<()> {
     if let Some(file_menu) = submenu_by_text(menu, "File")? {
         remove_predefined_close_window_items(&file_menu)?;
@@ -1373,7 +1373,7 @@ async fn write_and_emit_settings(
     settings: DesktopSettings,
 ) -> Result<DesktopSettingsResponse, String> {
     write_settings(app_handle, &settings)?;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    sync_theme_menu_items(app_handle, settings.theme_preference);
     let file_opener_id = resolve_file_opener_id(app_handle).await;
     let response = settings_response(app_handle, settings, file_opener_id);
     app_handle
@@ -1392,44 +1392,44 @@ pub fn apply_app_icon_tint_from_settings(app_handle: &AppHandle) {
     }
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+pub fn sync_theme_menu_items_from_settings(app_handle: &AppHandle) {
+    match read_settings(app_handle) {
+        Ok(settings) => sync_theme_menu_items(app_handle, settings.theme_preference),
+        Err(err) => eprintln!("failed to sync desktop theme menu items: {err}"),
+    }
+}
+
+fn sync_theme_menu_items(app_handle: &AppHandle, theme_preference: DesktopThemePreference) {
+    let Some(menu) = app_handle.menu() else {
+        return;
+    };
+
+    for (id, checked) in [
+        (
+            SET_SYSTEM_THEME_MENU_ID,
+            theme_preference == DesktopThemePreference::System,
+        ),
+        (
+            SET_LIGHT_THEME_MENU_ID,
+            theme_preference == DesktopThemePreference::Light,
+        ),
+        (
+            SET_DARK_THEME_MENU_ID,
+            theme_preference == DesktopThemePreference::Dark,
+        ),
+    ] {
+        if let Some(item) = check_menu_item_by_id(&menu, id) {
+            if let Err(err) = item.set_checked(checked) {
+                eprintln!("failed to update theme menu item {id}: {err}");
+            }
+        }
+    }
+}
+
+fn check_menu_item_by_id<R: Runtime>(menu: &Menu<R>, id: &str) -> Option<CheckMenuItem<R>> {
+    check_menu_item_by_id_in_items(menu.items().ok()?, id)
+}
+
 fn menu_item_by_id<R: Runtime>(menu: &Menu<R>, id: &str) -> Option<MenuItem<R>> {
     menu_item_by_id_in_items(menu.items().ok()?, id)
 }
@@ -1455,30 +1455,30 @@ fn menu_item_by_id_in_items<R: Runtime>(
     None
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+fn check_menu_item_by_id_in_submenu<R: Runtime>(
+    submenu: &Submenu<R>,
+    id: &str,
+) -> Option<CheckMenuItem<R>> {
+    check_menu_item_by_id_in_items(submenu.items().ok()?, id)
+}
+
+fn check_menu_item_by_id_in_items<R: Runtime>(
+    items: Vec<MenuItemKind<R>>,
+    id: &str,
+) -> Option<CheckMenuItem<R>> {
+    for item in items {
+        if item.id() == &id {
+            return item.as_check_menuitem().cloned();
+        }
+        if let Some(submenu) = item.as_submenu() {
+            if let Some(check_item) = check_menu_item_by_id_in_submenu(submenu, id) {
+                return Some(check_item);
+            }
+        }
+    }
+    None
+}
+
 /// Reads the persisted file opener from the helper's ACP database, distinguishing
 /// three outcomes:
 /// - `Ok(Some(id))` — a value is stored,
@@ -3094,23 +3094,23 @@ mod tests {
         assert_eq!(updated.theme_preference, DesktopThemePreference::Light);
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    #[test]
+    fn theme_menu_ids_map_to_preferences() {
+        assert_eq!(
+            theme_preference_for_menu_id(SET_SYSTEM_THEME_MENU_ID),
+            Some(DesktopThemePreference::System)
+        );
+        assert_eq!(
+            theme_preference_for_menu_id(SET_LIGHT_THEME_MENU_ID),
+            Some(DesktopThemePreference::Light)
+        );
+        assert_eq!(
+            theme_preference_for_menu_id(SET_DARK_THEME_MENU_ID),
+            Some(DesktopThemePreference::Dark)
+        );
+        assert_eq!(theme_preference_for_menu_id("poolside-other"), None);
+    }
+
     #[test]
     fn code_preferences_update_trims_and_preserves_other_settings() {
         let settings = DesktopSettings {

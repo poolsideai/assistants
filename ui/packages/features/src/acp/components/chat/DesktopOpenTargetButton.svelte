@@ -127,7 +127,7 @@
 <svelte:window onpointerdown={closeOnOutsidePointerDown} onkeydown={closeOnEscape} />
 
 <div bind:this={container} class="relative shrink-0">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div class={[buttonTone, "flex shrink-0 items-center rounded-[6px]"]}>
     <button
       type="button"
       class={[

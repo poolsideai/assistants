@@ -12,13 +12,13 @@
   import VoiceRecognitionSettingsSection from "./VoiceRecognitionSettingsSection.svelte";
   import UserMCPServersSection from "./UserMCPServersSection.svelte";
   import DesktopSettingsPanelFrame from "./settings/DesktopSettingsPanelFrame.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import SettingsSection from "./settings/SettingsSection.svelte";
   import {
     DESKTOP_SETTINGS_SECTIONS,
     SETTINGS_HEADINGS,
     SETTINGS_NAV_ITEMS,
     type DesktopSettingsSection,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    type SettingsSection as SettingsSectionName,
   } from "./settings/settingsSections";
 
   // "all" stacks every section on one page. The section prop renders one
@@ -28,7 +28,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   interface Props {
     centerHeader?: boolean;
     sidebarWidth?: number;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    section?: SettingsSectionName;
     availableSections?: readonly DesktopSettingsSection[];
     sectionNav?: boolean;
     onSectionChange?: (section: DesktopSettingsSection) => void;
@@ -64,23 +64,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let headerSubtitle = $derived(
     !sectionNav || section === "all" ? heading.subtitle : "Configure Poolside Assistant.",
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let frameBreadcrumbs = $derived(
+    section === "all"
+      ? undefined
+      : [{ label: heading.title, icon: SETTINGS_NAV_ITEMS[section].icon }],
+  );
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#snippet settingsSection(sectionName: DesktopSettingsSection)}
+  {#if sectionName === "preferences"}
+    <DesktopPreferencesSection />
+  {:else if sectionName === "shortcuts"}
+    <KeyboardShortcutsSection host="desktop" />
+  {:else if sectionName === "github"}
+    <DesktopGitHubConnectorSection showHeading={false} />
+  {:else if sectionName === "agents"}
+    <AcpAgentConfigurationSection />
+  {:else if sectionName === "models"}
     {#if isDesktop}
       <LocalInferenceSettingsSection {onShowConnectors} />
     {/if}
@@ -94,55 +94,55 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       {activeConversationId}
       {onActiveConversationIdChange}
     />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {:else}
+    <SettingsSection
+      title={SETTINGS_HEADINGS[sectionName].title}
       pill={SETTINGS_NAV_ITEMS[sectionName].pill}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      subtitle={SETTINGS_HEADINGS[sectionName].subtitle}
+    >
+      {#if sectionName === "connectors"}
+        <UserMCPServersSection showHeading={false} />
       {:else if sectionName === "remote"}
         <DesktopRemoteAccessSection />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {/if}
+    </SettingsSection>
+  {/if}
+{/snippet}
+
 {#snippet settingsContent()}
   {#if section === "all"}
     {#if isDesktop}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {@render settingsSection("preferences")}
+      {@render settingsSection("shortcuts")}
     {/if}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {@render settingsSection("connectors")}
     {#if isDesktop}
       {@render settingsSection("models")}
       {@render settingsSection("voice")}
     {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {@render settingsSection("github")}
+    {@render settingsSection("agents")}
     {#if isDesktop}
       {@render settingsSection("archived")}
       {@render settingsSection("remote")}
     {/if}
   {:else if section === "preferences"}
     {#if isDesktop}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {@render settingsSection("preferences")}
     {/if}
   {:else if section === "shortcuts"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {@render settingsSection("shortcuts")}
   {:else if section === "models"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {@render settingsSection("models")}
   {:else if section === "voice"}
     {@render settingsSection("voice")}
   {:else if section === "connectors"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {@render settingsSection("connectors")}
   {:else if section === "github"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {@render settingsSection("github")}
   {:else if section === "agents"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {@render settingsSection("agents")}
   {:else if section === "archived"}
     {#if isDesktop}
       {@render settingsSection("archived")}
@@ -155,12 +155,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 {/snippet}
 
 {#if desktopFrame}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <DesktopSettingsPanelFrame
+    title={heading.title}
+    subtitle={heading.subtitle}
+    breadcrumbs={frameBreadcrumbs}
+  >
+    <div class="settings-section-stack">
       {@render settingsContent()}
     </div>
   </DesktopSettingsPanelFrame>
@@ -266,8 +266,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             !isDesktop && section === "agents" && "ide-agent-settings-section-stack",
           ]}
         >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          {@render settingsContent()}
+        </div>
       </div>
     </div>
   </section>

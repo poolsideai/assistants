@@ -7,7 +7,7 @@
   import type { ACPNavProjectSettings } from "../navTypes";
   import DesktopSettingsPanelFrame from "./settings/DesktopSettingsPanelFrame.svelte";
   import ConfirmationDialog from "./ui/ConfirmationDialog.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import SettingsSection from "./settings/SettingsSection.svelte";
   import { SETTINGS_NAV_ITEMS } from "./settings/settingsSections";
 
   interface Props {
@@ -211,198 +211,198 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 </script>
 
 {#snippet projectSettingsForm()}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div class="settings-section-stack">
     <SettingsSection title="Project Name" subtitle="Rename how this project appears in the app.">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <div class="px-3 pb-3 pt-3">
+        {@render projectNameInputControl()}
+      </div>
+    </SettingsSection>
+
+    <SettingsSection
+      title="Project Guidelines for Agent"
       subtitle="Your personal instructions and preferences for agents working in this project. Use AGENTS.md for shared guidance checked into the repository."
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    >
+      <div class="px-3 pb-3 pt-3">
+        {@render projectGuidelinesControl()}
+      </div>
+    </SettingsSection>
+
     <SettingsSection
       title="Worktree Setup Script"
       subtitle="Runs in each new worktree of this project, right after the worktree is created."
     >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <div class="px-3 pb-3 pt-3">
+        {@render setupScriptControl()}
+      </div>
+    </SettingsSection>
+
     <SettingsSection
       title="Worktree Teardown Script"
       subtitle="Runs in a worktree of this project, right before the worktree is deleted."
     >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-        title="Sync Error"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-    <SettingsSection title="Delete Project" subtitle="Delete this project without deleting files.">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-        <h3 class="text-psx-foreground-primary text-[13px]/[18px] font-medium">Project Name</h3>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-          Project Guidelines for Agent
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-          Your personal instructions for agents working in this project. Use AGENTS.md for shared
-          guidance checked into the repository.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-        <h3 class="text-psx-foreground-primary text-[13px]/[18px] font-medium">
-          Worktree Setup Script
-        </h3>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-          Runs in each new worktree of this project, right after the worktree is created.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <div class="px-3 pb-3 pt-3">
+        {@render teardownScriptControl()}
       </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-        <h3 class="text-psx-foreground-primary text-[13px]/[18px] font-medium">
-          Worktree Teardown Script
-        </h3>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-          Runs in a worktree of this project, right before the worktree is deleted.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-          <h3 class="text-psx-foreground-primary text-[13px]/[18px] font-medium">Sync Error</h3>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-        <h3 class="text-psx-foreground-primary text-[13px]/[18px] font-medium">Delete Project</h3>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-          Delete this project without deleting files.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </SettingsSection>
+
+    {#if error}
+      <SettingsSection
+        title="Sync Error"
+        subtitle="The latest project settings could not be saved."
+      >
+        <div class="px-3 pb-3 pt-3">
+          {@render syncErrorMessage()}
+        </div>
+      </SettingsSection>
+    {/if}
+
+    <SettingsSection title="Delete Project" subtitle="Delete this project without deleting files.">
+      <div class="px-3 pb-3 pt-3">
+        {@render removeProjectButton()}
+      </div>
+    </SettingsSection>
   </div>
 {/snippet}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#snippet embeddedProjectSettingsForm()}
+  <div class="min-w-0 px-3">
+    <section class="py-3">
+      <div class="mb-2">
+        <h3 class="text-psx-foreground-primary text-[13px]/[18px] font-medium">Project Name</h3>
+        <p class="text-psx-foreground-secondary text-[12px]/[17px]">
+          Rename how this project appears in the app.
+        </p>
+      </div>
+      {@render projectNameInputControl()}
+    </section>
+
+    <section class="border-psx-border border-t py-3">
+      <div class="mb-2">
+        <h3 class="text-psx-foreground-primary text-[13px]/[18px] font-medium">
+          Project Guidelines for Agent
+        </h3>
+        <p class="text-psx-foreground-secondary text-[12px]/[17px]">
+          Your personal instructions for agents working in this project. Use AGENTS.md for shared
+          guidance checked into the repository.
+        </p>
+      </div>
+      {@render projectGuidelinesControl()}
+    </section>
+
+    <section class="border-psx-border border-t py-3">
+      <div class="mb-2">
+        <h3 class="text-psx-foreground-primary text-[13px]/[18px] font-medium">
+          Worktree Setup Script
+        </h3>
+        <p class="text-psx-foreground-secondary text-[12px]/[17px]">
+          Runs in each new worktree of this project, right after the worktree is created.
+        </p>
+      </div>
+      {@render setupScriptControl()}
+    </section>
+
+    <section class="border-psx-border border-t py-3">
+      <div class="mb-2">
+        <h3 class="text-psx-foreground-primary text-[13px]/[18px] font-medium">
+          Worktree Teardown Script
+        </h3>
+        <p class="text-psx-foreground-secondary text-[12px]/[17px]">
+          Runs in a worktree of this project, right before the worktree is deleted.
+        </p>
+      </div>
+      {@render teardownScriptControl()}
+    </section>
+
+    {#if error}
+      <section class="border-psx-border border-t py-3">
+        <div class="mb-2">
+          <h3 class="text-psx-foreground-primary text-[13px]/[18px] font-medium">Sync Error</h3>
+          <p class="text-psx-foreground-secondary text-[12px]/[17px]">
+            The latest project settings could not be saved.
+          </p>
+        </div>
+        {@render syncErrorMessage()}
+      </section>
+    {/if}
+
+    <section class="border-psx-border border-t py-3">
+      <div class="mb-2">
+        <h3 class="text-psx-foreground-primary text-[13px]/[18px] font-medium">Delete Project</h3>
+        <p class="text-psx-foreground-secondary text-[12px]/[17px]">
+          Delete this project without deleting files.
+        </p>
+      </div>
+      {@render removeProjectButton()}
+    </section>
+  </div>
+{/snippet}
+
+{#snippet projectNameInputControl()}
+  <input
+    class="border-psx-border bg-psx-input-background text-psx-foreground-primary outline-hidden focus:border-psx-focus w-full max-w-3xl rounded-[6px] border px-3 py-2 text-[13px]/[19px]"
+    aria-label="Project name"
+    bind:value={projectNameInput}
+    disabled={loading}
     spellcheck="false"
     autocorrect="off"
     autocapitalize="off"
     autocomplete="off"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  />
+  {#if renameError}
+    <div class="text-psx-error-foreground mt-2 text-[13px]/[18px]">{renameError}</div>
+  {/if}
+{/snippet}
+
+{#snippet projectGuidelinesControl()}
+  <textarea
+    class="border-psx-border bg-psx-input-background text-psx-foreground-primary outline-hidden focus:border-psx-focus min-h-36 w-full max-w-3xl resize-y rounded-[6px] border px-3 py-2 text-[13px]/[19px]"
+    aria-label="Project Guidelines for Agent"
+    bind:value={userPrompt}
+    oninput={scheduleSettingsSave}
+    disabled={loading}
+    spellcheck="true"
+  ></textarea>
+{/snippet}
+
+{#snippet setupScriptControl()}
+  <textarea
+    class="border-psx-border bg-psx-input-background text-psx-foreground-primary outline-hidden focus:border-psx-focus min-h-28 w-full max-w-3xl resize-y rounded-[6px] border px-3 py-2 font-mono text-[12px]/[18px]"
     aria-label="Worktree setup script"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    bind:value={setupScript}
+    oninput={scheduleSettingsSave}
+    disabled={loading}
+    spellcheck="false"
     autocapitalize="off"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ></textarea>
+{/snippet}
+
+{#snippet teardownScriptControl()}
+  <textarea
+    class="border-psx-border bg-psx-input-background text-psx-foreground-primary outline-hidden focus:border-psx-focus min-h-28 w-full max-w-3xl resize-y rounded-[6px] border px-3 py-2 font-mono text-[12px]/[18px]"
     aria-label="Worktree teardown script"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    bind:value={teardownScript}
+    oninput={scheduleSettingsSave}
+    disabled={loading}
+    spellcheck="false"
     autocapitalize="off"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ></textarea>
+{/snippet}
+
+{#snippet syncErrorMessage()}
+  <div class="text-psx-error-foreground text-[13px]/[18px]">{error}</div>
+{/snippet}
+
+{#snippet removeProjectButton()}
+  <button
+    type="button"
+    class="text-psx-error-foreground outline-hidden hover:bg-psx-error-background/50 focus-visible:outline-psx-focus inline-flex h-8 items-center gap-1.5 rounded-[6px] px-2 text-[13px]/[16px] focus-visible:outline-2"
+    onclick={() => (removeConfirmOpen = true)}
+  >
+    <Icon name="trash" size={14} />
     <span>Delete Project</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </button>
+{/snippet}
+
 {#snippet desktopProjectSettingsContent()}
   <div class="flex h-full w-full min-w-0 flex-1 flex-col">
     {#if onBackToIndex}
@@ -417,11 +417,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         </button>
       </div>
     {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {#if embeddedDesktopContent}
+      {@render embeddedProjectSettingsForm()}
+    {:else}
+      {@render projectSettingsForm()}
+    {/if}
   </div>
 {/snippet}
 
@@ -434,7 +434,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     breadcrumbs={[
       {
         label: projectSettingsNavItem.label,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        icon: projectSettingsNavItem.icon,
         onClick: onBackToIndex,
       },
       { label: projectName ?? projectPath },
@@ -484,9 +484,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       </div>
     </div>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div class="min-h-0 flex-1 overflow-y-auto">
+      {@render projectSettingsForm()}
+    </div>
   </section>
 {/if}
 
