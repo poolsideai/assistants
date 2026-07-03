@@ -14,7 +14,7 @@
   } from "./DesktopFileOpenerSelect.svelte";
   import DesktopThemeToggle, { type DesktopThemePreference } from "./DesktopThemeToggle.svelte";
   import DesktopToolActivitySelect from "./DesktopToolActivitySelect.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import SettingsSection from "./settings/SettingsSection.svelte";
 
   type SaveStatus = "loading" | "saved" | "saving" | "error";
   type TerminalCursorStyle = "block" | "bar" | "underline";
@@ -973,9 +973,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<SettingsSection title="Appearance">
+  <div class="flex flex-col items-start gap-2 px-3 pb-3 pt-3">
+    <DesktopThemeToggle bind:value={themePreference} disabled={loading} />
     {#if isAppleUser()}
       <div class="border-psx-border mt-1 w-full border-t pt-3">
         <div class="flex items-center gap-2">
@@ -1005,7 +1005,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         </span>
       </div>
     {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </div>
 </SettingsSection>
 
 <SettingsSection
@@ -1035,127 +1035,127 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 </SettingsSection>
 
 <SettingsSection title="Chat Font">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div class="px-3 pb-3 pt-3">
+    <label class="flex w-[76px] min-w-0 flex-col gap-1">
       <span class="text-psx-foreground-primary text-[13px]/[18px]">Size</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <input
+        class="border-psx-border bg-psx-input-background text-psx-foreground-primary focus:border-psx-focus h-8 w-full min-w-0 rounded-[5px] border px-2 text-[13px]/[18px] outline-none"
+        type="number"
+        min={MIN_CHAT_FONT_SIZE}
+        max={MAX_CHAT_FONT_SIZE}
+        step="1"
+        bind:value={chatFontSize}
+        disabled={chatStatus === "loading"}
+        oninput={scheduleValidChatPreferencesPersist}
+        onchange={() => void persistChatPreferences()}
+      />
+    </label>
+  </div>
+</SettingsSection>
+
 <SettingsSection title="Code Font">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div class="grid w-full max-w-[360px] grid-cols-[minmax(0,1fr)_76px] gap-2 px-3 pb-3 pt-3">
+    <label class="flex min-w-0 flex-col gap-1">
       <span class="text-psx-foreground-primary text-[13px]/[18px]">Family</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <select
+        class="border-psx-border bg-psx-input-background text-psx-foreground-primary focus:border-psx-focus h-8 w-full min-w-0 rounded-[5px] border px-2 text-[13px]/[18px] outline-none"
+        bind:value={codeFontFamily}
+        disabled={codeStatus === "loading" || codeFontFamilies.length === 0}
+        onchange={() => void persistCodePreferences()}
+      >
+        {#each codeFontFamilies as family (family)}
+          <option value={family}>{family}</option>
+        {/each}
+      </select>
+    </label>
+    <label class="flex min-w-0 flex-col gap-1">
       <span class="text-psx-foreground-primary text-[13px]/[18px]">Size</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <input
+        class="border-psx-border bg-psx-input-background text-psx-foreground-primary focus:border-psx-focus h-8 w-full min-w-0 rounded-[5px] border px-2 text-[13px]/[18px] outline-none"
+        type="number"
+        min={MIN_CODE_FONT_SIZE}
+        max={MAX_CODE_FONT_SIZE}
+        step="1"
+        bind:value={codeFontSize}
+        disabled={codeStatus === "loading"}
+        oninput={scheduleValidCodePreferencesPersist}
+        onchange={() => void persistCodePreferences()}
+      />
+    </label>
+  </div>
+</SettingsSection>
+
+<SettingsSection title="Terminal">
+  <div class="grid w-full max-w-[360px] grid-cols-[minmax(0,1fr)_76px] gap-2 px-3 pb-3 pt-3">
+    <label class="flex min-w-0 flex-col gap-1">
       <span class="text-psx-foreground-primary text-[13px]/[18px]">Family</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <select
+        class="border-psx-border bg-psx-input-background text-psx-foreground-primary focus:border-psx-focus h-8 w-full min-w-0 rounded-[5px] border px-2 text-[13px]/[18px] outline-none"
+        bind:value={terminalFontFamily}
+        disabled={terminalStatus === "loading" || terminalFontFamilies.length === 0}
+        onchange={() => void persistTerminalPreferences()}
+      >
+        {#each terminalFontFamilies as family (family)}
+          <option value={family}>{family}</option>
+        {/each}
+      </select>
+    </label>
+    <label class="flex min-w-0 flex-col gap-1">
       <span class="text-psx-foreground-primary text-[13px]/[18px]">Size</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <input
+        class="border-psx-border bg-psx-input-background text-psx-foreground-primary focus:border-psx-focus h-8 w-full min-w-0 rounded-[5px] border px-2 text-[13px]/[18px] outline-none"
+        type="number"
+        min={MIN_TERMINAL_FONT_SIZE}
+        max={MAX_TERMINAL_FONT_SIZE}
+        step="1"
+        bind:value={terminalFontSize}
+        disabled={terminalStatus === "loading"}
+        oninput={scheduleValidTerminalPreferencesPersist}
+        onchange={() => void persistTerminalPreferences()}
+      />
+    </label>
+    <label class="col-span-2 flex min-w-0 flex-col gap-1">
       <span class="text-psx-foreground-primary text-[13px]/[18px]">Cursor</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <select
+        class="border-psx-border bg-psx-input-background text-psx-foreground-primary focus:border-psx-focus h-8 w-full min-w-0 max-w-[180px] rounded-[5px] border px-2 text-[13px]/[18px] outline-none"
+        bind:value={terminalCursorStyle}
+        disabled={terminalStatus === "loading"}
+        onchange={() => void persistTerminalPreferences()}
+      >
+        <option value="block">Block</option>
+        <option value="bar">Bar</option>
+        <option value="underline">Underline</option>
+      </select>
+    </label>
+  </div>
+</SettingsSection>
+
+<SettingsSection
+  title="External editor"
+  subtitle={`${externalEditorClickHint} on files to open in your favorite editor`}
+>
+  <div class="flex flex-col items-start gap-2 px-3 pb-3 pt-3">
     <DesktopFileOpenerSelect
       bind:value={fileOpenerId}
       openers={fileOpeners}
       disabled={fileOpenerStatus === "loading" || fileOpeners.length === 0}
       onChange={persistFileOpener}
     />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </div>
+</SettingsSection>
+
+<SettingsSection
+  title="Tool activity"
   subtitle="How much detail to show while the agent works. Finished replies always collapse, chat mode is always compact"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+>
+  <div class="px-3 pb-3 pt-3">
+    <DesktopToolActivitySelect
+      bind:value={toolActivity}
+      disabled={toolActivityStatus === "loading"}
+      onChange={() => void persistToolActivity()}
+    />
+  </div>
+</SettingsSection>
 
 <DesktopDefaultLayoutSection />
 
@@ -1237,10 +1237,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   </div>
 </SettingsSection>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#if hasError}
   <SettingsSection title="Settings Error">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <p class="text-psx-error-foreground truncate px-3 pb-3 pt-3 text-[13px]/[18px]" title={error}>
+      {error}
+    </p>
+  </SettingsSection>
+{/if}

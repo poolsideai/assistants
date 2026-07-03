@@ -72,7 +72,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   | "ide"
   | "info"
   | "key"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "keyboard"
   | "lab"
   | "leg"
   | "light"
@@ -85,7 +85,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   | "minus"
   | "more"
   | "new"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "on-device"
   | "output"
   | "package"
   | "panel-bottom-closed"

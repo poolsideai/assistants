@@ -97,7 +97,7 @@ export { default as ProjectSettingsView } from "./components/ProjectSettingsView
 export { default as SessionEventsRenderer } from "./components/SessionEventsRenderer.svelte";
 export { default as DesktopProjectSettingsIndex } from "./components/settings/DesktopProjectSettingsIndex.svelte";
 export { default as DesktopProjectSettingsView } from "./components/settings/DesktopProjectSettingsView.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { default as SettingsSectionCard } from "./components/settings/SettingsSection.svelte";
 export {
   DESKTOP_SETTINGS_NAV_SECTIONS,
   DESKTOP_SETTINGS_SECTIONS,

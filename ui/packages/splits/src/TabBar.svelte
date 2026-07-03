@@ -18,7 +18,7 @@
     type TabTransferData,
   } from "./internal/drag.js";
   import type { PaneID, PaneState, SplitOrientation, Tab, TabID } from "./types.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import Icon from "@poolsideai/components/icon";
 
   type TabRenderItem =
     | {
@@ -1030,7 +1030,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 class="splits-close"
                 onclick={(event) => close(event, item.tab)}
               >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                <Icon name="cross" size={12} />
               </button>
             {/if}
           {/if}
@@ -1046,7 +1046,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           title="New Tab"
           onclick={createNewTab}
         >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <Icon name="plus" aria-hidden="true" size={18} weight={0.85} />
         </button>
       {/if}
       {#if tabBarWindowDrag}
@@ -1145,10 +1145,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   .splits-tabs {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --splits-tabs-mask-start: black;
+    --splits-tabs-mask-end: black;
+    --splits-tabs-mask-fade-width: 16px;
+
     display: flex;
     box-sizing: border-box;
     /* Let an opt-in selected-tab shadow reach the pane's top and left gutters.
@@ -1164,37 +1164,37 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     padding-left: var(--splits-tab-shadow-gutter, 0px);
     overflow-x: auto;
     overflow-y: hidden;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    -webkit-mask-image: linear-gradient(
+      to right,
+      var(--splits-tabs-mask-start) 0,
+      black var(--splits-tabs-mask-fade-width),
+      black calc(100% - var(--splits-tabs-mask-fade-width)),
+      var(--splits-tabs-mask-end) 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      var(--splits-tabs-mask-start) 0,
+      black var(--splits-tabs-mask-fade-width),
+      black calc(100% - var(--splits-tabs-mask-fade-width)),
+      var(--splits-tabs-mask-end) 100%
+    );
+    -webkit-mask-mode: alpha;
+    mask-mode: alpha;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
     scrollbar-width: none;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .splits-tabs-overflow-start .splits-tabs {
+    --splits-tabs-mask-start: transparent;
+  }
+
+  .splits-tabs-overflow-end .splits-tabs {
+    --splits-tabs-mask-end: transparent;
+  }
+
   .splits-tabs-window-drag-region {
     min-width: 0;
     flex: 1 1 0;
@@ -1237,13 +1237,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     user-select: none;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .splits-tab:not(.splits-tab-selected) {
+    border-radius: var(--splits-tab-radius, 6px) var(--splits-tab-radius, 6px)
+      var(--splits-inactive-tab-bottom-radius, 0) var(--splits-inactive-tab-bottom-radius, 0);
+  }
+
   .splits-tab:hover {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    background: var(--splits-tab-hover-visual-background, var(--splits-tab-hover-background));
     color: var(--splits-active-tab-foreground);
   }
 
@@ -1484,9 +1484,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     color: currentColor;
     cursor: default;
     opacity: 0.8;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    justify-content: center;
+    align-items: center;
+    transform: translateX(2px);
   }
 
   .splits-tab:hover .splits-close,
@@ -1536,7 +1536,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   .splits-tab-narrow .splits-close {
     transform: none;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   .splits-tab-narrow:has(.splits-close):hover .splits-tab-icon-slot,
   .splits-tab-narrow:has(.splits-close):focus-visible .splits-tab-icon-slot {
     display: none;

@@ -18,8 +18,8 @@
     icon,
     label,
     title,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    size = 18,
+    buttonSize = "size-[22px]",
     class: className = "",
     disabled = false,
     dragRegion = false,

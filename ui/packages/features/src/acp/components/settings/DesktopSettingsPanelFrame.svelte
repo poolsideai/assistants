@@ -1,11 +1,11 @@
 <script lang="ts">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import Icon, { type IconName } from "@poolsideai/components/icon";
   import type { Snippet } from "svelte";
   import { desktopUpdate } from "../../desktopUpdate";
 
   interface DesktopSettingsBreadcrumb {
     label: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    icon?: IconName;
     onClick?: () => void;
   }
 
@@ -26,36 +26,36 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   let { title, rootLabel = "Settings", breadcrumbs, sidebarCollapsed, children }: Props = $props();
   let headerBreadcrumbs = $derived(breadcrumbs ?? [{ label: title }]);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let hasPaneTopOverflow = $state(false);
+  let hasPaneBottomOverflow = $state(false);
+
   function updatePaneOverflow(element: HTMLDivElement): void {
     const nextTopOverflow = element.scrollTop > 1;
     const nextBottomOverflow = element.scrollHeight - element.scrollTop - element.clientHeight > 1;
     if (hasPaneTopOverflow !== nextTopOverflow) hasPaneTopOverflow = nextTopOverflow;
     if (hasPaneBottomOverflow !== nextBottomOverflow) {
       hasPaneBottomOverflow = nextBottomOverflow;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  }
+
   // Install observers as a node action so overflow-state DOM updates cannot
   // invalidate their own lifecycle and repeatedly recreate the observers.
   function observePaneOverflow(element: HTMLDivElement) {
     updatePaneOverflow(element);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     let animationFrame: number | undefined;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const scheduleOverflowUpdate = () => {
       if (animationFrame !== undefined) return;
       animationFrame = requestAnimationFrame(() => {
         animationFrame = undefined;
         updatePaneOverflow(element);
       });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    };
+    const resizeObserver = new ResizeObserver(scheduleOverflowUpdate);
+    resizeObserver.observe(element);
     let observedContent = element.firstElementChild;
     if (observedContent) resizeObserver.observe(observedContent);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     const mutationObserver = new MutationObserver(() => {
       const nextContent = element.firstElementChild;
       if (nextContent !== observedContent) {
@@ -76,7 +76,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         resizeObserver.disconnect();
         mutationObserver.disconnect();
       },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    };
   }
 </script>
 
@@ -98,9 +98,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         ></div>
       {/if}
       <div class="flex w-full min-w-0 items-center gap-2 text-sm/[20px]">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <h1 class="text-psx-foreground-primary truncate px-0.5 font-medium">{rootLabel}</h1>
         {#each headerBreadcrumbs as crumb (crumb.label)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <span class="text-psx-foreground-tertiary" aria-hidden="true">→</span>
           {#if crumb.onClick}
             <button
               type="button"
@@ -108,31 +108,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
               class="text-psx-foreground-primary outline-hidden hover:bg-psx-menu-hover-background focus-visible:outline-psx-focus flex min-w-0 items-center gap-1 rounded-[5px] px-1 py-0.5 focus-visible:outline-2"
               onclick={crumb.onClick}
             >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              {#if crumb.icon}
+                <Icon name={crumb.icon} size={14} class="shrink-0" aria-hidden="true" />
+              {/if}
               <span class="min-w-0 truncate">{crumb.label}</span>
             </button>
           {:else}
             <span
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              class="text-psx-foreground-secondary flex min-w-0 items-center gap-1 truncate rounded-[5px] px-0.5 py-0.5"
             >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              {#if crumb.icon}
+                <Icon name={crumb.icon} size={14} class="shrink-0" aria-hidden="true" />
+              {/if}
               <span class="min-w-0 truncate">{crumb.label}</span>
             </span>
           {/if}
         {/each}
       </div>
     </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div
       use:observePaneOverflow
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      class="desktop-settings-pane"
+      data-overflow-top={hasPaneTopOverflow}
+      data-overflow-bottom={hasPaneBottomOverflow}
       onscroll={(event) => updatePaneOverflow(event.currentTarget)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    >
       {@render children?.()}
     </div>
   </div>
@@ -181,10 +181,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     height: var(--desktop-splits-tab-top-margin);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  :global(.vscode-dark) .desktop-settings-panel {
     --desktop-splits-pane-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 6px rgba(0, 0, 0, 0.2);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   .desktop-settings-frame {
     display: flex;
     box-sizing: border-box;
@@ -205,7 +205,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     height: 34px;
     min-height: 34px;
     align-items: center;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    padding: 0 16px;
   }
 
   /* Mirrors .desktop-tab-bar-traffic-light-spacer in DesktopSplitsPane. */
@@ -253,43 +253,43 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   .desktop-settings-pane {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --desktop-settings-overflow-fade-height: 28px;
+    --desktop-settings-overflow-mask-top: #000;
+    --desktop-settings-overflow-mask-bottom: #000;
+
+    box-sizing: border-box;
     min-width: 0;
     min-height: 0;
     flex: 1 1 0;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    margin-inline: calc(var(--desktop-splits-shadow-gutter) * -1);
+    padding-inline: var(--desktop-splits-shadow-gutter);
+    overflow-x: hidden;
+    overflow-y: auto;
     border-radius: var(--desktop-main-panel-radius, 10px);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      var(--desktop-settings-overflow-mask-top) 0,
+      #000 var(--desktop-settings-overflow-fade-height),
+      #000 calc(100% - var(--desktop-settings-overflow-fade-height)),
+      var(--desktop-settings-overflow-mask-bottom) 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      var(--desktop-settings-overflow-mask-top) 0,
+      #000 var(--desktop-settings-overflow-fade-height),
+      #000 calc(100% - var(--desktop-settings-overflow-fade-height)),
+      var(--desktop-settings-overflow-mask-bottom) 100%
+    );
+    -webkit-mask-mode: alpha;
+    mask-mode: alpha;
+    scrollbar-gutter: stable;
+  }
+
+  .desktop-settings-pane[data-overflow-top="true"] {
+    --desktop-settings-overflow-mask-top: transparent;
+  }
+
+  .desktop-settings-pane[data-overflow-bottom="true"] {
+    --desktop-settings-overflow-mask-bottom: transparent;
   }
 </style>

@@ -41,9 +41,9 @@
       "prettier --ignore-unknown --write"
     ]
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "dependencies": {
+    "@poolsideai/components": "workspace:*"
+  },
   "devDependencies": {
     "@chromatic-com/storybook": "catalog:",
     "@poolsideai/eslint-config": "workspace:*",
