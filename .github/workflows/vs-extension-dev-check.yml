@@ -77,13 +77,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           path: ui/apps/vs-assistant
 
       - name: Setup NuGet
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        uses: NuGet/setup-nuget@b26b823c478ee115be5c9403e62c90b0bf943843 # v3.1.0
 
       - name: Restore NuGet packages
         run: nuget restore ui/apps/vs-assistant/poolside-assistant.sln
 
       - name: Setup MSBuild
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57 # v3.0.0
 
       - name: Build solution
         run: msbuild ui/apps/vs-assistant/poolside-assistant.sln /p:Configuration=Release
