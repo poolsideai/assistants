@@ -248,7 +248,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           totp_secret: ${{ secrets.WINDOWS_CODE_SIGN_TOTP_SECRET }}
 
       - name: Upload artifact
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: artifact-${{ steps.version.outputs.archive_name }}
           path: |

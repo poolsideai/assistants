@@ -63,7 +63,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             
       - name: Upload artifacts
         if: always()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: history-${{ matrix.os }}
           path: |

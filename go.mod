@@ -17,9 +17,9 @@ require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/danielgtaylor/huma/v2 v2.34.1
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/go-chi/chi/v5 v5.2.4
+	github.com/go-git/go-billy/v5 v5.9.0
+	github.com/go-git/go-git/v5 v5.19.1
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/golang-migrate/migrate/v4 v4.18.2
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -37,8 +37,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/tliron/glsp v0.2.2
 	go.uber.org/atomic v1.11.0 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	golang.org/x/telemetry v0.0.0-20260409153401-be6f6cb8b1fa
+	golang.org/x/tools v0.44.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -55,21 +55,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	dario.cat/mergo v1.0.2 // indirect
+	github.com/ProtonMail/go-crypto v1.1.6 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/cloudflare/circl v1.6.3 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/onsi/gomega v1.38.2 // indirect
 	github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7 // indirect
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/pjbgf/sha1cd v0.6.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.5 // indirect
 	github.com/segmentio/ksuid v1.0.4 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -78,13 +78,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/tliron/kutil v0.3.25 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	golang.org/x/exp/typeparams v0.0.0-20240314144324-c7f7c6466f7f // indirect
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	golang.org/x/text v0.37.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 require (
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dustin/go-humanize v1.0.1
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
@@ -96,12 +96,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	github.com/spf13/pflag v1.0.10 // indirect
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	golang.org/x/crypto v0.52.0 // indirect
+	golang.org/x/mod v0.35.0
 	golang.org/x/net v0.55.0
 	golang.org/x/sync v0.20.0 // indirect
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/term v0.43.0 // indirect
 )
 
 // our fork, adds native session/delete, elastic notification buffering
