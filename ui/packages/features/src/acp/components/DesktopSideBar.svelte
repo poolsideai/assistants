@@ -1766,7 +1766,7 @@
                       <button
                         type="button"
                         data-sidebar-section-reorder-handle
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                        class="text-psx-foreground-tertiary hover:text-psx-foreground-primary outline-hidden focus-visible:outline-psx-focus flex min-w-0 flex-1 cursor-grab items-center gap-1 rounded-[6px] px-1 py-0.5 text-left transition-colors duration-200 focus-visible:outline-2 active:cursor-grabbing"
                         aria-label={sidebarSectionToggleLabel(
                           "chats",
                           chatsSectionCollapsed,
@@ -1865,7 +1865,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                           <button
                             type="button"
                             data-sidebar-section-reorder-handle
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                            class="text-psx-foreground-tertiary hover:text-psx-foreground-primary outline-hidden focus-visible:outline-psx-focus flex min-w-0 flex-1 cursor-grab items-center gap-1 rounded-[6px] px-1 py-0.5 text-left transition-colors duration-200 focus-visible:outline-2 active:cursor-grabbing"
                             aria-label={sidebarSectionToggleLabel(
                               "projects",
                               projectsSectionCollapsed,

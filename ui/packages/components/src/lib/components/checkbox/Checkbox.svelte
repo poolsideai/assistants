@@ -6,7 +6,7 @@
   type Props = CheckboxRootProps;
 
   let { class: className, checked = $bindable(false), ...rest }: Props = $props();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   const { customUI } = getDisplay();
 </script>
 
@@ -15,9 +15,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   {...rest}
   class={[
     className,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    customUI
+      ? "flex size-4 shrink-0 appearance-none items-center justify-center rounded-md border border-black/10 bg-transparent text-psx-checkbox-foreground dark:border-white/10"
+      : "flex size-3 shrink-0 appearance-none items-center justify-center rounded-[3px] border border-psx-checkbox-border bg-psx-checkbox-background text-psx-checkbox-foreground",
   ]}
 >
   {#snippet children({ checked, indeterminate })}

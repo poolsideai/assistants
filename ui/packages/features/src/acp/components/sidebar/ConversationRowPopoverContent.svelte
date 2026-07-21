@@ -26,17 +26,17 @@
     iconUrl?: string;
     iconSize?: number;
     iconClass?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    desktop?: boolean;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let {
+    session,
+    agentName,
+    iconUrl,
+    iconSize = 14,
+    iconClass = "",
+    desktop = false,
+  }: Props = $props();
 
   const sidebar = getAcpSidebarController();
   const github = getACPGithubRepo();
@@ -200,12 +200,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
        padding — which differs per variant (px-3 desktop, px-4 elsewhere).
        bleed-x reads that padding off the card rather than restating it, so a
        hardcoded inset cannot drift past the rounded edge again. -->
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div
+    class={[
       "bleed-x my-4 border-t",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      desktop ? "border-black/10 dark:border-white/10" : "border-psx-border opacity-50",
+    ]}
+  ></div>
 {/snippet}
 
 {#snippet projectDetails(branchRowLabel: string | null)}
@@ -266,7 +266,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 </div>
 
 <!-- body -->
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<div class="mt-0">
   {#if liveSession || timeline.length > 0}
     <div class="flex flex-col">
       {#each timeline as row (row.label)}
@@ -293,7 +293,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                   row.breakAll && "break-all",
                 ]}
               >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                <div class={["flex flex-col", desktop ? "gap-1" : "gap-0.5"]}>
                   {#each visibleValues as value}
                     {#if typeof value === "string"}
                       <span class="block truncate" title={value}>
@@ -318,7 +318,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 </div>
               </div>
             {:else}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              <span class="text-psx-foreground-tertiary">No activity yet</span>
             {/if}
           </div>
         </div>

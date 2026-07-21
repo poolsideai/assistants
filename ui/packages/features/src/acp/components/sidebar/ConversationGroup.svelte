@@ -56,7 +56,7 @@
 {#if sessions.length > 0}
   <div
     class={indent
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      ? "desktop-conversation-connector before:border-psx-border relative ml-[11.5px] pl-[14px] before:pointer-events-none before:absolute before:bottom-[14px] before:left-0 before:top-0 before:w-[10px] before:rounded-bl-[5px] before:border-b before:border-l before:content-['']"
       : ""}
   >
     {#each visibleSessions as session (`${sidebar.getSessionAgentServer(session)}:${session.id}`)}

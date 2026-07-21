@@ -215,7 +215,7 @@
     data-tauri-drag-region="false"
     class={[
       "desktop-sidebar-resize-handle outline-hidden focus-visible:outline-psx-focus absolute inset-y-0 z-40 w-2 cursor-col-resize border-0 bg-transparent p-0 focus-visible:outline-2",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "before:absolute before:left-1/2 before:-translate-x-1/2 before:rounded-full before:bg-transparent before:transition-colors",
       resizing ? "before:bg-psx-focus" : "",
     ]}
     onmousedown={(event) => onResizeStart?.(event)}
@@ -410,15 +410,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   .desktop-sidebar-resize-handle::before {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    width: 1px;
+    inset-block: 8px;
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      #000 40px,
+      #000 calc(100% - 40px),
+      transparent
+    );
   }
 
   .desktop-sidebar-resize-handle:hover::before,

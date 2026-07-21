@@ -78,7 +78,7 @@ const MAX_TEXT_FILE_BYTES: u64 = 5 * 1024 * 1024;
 // Matches VS Code's binary sniff window: NUL bytes past this offset can occur
 // in legitimate source files (e.g. NUL used as a string-literal separator).
 const BINARY_SNIFF_BYTES: usize = 512;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const DEFAULT_CHAT_FONT_SIZE: u16 = 15;
 const MIN_CHAT_FONT_SIZE: u16 = 10;
 const MAX_CHAT_FONT_SIZE: u16 = 24;
 const DEFAULT_CODE_FONT_FAMILY: &str = "Menlo";

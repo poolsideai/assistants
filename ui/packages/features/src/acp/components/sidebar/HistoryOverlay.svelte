@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Button } from "@poolsideai/components/button";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { Spinner } from "@poolsideai/components/spinner";
+  import Icon from "@poolsideai/components/icon";
   import { formatError } from "@poolsideai/lib/errors";
   import { onDestroy } from "svelte";
   import { SvelteMap, SvelteSet } from "svelte/reactivity";
@@ -112,7 +112,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   function canDeleteSession(session: ACPConversationSummary): boolean {
     return controller.canDeleteSession(session);
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   function canOpenReadOnly(session: ACPConversationSummary): boolean {
     return Boolean(onOpenHistorySessionReadOnly && session.sessionId) && sessionAvailable(session);
   }
@@ -144,11 +144,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       .filter((bucket) => bucket.sessions.length > 0),
   );
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const filteredSessionCount = $derived(
     visibleGroupedHistorySessions.reduce((count, bucket) => count + bucket.sessions.length, 0),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
+
+  const hasActiveSearch = $derived(searchQuery.trim().length > 0);
   const collapsedBucketKeys = new SvelteSet<string>();
   const searchCollapsedBucketKeys = new SvelteSet<string>();
   const expandedSessionBucketKeys = new SvelteSet<string>();
@@ -353,7 +353,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       class="flex shrink-0 flex-col gap-0.5 px-1.5 pb-1.5 pt-12"
       aria-label="Archived conversations"
       data-tauri-drag-region={desktop ? "deep" : undefined}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    >
       <SidebarNavButton icon="arrow-left" label={backLabel} onclick={onBack} />
       {#if showProjectFilter}
         <div class="px-1 pt-0.5">
@@ -435,30 +435,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         })}
       </div>
     {:else if state.status === "loading"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <div
         class="text-psx-foreground-secondary flex items-center justify-center gap-2 px-2 py-4 text-[13px]/[16px]"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      >
+        <Spinner size={14} />
         Loading history...
       </div>
     {:else if sessionCount === 0 || (!hasActiveSearch && filteredSessionCount === 0)}
       <div class="text-psx-foreground-secondary px-2 py-4 text-center text-[13px]/[16px]">
         {emptyLabel}
       </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {:else if hasActiveSearch && filteredSessionCount === 0}
+      <div
         class="text-psx-foreground-primary mx-auto flex min-w-0 max-w-[80%] items-center justify-center gap-2 px-2 py-6 text-[13px]/[16px]"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      >
+        <Icon
+          name="search"
+          size={14}
+          class="text-psx-foreground-primary shrink-0"
+          aria-hidden="true"
+        />
+        <span class="min-w-0 truncate">
+          No older conversation found with {searchQuery.trim()}
+        </span>
+      </div>
     {:else}
       {#each visibleGroupedHistorySessions as bucket (bucket.key)}
         {@const bucketVisible = !embedded || bucketContentVisible(bucket.key)}

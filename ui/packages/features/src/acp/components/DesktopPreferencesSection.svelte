@@ -96,8 +96,8 @@
 
   let themePreference = $state<DesktopThemePreference>("system");
   let persistedThemePreference = $state<DesktopThemePreference>("system");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let chatFontSize = $state(15);
+  let persistedChatFontSize = $state(15);
   let codeFontFamily = $state("Menlo");
   let persistedCodeFontFamily = $state("Menlo");
   let codeFontFamilies = $state<string[]>([]);

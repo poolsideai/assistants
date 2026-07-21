@@ -515,25 +515,25 @@
           })}
         </div>
       {:else if visibleSessions.length === 0 && !rowExitAnimating}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {#if searchQuery.trim()}
+          <div
+            class="text-psx-foreground-primary mx-auto flex min-w-0 max-w-[80%] items-center justify-center gap-2 px-2 py-6 text-sm"
+          >
+            <Icon
+              name="search"
+              size={14}
+              class="text-psx-foreground-primary shrink-0"
+              aria-hidden="true"
+            />
+            <span class="min-w-0 truncate">
+              No conversations found with {searchQuery.trim()}
+            </span>
+          </div>
+        {:else}
+          <div class="text-psx-foreground-primary px-2 py-8 text-center text-sm">
+            No conversations yet
+          </div>
+        {/if}
       {:else}
         <ConversationGroup
           sessions={visibleSessions}
@@ -558,7 +558,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         {groupedHistorySessions}
         state={history.state}
         sessionCount={history.sessions.length}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        backLabel="Back to Active Chats"
         reconciling={history.reconciling}
         listFailures={history.listFailures}
         {visibleNavSessionForHistorySession}

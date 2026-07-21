@@ -693,7 +693,7 @@
         <Command.Input
           id={SEARCH_INPUT_ID}
           bind:value={search}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          placeholder="Search conversations... (Type + to open a new tab)"
           aria-label="Search conversations"
           spellcheck={false}
           autocorrect="off"
@@ -973,7 +973,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     box-sizing: border-box;
     transform: translateX(-50%);
     overflow: hidden;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    outline: 1px solid rgb(0 0 0 / 5%);
     border-radius: 12px;
     background: rgb(255 255 255 / 78%);
     /* Elevation only — the single `border` above draws the outline. A
@@ -982,16 +982,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     box-shadow:
       0 28px 80px -30px var(--desktop-conversation-search-shadow-high),
       0 14px 34px -22px var(--desktop-conversation-search-shadow-low);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
   }
 
   :global(.vscode-dark) .desktop-conversation-search-dialog,
   :global(.psx-dark) .desktop-conversation-search-dialog {
     --desktop-conversation-search-shadow-high: rgb(0 0 0 / 56%);
     --desktop-conversation-search-shadow-low: rgb(0 0 0 / 42%);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    outline-color: rgb(255 255 255 / 10%);
     background: rgb(27 31 35 / 75%);
   }
 
@@ -1003,7 +1003,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     flex-direction: column;
     overflow: hidden;
     border-radius: 8px;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    background: transparent;
   }
 
   .desktop-conversation-search-header {
@@ -1017,15 +1017,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     flex-shrink: 0;
     align-items: center;
     gap: 0.625rem;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    border-bottom: 1px solid rgb(0 0 0 / 5%);
+    background: transparent;
+    /* 8px results gutter + 12px row inset = 20px, aligned with suggestion icons */
+    padding: 0.75rem 20px;
+  }
+
+  :global(.vscode-dark) .desktop-conversation-search-header,
+  :global(.psx-dark) .desktop-conversation-search-header {
+    border-bottom-color: rgb(255 255 255 / 8%);
   }
 
   :global(.desktop-conversation-search-icon) {
@@ -1060,10 +1060,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    padding: 0.5rem;
     scrollbar-gutter: stable;
     scrollbar-width: auto;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    scroll-padding-block: 0.5rem;
   }
 
   :global(.desktop-conversation-search-list) {
@@ -1093,7 +1093,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   .desktop-conversation-search-group-heading {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    padding: 0.375rem 12px 0.25rem;
   }
 
   .desktop-conversation-search-group-heading span {
@@ -1117,16 +1117,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     outline: 0;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  :global(.desktop-conversation-search-item) {
+    border-radius: 8px;
+  }
+
   .desktop-conversation-search-item-inner {
     display: flex;
     min-width: 0;
     align-items: center;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    gap: 0.625rem;
+    padding: 0.625rem 12px;
   }
 
   .desktop-conversation-search-item-inner-inline {

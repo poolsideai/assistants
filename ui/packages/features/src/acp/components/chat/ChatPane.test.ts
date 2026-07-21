@@ -1907,7 +1907,7 @@ EOF
     );
     const composer = screen.getByTestId("empty-state-container").parentElement;
     expect(composer).toHaveAttribute("data-acp-composer");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(composer).toHaveClass("gap-5");
     expect(within(emptyStateHeader).getByText("Start a new conversation in")).toBeInTheDocument();
 
     const projectPicker = screen.getByRole("button", { name: /Change chat, project/ });
@@ -1916,19 +1916,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       name: "Agent, model and options",
     });
     const projectPickerOffset = projectPicker.parentElement?.parentElement;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const compositePickerOffset = compositePicker.parentElement?.parentElement;
+    expect(projectPicker.parentElement).toHaveClass("desktop-empty-state-control-wrap");
+    expect(compositePicker.parentElement).toHaveClass("desktop-empty-state-control-wrap");
     expect(projectPickerOffset).toHaveClass("translate-y-px");
     expect(projectPickerOffset?.nextElementSibling).toBe(usingLabel);
     expect(usingLabel.nextElementSibling).toBe(compositePickerOffset);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // The desktop empty state renders pill triggers without the dotted
+    // underline used by other hosts.
+    expect(projectPicker).toHaveClass("desktop-empty-state-control");
+    expect(compositePicker).toHaveClass("desktop-empty-state-control");
     expect(projectPicker).not.toHaveClass("bg-psx-chrome", "rounded-xl", "shadow-low");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(within(projectPicker).getByText("project-a")).not.toHaveClass("underline");
+    expect(within(compositePicker).getByText("Sonnet")).not.toHaveClass("underline");
     const projectIcon = projectPicker.querySelector('[data-type="product"]');
     expect(projectIcon).toHaveClass("translate-y-px");
 

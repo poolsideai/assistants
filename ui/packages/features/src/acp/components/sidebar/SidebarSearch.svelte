@@ -22,7 +22,7 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   <SearchField bind:value {placeholder} class="flex-1" />
   <SidebarIconButton
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    icon="history"
     label={archiveLabel}
     title={archiveTitle}
     onclick={() => onArchive()}

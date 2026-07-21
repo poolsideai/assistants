@@ -168,7 +168,7 @@
   // no room for config controls there. They move to a slim accessory strip
   // above the pill instead.
   const isMobile = $derived($appState.environment.assistantHost === "mobile");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const isDesktop = $derived($appState.environment.assistantHost === "desktop");
 
   $effect(() => {
     if (!isTurnActive || !onInterrupt) return;
@@ -666,7 +666,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   <div
     class="dictation-scope"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    class:prompt-desktop={isDesktop}
     class:dictation-recording={voicePhase === "recording"}
     class:dictation-transcribing={voicePhase === "transcribing"}
   >
@@ -683,10 +683,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           </Prompt.Form.Field.Editor.Placeholder>
         </Prompt.Form.Field.Editor.Root>
       </Prompt.Form.Field.Root>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <Prompt.Form.Footer
+        data-size="sm"
+        class={["justify-between gap-2 pb-1.5 pl-2 pr-2", isDesktop && "mt-2"]}
+      >
         <!-- Leading cluster: slash command, permission mode, and — while a
              collaboration-mode agent is planning — the plan chip. The slash
              trigger is sized to match the mode control (h-7) so the row keeps
@@ -769,22 +769,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     display: contents;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .dictation-scope.prompt-desktop :global(form) {
+    border-radius: 12px;
     /* ChatPane publishes the composer's text size so the elicitation form
        above the prompt can match it. The fallback keeps this rule standing on
        its own wherever the prompt renders outside that column. */
     font-size: var(--psx-composer-font-size, 15px);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    border-color: transparent;
+    outline: 1px solid rgb(0 0 0 / 8%);
+    outline-offset: -1px;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 8%);
+  }
+
+  :global(.vscode-dark) .dictation-scope.prompt-desktop :global(form) {
+    outline-color: rgb(255 255 255 / 6%);
+  }
+
   /* While dictating, the prompt box carries the accent color (red reads as an
      error) and the footer waveform shows speech being heard; transcribing
      settles into a steady glow until the final text lands. Targets the form

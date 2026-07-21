@@ -2,8 +2,8 @@
   import Icon from "../icon/Icon.svelte";
   import { ScrollManager } from "./ScrollManager.js";
   import { tick, type Snippet, untrack } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { fade, slide } from "svelte/transition";
+  import { cubicOut } from "svelte/easing";
 
   interface Props {
     complete?: boolean;
@@ -13,9 +13,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   let { complete, children, onExpandedChange }: Props = $props();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const reducedMotion = () =>
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+
   let hasContent = $derived(children !== undefined);
 
   type DisplayMode = "Collapsed" | "Preview" | "Expanded";
@@ -24,9 +24,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let thinkingContainer = $state<HTMLDivElement>();
   let showFadeTop = $state(false);
   let showFadeBottom = $state(false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // true while the expand slide-in runs, so the container's bottom edge fades
+  // instead of hard-clipping the text growing into view
+  let introPlaying = $state(false);
   let scrollManager: ScrollManager | undefined;
   let wasComplete = Boolean(complete);
 
@@ -199,7 +199,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     class:border-t-0={displayMode === "Collapsed"}
     class:fade-out-top={showFadeTop}
     class:fade-out-bottom={showFadeBottom && displayMode === "Preview"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    class:intro-fading={introPlaying}
     class:cursor-pointer={displayMode === "Preview"}
     bind:this={thinkingContainer}
     onclick={(e) => {
@@ -214,10 +214,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     {#if isExpanded}
       <div
         class="origin-top-left pt-2 text-sm opacity-90"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        in:slide={{ duration: reducedMotion() ? 0 : 200, easing: cubicOut }}
+        out:fade={{ duration: reducedMotion() ? 0 : 100, easing: cubicOut }}
+        onintrostart={() => (introPlaying = true)}
+        onintroend={() => (introPlaying = false)}
       >
         {@render children?.()}
       </div>
@@ -245,53 +245,53 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       height 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /* registered so the fade height itself can transition, easing the bottom
+     gradient in and out instead of the mask popping on and off */
+  @property --chat-progress-intro-fade {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+  }
+
+  .thinking-container {
+    /* at 0px the gradient's transparent band has no height, so the mask is a
+       visual no-op until an expand animation raises the fade */
+    mask-image: linear-gradient(
+      to bottom,
+      #000,
+      #000 calc(100% - var(--chat-progress-intro-fade, 0px)),
+      transparent
+    );
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000,
+      #000 calc(100% - var(--chat-progress-intro-fade, 0px)),
+      transparent
+    );
+    transition:
+      width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+      height 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+      --chat-progress-intro-fade 50ms cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+
+  /* the fade snaps on with the slide-in (0ms) so it covers the text from the
+     first frame, then dissolves in a quick 50ms (base rule above) the moment
+     the slide finishes, keeping the whole effect inside the text animation. */
+  .intro-fading {
+    --chat-progress-intro-fade: 32px;
+    transition:
+      width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+      height 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+      --chat-progress-intro-fade 0ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .thinking-container,
+    .intro-fading {
+      transition: none;
+    }
+  }
+
   .fade-out-top {
     mask-image: linear-gradient(to bottom, transparent, black 32px);
     -webkit-mask-image: linear-gradient(to bottom, transparent, black 32px);
