@@ -31,17 +31,17 @@ import {
   writeStoredDefaultDesktopLayout,
   type PersistedDesktopLayout,
 } from "../../../features/src/acp/components/chat/desktopLayoutPersistence";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { _setACPAgentServersContextForTests } from "../../../features/src/acp/features/AgentServersRepository.svelte";
+import { _setACPAgentUpdateContextForTests } from "../../../features/src/acp/features/AgentUpdateRepository.svelte";
+import { _setACPConversationContextForTests } from "../../../features/src/acp/features/ConversationRepository.svelte";
+import { _setACPLocalHistoryContextForTests } from "../../../features/src/acp/features/LocalHistoryRepository.svelte";
+import { _setACPProjectContextForTests } from "../../../features/src/acp/features/ProjectRepository.svelte";
+import { _setACPContextForTests } from "../../../features/src/acp/features/SessionRepository.svelte";
+import { _setACPWorktreeContextForTests } from "../../../features/src/acp/features/WorktreeRepository";
 import { appState, type DesktopInstanceInfo } from "../lib/store";
 import type { Repositories } from "./runtime/shared/Repositories.svelte";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+vi.mock("./AgentUpdateBanner.svelte", async () => ({
   default: (await import("./test/Empty.svelte")).default,
 }));
 
@@ -1774,14 +1774,14 @@ Workspace: \`/tmp/project-a\`
     expect(archiveSearch).toHaveClass(
       "border-psx-input-border",
       "bg-psx-input-background",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "h-8",
+      "px-2.5",
+      "pl-8",
+      "text-sm",
     );
     expect(archiveSearch.parentElement?.querySelector('[data-type="product"]')).toHaveClass(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "text-psx-input-placeholder-foreground",
+      "left-2.5",
     );
     const projectFilterOptions = Array.from((projectFilter as HTMLSelectElement).options);
     expect(projectFilterOptions.map((option) => option.textContent)).toEqual([
@@ -3820,8 +3820,8 @@ function makeSessionRepo(sessions: Map<string, any>) {
       getInitializeResponse: vi.fn(),
       capabilitiesFor: vi.fn(() => null),
       promptCapabilitiesFor: vi.fn(() => null),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      installedVersionFor: vi.fn(() => null),
+      loadCachedConfigFromStore: vi.fn().mockResolvedValue(null),
       nonSessionErrorFor: vi.fn(() => null),
       ensureConfigProbe: vi.fn().mockResolvedValue(undefined),
       setConnectionPool: vi.fn(),

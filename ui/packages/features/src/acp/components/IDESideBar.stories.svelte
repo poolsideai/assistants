@@ -3,7 +3,7 @@
   import type { WorkspaceFolder } from "@poolsideai/rpc";
   import IDESideBar from "./IDESideBar.svelte";
   import SidebarStoryHarness from "./SidebarStoryHarness.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { ACPNavConversation } from "../navTypes";
 
   const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60 * 1000).toISOString();
 
@@ -109,7 +109,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   {#snippet template()}
     <div class="bg-psx-editor-background flex h-screen">
       <SidebarStoryHarness {conversations}>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <IDESideBar collapsed={false} {currentWorkspaceFolders} {...handlers} />
       </SidebarStoryHarness>
     </div>
   {/snippet}
@@ -119,7 +119,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   {#snippet template()}
     <div class="bg-psx-editor-background flex h-screen">
       <SidebarStoryHarness conversations={[]}>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <IDESideBar collapsed={false} {currentWorkspaceFolders} {...handlers} />
       </SidebarStoryHarness>
     </div>
   {/snippet}
@@ -129,7 +129,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   {#snippet template()}
     <div class="bg-psx-editor-background flex h-screen">
       <SidebarStoryHarness {conversations}>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <IDESideBar collapsed={true} showCollapsedActions {currentWorkspaceFolders} {...handlers} />
       </SidebarStoryHarness>
     </div>
   {/snippet}

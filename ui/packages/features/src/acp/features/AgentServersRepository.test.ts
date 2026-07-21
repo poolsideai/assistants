@@ -1,60 +1,60 @@
 import { isFailure, isSuccess } from "@poolsideai/lib/async-state";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { get, writable } from "svelte/store";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { appState, type AppState, type AppStore } from "../hostAdapter";
+import { ACPAgentServersRepository } from "./AgentServersRepository.svelte";
+import type { ACPSessionRepositoryWriter } from "./SessionRepository.svelte";
+
+vi.mock("@poolsideai/helperapi", () => ({
+  poolsideAcpNavListAgentServers: vi.fn(),
+}));
+
+beforeEach(async () => {
+  const { poolsideAcpNavListAgentServers } = await import("@poolsideai/helperapi");
+  vi.mocked(poolsideAcpNavListAgentServers).mockReset();
+});
+
+type AppStateInput = Omit<Partial<AppState>, "environment" | "userSettings"> & {
+  environment?: Partial<AppState["environment"]>;
+  userSettings?: Partial<AppState["userSettings"]>;
+};
+
+function createAppStore(state: AppStateInput): AppStore {
+  const initial = get(appState);
+  return writable({
+    ...initial,
+    ...state,
+    environment: {
+      ...initial.environment,
+      ...state.environment,
+    },
+    userSettings: {
+      ...initial.userSettings,
+      ...state.userSettings,
+    },
+  });
+}
+
+function createRepo(appStore: AppStore) {
+  const sessionRepo = {
+    sessionId: null,
+    agents: {
+      defaultAgentServer: "poolside",
       defaultAgentServerPinned: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      configureAgentServers: vi.fn(() => ({
+        changed: true,
+        removedAgentServers: new Set<string>(),
+      })),
+      setDefaultAgentServer: vi.fn(async function (
+        this: { defaultAgentServer: string },
+        agentServer,
+      ) {
+        this.defaultAgentServer = agentServer;
+        return {
+          agentServers: get(appStore).userSettings.acpAgentServers,
+          defaultAgentServer: agentServer,
+        };
+      }),
       setPinnedDefaultAgentServer: vi.fn(async function (
         this: { defaultAgentServer: string; defaultAgentServerPinned: boolean },
         agentServer,
@@ -76,26 +76,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           defaultAgentServer: this.defaultAgentServer,
         };
       }),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+    reconcileAgentServerConfiguration: vi.fn(),
+  } as unknown as ACPSessionRepositoryWriter;
+
+  return {
+    repo: new ACPAgentServersRepository({
+      appState: appStore,
+      sessionRepo,
+    }),
+    sessionRepo,
+  };
+}
+
+async function flushPromises(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+}
+
+describe("ACPAgentServersRepository", () => {
   it("keeps ready chats usable during background refreshes and transient failures", async () => {
     const appStore = createAppStore({});
     const { repo } = createRepo(appStore);
@@ -132,96 +132,96 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("configures ACP sessions from pool config-backed ACP agent servers", () => {
+    const appStore = createAppStore({
+      environment: { assistantHost: "vscode" },
+      userSettings: {
+        acpAgentServers: { "codex-acp": { command: "npx" } },
+        agentServers: { "settings-only": { command: "node" } },
+      },
+    });
+    const { repo, sessionRepo } = createRepo(appStore);
+
+    repo.configureSessionRepo();
+
     // No list read has happened yet, so the pin mirror is still unknown
     // (undefined) — configureAgentServers must not clear a pin it never saw.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(sessionRepo.agents.configureAgentServers).toHaveBeenCalledWith(
       ["poolside", "codex-acp"],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
       undefined,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      undefined,
+    );
+    expect(sessionRepo.reconcileAgentServerConfiguration).toHaveBeenCalledWith({
+      changed: true,
+      removedAgentServers: expect.any(Set),
+    });
+  });
+
+  it("refreshes pool config-backed agent servers once when ready", async () => {
+    const appStore = createAppStore({
+      environment: { assistantHost: "vscode" },
+      userSettings: {
+        acpAgentServers: {},
+        agentServers: { "settings-only": { command: "node" } },
+      },
+    });
+    const { poolsideAcpNavListAgentServers } = await import("@poolsideai/helperapi");
+    vi.mocked(poolsideAcpNavListAgentServers).mockResolvedValue({
+      agentServers: { "codex-acp": { command: "npx" } },
+    });
+    const { repo, sessionRepo } = createRepo(appStore);
+
+    repo.refreshWhenReady();
+    await vi.waitFor(() => expect(isSuccess(repo.state)).toBe(true));
+
+    expect(poolsideAcpNavListAgentServers).toHaveBeenCalledWith({});
+    expect(get(appStore).userSettings.acpAgentServers).toEqual({
+      "codex-acp": { command: "npx" },
+    });
+    expect(isSuccess(repo.state) ? repo.state.value : undefined).toEqual({
+      "codex-acp": { command: "npx" },
+    });
+    expect(repo.agentServers).toEqual({
+      "codex-acp": { command: "npx" },
+    });
     // The list carried no pin flag, which means unpinned (Go omits false).
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(sessionRepo.agents.configureAgentServers).toHaveBeenCalledWith(
       ["poolside", "codex-acp"],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      undefined,
       false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    );
+
+    repo.refreshWhenReady();
+    await flushPromises();
+    expect(poolsideAcpNavListAgentServers).toHaveBeenCalledTimes(1);
+  });
+
+  it("explicitly refreshes pool config-backed agent servers on demand", async () => {
+    const appStore = createAppStore({
+      environment: { assistantHost: "vscode" },
+      userSettings: {
+        acpAgentServers: {},
+      },
+    });
+    const { poolsideAcpNavListAgentServers } = await import("@poolsideai/helperapi");
+    vi.mocked(poolsideAcpNavListAgentServers)
+      .mockResolvedValueOnce({
+        agentServers: { "codex-acp": { command: "npx" } },
+      })
+      .mockResolvedValueOnce({
+        agentServers: { "gemini-acp": { command: "node" } },
+      });
+    const { repo } = createRepo(appStore);
+
+    await repo.refresh();
+    await repo.refresh();
+
+    expect(poolsideAcpNavListAgentServers).toHaveBeenCalledTimes(2);
+    expect(get(appStore).userSettings.acpAgentServers).toEqual({
+      "gemini-acp": { command: "node" },
+    });
+  });
+
   it("exposes config parse failures without logging an expected error", async () => {
     const appStore = createAppStore({
       environment: { assistantHost: "vscode" },
@@ -276,31 +276,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("keeps the pool config-backed default agent in sync with the session repo", async () => {
+    const appStore = createAppStore({
+      environment: { assistantHost: "vscode" },
+      userSettings: {
+        acpAgentServers: { "codex-acp": { command: "npx" } },
+      },
+    });
+    const { repo, sessionRepo } = createRepo(appStore);
+
+    await repo.setDefaultAgentServer("codex-acp");
+    repo.configureSessionRepo();
+
+    expect(sessionRepo.agents.setDefaultAgentServer).toHaveBeenCalledWith("codex-acp");
+    expect(repo.defaultAgentServer).toBe("codex-acp");
     // The pin mirror synced from the session repo's agents (unpinned here).
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(sessionRepo.agents.configureAgentServers).toHaveBeenLastCalledWith(
       ["poolside", "codex-acp"],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "codex-acp",
       false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    );
+    expect(sessionRepo.reconcileAgentServerConfiguration).toHaveBeenCalledWith({
+      changed: true,
+      removedAgentServers: expect.any(Set),
+    });
+  });
 
   it("mirrors agent pin and unpin through the session repo", async () => {
     const appStore = createAppStore({
@@ -344,4 +344,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       false,
     );
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+});

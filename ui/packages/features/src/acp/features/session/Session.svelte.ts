@@ -1,91 +1,91 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type {
+  AvailableCommand,
+  ContentBlock,
+  McpServer,
+  Plan,
+  SessionConfigOption,
+  SessionId,
+  SessionModeState,
+  SessionNotification,
+} from "@agentclientprotocol/sdk";
+import { waiting, type AsyncState } from "@poolsideai/lib/async-state";
+import { DEFAULT_AGENT_SERVER, normalizeAgentServerName } from "../../agentServers";
 import type { ACPPromptSuggestion } from "../../claudePromptSuggestions";
 import { normalizeACPError, type ACPRequestError } from "../../errors";
 import { controlCodexGoal, type ACPGoalState } from "../../goals";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ACPResolvedSessionInfo } from "../../sessionInfo";
+import { TurnMaterializer, type SessionEvent, type TurnMetadata } from "../../TurnMaterializer";
+import { textPromptContent } from "./content";
+import { PoolsideSessionExtensions } from "./extensions/PoolsideSessionExtensions.svelte";
 import { ACPSessionConfig, type ACPSetConfigOptionOptions } from "./SessionConfig";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { ACPSessionEvents } from "./SessionEvents";
+import { ACPSessionLoader } from "./SessionLoader";
+import {
+  ACPSessionMetadata,
+  EMPTY_ACP_SESSION_METADATA,
+  type ACPSessionMetadataSnapshot,
+} from "./SessionMetadata";
+import { ACPSessionPrompting } from "./SessionPrompting";
+import { ACPSessionQueue } from "./SessionQueue";
+import { ACPSessionTitles } from "./SessionTitles";
+import { ACPSessionTranscript } from "./SessionTranscript";
+import { ACPSessionUsage, type ACPTokenUsage } from "./SessionUsage.svelte";
 import type { ACPSteerOutcome } from "./steering";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { isAcpTranscriptBatchingEnabled } from "./transcriptBatching";
+import type {
   ACPCollaborationModeSurface,
   ACPGoalAction,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPPendingConfigOption,
   ACPPendingHandoff,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPPendingPermissionRequest,
+  ACPPromptError,
+  ACPQueuedPrompt,
   ACPSessionCancelOptions,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPSessionEnvironment,
+  ACPSessionLoadIntent,
+  ACPSessionLoadState,
+  ACPSessionSendCoreArgs,
+} from "./types";
+
+export class ACPSession {
+  readonly env: ACPSessionEnvironment;
+
+  sessionId = $state<SessionId | null>(null);
+  agentServer = $state<string>(DEFAULT_AGENT_SERVER);
+  cwd = $state<string>("");
+  conversationId = $state<string>("");
   isChat = $state(false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  isPendingConversationPersisted = false;
   // True only when this live record was created to inspect an archived
   // conversation. A later normal open (after restore) may then safely clear
   // the transient read-only flag without overriding agent-authored metadata
   // on genuinely read-only sessions.
   readOnlyInspection = false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  materializer: TurnMaterializer = new TurnMaterializer();
   historicalEvents: SessionEvent[] = [];
   historicalTurns: TurnMetadata[] = [];
   historicalPlan: Plan | null = null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  events = $state<SessionEvent[]>([]);
+  turns = $state<TurnMetadata[]>([]);
+  metadata = $state.raw<ACPSessionMetadataSnapshot>(EMPTY_ACP_SESSION_METADATA);
+  plan = $state<Plan | null>(null);
+  sessionInfo = $state.raw<ACPResolvedSessionInfo | null>(null);
+  lastRemoteMessageId: string | null = null;
+  ignoredMessageIds: Set<string> = new Set();
+
+  configOptions = $state<SessionConfigOption[]>([]);
+  availableCommands = $state<AvailableCommand[]>([]);
+  modes = $state<SessionModeState | null>(null);
+  pendingConfigOptions = $state.raw<Record<string, ACPPendingConfigOption>>({});
   // Options the user explicitly chose on this session, as opposed to values
   // inherited from the agent's config cache. A background config refresh
   // preserves these and lets everything else track the cache.
   userSelectedConfigIds = $state.raw<Set<string>>(new Set());
   userSelectedMode = $state(false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  isPrompting = $state(false);
+  isSending = $state(false);
   // The agent-side session was closed while idle (its subprocess released);
   // the transcript is still warm in memory. Reattach via session/resume before
   // the next wire interaction. See SessionRepository.closeIdleSessions.
@@ -113,34 +113,34 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   // a fresh draft, and prompting reads it to decide that an unresumable-session
   // error is worth recovering from — there is no transcript left to lose.
   restoredWithoutHistory = $state(false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  lastPromptInterrupted = $state(false);
+  promptFocusRequested = $state(false);
   queuedPrompts = $state.raw<ACPQueuedPrompt[]>([]);
   steeringRequestsInFlight = $state(0);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  promptError = $state.raw<ACPPromptError | null>(null);
   promptSuggestion = $state.raw<ACPPromptSuggestion | null>(null);
   goal = $state.raw<ACPGoalState | null>(null);
   pendingGoalAction = $state<ACPGoalAction | null>(null);
   goalActionError = $state.raw<ACPRequestError | null>(null);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  pendingDraftSend = $state.raw<ACPQueuedPrompt | null>(null);
+  pendingPermissionRequests = $state.raw<ACPPendingPermissionRequest[]>([]);
   handoffTargetAgentServer = $state<string | null>(null);
   pendingHandoff = $state.raw<ACPPendingHandoff | null>(null);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  generation = 0;
+  queue = new ACPSessionQueue(() => this.generation);
+  replayMaterializer: TurnMaterializer | null = null;
+  replaySessionInfo: ACPResolvedSessionInfo | null = null;
+
+  loadIntent = $state<ACPSessionLoadIntent | null>(null);
+  loadState = $state<AsyncState<ACPSessionLoadState, ACPRequestError>>(waiting);
+  loadingCwd = $state<string | null>(null);
+  setupStatus = $state<string | null>(null);
+
+  private readonly poolsideExtension = new PoolsideSessionExtensions();
+  readonly extensions: { readonly poolside: PoolsideSessionExtensions | null };
+  prompting = new ACPSessionPrompting(this);
+  config = new ACPSessionConfig(this);
 
   get queuedPrompt(): ACPQueuedPrompt | null {
     return this.queuedPrompts[0] ?? null;
@@ -158,20 +158,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   get isPromptActive(): boolean {
     return this.isPrompting || this.isSteering;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  loader = new ACPSessionLoader(this);
+  transcript = new ACPSessionTranscript(this);
+  titles = new ACPSessionTitles(this);
+  sessionEvents = new ACPSessionEvents(this);
+  metadataManager = new ACPSessionMetadata(this);
+  usageState = new ACPSessionUsage();
+
+  private transcriptFlushHandle: number | null = null;
   // Holds either the visible-cadence delay, the hidden-cadence delay, or the
   // fallback paired with a requested animation frame. requestAnimationFrame is
   // suspended while the webview is hidden or occluded, so the fallback keeps a
   // pending visible flush from freezing indefinitely.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private transcriptFlushTimeout: ReturnType<typeof setTimeout> | null = null;
+  private static readonly TRANSCRIPT_FLUSH_FALLBACK_MS = 250;
   // Publish a visible stream at roughly 30 fps. Immutable Markdown segments
   // and uncached live tails now bound the work per publication, so this keeps
   // token arrival feeling immediate without returning to per-chunk updates.
@@ -184,84 +184,84 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   // Plain field, not $state: it only steers flush scheduling, and reading it
   // inside publishTranscript must never create a reactive dependency.
   private transcriptVisible = true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  constructor(opts: {
+    env: ACPSessionEnvironment;
+    sessionId: SessionId | null;
+    agentServer: string;
+    cwd?: string;
+    conversationId: string;
     isChat?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    isPendingConversationPersisted?: boolean;
+  }) {
+    this.env = opts.env;
+    this.sessionId = opts.sessionId;
+    this.agentServer = opts.agentServer;
+    this.cwd = opts.cwd ?? "";
+    this.conversationId = opts.conversationId;
     this.isChat = opts.isChat ?? false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.isPendingConversationPersisted = opts.isPendingConversationPersisted ?? false;
+
+    const session = this;
+    this.extensions = {
+      get poolside() {
+        return session.isPoolsideAgent() ? session.poolsideExtension : null;
+      },
+    };
+  }
+
+  private isPoolsideAgent(): boolean {
+    return normalizeAgentServerName(this.agentServer) === DEFAULT_AGENT_SERVER;
+  }
+
+  get pendingConversationId(): string | null {
+    return this.sessionId === null ? this.conversationId : null;
+  }
+  get pendingCwd(): string | null {
+    return this.sessionId === null ? this.cwd : null;
+  }
+  get compacting(): boolean {
+    return this.extensions.poolside?.compacting ?? false;
+  }
+  get currentModeId(): string | null {
+    return this.config.currentModeId;
+  }
+  get availableModes(): { id: string; name: string }[] {
+    return this.config.availableModes;
+  }
+  get isPlanModeActive(): boolean {
     return this.config.isPlanModeActive;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+  get canTogglePlanMode(): boolean {
+    return this.config.canTogglePlanMode;
+  }
   get planModeViaCollaboration(): boolean {
     return this.config.planModeViaCollaboration;
   }
   get collaborationModeSurface(): ACPCollaborationModeSurface {
     return this.config.collaborationModeSurface;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  get usage(): ACPTokenUsage {
+    return this.usageState.value;
+  }
+
+  serialize<T>(fn: (gen: number) => Promise<T>): Promise<T> {
+    return this.queue.serialize(fn);
+  }
+
+  enqueueConfigOption<T>(configId: string, fn: () => Promise<T>): Promise<T> {
+    return this.queue.enqueueConfigOption(configId, fn);
+  }
+
+  nextConfigRequestId(): number {
+    return this.queue.nextConfigRequestId();
+  }
+
   addUserMessage(content: ContentBlock[] | string, options?: { steer?: boolean }): void {
     this.transcript.addUserMessage(content, options);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   seedHandoffHistory(
     events: readonly SessionEvent[],
     turns: readonly TurnMetadata[],
@@ -284,22 +284,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.flushTranscript(persistMetadata);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  applyCachedConfig(): void {
+    this.config.applyCached();
+  }
+
   applyCachedConfigPreservingSelections(): void {
     this.config.applyCachedPreservingSelections();
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  resetTranscript(opts?: { preserveEvents?: boolean }): void {
     this.clearPromptSuggestion();
     this.goal = null;
     this.pendingGoalAction = null;
     this.goalActionError = null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.transcript.reset(opts);
+  }
+
   invalidateGeneration(): void {
     this.generation++;
     this.pendingGoalAction = null;
@@ -424,28 +424,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return this.promptError;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  prompt(text: string, content: ContentBlock[] = textPromptContent(text)): Promise<void> {
+    return this.prompting.prompt(text, content);
+  }
+
+  retryLastPrompt(): Promise<void> {
+    return this.prompting.retryLastPrompt();
+  }
+
+  retryAfterError(): Promise<void> {
+    return this.prompting.retryAfterError();
+  }
+
+  loadExisting(
+    gen: number,
+    cwd: string,
+    mcpServers: McpServer[],
+    seedInfo?: Partial<ACPResolvedSessionInfo>,
+    fallbackCwds: string[] = [],
+  ): Promise<void> {
+    return this.loader.loadExisting(gen, cwd, mcpServers, seedInfo, fallbackCwds);
+  }
+
   async refreshMCPServers(gen: number): Promise<boolean> {
     // Every resume path must let an in-flight suspending close settle first,
     // or the resume can be answered and then torn down by the late close.
@@ -506,10 +506,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   private reattachInFlight: Promise<boolean> | null = null;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  enqueuePrompt(prompt: ACPQueuedPrompt): void {
+    this.prompting.enqueue(prompt);
+  }
+
   clearQueuedPrompt(id?: string): void {
     this.prompting.clearQueued(id);
   }
@@ -531,122 +531,122 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   steerQueuedPrompt(id?: string): Promise<ACPSteerOutcome | null> {
     return this.prompting.steerQueued(id);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   cancel(options?: ACPSessionCancelOptions): Promise<void> {
     return this.prompting.cancel(options);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  setMode(modeId: string): Promise<void> {
+    return this.config.setMode(modeId);
+  }
+
   setConfigOption(
     configId: string,
     value: string,
     options?: ACPSetConfigOptionOptions,
   ): Promise<void> {
     return this.config.setOption(configId, value, options);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   setBooleanConfigOption(
     configId: string,
     value: boolean,
     options?: ACPSetConfigOptionOptions,
   ): Promise<void> {
     return this.config.setBooleanOption(configId, value, options);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  togglePlanMode(): Promise<void> {
+    return this.config.togglePlanMode();
+  }
+
+  pendingConfigOption(configId: string): ACPPendingConfigOption | null {
+    return this.config.pendingOption(configId);
+  }
+
+  buildLoadState(): ACPSessionLoadState {
+    return this.loader.buildLoadState();
+  }
+
+  applyReplayUpdate(params: SessionNotification): void {
+    this.transcript.applyReplayUpdate(params);
+  }
+
+  applySessionUpdate(params: SessionNotification): void {
+    this.transcript.applySessionUpdate(params);
+  }
+
+  dispatchPendingConversationAgentChange(): void {
+    this.sessionEvents.dispatchPendingConversationAgentChange();
+  }
+
+  // Materialize a not-yet-started draft into the sidebar (as a pending
+  // conversation) so it can be left and returned to. Called when the user first
+  // types into the prompt. Once persisted, agent/workspace changes re-emit the
+  // pending event, keeping the sidebar entry in sync (e.g. moving projects).
+  persistPendingConversation(): void {
     if (
       this.sessionId !== null ||
       !this.conversationId ||
       this.isPendingConversationPersisted ||
       this.pendingHandoff !== null
     ) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return;
+    }
+    this.isPendingConversationPersisted = true;
+    this.dispatchPendingConversationAgentChange();
+  }
+
+  // Flows that land the user in this conversation ready to type ("New
+  // conversation", "Add project") request prompt focus here; the prompt
+  // component consumes the request once its editor is mounted.
+  requestPromptFocus(): void {
+    this.promptFocusRequested = true;
+  }
+
+  consumePromptFocusRequest(): boolean {
+    if (!this.promptFocusRequested) return false;
+    this.promptFocusRequested = false;
+    return true;
+  }
+
+  handleCompactionUpdate(
+    params: Parameters<PoolsideSessionExtensions["handleCompactionUpdate"]>[0],
+  ): void {
+    this.extensions.poolside?.handleCompactionUpdate(params);
+  }
+
   handleTurnEnded(): void {
     this.extensions.poolside?.endTurn();
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  sendCore(...args: ACPSessionSendCoreArgs): Promise<string | null> {
+    return this.prompting.sendCore(...args);
+  }
+
+  /**
+   * Publish the materializer snapshot into reactive state. Streaming chunk
+   * updates pass { batched: true } to coalesce a burst into one animation
    * frame after a short visible cadence delay — or onto the slow hidden cadence
    * while no surface displays this conversation (see setTranscriptVisible);
    * every other caller publishes synchronously. Batching is a no-op
    * (synchronous) unless enabled at boot via enableAcpTranscriptBatching(), so
    * tests stay synchronous.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+   */
+  publishTranscript({ batched = false }: { batched?: boolean } = {}): void {
+    if (
+      !batched ||
+      !isAcpTranscriptBatchingEnabled() ||
+      typeof requestAnimationFrame === "undefined"
+    ) {
+      this.cancelTranscriptFlush();
+      this.flushTranscript();
+      return;
+    }
+    if (this.transcriptFlushHandle !== null || this.transcriptFlushTimeout !== null) {
+      return; // already scheduled
+    }
     if (!this.transcriptVisible) {
       this.transcriptFlushTimeout = setTimeout(
         () => this.runScheduledTranscriptFlush(),
@@ -662,13 +662,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   private requestTranscriptFlushFrame(): void {
     this.transcriptFlushTimeout = null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.transcriptFlushHandle = requestAnimationFrame(() => this.runScheduledTranscriptFlush());
+    this.transcriptFlushTimeout = setTimeout(
+      () => this.runScheduledTranscriptFlush(),
+      ACPSession.TRANSCRIPT_FLUSH_FALLBACK_MS,
+    );
+  }
+
   /**
    * Switch this session's streaming flush cadence between the responsive
    * visible and slow hidden schedules. Turning visible publishes any pending
@@ -692,25 +692,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private runScheduledTranscriptFlush(): void {
+    // Whichever of the rAF / timer fired first; cancel the other, then flush.
+    this.cancelTranscriptFlush();
+    this.flushTranscript();
+  }
+
+  cancelTranscriptFlush(): void {
+    if (this.transcriptFlushHandle !== null) {
+      if (typeof cancelAnimationFrame !== "undefined") {
+        cancelAnimationFrame(this.transcriptFlushHandle);
+      }
+      this.transcriptFlushHandle = null;
+    }
+    if (this.transcriptFlushTimeout !== null) {
+      clearTimeout(this.transcriptFlushTimeout);
+      this.transcriptFlushTimeout = null;
+    }
+  }
+
   private flushTranscript(persistMetadata = true): void {
     const historicalEventCount = this.historicalEvents.length;
     this.events = [...this.historicalEvents, ...this.materializer.events];
@@ -726,5 +726,5 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     ];
     this.plan = this.materializer.plan ?? this.historicalPlan;
     this.metadataManager.refresh({ persist: persistMetadata });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+}

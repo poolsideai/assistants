@@ -1,26 +1,26 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type {
+  AnyMessage,
+  ClientSideConnection,
+  InitializeRequest,
+  InitializeResponse,
+} from "@agentclientprotocol/sdk";
+import { poolsideAcpServerRestart } from "@poolsideai/helperapi";
+import { get } from "svelte/store";
+import { DEFAULT_AGENT_SERVER, normalizeAgentServerName } from "./agentServers";
+import { ACPClient } from "./Client";
+import { createACPConnection } from "./createACPConnection";
+import { ACPDebugLog, normalizeDumpEntries, type ACPDebugAPI } from "./debugDump";
+import type { ACPSessionRepositoryWriter } from "./features/SessionRepository.svelte";
+import { appState } from "./hostAdapter";
+import type { HelperAPIClient } from "./hostRpc";
+import { RPCTransport, type ACPTransport } from "./RPCTransport";
+
+interface ACPServerConnection {
+  conn: ClientSideConnection;
+  initializeResponse: InitializeResponse;
+  transport: RPCTransport;
+}
+
 const MAX_PENDING_MESSAGES_PER_AGENT = 2_048;
 
 // Bound on connect retries after restarts invalidate in-flight handshakes;
@@ -36,15 +36,15 @@ class StaleConnectionError extends Error {
   }
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type BridgedACPMessage =
+  | {
+      agentServer?: string;
+      message?: AnyMessage;
+    }
+  | AnyMessage;
+
+export class ACPConnectionPool implements ACPTransport {
+  private connections = new Map<string, ACPServerConnection>();
   private pendingMessages = new Map<string, AnyMessage[]>();
   private pendingConnects = new Map<string, Promise<ACPServerConnection>>();
   // Bumped by disconnect/restart; a connect handshake that started under an
@@ -54,14 +54,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   // Gates new connects while a restart stops the helper-side process, so a
   // racing flow cannot initialize the instance the restart is tearing down.
   private readonly restartsInFlight = new Map<string, Promise<void>>();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private readonly debugLog = new ACPDebugLog();
+  readonly debug: ACPDebugAPI;
+
+  constructor(
+    private readonly helperApiClient: HelperAPIClient,
+    private readonly repo: ACPSessionRepositoryWriter,
+  ) {
+    this.debug = {
       capture: {
         state: () => this.debugLog.captureState(),
         subscribe: (listener) => this.debugLog.subscribeCapture(listener),
@@ -81,24 +81,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           this.debugLog.isCollecting(agentServer, sessionId),
       },
       subscribeEntries: (listener) => this.debugLog.subscribeEntries(listener),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      dump: (agentServer) => this.debugLog.dump(agentServer ?? this.activeAgentServer()),
+      dumpJSON: (agentServer) =>
+        JSON.stringify(this.debugLog.dump(agentServer ?? this.activeAgentServer()), null, 2),
+      clear: (agentServer) => this.debugLog.clear(agentServer ?? this.activeAgentServer()),
+      load: async (entries, agentServer) => {
+        const parsed = normalizeDumpEntries(
+          typeof entries === "string" ? JSON.parse(entries) : entries,
+        );
+        const targetAgentServer = agentServer ?? this.activeAgentServer();
+        await this.repo.loadDebugDump(parsed, targetAgentServer);
+        this.debugLog.replace(targetAgentServer, parsed);
+      },
+      restartServer: (agentServer) => this.restart(agentServer ?? this.activeAgentServer()),
+    };
+  }
+
+  async connect(agentServer: string): Promise<ACPServerConnection> {
+    const server = normalizeAgentServerName(agentServer);
     // Recovery flows restart the helper-side process while other flows (an
     // early notification, a session load) connect concurrently. Each attempt
     // binds to a generation; disconnect/restart bump it, so an attempt whose
@@ -129,7 +129,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           throw error;
         }
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
       const connectPromise = (async () => {
         const transport = new RPCTransport(this.helperApiClient, server, this.debugLog);
         const conn = createACPConnection(() => new ACPClient(this.repo, server), transport);
@@ -170,10 +170,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   private isStaleConnectFailure(server: string, generation: number, error: unknown): boolean {
     if (error instanceof StaleConnectionError) return true;
     return (this.generations.get(server) ?? 0) !== generation;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  async restart(agentServer = DEFAULT_AGENT_SERVER): Promise<void> {
+    const server = normalizeAgentServerName(agentServer);
     // Serialize restarts and gate new connects for the duration: a connect
     // racing the helper's stop would initialize the doomed process instance
     // and hand out a connection to it (the "not initialized" reload loop).
@@ -191,30 +191,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         this.restartsInFlight.delete(server);
       }
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  disconnect(agentServer = DEFAULT_AGENT_SERVER): void {
+    const server = normalizeAgentServerName(agentServer);
     // Invalidate any connect handshake in flight: it belongs to the process
     // instance this disconnect is walking away from.
     this.generations.set(server, (this.generations.get(server) ?? 0) + 1);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.connections.delete(server);
     // The connection's outstanding requests will never see a matching
     // response now, so drop their correlation entries rather than leaking
     // them until the map's cap evicts them. Captured messages are untouched.
     this.debugLog.clearCorrelations(server);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  receive(payload: BridgedACPMessage): void {
+    const { agentServer, message } = unwrapBridgeMessage(payload);
     if (isLegacyACPTaskDidChangeMessage(message)) {
       // The task/checkpoint system is removed; ignore any notifications a
       // not-yet-updated helper still emits.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return;
+    }
+
+    const connection = this.connections.get(agentServer);
+    if (!connection) {
       const pending = this.pendingMessages.get(agentServer) ?? [];
       if (pending.length >= MAX_PENDING_MESSAGES_PER_AGENT) {
         throw new Error(`ACP pending message queue for ${agentServer} is full`);
@@ -229,93 +229,93 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         console.error(`Failed to initialize ACP transport for ${agentServer}`, error);
       });
       return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    connection.transport.receive(message);
+  }
+
   async sendRequest(payload: BridgedACPMessage): Promise<unknown> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const { agentServer, message } = unwrapBridgeMessage(payload);
     // Helper-initiated requests (permission prompts are broadcast to every
     // connected surface) can arrive before anything here has opened this
     // agent's connection — e.g. the phone sitting on the conversation list.
     // Connect lazily so the prompt can be handled instead of erroring back.
     const connection = this.connections.get(agentServer) ?? (await this.connect(agentServer));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return connection.transport.sendRequest(message);
+  }
+
+  private activeAgentServer(): string {
+    return this.repo.agents.defaultAgentServer;
+  }
+}
+
 const LEGACY_ACP_TASK_DID_CHANGE_METHOD = "poolside/acpTask/didChange";
 
 function isLegacyACPTaskDidChangeMessage(message: AnyMessage): boolean {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return (
+    typeof message === "object" &&
+    message !== null &&
+    "method" in message &&
     (message as { method?: unknown }).method === LEGACY_ACP_TASK_DID_CHANGE_METHOD
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
+}
+
+function defaultInitializeRequest(): InitializeRequest {
+  const environment = get(appState).environment;
+  const assistantHost = environment.assistantHost.trim();
+  const assistantVersion = environment.assistantVersion.trim();
+  const clientCapabilities = {
+    fs: {
+      readTextFile: true,
+      writeTextFile: true,
+    },
+    terminal: false,
+    auth: {
+      terminal: true,
+    },
+    _meta: {
+      "terminal-auth": true,
       "subagent-transcript": true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+  } as InitializeRequest["clientCapabilities"] & {
+    auth: { terminal: true };
     _meta: { "terminal-auth": true; "subagent-transcript": true };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  };
+
+  return {
+    protocolVersion: 1,
+    clientInfo: {
+      name: assistantHost ? `poolside-${assistantHost}` : "poolside-assistant",
+      version: assistantVersion || "local",
+    },
+    clientCapabilities,
+    _meta: {
+      "terminal-auth": true,
+    },
+  } as InitializeRequest & { _meta: { "terminal-auth": true } };
+}
+
+function unwrapBridgeMessage(payload: BridgedACPMessage): {
+  agentServer: string;
+  message: AnyMessage;
+} {
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "message" in payload &&
+    (payload as { message?: unknown }).message
+  ) {
+    return {
+      agentServer: normalizeAgentServerName(
+        typeof (payload as { agentServer?: unknown }).agentServer === "string"
+          ? (payload as { agentServer: string }).agentServer
+          : DEFAULT_AGENT_SERVER,
+      ),
+      message: (payload as { message: AnyMessage }).message,
+    };
+  }
+
+  return {
+    agentServer: normalizeAgentServerName(DEFAULT_AGENT_SERVER),
+    message: payload as AnyMessage,
+  };
+}

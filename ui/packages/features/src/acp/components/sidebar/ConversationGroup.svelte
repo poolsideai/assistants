@@ -1,8 +1,8 @@
 <script lang="ts">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { ACPConversationSummary } from "../../navTypes";
   import { DEFAULT_AGENT_SERVER, LOCAL_AGENT_SERVER } from "../../agentServers";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getAcpSidebarController } from "./SidebarController.svelte";
 
   interface Props {
     sessions: ACPConversationSummary[];

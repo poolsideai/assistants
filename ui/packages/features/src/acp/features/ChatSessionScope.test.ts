@@ -1,39 +1,39 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { describe, expect, it, vi } from "vitest";
+import type { SessionEvent } from "../TurnMaterializer";
+import { ACPChatSessionScopeWriter } from "./ChatSessionScope.svelte";
+
+describe("ACPChatSessionScopeWriter", () => {
+  it("keeps the active conversation id stable when a draft is promoted", async () => {
+    let activeConversationId: string | null = "conversation:1";
+    const setActiveConversationId = vi.fn((id: string | null) => {
+      activeConversationId = id;
+    });
+    const session = mockSession("conversation:1", () => {});
+    const scope = new ACPChatSessionScopeWriter(
+      mockRepo(session),
+      () => activeConversationId,
+      setActiveConversationId,
+    );
+
+    await scope.send("hello", undefined);
+
+    expect(setActiveConversationId).not.toHaveBeenCalled();
+    expect(activeConversationId).toBe("conversation:1");
+  });
+
+  it("materializes the active draft into the sidebar when the user starts typing", () => {
+    const persistPendingConversation = vi.fn();
+    const session = {
+      ...mockSession("conversation:1", () => {}),
+      persistPendingConversation,
+    };
+    const scope = new ACPChatSessionScopeWriter(mockRepo(session), () => "conversation:1");
+
+    scope.ensureDraftPersisted();
+
+    expect(persistPendingConversation).toHaveBeenCalledTimes(1);
+  });
+
   it("allows changing a staged handoff target", () => {
     const session = {
       ...mockSession("conversation:1", () => {}),
@@ -51,98 +51,98 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(scope.canChangeAgent).toBe(true);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("derives isRemoteWorking from the pushed conversation live status", () => {
+    const session = mockSession("conversation:1", () => {}) as any;
+    session.sessionId = "sess-1";
+    const conversations = mockConversations([
+      {
+        id: "conversation:1",
+        sessionId: "sess-1",
+        agentServer: "poolside",
+        liveStatus: { working: true, waitingForUser: false, unread: false },
+      },
+    ]);
+    const scope = new ACPChatSessionScopeWriter(
+      mockRepo(session),
+      () => "conversation:1",
+      undefined,
+      conversations,
+    );
+
+    // A turn is running for this conversation but was not started here.
+    expect(scope.isRemoteWorking).toBe(true);
+
+    // A locally-initiated turn is not "remote": the local prompt lifecycle
+    // owns the affordances.
+    session.isPrompting = true;
     session.isPromptActive = true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(scope.isRemoteWorking).toBe(false);
+    session.isPrompting = false;
     session.isPromptActive = false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    session.isSending = true;
+    expect(scope.isRemoteWorking).toBe(false);
+  });
+
+  it("falls back to a sessionId match and reads false without status or repo", () => {
+    const session = mockSession("conversation:other", () => {}) as any;
+    session.sessionId = "sess-1";
+    const conversations = mockConversations([
+      {
+        id: "conversation:nav",
+        sessionId: "sess-1",
+        agentServer: "poolside",
+        liveStatus: { working: true, waitingForUser: false, unread: false },
+      },
+    ]);
+    const repo = {
+      ...mockRepo(session),
+      getSessionByConversationId: () => session,
+    } as any;
+
+    const withFallback = new ACPChatSessionScopeWriter(
+      repo,
+      () => "conversation:other",
+      undefined,
+      conversations,
+    );
+    expect(withFallback.isRemoteWorking).toBe(true);
+
+    const idleConversations = mockConversations([
+      { id: "conversation:other", sessionId: "sess-1", agentServer: "poolside" },
+    ]);
+    const idle = new ACPChatSessionScopeWriter(
+      repo,
+      () => "conversation:other",
+      undefined,
+      idleConversations,
+    );
+    expect(idle.isRemoteWorking).toBe(false);
+
+    const withoutRepo = new ACPChatSessionScopeWriter(repo, () => "conversation:other");
+    expect(withoutRepo.isRemoteWorking).toBe(false);
+  });
+
+  it("derives prompt content support from the active agent before and after session creation", () => {
+    const session = mockSession("conversation:1", () => {}) as any;
+    const repo = mockRepo(session, {
+      selected: { embeddedContext: true, image: true },
+      poolside: { embeddedContext: false, image: false },
+    });
+    const scope = new ACPChatSessionScopeWriter(repo, () => "conversation:1");
+
+    expect(scope.promptContentOptions).toEqual({
+      supportsEmbeddedContext: false,
+      supportsImages: false,
+    });
+
+    repo.agents.defaultAgentServer = "selected";
+    session.sessionId = null;
+    session.agentServer = "selected";
+    expect(scope.promptContentOptions).toEqual({
+      supportsEmbeddedContext: true,
+      supportsImages: true,
+    });
+  });
 
   it("forces compact tool activity for Chats without changing project conversations", () => {
     const events: SessionEvent[] = [
@@ -359,8 +359,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     session.isPromptActive = false;
     expect(scope.canSteerPrompt).toBe(false);
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+});
+
 function completedTool(toolCallId: string): SessionEvent {
   return {
     eventKind: "tool_call",
@@ -371,61 +371,61 @@ function completedTool(toolCallId: string): SessionEvent {
   };
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function mockRepo(
+  session: unknown,
+  capabilitiesByAgentServer: Record<
+    string,
+    { embeddedContext?: boolean; image?: boolean } | undefined
+  > = {},
+) {
+  return {
+    agents: {
+      defaultAgentServer: "poolside",
+      isConfigCacheLoadingFor: () => false,
+      authInProgressForAgent: () => false,
+      nonSessionErrorFor: () => null,
+      // Resolves from the live connection or the persisted config cache.
+      promptCapabilitiesFor: (agentServer: string) =>
+        capabilitiesByAgentServer[agentServer] ?? null,
       supportsSteering: () => false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+    getSessionByConversationId: (conversationId: string | null | undefined) =>
+      conversationId === "conversation:1" ? session : null,
+  } as any;
+}
+
+function mockConversations(
+  sessions: Array<{
+    id: string;
+    sessionId: string | null;
+    agentServer: string;
+    liveStatus?: { working: boolean; waitingForUser: boolean; unread: boolean };
+  }>,
+) {
+  return { sessions } as any;
+}
+
+function mockSession(conversationId: string, send: () => void) {
+  return {
+    conversationId,
+    sessionId: null,
+    agentServer: "poolside",
+    events: [] as SessionEvent[],
     isPrompting: false,
     isPromptActive: false,
     isSending: false,
     queuedPrompts: [],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    serialize: async (fn: (gen: number) => Promise<string | null>) => fn(0),
+    sendCore: async (
+      _gen: number,
+      _text: string,
+      _sandboxDefinitionId: string | undefined,
+      _newSessionMeta: Record<string, unknown> | undefined,
+      _cwd: string,
+      _content: unknown[],
+    ) => {
+      send();
+      return "s-new";
+    },
+  };
+}

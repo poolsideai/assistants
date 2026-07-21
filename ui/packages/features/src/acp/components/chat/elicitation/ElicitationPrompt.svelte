@@ -40,7 +40,7 @@
   function formVisible(): boolean {
     return formElement != null && (formElement.checkVisibility?.() ?? true);
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   // A missing schema is a message-only confirmation (the spec defaults
   // `properties` to {}), so it still gets a form with Accept/Reject —
   // otherwise the elicitation would render nothing and be unanswerable.

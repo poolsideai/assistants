@@ -141,7 +141,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const state = new SessionEventsState({
       events: [tool("edit-1", "edit", "completed"), tool("run-1", "execute", "cancelled")],
       isPrompting: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      toolActivity: "grouped",
       turns: [interruptedTurn(0, 1)],
     });
 
@@ -194,45 +194,45 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
 
     expect(state.grouped).toHaveLength(2);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(state.grouped[0]).toMatchObject({
+      kind: "event_group",
+      live: true,
       events: [{ index: 0 }, { index: 1 }, { index: 2 }],
     });
     expect(state.grouped[1]).toMatchObject({
       kind: "event",
       event: { eventKind: "agent_message" },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+  });
+
+  it("keeps agent messages outside an interrupted turn's folds, splitting the runs", () => {
+    const state = new SessionEventsState({
+      events: [
+        tool("read-1", "read", "completed"),
+        tool("read-2", "read", "completed"),
         tool("read-3", "read", "completed"),
         tool("read-4", "read", "completed"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        agentMessage("Call 1 succeeded. Now calling 2nd time:"),
+        tool("run-1", "execute", "completed"),
+        tool("run-2", "execute", "cancelled"),
+      ],
+      isPrompting: false,
+      toolActivity: "grouped",
       turns: [interruptedTurn(0, 6)],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+
     // Grouped mode retains the streaming run boundaries around messages, while
     // the automatic tail joins the second run once the interrupt settles.
     expect(state.grouped).toHaveLength(3);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(state.grouped[0]).toMatchObject({
+      kind: "event_group",
+      live: true,
       events: [{ index: 0 }, { index: 1 }, { index: 2 }, { index: 3 }],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+    expect(state.grouped[1]).toMatchObject({
+      kind: "event",
+      event: { eventKind: "agent_message" },
+    });
     expect(state.grouped[2]).toMatchObject({
       kind: "event_group",
       live: true,
@@ -281,18 +281,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(state.grouped).toHaveLength(1);
     expect(state.grouped[0]).toMatchObject({
       id: "group-0",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      kind: "event_group",
+      live: true,
       events: [{ index: 0 }, { index: 1 }, { index: 2 }],
       turn: { interrupted: true },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
   });
 
   it("keeps an interim message inside the settled interrupted compact fold", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const state = new SessionEventsState({
+      events: [
+        tool("read-1", "read", "completed"),
+        tool("read-2", "read", "completed"),
         tool("read-3", "read", "completed"),
         agentMessage("Now running the build:"),
         tool("run-1", "execute", "cancelled"),
@@ -346,57 +346,57 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         tool("read-1", "read", "completed"),
         thought("Checking the config next"),
         tool("read-2", "read", "completed"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        tool("run-1", "execute", "completed"),
+        tool("run-2", "execute", "cancelled"),
+      ],
+      isPrompting: false,
+      toolActivity: "compact",
+      turns: [interruptedTurn(0, 4)],
+    });
+
     // The membership fold grows in place to absorb the automatic tail while
     // the thought retains its separate interrupted-compact rendering.
     expect(state.grouped).toHaveLength(2);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(state.grouped[0]).toMatchObject({
+      id: "group-0",
+      kind: "event_group",
+      live: true,
       events: [{ index: 0 }, { index: 2 }, { index: 3 }, { index: 4 }],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      turn: { interrupted: true },
+    });
     expect(state.grouped[1]).toMatchObject({
       kind: "event",
       event: { eventKind: "agent_thought" },
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  it("keeps an interrupted compact group's id anchored on its first tool across a leading message", () => {
+    const state = new SessionEventsState({
+      events: [
+        agentMessage("Let me explore the key directories"),
+        tool("read-1", "read", "completed"),
         tool("read-2", "read", "completed"),
         tool("run-1", "execute", "completed"),
         tool("run-2", "execute", "cancelled"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      ],
+      isPrompting: false,
+      toolActivity: "compact",
       turns: [interruptedTurn(0, 4)],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+
     // The group grows to absorb the automatic tail without changing the first
     // tool anchor, so the VirtualList row is not re-keyed on cancel.
     expect(state.grouped).toHaveLength(1);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(state.grouped[0]).toMatchObject({
+      id: "group-1",
+      kind: "event_group",
+      live: true,
       events: [{ index: 0 }, { index: 1 }, { index: 2 }, { index: 3 }, { index: 4 }],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      turn: { interrupted: true },
+    });
+  });
+
+  it("keeps an interrupted turn's tools expanded in detailed mode", () => {
     const state = new SessionEventsState({
       events: [
         tool("read-1", "read", "completed"),
@@ -404,7 +404,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         tool("edit-1", "edit", "cancelled"),
       ],
       isPrompting: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      toolActivity: "detailed",
       turns: [interruptedTurn(0, 2)],
     });
 
@@ -424,20 +424,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const state = new SessionEventsState({
       events,
       isPrompting: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      toolActivity: "grouped",
       turns: [interruptedTurn(0, 3)],
     });
 
     const groups = state.grouped.filter((item) => item.kind === "event_group");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toMatchObject({
+      live: true,
       events: [{ index: 0 }, { index: 1 }, { index: 2 }, { index: 3 }],
       turn: { startIndex: 0, endIndex: 3, interrupted: true },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("keeps an interrupted turn's live groups after a later turn has completed", () => {
     const events = [
       tool("edit-1", "edit", "cancelled"),
       tool("edit-2", "edit", "cancelled"),
@@ -451,7 +451,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const state = new SessionEventsState({
       events,
       isPrompting: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      toolActivity: "grouped",
       turns: [
         interruptedTurn(0, 3),
         {
@@ -464,16 +464,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
 
     const groups = state.grouped.filter((item) => item.kind === "event_group");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(groups).toHaveLength(2);
     expect(groups[0]).toMatchObject({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      live: true,
       events: [{ index: 0 }, { index: 1 }, { index: 2 }, { index: 3 }],
       turn: { startIndex: 0, endIndex: 3, interrupted: true },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+    expect(groups[1]).toMatchObject({
       turn: { startIndex: 4, endIndex: 6 },
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(groups[1]).not.toMatchObject({ live: true });
   });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   it("shows every thought while prompting, marking only the latest live", () => {

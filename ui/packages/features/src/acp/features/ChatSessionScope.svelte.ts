@@ -1,57 +1,57 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ContentBlock } from "@agentclientprotocol/sdk";
+import { waiting } from "@poolsideai/lib/async-state";
+import { createContext } from "svelte";
+import { DEFAULT_AGENT_SERVER } from "../agentServers";
 import { SessionEventsState, type ToolActivityMode } from "../components/SessionEventsState.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ACPConversationSummary } from "../navTypes";
 import { buildSubagentTranscriptIndex } from "../subagents";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ACPConversationRepository } from "./ConversationRepository.svelte";
 import {
   textPromptContent,
   type ACPQueuedPrompt,
   type ACPSession,
   type ACPSessionCancelOptions,
 } from "./Session.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ACPSessionRepository } from "./SessionRepository.svelte";
 import type { ACPCollaborationModeSurface } from "./session/types";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+type NoSetters<T> = { readonly [K in keyof T]: T[K] };
+
+export type ACPChatSessionScope = NoSetters<ACPChatSessionScopeWriter>;
+
+/**
+ * Pane-scoped session facade.
+ *
+ * The parent owns the active conversation id; the chat subtree reads a single
+ * resolved ACPSession through this scope instead of reaching into repository
+ * selection. The scope is the chat subtree's active-session boundary.
+ */
+export class ACPChatSessionScopeWriter {
+  constructor(
+    private readonly repo: ACPSessionRepository,
+    private readonly getActiveConversationId?: () => string | null,
+    private readonly setActiveConversationId?: (conversationId: string | null) => void,
+    private readonly conversations?: ACPConversationRepository | null,
     private readonly getToolActivity?: () => ToolActivityMode,
     private readonly useSubagentTranscriptTabs = false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ) {
+    const scope = this;
     this.timelineState = new SessionEventsState({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      get events() {
         return scope.timelineEvents;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      },
+      get turns() {
         return scope.timelineTurns;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      },
+      get isPrompting() {
+        return scope.isPrompting;
+      },
+      get toolActivity() {
         return scope.toolActivity;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      },
+    });
+  }
+
   // Grouped transcript rows.
   private readonly timelineState: SessionEventsState;
   private readonly subagentState = $derived.by(() => {
@@ -61,53 +61,53 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       codexActiveTurnStartIndex: codexTurnActive ? this.codexActiveTurnStartIndex : undefined,
     });
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  private get session(): ACPSession | null {
+    const activeConversationId = this.getActiveConversationId?.() ?? null;
+    return this.repo.getSessionByConversationId(activeConversationId);
+  }
+
+  get sessionId() {
+    return this.session?.sessionId ?? null;
+  }
+  get conversationId() {
+    return this.session?.conversationId ?? null;
+  }
+  get sessionAgentServer() {
+    return this.session?.agentServer ?? null;
+  }
+  get activeAgentServer() {
+    return this.session?.agentServer ?? this.repo.agents.defaultAgentServer ?? DEFAULT_AGENT_SERVER;
+  }
+  get selectedAgentServer() {
+    return this.activeAgentServer;
+  }
+  get pendingConversationId() {
+    return this.session?.pendingConversationId ?? null;
+  }
+  get pendingSessionCwd() {
+    return this.session?.pendingCwd ?? null;
+  }
   get isChat() {
     return this.session?.isChat ?? false;
   }
   get toolActivity(): ToolActivityMode | undefined {
     return this.isChat ? "compact" : this.getToolActivity?.();
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  get sessionInfo() {
+    return this.session?.sessionInfo ?? null;
+  }
+  get hasSession() {
+    return this.sessionId !== null;
+  }
   get hasPendingHandoff() {
     return this.session?.pendingHandoff !== null && this.session?.pendingHandoff !== undefined;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  get isPreparingSessionOptions() {
+    const session = this.session;
+    return session?.loadState.status === "loading" && session.events.length === 0;
+  }
+  get canChangeAgent() {
     const session = this.session;
     return (session?.sessionId ?? null) === null && !session?.isSending;
   }
@@ -127,44 +127,44 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
   get handoffTargetAgentServer() {
     return this.session?.handoffTargetAgentServer ?? null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+  get isConfigCacheLoading() {
+    return this.repo.agents.isConfigCacheLoadingFor(this.activeAgentServer);
+  }
+  get sessionLoadState() {
+    return this.session?.loadState ?? waiting;
+  }
+  get setupStatus() {
+    return this.session?.setupStatus ?? null;
+  }
+  get activeWorkspaceCwd() {
+    const session = this.session;
+    if (session) return session.sessionInfo?.cwd ?? session.pendingCwd;
+    return null;
+  }
+  get isSessionSetupPending() {
+    return (
+      this.sessionLoadState.status === "loading" ||
+      this.isConfigCacheLoading ||
+      this.repo.agents.authInProgressForAgent(this.activeAgentServer)
+    );
+  }
+  get isPrompting() {
     return this.session?.isPromptActive ?? false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+  get isSending() {
+    return this.session?.isSending ?? false;
+  }
+  // A turn started on ANOTHER connected surface (phone prompting while the
+  // desktop watches, or vice versa) is invisible to the local prompt
+  // lifecycle: isPrompting only tracks prompts sent from this surface. The
+  // helper marks the conversation working for the whole turn and broadcasts
+  // it to every surface via poolside/acpNav/didChange, so that pushed live
+  // status is the only signal that a remote-origin turn is in flight.
+  get isRemoteWorking() {
+    if (this.isPrompting || this.isSending) return false;
+    return Boolean(this.activeConversationSummary?.liveStatus?.working);
+  }
   private get codexActiveTurnStartIndex(): number {
     if (this.isPrompting) {
       const sessionStartIndex = this.session?.activeTurnStartIndex;
@@ -185,27 +185,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
     return this.events.length;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private get activeConversationSummary(): ACPConversationSummary | null {
+    const summaries = this.conversations?.sessions ?? [];
+    const conversationId = this.getActiveConversationId?.() ?? this.session?.conversationId ?? null;
+    if (conversationId) {
+      const byId = summaries.find((summary) => summary.id === conversationId);
+      if (byId) return byId;
+    }
+    const session = this.session;
+    if (!session?.sessionId) return null;
+    return (
+      summaries.find(
+        (summary) =>
+          summary.sessionId === session.sessionId && summary.agentServer === session.agentServer,
+      ) ?? null
+    );
+  }
+  get isReadOnly() {
+    return this.session?.sessionInfo?.readOnly ?? false;
+  }
+  get canEnqueuePrompt() {
+    const session = this.session;
     return Boolean(session?.isPromptActive && !this.isReadOnly);
   }
   get canSteerPrompt() {
@@ -215,13 +215,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         !this.isReadOnly &&
         this.repo.agents.supportsSteering(session.agentServer),
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+  get events() {
+    return this.session?.events ?? [];
+  }
+  get turns() {
+    return this.session?.turns ?? [];
+  }
   get subagents() {
     return this.subagentState;
   }
@@ -231,29 +231,29 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   get timelineTurns() {
     return this.useSubagentTranscriptTabs ? this.subagents.topLevelTurns : this.turns;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  get timelineItems() {
     return this.timelineState.grouped;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
   // Tool expand/collapse choices; must reach the renderer alongside
   // timelineItems so pins feed the fold logic that produced them.
   get timelineExpansion() {
     return this.timelineState.expansion;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  get plan() {
+    return this.session?.plan ?? null;
+  }
+  get compacting() {
+    return this.session?.compacting ?? false;
+  }
+  get queuedPrompt() {
+    return this.session?.queuedPrompt ?? null;
+  }
   get queuedPrompts() {
     return this.session?.queuedPrompts ?? [];
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  get promptError() {
+    return this.session?.promptError ?? null;
+  }
   get promptSuggestion() {
     return this.session?.promptSuggestion ?? null;
   }
@@ -276,13 +276,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (!session?.restoredWithoutHistory) return false;
     return this.events.length === 0 && !this.isPrompting && !this.isSending;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  get error() {
+    const loadState = this.session?.loadState;
+    return loadState?.status === "failure"
+      ? loadState.error
+      : this.repo.agents.nonSessionErrorFor(this.activeAgentServer);
+  }
+  get pendingPermissionRequests() {
     const session = this.session;
     if (!session) return [];
     // Include requests that arrived while this conversation had no live
@@ -294,84 +294,84 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return unbound.length
       ? [...session.pendingPermissionRequests, ...unbound]
       : session.pendingPermissionRequests;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+  get configOptions() {
+    return this.session?.configOptions ?? [];
+  }
+  get availableCommands() {
+    return this.session?.availableCommands ?? [];
+  }
+  get modeNameById(): Map<string, string> {
+    return new Map(this.session?.availableModes.map((m) => [m.id, m.name]));
+  }
+  get isPlanModeActive() {
+    return this.session?.isPlanModeActive ?? false;
+  }
+  get canTogglePlanMode() {
+    return this.session?.canTogglePlanMode ?? false;
+  }
   get planModeViaCollaboration() {
     return this.session?.planModeViaCollaboration ?? false;
   }
   get collaborationModeSurface(): ACPCollaborationModeSurface {
     return this.session?.collaborationModeSurface ?? "none";
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  get promptContentOptions() {
+    // Resolve from the live connection when present, else the persisted config
+    // cache — so capabilities are known even for a new conversation whose agent
+    // has not connected yet (and pasted images aren't dropped at compose time).
+    const capabilities = this.repo.agents.promptCapabilitiesFor(
+      this.hasSession && this.sessionAgentServer ? this.sessionAgentServer : this.activeAgentServer,
+    );
+    return {
+      supportsEmbeddedContext: capabilities?.embeddedContext === true,
+      supportsImages: capabilities?.image === true,
+    };
+  }
+
+  getInitializeResponse(agentServer: string) {
+    return this.repo.agents.getInitializeResponse(agentServer);
+  }
+
+  pendingConfigOption(configId: string) {
+    return this.session?.pendingConfigOption(configId) ?? null;
+  }
+
+  // Materialize the active draft into the sidebar once the user starts typing.
+  ensureDraftPersisted(): void {
+    this.session?.persistPendingConversation();
+  }
+
+  get promptFocusRequested() {
+    return this.session?.promptFocusRequested ?? false;
+  }
+
+  consumePromptFocusRequest(): boolean {
+    return this.session?.consumePromptFocusRequest() ?? false;
+  }
+
+  createSession(
+    cwd: string,
+    agentServer = this.activeAgentServer,
+    conversationId: string | null = null,
     options: { isChat?: boolean } = {},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ): string {
     const created = this.repo.createSession(
       cwd,
       agentServer,
       conversationId,
       options,
     ).conversationId;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.setActiveConversationId?.(created);
+    return created;
+  }
+
+  enqueuePrompt(prompt: ACPQueuedPrompt): void {
+    const session = this.session;
+    if (!session) throw new Error("Cannot enqueue prompt");
+    session.enqueuePrompt(prompt);
+  }
+
   clearQueuedPrompt(id?: string): void {
     this.session?.clearQueuedPrompt(id);
   }
@@ -393,47 +393,47 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   async steerQueuedPrompt(id?: string): Promise<void> {
     await this.session?.steerQueuedPrompt(id);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   clearPromptSuggestion(): void {
     this.session?.clearPromptSuggestion();
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async send(
+    text: string,
+    sandboxDefinitionId: string | undefined,
+    newSessionMeta?: Record<string, unknown>,
+    cwd = "",
+    content: ContentBlock[] = textPromptContent(text),
+  ): Promise<string | null> {
+    const session = this.session;
+    if (!session) throw new Error("Cannot send prompt without an active ACP session");
+    const createdSessionId = await session.serialize((gen) =>
+      session.sendCore(gen, text, sandboxDefinitionId, newSessionMeta, cwd, content),
+    );
+    return createdSessionId;
+  }
+
   async cancel(options?: ACPSessionCancelOptions): Promise<void> {
     return this.session?.cancel(options);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   async handoff(targetAgentServer: string): Promise<void> {
     const conversationId = this.conversationId;
     if (!conversationId) throw new Error("Cannot hand off without an active conversation");
     await this.repo.handoffSession(conversationId, targetAgentServer);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async retryLastPrompt(): Promise<void> {
+    return this.session?.retryLastPrompt();
+  }
+
+  async retryAfterError(): Promise<void> {
+    const session = this.session;
+    if (!session) return;
+    return session.retryAfterError();
+  }
+
   async retryHistoryUnavailable(): Promise<void> {
     const session = this.session;
     if (!session?.sessionId) return;
@@ -443,17 +443,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     await this.repo.reloadLiveSession(session.sessionId, session.agentServer);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async setConfigOption(configId: string, value: string): Promise<void> {
+    return this.session?.setConfigOption(configId, value);
+  }
+
+  async setBooleanConfigOption(configId: string, value: boolean): Promise<void> {
+    return this.session?.setBooleanConfigOption(configId, value);
+  }
+
+  async togglePlanMode(): Promise<void> {
+    return this.session?.togglePlanMode();
+  }
 
   async pauseGoal(): Promise<void> {
     return this.session?.pauseGoal();
@@ -466,11 +466,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   async clearGoal(): Promise<void> {
     return this.session?.clearGoal();
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+const [getACPChatSessionScope, setACPChatSessionScopeContext] =
+  createContext<ACPChatSessionScope>();
+
 export function getOptionalACPChatSessionScope(): ACPChatSessionScope | undefined {
   try {
     return getACPChatSessionScope();
@@ -479,24 +479,24 @@ export function getOptionalACPChatSessionScope(): ACPChatSessionScope | undefine
   }
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { getACPChatSessionScope };
+
+export function setACPChatSessionScope(
+  repo: ACPSessionRepository,
+  getActiveConversationId?: () => string | null,
+  setActiveConversationId?: (conversationId: string | null) => void,
+  conversations?: ACPConversationRepository | null,
+  getToolActivity?: () => ToolActivityMode,
   useSubagentTranscriptTabs = false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+): ACPChatSessionScopeWriter {
+  const scope = new ACPChatSessionScopeWriter(
+    repo,
+    getActiveConversationId,
+    setActiveConversationId,
+    conversations,
+    getToolActivity,
     useSubagentTranscriptTabs,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
+  setACPChatSessionScopeContext(scope);
+  return scope;
+}

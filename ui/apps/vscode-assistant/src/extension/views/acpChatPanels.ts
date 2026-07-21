@@ -105,9 +105,9 @@ export class AcpChatPanels {
   private panels = new Map<string, PanelEntry>();
   private navConversations = new Map<string, ACPNavConversation>();
   private focusInputWhenReady = new Set<string>();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Replay callback for an agent-exit notification whose postMessage failed
+  // (webview not ready), run on panelReady.
+  private pendingAgentExits = new Map<string, () => void>();
   private latestConfiguration: Configuration | undefined;
   private latestContext: ActiveFileContext | undefined;
   private latestEditorFocused: boolean | undefined;
@@ -124,9 +124,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   async openSession(opts: OpenAcpChatOptions): Promise<void> {
     const agentServer = normalizeAgentServer(opts.agentServer);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const existing =
+      (opts.conversationId ? this.panels.get(opts.conversationId) : undefined) ??
+      (opts.sessionId ? this.panelForSession(agentServer, opts.sessionId) : undefined);
     if (existing) {
       const metadata: AcpChatPanelMetadata = {
         agentServer,
@@ -135,22 +135,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if ("agentIconUrl" in opts) {
         metadata.agentIconUrl = opts.agentIconUrl;
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.updatePanelMetadata(existing.conversationId, metadata);
       existing.panel.reveal();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.syncPanelViewState(existing);
       return;
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (!opts.conversationId && !opts.sessionId) {
+      const pending = this.mostRecentPendingPanel();
+      if (pending) {
+        await this.focusEntryInput(pending);
+        return;
+      }
+    }
+
+    const conversationId = opts.conversationId ?? newConversationId();
+
     const panel = vscode.window.createWebviewPanel(
       POOLSIDE_ACP_CHAT_VIEW_TYPE,
       panelTitle(opts.sessionTitle),
@@ -200,12 +200,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     await this.focusEntryInput(entry);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  togglePlanModeOnActivePanel(): void {
+    const entry = this.activePanel();
+    if (!entry) return;
+    void this.postToPanel(entry, "togglePlanMode", []);
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -217,11 +217,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (!entry) return;
     this.replayHostState(entry);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const replayAgentExit = this.pendingAgentExits.get(conversationId);
+    if (replayAgentExit) {
+      this.pendingAgentExits.delete(conversationId);
+      replayAgentExit();
+    }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       void this.focusEntryInput(entry);
     }
@@ -306,10 +306,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.syncPanelViewState(entry);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  acpNavDidChange(state: ACPNavState, opts: { syncViewState?: boolean } = {}): void {
     this.navConversations.clear();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     for (const conversation of state.conversations ?? []) {
@@ -326,7 +326,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         continue;
       }
       this.applyPanelNavState(entry);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (opts.syncViewState !== false && entry.panel.visible) this.syncPanelViewState(entry);
     }
   }
 
@@ -383,7 +383,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.panels.clear();
     this.navConversations.clear();
     this.focusInputWhenReady.clear();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.pendingAgentExits.clear();
   }
 
   private async bindPanel(
@@ -415,7 +415,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     };
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.syncPanelViewState(entry);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -427,7 +427,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       for (const d of entry.disposables) d.dispose();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        this.pendingAgentExits.delete(entry.conversationId);
       }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (entry.sessionId) {
@@ -443,7 +443,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       { key: "POOLSIDE_INITIAL_ACP_CHAT_STATE", value: initial },
     ]);
     this.applyPanelNavState(entry);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.syncPanelViewState(entry);
   }
 
   private routeJsonrpcNotify(params: unknown): void {
@@ -482,12 +482,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   private routeAgentServerDidExit(params: unknown): void {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       entry.lastTouchedAt = Date.now();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      void this.postToPanel(entry, "acpAgentServerDidExit", [params]).then((posted) => {
+        if (posted || this.panels.get(entry.conversationId) !== entry) return;
+        this.pendingAgentExits.set(entry.conversationId, () => {
+          void this.postToPanel(entry, "acpAgentServerDidExit", [params]);
+        });
+      });
     }
   }
 
@@ -547,16 +547,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return [...entries].sort((left, right) => right.lastTouchedAt - left.lastTouchedAt).at(0);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private mostRecentPendingPanel(): PanelEntry | undefined {
+    const entries = Array.from(this.panels.values()).filter((entry) => !entry.sessionId);
+    if (entries.length <= 1) return entries[0];
+    return [...entries].sort((left, right) => right.lastTouchedAt - left.lastTouchedAt).at(0);
+  }
+
+  private activePanel(): PanelEntry | undefined {
+    return Array.from(this.panels.values()).find((entry) => entry.panel.active);
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -580,7 +580,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   private async focusEntryInput(entry: PanelEntry): Promise<void> {
     entry.panel.reveal();
     entry.lastTouchedAt = Date.now();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.syncPanelViewState(entry);
     const posted = await this.postToPanel(entry, "focusInput", []);
     if (!posted) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -730,7 +730,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     void this.setConversationViewState(
       entry.agentServer ?? DEFAULT_AGENT_SERVER,
       entry.sessionId,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      entry.panel.visible,
     );
   }
 
@@ -739,26 +739,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     sessionId: string,
     active: boolean,
   ): Promise<void> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let acpNavState: ACPNavState | null = null;
     try {
       const { getHelperSingleton } = await import("../helper");
       const client = await getHelperSingleton(this.system);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      acpNavState = (await client.sendRequest("poolside/acpNav/setConversationViewState", {
         agentServer,
         sessionId,
         active,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      })) as ACPNavState;
     } catch (error) {
       this.system.telemetry.reportError(
         new Error("failed to update ACP conversation view state", { cause: error }),
       );
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (!acpNavState) return;
+    this.system.assistant.updateAttentionCount(acpNavState.conversations);
+    this.acpNavDidChange(acpNavState, { syncViewState: false });
+    if (this.system.assistant.isReady) {
+      void this.system.assistant.rpc.acpNavDidChange({ state: acpNavState });
+    }
   }
 }
 

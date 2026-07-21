@@ -2,7 +2,7 @@
   import type { SessionConfigOption } from "@agentclientprotocol/sdk";
   import Icon from "@poolsideai/components/icon";
   import { appState } from "../../../../hostAdapter";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPChatSessionScope } from "../../../../features/ChatSessionScope.svelte";
   import ConfigSelectDropdown from "./ConfigSelectDropdown.svelte";
   import {
     configValueAppearance,

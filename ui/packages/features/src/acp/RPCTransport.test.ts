@@ -1,7 +1,7 @@
 import type { AnyMessage } from "@agentclientprotocol/sdk";
 import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_AGENT_SERVER } from "./agentServers";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { ACPDebugLog } from "./debugDump";
 import type { HelperAPIClient } from "./hostRpc";
 import { RPCTransport } from "./RPCTransport";
 

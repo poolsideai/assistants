@@ -1,5 +1,5 @@
 <script lang="ts">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPChatSessionScope } from "../../../../features/ChatSessionScope.svelte";
   import ModeControl from "./ModeControl.svelte";
   import { promptConfigKind, type PromptModeKind } from "./configOptions";
 

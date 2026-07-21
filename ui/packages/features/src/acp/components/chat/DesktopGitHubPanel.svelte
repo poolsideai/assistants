@@ -2,7 +2,7 @@
   import Icon from "@poolsideai/components/icon";
   import { Spinner } from "@poolsideai/components/spinner";
   import { untrack } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPGithubRepo } from "../../features/GithubRepository.svelte";
   import {
     githubDotColorClass,
     githubStatusCategory,

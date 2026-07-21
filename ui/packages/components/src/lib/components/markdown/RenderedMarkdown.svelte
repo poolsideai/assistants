@@ -109,15 +109,15 @@
     hostElement.className = "inline-block align-baseline";
     hostElement.dataset[type] = name;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const label = name.startsWith("$") ? name.slice(1) : name;
     mountedComponents.set(
       hostElement,
       mount(ChipNode, {
         target: hostElement,
         props: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          label,
           icon: type === "skill" ? "skills" : (host.getSlashCommandIcon?.(name) ?? "command"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          ariaLabel: `${type} ${label}`,
         },
         context,
       }),
@@ -394,12 +394,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     for (const textNode of textNodes) {
       const text = textNode.textContent ?? "";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (!text.includes("/") && !text.includes("$")) continue;
 
       const matches = [...text.matchAll(re)].map((match) => ({
         start: match.index,
         end: match.index + match[0].length,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        name: match[1].startsWith("/") ? match[1].slice(1) : match[1],
       }));
       if (matches.length === 0) continue;
 

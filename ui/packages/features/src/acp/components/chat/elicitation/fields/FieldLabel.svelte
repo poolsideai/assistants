@@ -13,7 +13,7 @@
 </script>
 
 <div class="flex flex-col gap-1.5">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <label for={name} class="text-psx-foreground-primary text-sm font-medium">
     {title ?? description}
     {#if required}<span class="text-psx-error-foreground">*</span>{/if}
   </label>

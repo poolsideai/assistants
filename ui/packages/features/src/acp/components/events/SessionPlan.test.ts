@@ -35,47 +35,47 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("shows the running-segment gradient only while an incomplete plan is running", () => {
+    const incompletePlan = {
+      entries: [
+        { content: "alpha", priority: "medium", status: "completed" },
+        { content: "beta", priority: "medium", status: "in_progress" },
+      ],
+    } satisfies Plan;
+
+    const running = render(Harness, { props: { plan: incompletePlan, isPrompting: true } });
+    expect(running.container.querySelector(".animate-pulse-gradient")).not.toBeNull();
+    running.unmount();
+
+    const idle = render(Harness, { props: { plan: incompletePlan, isPrompting: false } });
+    expect(idle.container.querySelector(".animate-pulse-gradient")).toBeNull();
+    idle.unmount();
+
+    const completedPlan = {
+      entries: [
+        { content: "alpha", priority: "medium", status: "completed" },
+        { content: "beta", priority: "medium", status: "completed" },
+      ],
+    } satisfies Plan;
+
+    const completed = render(Harness, { props: { plan: completedPlan, isPrompting: true } });
+    expect(completed.container.querySelector(".animate-pulse-gradient")).toBeNull();
+  });
+
+  it("marks in-progress entries with a pulsing dot and a status for screen readers", () => {
+    const plan = {
+      entries: [
+        { content: "alpha", priority: "medium", status: "in_progress" },
+        { content: "beta", priority: "medium", status: "pending" },
+      ],
+    } satisfies Plan;
+
+    const { container } = render(Harness, { props: { plan, isPrompting: false } });
+
+    expect(container.querySelectorAll(".pulsing-dot")).toHaveLength(1);
+    expect(screen.getByText("In progress")).toBeInTheDocument();
+  });
+
   it("dismisses the current plan until the plan changes", async () => {
     const plan = {
       entries: [

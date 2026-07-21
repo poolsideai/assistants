@@ -2,10 +2,10 @@
   import type { SessionConfigOption } from "@agentclientprotocol/sdk";
   import * as Prompt from "@poolsideai/components/prompt";
   import Icon from "@poolsideai/components/icon";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPAgentRegistryRepo } from "../../../../features/AgentRegistryRepository.svelte";
+  import { getACPAgentServersRepo } from "../../../../features/AgentServersRepository.svelte";
+  import { getACPSessionRepo } from "../../../../features/SessionRepository.svelte";
+  import { getACPChatSessionScope } from "../../../../features/ChatSessionScope.svelte";
   import { appState, resolveSessionCwd } from "../../../../hostAdapter";
   import RegistryAgentIcon from "../../../RegistryAgentIcon.svelte";
   import {

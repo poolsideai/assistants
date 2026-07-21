@@ -138,13 +138,13 @@ export const tildeStrikethroughTokenizer: MarkedExtension = {
 };
 
 export function buildSlashTokenRegex(known: ReadonlySet<string>): RegExp {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // $name is the skill invocation convention in prompt text (forge #44905);
+  // /name covers commands and skill invocations in older transcripts.
+  const tokens = [...known].flatMap((name) => {
+    const forms = name.startsWith("$") ? [name, `/${name.slice(1)}`] : [`/${name}`];
+    return forms.map((form) => form.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  });
+  return new RegExp(`(?<=^|\\s)(${tokens.join("|")})(?=\\s|$)`, "g");
 }
 
 export type FilePathMatch = {

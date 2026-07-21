@@ -13,16 +13,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     ],
     value: "acp-command",
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  skills: {
+    rules: [
+      {
+        trigger: "$",
+        triggerRegExp: /(?<=^|\s)\$(?!\s)/g,
+        queryRegExp: /^\S*$/,
+      },
+    ],
+    value: "acp-skills",
+  },
 } as const satisfies Record<string, MenuProps>;
 
 // Internal id for the synthetic "pick an agent server" config option the UI

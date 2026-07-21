@@ -5,16 +5,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { formatError } from "@poolsideai/lib/errors";
   import { onDestroy } from "svelte";
   import { SvelteMap, SvelteSet } from "svelte/reactivity";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { ACPConversationSummary, ACPNavProject } from "../../navTypes";
   import { ACP_CHAT_WORKSPACE_PATH } from "../../workspaceScope";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { SessionListFailure } from "../../features/HistoryRepository.svelte";
   import { appState } from "../../hostAdapter";
   import { shortenHomeDirectoryInText } from "../../shared/paths";
   import type { SessionPickerBucket } from "../sessionPickerUtil";
   import Tooltip from "../ui/Tooltip.svelte";
   import DesktopConversationRow from "./DesktopConversationRow.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getAcpSidebarController } from "./SidebarController.svelte";
+  import SearchField from "./SearchField.svelte";
   import SidebarIconButton from "./SidebarIconButton.svelte";
   import SidebarNavButton from "./SidebarNavButton.svelte";
 
@@ -396,11 +396,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   <div
     class={embedded ? "archive-catalog flex shrink-0 items-center gap-2 px-3 py-3" : "px-2 pb-2"}
   >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <SearchField
+      bind:value={searchQuery}
+      placeholder={embedded ? "Search archived chats" : "Search history"}
+      class="flex-1"
+    />
     {#if embedded && showProjectFilter}
       <div class="w-[220px] max-w-[40%] shrink-0">
         {@render projectFilter()}
@@ -595,7 +595,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                             size="sm"
                             prominence="standard"
                             radius="full"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                            class="archive-restore-button bg-psx-chrome-hover text-psx-foreground-primary hover:bg-psx-menu-hover-background w-16 shrink-0 text-[11px]/[14px] shadow-none"
                             aria-label={`Restore ${item.session.title || "conversation"}`}
                             onclick={() => restoreHistorySession(item.session, bucket.key)}
                           >

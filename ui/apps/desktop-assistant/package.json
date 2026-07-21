@@ -42,13 +42,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@iconify-json/vscode-icons": "^1.2.50",
     "@poolsideai/assistant": "workspace:*",
     "@poolsideai/components": "workspace:*",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@poolsideai/features": "workspace:*",
     "@poolsideai/helperapi": "workspace:*",
     "@poolsideai/lib": "workspace:*",
     "@poolsideai/rpc": "workspace:*",
     "@tauri-apps/api": "2",
     "@tauri-apps/plugin-dialog": "2",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@tauri-apps/plugin-notification": "^2.3.3",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "dom-accessibility-api": "0.6.3",

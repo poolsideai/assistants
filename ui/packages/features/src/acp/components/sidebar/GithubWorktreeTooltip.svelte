@@ -9,7 +9,7 @@
     githubReviewDecisionLabel,
     type GitHubPRDetail,
   } from "../../github/githubStatus";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPGithubRepo } from "../../features/GithubRepository.svelte";
 
   interface Props {
     anchorId: string;

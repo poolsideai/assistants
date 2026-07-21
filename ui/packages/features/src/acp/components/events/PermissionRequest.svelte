@@ -2,7 +2,7 @@
   import type { PermissionOption, ToolKind } from "@agentclientprotocol/sdk";
   import type { ToolCall } from "../../types";
   import { insideModalOverlay, isAppleUser } from "@poolsideai/components";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPAgentRegistryRepo } from "../../features/AgentRegistryRepository.svelte";
   import { DEFAULT_AGENT_SERVER } from "../../agentServers";
   import { agentName as getAgentName } from "../chat/menus/config/agentConfig";
   import { Button } from "@poolsideai/components/button";
@@ -10,11 +10,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import Kbd from "@poolsideai/components/kbd";
   import { createDropdownMenu, melt } from "@melt-ui/svelte";
   import { HighlightedShellCommand } from "@poolsideai/components/assistant-ui";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { ACPPendingPermissionRequest } from "../../features/Session.svelte";
   import { ACP_PERMISSION_SUGGESTED_RULES_META_KEY } from "../../permissionMeta";
   import { getToolCommand, getToolCommandLabel, getToolDescription } from "../shared/toolStatus";
   import { appState } from "../../hostAdapter";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPContext } from "../../features/SessionRepository.svelte";
   import ToolCallContentRenderer from "../shared/ToolCallContentRenderer.svelte";
   import { getKeybindingService, matchesChord, type Platform } from "../../../keybindings";
   import { supportsNativeMenus } from "../chat/desktopContextMenu";

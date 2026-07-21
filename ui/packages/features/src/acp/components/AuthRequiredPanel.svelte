@@ -1,17 +1,17 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import { Spinner } from "@poolsideai/components/spinner";
+  import type { ACPAuthMethod } from "../authMethods";
+  import type { ACPRegistryAgent } from "../agentRegistry";
+  import { agentServerIconUrl } from "../localAgentIcon";
+  import { DEFAULT_AGENT_SERVER, LOCAL_AGENT_SERVER } from "../agentServers";
+  import RegistryAgentIcon from "./RegistryAgentIcon.svelte";
+
+  interface Props {
+    agentServer: string;
+    agent: ACPRegistryAgent | null;
+    methods: ACPAuthMethod[];
+    inProgress: boolean;
+    pendingTerminalAuthMethodId: string | null;
     /**
      * Method the user has launched. Login finishes outside this panel (terminal
      * TUI, browser), so while set the login buttons give way to a manual
@@ -22,56 +22,56 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     confirmInProgress?: boolean;
     /** Brand colour class for the agent glyph (see agentPickerIconProps). */
     iconClass?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onAuthenticate: (methodId: string) => void;
     onRetry: (methodId: string) => void;
     onConfirmLoggedIn?: () => void;
     onTryAgain?: () => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  let {
+    agentServer,
+    agent,
+    methods,
+    inProgress,
+    pendingTerminalAuthMethodId,
     attemptedMethodId = null,
     confirmInProgress = false,
     iconClass = "text-psx-icon",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onAuthenticate,
     onRetry,
     onConfirmLoggedIn,
     onTryAgain,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }: Props = $props();
+
+  let agentName = $derived(
+    agent?.name ??
+      (agentServer === DEFAULT_AGENT_SERVER
+        ? "Poolside"
+        : agentServer === LOCAL_AGENT_SERVER
+          ? "Poolside Local"
+          : agentServer),
+  );
+  let iconUrl = $derived(agentServerIconUrl(agentServer, agent));
+</script>
+
+<section
+  class="border-psx-border bg-psx-panel rounded-[8px] border p-4"
+  aria-labelledby="acp-auth-required-title"
+>
+  <div class="flex items-start gap-3">
     <div
       class="bg-psx-panel shadow-xs flex size-8 shrink-0 items-center justify-center rounded-lg outline outline-1 outline-black/5 dark:outline-white/20"
     >
       <RegistryAgentIcon {iconUrl} fallback="sparkles" size={18} class={iconClass} />
     </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div class="min-w-0 flex-1">
       <h2
         id="acp-auth-required-title"
         class="text-psx-foreground-primary flex h-8 items-center text-sm"
       >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {agentName} requires authentication before it can start a session.
       </h2>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </div>
 
     {#if methods.length > 0 && attemptedMethodId !== null}
       <!-- A login attempt is underway outside the panel; let the user confirm
@@ -144,15 +144,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         {/each}
       </div>
     {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </div>
+
   <!-- Method descriptions are not rendered here: each action button carries its
        method's description as a hover title, and the terminal flow shows the
        command itself, so a visible restatement is noise. -->
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {#if methods.length === 0}
+    <p class="text-psx-foreground-secondary mt-3 text-xs">
+      The agent did not advertise any authentication methods. Check its documentation for setup
+      instructions.
+    </p>
+  {/if}
+</section>

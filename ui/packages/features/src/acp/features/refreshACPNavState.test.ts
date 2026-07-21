@@ -1,7 +1,7 @@
 import { poolsideAcpNavList } from "@poolsideai/helperapi";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { ACPConversationRepositoryWriter } from "./ConversationRepository.svelte";
+import { ACPProjectRepositoryWriter } from "./ProjectRepository.svelte";
 import { refreshACPNavState } from "./refreshACPNavState";
 
 vi.mock("@poolsideai/helperapi", () => ({

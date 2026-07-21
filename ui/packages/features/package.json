@@ -13,11 +13,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       "svelte": "./dist/acp/index.js",
       "default": "./dist/acp/index.js"
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "./acp/nav": {
+      "development": "./src/acp/navTypes.ts",
+      "svelte": "./dist/acp/navTypes.js",
+      "default": "./dist/acp/navTypes.js"
+    },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       "types": "./src/context/index.ts",
 __POOL_SYNTHETIC_IMPORT_BASELINE__

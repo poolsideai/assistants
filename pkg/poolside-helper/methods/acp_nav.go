@@ -126,10 +126,10 @@ type ACPNavConfigCacheEntry struct {
 	// (image / embeddedContext / audio). Cached so the client knows what kinds
 	// of content a prompt may carry without re-connecting to the agent.
 	PromptCapabilities json.RawMessage `json:"promptCapabilities,omitempty"`
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// AgentInfo is the agent's initialize-time implementation info. Cached so
+	// the client can show the installed agent version without re-connecting.
+	AgentInfo json.RawMessage `json:"agentInfo,omitempty"`
+	CachedAt  string          `json:"cachedAt"`
 }
 
 type ACPNavConfigCacheState struct {
@@ -329,7 +329,7 @@ type ACPNavUpsertConfigCacheParams struct {
 	Modes              json.RawMessage `json:"modes"`
 	AvailableCommands  json.RawMessage `json:"availableCommands"`
 	PromptCapabilities json.RawMessage `json:"promptCapabilities,omitempty"`
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	AgentInfo          json.RawMessage `json:"agentInfo,omitempty"`
 }
 
 type ACPNavSetConversationViewStateParams struct {

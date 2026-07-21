@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ACPConversationSummary } from "../features/HistoryRepository.svelte";
 import { stripInjectedContextFromText } from "../features/session/hostContext";
 import { isACPChatConversation, type ACPNavProject } from "../navTypes";
 

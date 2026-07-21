@@ -1,6 +1,6 @@
 import { initializeStatefulModule as initializeHelperApi } from "@poolsideai/helperapi";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ACPConversationStatusRepository } from "../acp";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 let helperJsonrpcCall: ReturnType<typeof vi.fn>;
@@ -19,6 +19,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+const conversationStatus = () =>
+  ({
+    markWaitingForUser: vi.fn(),
+    clearWaitingForUser: vi.fn(),
+  }) as unknown as ACPConversationStatusRepository;
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const repo = new ElicitationRepository(conversationStatus());
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -27,6 +36,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    const repo = new ElicitationRepository(conversationStatus());
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -34,6 +44,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    const repo = new ElicitationRepository(conversationStatus());
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -41,18 +52,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const repo = new ElicitationRepository(conversationStatus());
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -61,15 +61,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   it("declineAllForChat resolves entries without routing info", async () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const repo = new ElicitationRepository(conversationStatus());
+    const promise = repo.register(request("tc-5"));
+
     repo.declineAllForChat(null, null);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    expect(await promise).toEqual({ action: "decline" });
+    expect(repo.isElicitationPending("tc-5")).toBe(false);
+  });
+
   it("declineAllForChat leaves other sessions' entries pending", async () => {
     const repo = new ElicitationRepository(conversationStatus());
     const mine = repo.register({
@@ -87,28 +87,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    const repo = new ElicitationRepository(conversationStatus());
+    repo.register(request("tc-6"));
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(repo.isElicitationPending("tc-6")).toBe(true);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(repo.isElicitationPending("tc-6")).toBe(true);
+  });
+
+  it("detects pending elicitations for a session", () => {
+    const repo = new ElicitationRepository(conversationStatus());
+    repo.register({
+      ...request("tc-7"),
+      sessionId: "session-1",
+      agentServer: "agent-a",
+    });
+
+    expect(repo.hasPendingForSession("session-1", "agent-a")).toBe(true);
+    expect(repo.hasPendingForSession("session-1", "agent-b")).toBe(false);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   it("scopes chat visibility to the tagged session", () => {

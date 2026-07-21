@@ -1,5 +1,5 @@
 <script lang="ts">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import SearchField from "./SearchField.svelte";
   import SidebarIconButton from "./SidebarIconButton.svelte";
 
   interface Props {
@@ -20,7 +20,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 </script>
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <SearchField bind:value {placeholder} class="flex-1" />
   <SidebarIconButton
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     label={archiveLabel}

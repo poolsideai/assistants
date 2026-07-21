@@ -18,7 +18,7 @@ import type {
 import { slashCommandIcon } from "./components/chat/goalPresentation";
 import { installedSkills } from "./components/chat/menus/command/InstalledSkillsRepository.svelte";
 import { resolvedSlashCommandNames } from "./components/chat/menus/command/serverCommands";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getACPChatSessionScope } from "./features/ChatSessionScope.svelte";
 import { appState, trackClick } from "./hostAdapter";
 import { rpc, type RPCClient } from "./hostRpc";
 

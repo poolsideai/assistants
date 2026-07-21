@@ -140,26 +140,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(container.textContent).not.toContain('"');
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("renders $-invoked skills and slash commands as chips", async () => {
+    const host: MarkdownHostAdapter = {
+      state: readable({
+        userSettings: {},
+        environment: { assistantHost: "desktop" },
+        workspaces: [],
+      }),
       getSlashCommands: () => ({ commands: ["plan", "goal"], skills: ["$uv"] }),
       getSlashCommandIcon: (commandName) => (commandName === "goal" ? "target" : undefined),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    };
+
+    const { container } = render(MarkdownBlock, {
       props: { content: "try $uv then /plan and /goal now", isUser: true, host },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+
+    await waitFor(() => expect(container.querySelector("[data-skill]")).toBeTruthy());
+    const skillChip = container.querySelector("[data-skill]");
+    expect(skillChip?.getAttribute("data-skill")).toBe("$uv");
+    expect(skillChip?.textContent?.trim()).toBe("uv");
+    expect(container.querySelector("[data-command]")?.getAttribute("data-command")).toBe("plan");
     const goalChip = container.querySelector('[data-command="goal"]');
     expect(goalChip).toBeTruthy();
     expect(goalChip?.querySelector("svg")?.getAttribute("overflow")).toBe("visible");
@@ -170,11 +170,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(goalIconPaths).toContain(
       "M11.3 2.3L8.75 4.85V6.35L9.65 7.25H11.15L13.7 4.7L10.588 5.412L11.3 2.3Z",
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(container.textContent).toContain("try ");
+    expect(container.textContent).toContain(" then ");
+    expect(container.textContent).toContain(" now");
+  });
+
   it("retokenizes settled markdown when the known skill list loads", async () => {
     const state = readable({
       userSettings: {},

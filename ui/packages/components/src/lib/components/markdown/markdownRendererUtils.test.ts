@@ -1,53 +1,53 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { describe, expect, it } from "vitest";
 import { FILE_PATH_REGEX } from "./filePaths.js";
 import { buildSlashTokenRegex, parseFilePathMatches } from "./markdownRendererUtils.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+describe("buildSlashTokenRegex", () => {
+  it("matches slash-prefixed names", () => {
+    const re = buildSlashTokenRegex(new Set(["compact"]));
+    const matches = [..."run /compact now".matchAll(re)];
+    expect(matches).toHaveLength(1);
+    expect(matches[0][1]).toBe("/compact");
+  });
+
+  it("matches $-prefixed skill names literally without a slash", () => {
+    const re = buildSlashTokenRegex(new Set(["$branch-and-open-pr"]));
+    const matches = [..."$branch-and-open-pr please".matchAll(re)];
+    expect(matches).toHaveLength(1);
+    expect(matches[0][1]).toBe("$branch-and-open-pr");
+  });
+
+  it("matches the legacy /name invocation of a $ skill", () => {
+    const re = buildSlashTokenRegex(new Set(["$uv"]));
+    const matches = [..."run /uv now".matchAll(re)];
+    expect(matches).toHaveLength(1);
+    expect(matches[0][1]).toBe("/uv");
+  });
+
+  it("does not match $ skills invoked as /$name", () => {
+    const re = buildSlashTokenRegex(new Set(["$uv"]));
+    expect([..."/$uv".matchAll(re)]).toHaveLength(0);
+  });
+
+  it("requires token boundaries", () => {
+    const re = buildSlashTokenRegex(new Set(["compact", "$uv"]));
+    expect([..."path/compact".matchAll(re)]).toHaveLength(0);
+    expect([..."/compacted".matchAll(re)]).toHaveLength(0);
+    expect([..."x$uv".matchAll(re)]).toHaveLength(0);
+  });
+
+  it("matches mixed slash and $ names in one text", () => {
+    const re = buildSlashTokenRegex(new Set(["compact", "$uv"]));
+    const matches = [..."use /compact then $uv".matchAll(re)].map((m) => m[1]);
+    expect(matches).toEqual(["/compact", "$uv"]);
+  });
+
+  it("escapes regex metacharacters in names", () => {
+    const re = buildSlashTokenRegex(new Set(["$a.b"]));
+    expect([..."$axb".matchAll(re)]).toHaveLength(0);
+    expect([..."$a.b".matchAll(re)]).toHaveLength(1);
+  });
+});
 
 describe("parseFilePathMatches", () => {
   const matchesIn = (text: string) => parseFilePathMatches(text, FILE_PATH_REGEX);

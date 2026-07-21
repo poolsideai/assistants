@@ -1,6 +1,6 @@
 import { poolsideAcpNavList } from "@poolsideai/helperapi";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ACPConversationRepositoryWriter } from "./ConversationRepository.svelte";
+import type { ACPProjectRepositoryWriter } from "./ProjectRepository.svelte";
 
 export async function refreshACPNavState(
   projects: Pick<ACPProjectRepositoryWriter, "applyNavState" | "refresh">,

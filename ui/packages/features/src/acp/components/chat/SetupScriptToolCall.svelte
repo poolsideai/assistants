@@ -3,7 +3,7 @@
   import type { IconName } from "@poolsideai/components/icon";
   import { Spinner } from "@poolsideai/components/spinner";
   import TerminalOutputView from "../TerminalOutputView.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { AcpSetupScriptOutput } from "../../features/SetupScriptOutputRepository.svelte";
 
   interface Props {
     output: AcpSetupScriptOutput;

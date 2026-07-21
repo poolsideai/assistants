@@ -1,7 +1,7 @@
 <script module lang="ts">
   import { defineMeta } from "@storybook/addon-svelte-csf";
   import TextBlock from "./TextBlock.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import AcpSessionProvider from "../../features/SessionProvider.svelte";
   import type { ComponentProps } from "svelte";
 
   const { Story } = defineMeta({
@@ -71,15 +71,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     isUser: true,
   }}
 />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+<Story
+  name="Slash tokens inside paths are not pills"
+  args={{
+    text: [
+      "Look at /folder/piano-composer and src/plan — neither should pill.",
+      "",
+      "But bare /plan and /piano-composer still pill.",
+    ].join("\n\n"),
+    isUser: true,
+  }}
+/>

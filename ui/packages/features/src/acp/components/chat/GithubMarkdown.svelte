@@ -1,6 +1,6 @@
 <script lang="ts">
   import { MarkdownBlock } from "@poolsideai/components/markdown";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPGithubRepo } from "../../features/GithubRepository.svelte";
   import { markdownHost } from "../../markdownHost";
 
   interface Props {

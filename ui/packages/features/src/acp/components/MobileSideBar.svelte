@@ -13,12 +13,12 @@
     worktreeBusyLabel,
     type ACPConversationSummary,
     type ACPNavProject,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } from "../navTypes";
+  import { getACPConversationRepo } from "../features/ConversationRepository.svelte";
+  import { getACPGithubRepo } from "../features/GithubRepository.svelte";
+  import { getACPProjectRepo } from "../features/ProjectRepository.svelte";
+  import { getACPWorktreeRepo } from "../features/WorktreeRepository";
+  import type { ACPSession } from "../features/Session.svelte";
   import { rpc } from "../hostRpc";
   import { formatRelativeTimeWithoutAgo } from "../shared/time";
   import {
@@ -31,7 +31,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { getOptionalACPConnectionPoolContext } from "../connectionPoolContext";
   import ACPLogCaptureConfirmation from "./sidebar/ACPLogCaptureConfirmation.svelte";
   import { acpLogCaptureMenuAction, type ACPLogCaptureTarget } from "./sidebar/acpLogCapture";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { setAcpSidebarController } from "./sidebar/SidebarController.svelte";
   import { longPress } from "./sidebar/longPress";
   import { sidebarOpensViewLabel, sidebarRenameLabel } from "./sidebar/menuLabels";
   import MobileActionSheet, { type MobileSheetItem } from "./sidebar/MobileActionSheet.svelte";

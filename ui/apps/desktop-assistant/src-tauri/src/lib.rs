@@ -142,7 +142,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     let app = builder
         .plugin(tauri_plugin_dialog::init())
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        .plugin(tauri_plugin_notification::init())
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         .plugin(tauri_plugin_screenshots::init())
         .plugin(tauri_plugin_shell::init())

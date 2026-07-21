@@ -16,7 +16,7 @@
   import UserMessage from "./events/UserMessage.svelte";
   import ToolCall from "./events/ToolCall.svelte";
   import ToolCallGroup from "./events/tool/ToolCallGroup.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { CopyToClipboard } from "./ui";
   import type { WorkspaceFolder } from "@poolsideai/rpc";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import {
@@ -118,70 +118,70 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   type RenderItem = {
     item: GroupedItem;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    copyText?: string;
   };
 
   function agentMessageText(item: GroupedItem): string {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Groups can absorb interim agent messages (end-of-turn summaries, and
+    // interrupted compact turns); the latest one carries the response text.
+    const events =
+      item.kind === "event_group" ? item.events.map((groupItem) => groupItem.event) : [item.event];
+    for (let i = events.length - 1; i >= 0; i--) {
+      const event = events[i];
+      if (event.eventKind !== "agent_message") continue;
+      const text = event.content
+        .filter((block): block is { type: "text"; text: string } => block.type === "text")
+        .map((block) => block.text)
+        .join("\n\n");
+      if (text.trim() !== "") return text;
+    }
+    return "";
   }
 
   const renderItemsWithFooters = $derived.by<RenderItem[]>(() => {
     const result: RenderItem[] = [];
     let activeResponseEntries: RenderItem[] = [];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let responseText = "";
+    let copyCandidate: RenderItem | undefined;
+
+    const setCopyText = () => {
+      if (copyCandidate && responseText !== "") {
+        copyCandidate.copyText = responseText;
+      }
+      responseText = "";
+      copyCandidate = undefined;
+    };
 
     for (const item of renderItems) {
       const entry: RenderItem = { item };
       result.push(entry);
 
       if (item.kind === "event" && item.event.eventKind === "user_message" && !item.event.steer) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        setCopyText();
         activeResponseEntries = [];
       } else {
         activeResponseEntries.push(entry);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        const text = agentMessageText(item);
+        const isToolRow =
+          item.kind === "event_group" ||
+          (item.kind === "event" && item.event.eventKind === "tool_call");
+        // Trim only to decide whether the message has meaningful text; the
+        // clipboard payload keeps the raw value, where leading whitespace can
+        // be significant (Markdown indentation, code).
+        if (text.trim() !== "") {
+          responseText = text;
+          copyCandidate = entry;
+        } else if (isToolRow) {
+          copyCandidate = entry;
         }
       }
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    setCopyText();
 
     if (isPrompting) {
       for (const entry of activeResponseEntries) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        entry.copyText = undefined;
       }
     }
 
@@ -189,19 +189,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#snippet responseFooter(entry: RenderItem)}
+  {#if entry.copyText}
+    <div class="flex w-full items-center justify-end gap-2">
+      <div
+        data-response-actions
         class="pointer-events-none flex shrink-0 opacity-0 focus-within:pointer-events-auto focus-within:opacity-100 group-hover/response:pointer-events-auto group-hover/response:opacity-100"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      >
         <CopyToClipboard text={entry.copyText} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </div>
+    </div>
+  {/if}
+{/snippet}
+
 <!-- Long threads are windowed (only near-viewport rows in the DOM); short ones
      and every non-chat-pane consumer render every row. gap 10px == gap-2.5. -->
 <VirtualList
@@ -227,41 +227,41 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       {/snippet}
 
       {#if item.kind === "event_group"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <div class="group/response flex w-full min-w-0 flex-col gap-2">
           <!-- showRule: at most one rule per turn. An end-of-turn summary is
                always the turn's single fold, and so is compact mode's live
                fold — but grouped mode raises and drops several live folds as a
                turn streams, which would draw a rule for each. -->
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <ToolCallGroup
+            events={item.events}
+            turn={item.turn}
+            live={item.live}
             showRule={!item.live || toolActivity === "compact"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            {workspaceFolders}
+          />
+          {@render responseFooter(entry)}
+        </div>
       {:else}
         {@const event = item.event}
         {@const previousEvent = item.index > 0 ? events[item.index - 1] : undefined}
         {#if event.eventKind === "user_message"}
           <UserMessage {event} />
         {:else if event.eventKind === "agent_message"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <div class="group/response flex w-full min-w-0 flex-col gap-2">
+            <AgentMessage
+              {event}
+              streaming={item.index === streamingAgentMessageIndex}
+              {scrollElement}
+            />
+            {@render responseFooter(entry)}
+          </div>
         {:else if event.eventKind === "agent_thought"}
           <AgentThought {event} complete={!item.liveThought} />
         {:else if event.eventKind === "tool_call"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <div class="group/response flex w-full min-w-0 flex-col gap-2">
+            <ToolCall {event} {workspaceFolders} />
+            {@render responseFooter(entry)}
+          </div>
         {:else if event.eventKind === "mode_change"}
           <ModeChange
             {event}

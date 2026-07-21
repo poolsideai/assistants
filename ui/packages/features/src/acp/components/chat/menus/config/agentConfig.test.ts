@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { AcpAgentRegistryRepository } from "../../../../features/AgentRegistryRepository.svelte";
+import type { ACPChatSessionScope } from "../../../../features/ChatSessionScope.svelte";
+import type { ACPSessionRepository } from "../../../../features/SessionRepository.svelte";
 import {
   agentIconUrl,
   agentName,

@@ -165,7 +165,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   client.onNotification("poolside/acpNav/didChange", (params: ACPNavDidChangeParams) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    system.assistant.updateAttentionCount(params.state.conversations);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (system.assistant.isReady) {
       void system.assistant.rpc.acpNavDidChange(params);

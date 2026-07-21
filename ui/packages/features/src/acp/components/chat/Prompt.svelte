@@ -8,10 +8,10 @@
   import Icon from "@poolsideai/components/icon";
   import * as Prompt from "@poolsideai/components/prompt";
   import { flushSync, onDestroy, onMount, type ComponentProps, type Snippet } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getOptionalACPConnectionPoolContext } from "../../connectionPoolContext";
+  import { getACPChatSessionScope } from "../../features/ChatSessionScope.svelte";
+  import { getACPConversationRepo } from "../../features/ConversationRepository.svelte";
+  import { getACPAgentRegistryRepo } from "../../features/AgentRegistryRepository.svelte";
   import { appState, resolveSessionCwd } from "../../hostAdapter";
   import { DEFAULT_AGENT_SERVER, LOCAL_AGENT_SERVER } from "../../agentServers";
   import { enableClaudeSessionFeatures } from "../../claudePromptSuggestions";
@@ -19,7 +19,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { localInferenceModelMissing } from "../../localInferenceModelOptions";
   import { agentName as getAgentName, isClaudeAgent } from "./menus/config/agentConfig";
   import CommandMenu from "./menus/command/CommandMenu.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import SkillsMenu from "./menus/command/SkillsMenu.svelte";
   import ConfigValueMenus from "./menus/config/ConfigValueMenus.svelte";
   import PromptConfigControls from "./menus/config/PromptConfigControls.svelte";
   import PlanModeIndicator from "./PlanModeIndicator.svelte";
@@ -45,8 +45,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import SpeechButton from "./speech/SpeechButton.svelte";
   import { voiceInputStore } from "./speech/voiceInputStore.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { normalizeDumpEntries } from "../../debugDump";
+  import { scopeTrajectoryToConversation } from "../../trajectory";
   import { rpc } from "../../hostRpc";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { installedSkills } from "./menus/command/InstalledSkillsRepository.svelte";
@@ -255,7 +255,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       // The editor clears after submit starts, when isSending suppresses draft updates.
       conversations.setDraftPromptPresence(conversationId, false);
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    contextRepo.reset();
     pastedAttachments?.clear();
     onSubmit?.(value);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -611,10 +611,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     />
   </Prompt.Menu.Root>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <Prompt.Menu.Root {...acpMenus.skills}>
     <SkillsMenu fallbackSkills={installedSkills.commands} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </Prompt.Menu.Root>
+
   <Prompt.Menu.Root {...menus.secrets}>
     <SecretsMenu />
   </Prompt.Menu.Root>

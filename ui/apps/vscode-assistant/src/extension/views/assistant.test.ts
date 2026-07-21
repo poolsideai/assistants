@@ -3,7 +3,7 @@ import { Assistant, AssistantState } from "./assistant";
 
 interface MockWebviewView {
   visible: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  badge?: { value: number; tooltip: string };
   show: ReturnType<typeof vi.fn>;
   onDidDispose: ReturnType<typeof vi.fn>;
   onDidChangeVisibility: ReturnType<typeof vi.fn>;
@@ -117,65 +117,65 @@ describe("Assistant", () => {
     expect(assistant.webviewView).toBeUndefined();
     expect(executeCommand).not.toHaveBeenCalled();
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  test("updates the conversation attention badge count", async () => {
+    const assistant = createAssistant();
+    const webviewView = createWebviewView(true);
+    await assistant.resolveWebviewView(webviewView as any);
+
+    assistant.updateAttentionCount([
+      attentionConversation("conversation:waiting", { waitingForUser: true }),
+      attentionConversation("conversation:unread", { unread: true }),
+      attentionConversation("conversation:working", { working: true }),
+    ]);
+
+    expect(webviewView.badge).toEqual({
+      value: 2,
+      tooltip: "2 conversations need attention",
+    });
+  });
+
+  test("uses singular grammar for one conversation attention badge", async () => {
+    const assistant = createAssistant();
+    const webviewView = createWebviewView(true);
+    await assistant.resolveWebviewView(webviewView as any);
+
+    assistant.updateAttentionCount([
+      attentionConversation("conversation:unread", { unread: true }),
+    ]);
+
+    expect(webviewView.badge).toEqual({
+      value: 1,
+      tooltip: "1 conversation needs attention",
+    });
+  });
+
+  test("clears the conversation attention badge with a zero badge", async () => {
+    const assistant = createAssistant();
+    const webviewView = createWebviewView(true);
+    await assistant.resolveWebviewView(webviewView as any);
+
+    assistant.updateAttentionCount([
+      attentionConversation("conversation:unread", { unread: true }),
+    ]);
+    assistant.updateAttentionCount(null);
+
+    expect(webviewView.badge).toEqual({ value: 0, tooltip: "" });
+  });
 });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+function attentionConversation(
+  id: string,
+  liveStatus: { working?: boolean; waitingForUser?: boolean; unread?: boolean },
+) {
+  return {
+    id,
+    active: true,
+    archived: false,
+    liveStatus: {
+      working: liveStatus.working ?? false,
+      waitingForUser: liveStatus.waitingForUser ?? false,
+      unread: liveStatus.unread ?? false,
+    },
+  } as any;
+}

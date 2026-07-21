@@ -3,10 +3,10 @@
   import type { Snippet } from "svelte";
   import { appState } from "../hostAdapter";
   import type { Capabilities } from "../hostAdapter";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { ACPNavConversation, ACPNavProject } from "../navTypes";
+  import { getACPConversationRepo } from "../features/ConversationRepository.svelte";
   import { setLocalInferenceContext } from "../features/LocalInferenceRepository.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPProjectRepo } from "../features/ProjectRepository.svelte";
 
   interface Props {
     children: Snippet;

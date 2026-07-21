@@ -1,11 +1,11 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { EditorState, TextSelection } from "prosemirror-state";
 import { markdownSerializer, schema } from "../../prompt/editor/schema.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import {
+  classifyPasteSegments,
+  closeCodeBlockFence,
+  hasPromptChipHtml,
+  markdownTextToSlice,
+} from "./code.js";
 
 function docFromMarkdownSlice(markdown: string) {
   const state = EditorState.create({ schema });
@@ -86,96 +86,96 @@ describe("hasPromptChipHtml", () => {
   });
 });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+describe("closeCodeBlockFence", () => {
+  function stateWithCodeBlock(text: string, cursorOffset: number) {
+    const doc = schema.node("doc", null, [
+      schema.nodes.code_block.create(null, text ? schema.text(text) : null),
+    ]);
+    return EditorState.create({
+      schema,
+      doc,
+      selection: TextSelection.create(doc, 1 + cursorOffset),
+    });
+  }
+
+  it("exits the code block when the closing fence is typed on its own line", () => {
+    const text = "const value = 1;\n``";
+    const state = stateWithCodeBlock(text, text.length);
+
+    const tr = closeCodeBlockFence(state, state.selection.from, "`");
+    expect(tr).not.toBeNull();
+
+    const next = state.apply(tr!);
+    expect(next.doc.childCount).toBe(2);
+    expect(next.doc.child(0).type.name).toBe("code_block");
+    expect(next.doc.child(0).textContent).toBe("const value = 1;");
+    expect(next.doc.child(1).type.name).toBe("paragraph");
+    expect(next.selection.$from.parent).toBe(next.doc.child(1));
+  });
+
+  it("removes the block entirely when it only contains the fence", () => {
+    const state = stateWithCodeBlock("``", 2);
+
+    const tr = closeCodeBlockFence(state, state.selection.from, "`");
+    expect(tr).not.toBeNull();
+
+    const next = state.apply(tr!);
+    expect(next.doc.childCount).toBe(1);
+    expect(next.doc.child(0).type.name).toBe("paragraph");
+    expect(next.doc.child(0).content.size).toBe(0);
+  });
+
+  it("moves trailing code lines after the fence into paragraphs", () => {
+    const text = "kept\n``\nafter";
+    const state = stateWithCodeBlock(text, "kept\n``".length);
+
+    const tr = closeCodeBlockFence(state, state.selection.from, "`");
+    expect(tr).not.toBeNull();
+
+    const next = state.apply(tr!);
+    expect(next.doc.childCount).toBe(2);
+    expect(next.doc.child(0).textContent).toBe("kept");
+    expect(next.doc.child(1).type.name).toBe("paragraph");
+    expect(next.doc.child(1).textContent).toBe("after");
+  });
+
+  it("accepts a closing fence with leading whitespace, like the opening rule", () => {
+    const text = "const value = 1;\n  ``";
+    const state = stateWithCodeBlock(text, text.length);
+
+    const tr = closeCodeBlockFence(state, state.selection.from, "`");
+    expect(tr).not.toBeNull();
+
+    const next = state.apply(tr!);
+    expect(next.doc.childCount).toBe(2);
+    expect(next.doc.child(0).textContent).toBe("const value = 1;");
+    expect(next.doc.child(1).type.name).toBe("paragraph");
+  });
+
+  it("ignores backticks that are not alone on their line", () => {
+    const text = "value = ``";
+    const state = stateWithCodeBlock(text, text.length);
+    expect(closeCodeBlockFence(state, state.selection.from, "`")).toBeNull();
+
+    const trailing = "``rest";
+    const trailingState = stateWithCodeBlock(trailing, 2);
+    expect(closeCodeBlockFence(trailingState, trailingState.selection.from, "`")).toBeNull();
+  });
+
+  it("ignores input that is not a backtick or not in a code block", () => {
+    const state = stateWithCodeBlock("``", 2);
+    expect(closeCodeBlockFence(state, state.selection.from, "a")).toBeNull();
+
+    const doc = schema.node("doc", null, [schema.node("paragraph", null, [schema.text("``")])]);
+    const paragraphState = EditorState.create({
+      schema,
+      doc,
+      selection: TextSelection.create(doc, 3),
+    });
+    expect(closeCodeBlockFence(paragraphState, 3, "`")).toBeNull();
+  });
+});
+
 describe("markdownTextToSlice", () => {
   it("keeps GFM table rows contiguous when serialized", () => {
     const markdown = [

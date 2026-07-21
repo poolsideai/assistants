@@ -11,7 +11,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { catalogCardClass } from "../settings/catalogCardStyles";
   import type { MenuSpecItem } from "../ui/menuSpec";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import SearchField from "../sidebar/SearchField.svelte";
   import ConnectorServiceIcon from "./ConnectorServiceIcon.svelte";
   import McpRowMenu from "./McpRowMenu.svelte";
   import {
@@ -262,13 +262,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 {/snippet}
 
 <div class="connector-catalog flex flex-col gap-3">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div class="connector-catalog-controls">
+    <SearchField bind:value={searchQuery} placeholder="Search connectors" class="w-full" />
     <Button
       type="button"
       size="sm"
       appearance="outline"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      class="connector-catalog-add w-full"
       onclick={onAddCustom}
     >
       <Icon name="plus" size={14} />
@@ -354,30 +354,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     width: 100%;
     max-width: 56rem;
     margin-inline: auto;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    container-type: inline-size;
+  }
+
+  .connector-catalog-controls {
+    display: grid;
+    width: 75%;
+    margin-inline: auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .connector-catalog-add {
+    width: auto;
+  }
+
+  @container (max-width: 40rem) {
+    .connector-catalog-controls {
+      width: 100%;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .connector-catalog-add {
+      width: 100%;
+    }
   }
 
   .connector-catalog-grid {

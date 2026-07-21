@@ -2,8 +2,8 @@
   import Icon from "@poolsideai/components/icon";
   import { untrack } from "svelte";
   import { slide } from "svelte/transition";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { compareWorktreesByDisplayOrder } from "../../navTypes";
+  import { getACPProjectRepo } from "../../features/ProjectRepository.svelte";
   import { appState } from "../../hostAdapter";
   import { shortenHomeDirectoryInText } from "../../shared/paths";
   import ProjectSettingsView from "../ProjectSettingsView.svelte";

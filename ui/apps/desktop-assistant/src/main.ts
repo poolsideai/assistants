@@ -13,13 +13,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { homeDir } from "@tauri-apps/api/path";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import {
+  isPermissionGranted,
   removeActive,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  requestPermission,
+  sendNotification,
+} from "@tauri-apps/plugin-notification";
 import { mount } from "svelte";
 import {
   applyDesktopAccent,
@@ -332,7 +332,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   logStartupDiagnostic("start.windowProbed");
   setDesktopWindowFullscreenClass(isWindowFullscreen);
   let lastAttentionBadgeCount = -1;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   const initialState = {
     userSettings: {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -394,7 +394,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     homeDirectory,
     keybindings: {},
     isHelperSupported: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    isEditorFocused: isWindowFocused,
   };
 
   const desktopHost = new DesktopHost(initialState, ({ command, payload, requestId }) =>
@@ -422,13 +422,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   void currentWindow.onFocusChanged(({ payload: focused }) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    isWindowFocused = focused;
+    desktopHost.setWebviewFocus(focused);
+  });
   void currentWindow.onResized(() => {
     void refreshDesktopFullscreen();
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   const rpcHostRequestHandler = (method: string, args: unknown[]) =>
     desktopHost.handleHostRequest(method, args);
 
@@ -688,12 +688,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     callback?.();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const notifier: Notifier = {
+    isSupported: () => true,
+    async ensurePermission() {
+      if (await isPermissionGranted()) return true;
+      return (await requestPermission()) === "granted";
+    },
     send({ title, body, onClick }) {
       const id = createNotificationId(notificationCallbacks);
       if (!isWindowFocused) {
@@ -705,14 +705,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           notificationCallbacks.delete(id);
           sendNotification({ id, title, body, autoCancel: true });
         });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
       return () => {
         notificationCallbacks.delete(id);
         void cancelDesktopNotification(id);
       };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+  };
+
   await init();
   logStartupDiagnostic("start.mounting");
   let conversationsActive = false;
@@ -723,7 +723,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       rpcHostRequestHandler,
       rpcWebViewResponseHandler,
       initialState,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      notifier,
       desktopFileViewerPanel: DesktopFileViewerPanel,
       tauriDragDropSubscriber,
       onShellInteractive,

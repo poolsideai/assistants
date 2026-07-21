@@ -1,6 +1,6 @@
 import type { AnyMessage, Stream } from "@agentclientprotocol/sdk";
 import { DEFAULT_AGENT_SERVER, normalizeAgentServerName } from "./agentServers";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ACPDebugLog } from "./debugDump";
 import { toErrorResponse } from "./errors";
 import type { HelperAPIClient } from "./hostRpc";
 

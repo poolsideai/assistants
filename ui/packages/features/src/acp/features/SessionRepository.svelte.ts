@@ -1,12 +1,12 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type {
+  ContentBlock,
+  McpServer,
+  PermissionOptionId,
+  RequestPermissionRequest,
+  RequestPermissionResponse,
+  SessionId,
+  SessionNotification,
+} from "@agentclientprotocol/sdk";
 import {
   poolsideAcpApprovalsList,
   poolsideAcpApprovalsRespond,
@@ -19,56 +19,56 @@ import type {
   ACPTurnEndedNotification,
   LocalInferenceState,
 } from "@poolsideai/helperapi/schemas";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { isLoading, isSuccess, loading, success } from "@poolsideai/lib/async-state";
 import { createContext, untrack } from "svelte";
 import { SvelteMap } from "svelte/reactivity";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ElicitationRepository } from "../../elicitation/ElicitationRepository.svelte";
+import { DEFAULT_AGENT_SERVER, normalizeAgentServerName } from "../agentServers";
 import { CLAUDE_AGENT_SERVER, type ACPPromptSuggestion } from "../claudePromptSuggestions";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import {
+  ACP_DEBUG_DUMP_LOADED_EVENT,
+  debugDumpLoadedDetail,
+  normalizeDumpEntries,
+  type ACPDebugDumpLoadedEventDetail,
+  type ACPDumpEntry,
+} from "../debugDump";
+import { ACPError } from "../errors";
 import type { ACPClaudeGoalUpdate } from "../goals";
 import {
   currentModelConfigValue,
   mergeLocalInferenceModelConfigOptions,
 } from "../localInferenceModelOptions";
 import { newConversationID, type ACPClosedSession } from "../navTypes";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { buildSessionInfo, type ACPResolvedSessionInfo } from "../sessionInfo";
+import {
+  ACPAgentRepository,
+  type ACPAgentServerConfigurationChange,
+} from "./AgentRepository.svelte";
+import {
+  ACPConversationStatusRepositoryWriter,
+  type ACPConversationStatusRepository,
+} from "./ConversationStatusRepository.svelte";
+import { supportsSessionList } from "./HistoryRepository.svelte";
+import { ACPPermissionCoordinator } from "./PermissionCoordinator";
+import {
+  ACPSession,
+  type ACPConversationLiveStatus,
   type ACPPendingPermissionRequest,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  type ACPSessionEnvironment,
+} from "./Session.svelte";
 import { handoffContextContent } from "./session/handoffContext";
 import { materializeConversationHistory } from "./session/handoffHistory";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+type NoSetters<T> = { readonly [K in keyof T]: T[K] };
+
 // Coalescing window for connector-set refreshes: long enough that the local
 // repository listener and the helper's didChange broadcast for the same
 // mutation share one sweep, short enough to feel immediate.
 const MCP_SERVERS_REFRESH_COALESCE_MS = 300;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type ACPSessionRepository = NoSetters<ACPSessionRepositoryWriter>;
+
+export class ACPSessionRepositoryWriter {
   private static readonly INACTIVE_SESSION_CACHE_LIMIT = 3;
   // Sessions idle this long have their agent-side resources closed (the
   // per-session subprocess) while the warm record stays in memory; the next
@@ -77,15 +77,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   private static readonly IDLE_SESSION_CLOSE_MS = 10 * 60 * 1000;
   private static readonly IDLE_SESSION_SWEEP_INTERVAL_MS = 60 * 1000;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  agents = new ACPAgentRepository();
+  private permissions: ACPPermissionCoordinator;
+
+  // generation + serialized queues live on each ACPSession (per-session
+  // cancellation lifecycle), so switching sessions in the UI no longer
+  // invalidates in-flight ops on other sessions.
+
+  emitter = createSessionEventEmitter();
+
   // The conversation id is the stable route; replacing its value is how a
   // handoff changes the active agent-side session. SvelteMap makes that route
   // change reactive without invalidating readers for nested transcript updates.
@@ -123,65 +123,65 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   // optimistic responses only restore their local card if no newer snapshot
   // has already decided its state.
   private approvalsRevision = 0;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private conversationStatus: ACPConversationStatusRepository;
+  private elicitation?: ElicitationRepository;
   private readonly identifiesClaudeAgent: (agentServer: string) => boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private readonly sessionEnv: ACPSessionEnvironment = {
+    agents: this.agents,
+    emitter: this.emitter,
     isClaudeAgent: (agentServer) => this.identifiesClaudeAgent(agentServer),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    applyCachedConfigToLocalSessionsForAgent: (agentServer, exceptConversationId) =>
+      this.applyCachedConfigToLocalSessionsForAgent(agentServer, exceptConversationId),
+    cancelPendingPermissionRequestsForSession: (sessionId, agentServer) =>
+      this.cancelPermissionRequests(sessionId, agentServer),
+    markUnread: (sessionId, agentServer) =>
+      this.conversationStatus.markUnread(sessionId, agentServer),
+    publishLiveStatuses: () => this.publishLiveStatuses(),
+  };
+
+  constructor(
+    conversationStatus: ACPConversationStatusRepository = new ACPConversationStatusRepositoryWriter().publicAPI(),
+    elicitation?: ElicitationRepository,
     identifiesClaudeAgent: (agentServer: string) => boolean = (agentServer) =>
       normalizeAgentServerName(agentServer) === CLAUDE_AGENT_SERVER,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ) {
+    this.conversationStatus = conversationStatus;
+    this.elicitation = elicitation;
     this.identifiesClaudeAgent = identifiesClaudeAgent;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.permissions = new ACPPermissionCoordinator({
+      markWaitingForUser: (input) => this.conversationStatus.markWaitingForUser(input),
+      clearWaitingForUser: (sessionId, agentServer) =>
+        this.conversationStatus.clearWaitingForUser(sessionId, agentServer),
+      publish: () => this.publishLiveStatuses(),
       getUnbound: () => this.unboundPermissionRequests,
       setUnbound: (requests) => {
         this.unboundPermissionRequests = requests;
       },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+  }
+
+  getSessionByConversationId(conversationId: string | null | undefined): ACPSession | null {
+    return conversationId ? (this.liveSessions.get(conversationId) ?? null) : null;
+  }
+
+  getSessionById(sessionId: SessionId, agentServer = DEFAULT_AGENT_SERVER): ACPSession | null {
+    return this.sessionFor(sessionId, normalizeAgentServerName(agentServer));
+  }
+
+  applyCachedConfigToLocalSessionsForAgent(
+    agentServer: string,
+    exceptConversationId?: string,
     options: { preserveSelections?: boolean } = {},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ): void {
+    agentServer = normalizeAgentServerName(agentServer);
+    for (const session of this.liveSessions.values()) {
+      if (
+        session.conversationId === exceptConversationId ||
+        session.sessionId !== null ||
+        session.agentServer !== agentServer
+      ) {
+        continue;
+      }
       if (options.preserveSelections) {
         session.applyCachedConfigPreservingSelections();
       } else {
@@ -240,34 +240,34 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           preserveSelections: true,
         });
       });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  }
+
+  /**
+   * Merge the model config option derived from local inference state into
+   * agent-created sessions, so a freshly downloaded model appears in the
+   * picker of open conversations. Only touches the model option — the rest
+   * of the config is agent-owned and left alone. Local-only sessions
+   * (sessionId === null) mirror the config cache instead; see
+   * applyCachedConfigToLocalSessionsForAgent.
    *
    * The merge is a local-only mutation of session.configOptions, so if it
    * changes the model's currentValue (e.g. the previously selected model was
    * deleted, or the first downloaded model just became the selection), the
    * agent is told about the new value via setConfigOption. Otherwise the
    * picker would show a model the agent never actually switched to.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+   */
+  applyLocalInferenceModelConfigToSessionsForAgent(
+    agentServer: string,
+    state: LocalInferenceState,
+  ): void {
+    agentServer = normalizeAgentServerName(agentServer);
+    for (const session of this.liveSessions.values()) {
+      if (session.sessionId === null || session.agentServer !== agentServer) {
+        continue;
+      }
       const previousValue = currentModelConfigValue(session.configOptions);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      session.configOptions = mergeLocalInferenceModelConfigOptions(session.configOptions, state);
       const nextValue = currentModelConfigValue(session.configOptions);
       if (nextValue !== null && nextValue !== previousValue) {
         const conversationId = session.conversationId;
@@ -302,10 +302,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         session.sessionId !== null &&
         this.conversationStatus.getConversationStatus(session.sessionId, agentServer).working;
       if (session.isPromptActive || session.isSending || remotelyWorking) sessions.push(session);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
     return sessions;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   /** Includes conversations on other surfaces, even if never opened in this window. */
   hasActiveConversationsForAgent(agentServer: string): boolean {
     agentServer = normalizeAgentServerName(agentServer);
@@ -339,90 +339,90 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return false;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  readonly isConnected = $derived(this.agents.hasConnections());
+  readonly supportsSessionHistory = $derived(
+    this.agents.agentServerNames.some((agentServer) =>
+      supportsSessionList(this.agents.initializeResponses[agentServer]?.agentCapabilities ?? null),
+    ),
+  );
+
+  getConversationStatus(
+    sessionId: SessionId,
+    agentServer = DEFAULT_AGENT_SERVER,
+  ): ACPConversationLiveStatus {
+    return this.conversationStatus.getConversationStatus(
+      sessionId,
+      normalizeAgentServerName(agentServer),
+    );
+  }
+
+  private discardAgentServerState(agentServers: Set<string>): void {
+    // Local-only sessions (sessionId === null) are not known by the agent yet.
+    // Migrate them to the next available agent instead of discarding the
+    // pending conversation shown in the sidebar.
+    const migrationTarget = this.firstRemainingAgentServer(agentServers);
+    let removedLiveSession = false;
+    for (const [key, record] of this.liveSessions) {
+      if (!agentServers.has(record.agentServer)) continue;
+      if (record.sessionId === null && migrationTarget) {
+        this.liveSessions.delete(key);
         this.sessionRecency.delete(key);
         this.sessionIdleSince.delete(key);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        record.agentServer = migrationTarget;
+        this.liveSessions.set(record.conversationId, record);
         this.touchSession(record.conversationId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        removedLiveSession = true;
+        continue;
+      }
+      // Cancel any pending batched transcript flush before dropping the session,
+      // or its rAF fires ~16ms later and re-persists sidebar metadata for a
+      // session that no longer exists.
+      record.cancelTranscriptFlush();
+      this.liveSessions.delete(key);
       this.sessionRecency.delete(key);
       this.sessionIdleSince.delete(key);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      removedLiveSession = true;
+    }
+
+    this.agents.discardRuntimeStateFor(agentServers);
+
+    if (removedLiveSession) {
+      this.publishLiveStatuses();
+    }
+  }
+
+  /**
+   * Pick the first agent server not in `excluded`, preferring the configured
+   * default. Returns null if all agent servers are excluded. Used to
+   * pick a migration target for local-only sessions whose agent is removed.
+   */
+  private firstRemainingAgentServer(excluded: Set<string>): string | null {
+    if (!excluded.has(this.agents.defaultAgentServer)) return this.agents.defaultAgentServer;
+    for (const name of this.agents.agentServerNames) {
+      if (!excluded.has(name)) return name;
+    }
+    return null;
+  }
+
+  /**
+   * Look up a session in the map. Returns null when no session exists for
+   * the given (sessionId, agentServer) pair — callers should treat this as
+   * "the session went away, drop the update."
+   */
+  private sessionFor(sessionId: SessionId, agentServer: string): ACPSession | null {
+    agentServer = normalizeAgentServerName(agentServer);
+    for (const session of this.liveSessions.values()) {
+      if (session.sessionId === sessionId && session.agentServer === agentServer) {
+        return session;
+      }
+    }
+    return null;
+  }
+
+  clearUnread(sessionId: SessionId, agentServer: string): void {
+    this.conversationStatus.clearUnread(sessionId, normalizeAgentServerName(agentServer));
+  }
+
   /**
    * Claim that a surface is displaying this conversation, keeping its session
    * on the responsive visible flush cadence; every unclaimed session drops to the slow
@@ -475,7 +475,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  publishLiveStatuses(): void {
     // Fold any held (unbound) requests into their now-live session first, so a
     // single source — the session's own pendingPermissionRequests — drives the
     // inline card, the waiting indicator, and cancellation for it.
@@ -493,20 +493,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (!shallowArrayEquals(this.pendingApprovalsSnapshot, nextApprovals)) {
       this.pendingApprovalsSnapshot = nextApprovals;
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.conversationStatus.syncLiveSessions(
+      Array.from(this.liveSessions.values(), (record) => ({
+        conversationId: record.conversationId,
+        sessionId: record.sessionId,
+        agentServer: record.agentServer,
         working: record.isPromptActive || record.isSending,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        waitingForUser:
+          record.pendingPermissionRequests.length > 0 ||
+          (record.sessionId !== null &&
+            this.elicitation?.hasPendingForSession(record.sessionId, record.agentServer) === true),
+      })),
+    );
+  }
+
   /**
    * Fold any held (unbound) permission requests into a now-live session so a
    * single source — the session's own pendingPermissionRequests — drives its
@@ -533,75 +533,75 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  reconcileAgentServerConfiguration({
+    changed,
+    removedAgentServers,
+  }: ACPAgentServerConfigurationChange): void {
+    if (!changed) {
+      return;
+    }
+    if (removedAgentServers.size > 0) {
+      this.discardAgentServerState(removedAgentServers);
+    }
+    for (const agentServer of this.agents.agentServerNames) {
+      this.applyCachedConfigToLocalSessionsForAgent(agentServer);
+    }
+  }
+
+  createSession(
+    cwd: string,
+    agentServer: string,
+    conversationId: string | null = null,
     options: { isChat?: boolean; isPendingConversationPersisted?: boolean } = {},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ): ACPSession {
+    agentServer = normalizeAgentServerName(agentServer);
+    const sessionCwd = cwd || "/";
+    const resolvedConversationId = conversationId ?? newConversationID();
+    const existing = this.liveSessions.get(resolvedConversationId);
+    if (existing && existing.sessionId !== null) {
       this.touchSession(existing.conversationId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return existing;
+    }
+
+    const session = existing
+      ? existing
+      : this.createLocalSession({
+          agentServer,
+          cwd: sessionCwd,
+          conversationId: resolvedConversationId,
           isChat: options.isChat === true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          isPendingConversationPersisted: options.isPendingConversationPersisted === true,
+        });
+
+    if (existing) {
       existing.invalidateGeneration();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      existing.queue.reset();
+      existing.agentServer = agentServer;
+      existing.cwd = sessionCwd;
       if (options.isChat !== undefined) {
         existing.isChat = options.isChat;
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      existing.isPendingConversationPersisted =
+        existing.isPendingConversationPersisted || options.isPendingConversationPersisted === true;
+    }
+
+    session.applyCachedConfig();
+    session.dispatchPendingConversationAgentChange();
     this.touchSession(session.conversationId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Kick off a background cache load/refresh; when it settles, re-apply
+    // to the session if it still exists.
+    const target = session;
     const applyToPendingTarget = () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (
+        this.getSessionByConversationId(target.conversationId) === target &&
+        target.sessionId === null
+      ) {
         // Preserving selections makes this a no-op for an untouched draft
         // (its values came from the cache moments ago) while keeping any
         // pick the user managed to make before the background load/probe
         // settled.
         target.applyCachedConfigPreservingSelections();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
     };
     void this.agents
       .loadOrInitCachedConfig(agentServer, session.cwd)
@@ -619,9 +619,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       // The probe may have refreshed the cache; mirror it into the still-
       // pending session so the visible options aren't stale until recreation.
       .then(applyToPendingTarget);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return session;
+  }
+
   /**
    * Stage an idle Poolside conversation for another ACP agent. ACP session ids
    * remain agent-local; the Poolside conversation id is the stable identity
@@ -792,96 +792,96 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Create an ACPSession and insert it into the live map. The agent-side
+   * session is created later, by ACPSession, on first prompt.
+   */
+  private createLocalSession(opts: {
+    agentServer: string;
+    cwd: string;
+    conversationId: string;
     isChat: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    isPendingConversationPersisted: boolean;
+  }): ACPSession {
+    const session = new ACPSession({
+      env: this.sessionEnv,
+      sessionId: null,
+      agentServer: opts.agentServer,
+      cwd: opts.cwd,
+      conversationId: opts.conversationId,
       isChat: opts.isChat,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      isPendingConversationPersisted: opts.isPendingConversationPersisted,
+    });
     session.setTranscriptVisible(this.transcriptVisibleFor(session.conversationId));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.liveSessions.set(session.conversationId, session);
     this.touchSession(session.conversationId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return session;
+  }
+
+  handleAgentServerDidExit(agentServer: string, error?: string): void {
+    agentServer = normalizeAgentServerName(agentServer);
+    const wasConnectedAgent = this.agents.isConnectedTo(agentServer);
+    this.agents.clearRuntimeFor(agentServer);
+    // Invalidate every session bound to this agent — bump their per-session
+    // generation so in-flight ops bail, reset their queues, cancel open
+    // tool calls and pending permissions. Agent-backed sessions get
+    // marked for restore via loadSession on next prompt.
+    let touched = false;
+    for (const session of this.liveSessions.values()) {
+      if (session.agentServer !== agentServer) continue;
+      touched = true;
       session.invalidateGeneration();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      session.queue.reset();
       session.materializer.cancelOpenToolCalls(new Date());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      session.publishTranscript();
+      if (session.sessionId !== null) {
         // Mark the sessions that actually lost agent-side state. A conversation
         // started after this exit gets a session on the fresh process and must
         // not be dragged through session/load: for agents that materialize a
         // transcript only once a turn starts, that load fails and takes the
         // user's first prompt down with it.
         session.restoreRequired = true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        this.cancelPermissionRequests(session.sessionId, agentServer);
+      }
+      session.isPrompting = false;
+      session.isSending = false;
       session.steeringRequestsInFlight = 0;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      session.lastPromptInterrupted = true;
       session.setGoal(null);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    if (touched || wasConnectedAgent) {
+      this.agents.setNonSessionError(
+        agentServer,
+        new ACPError({
+          code: -32603,
+          message: "ACP agent server exited",
+          data: { agentServer, error },
+        }),
+      );
+      this.publishLiveStatuses();
+    }
+  }
+
+  async loadSessionRecord(
+    sessionId: SessionId,
+    cwd: string,
+    mcpServers: McpServer[],
+    seedInfo: Partial<ACPResolvedSessionInfo> | undefined,
+    agentServer: string,
     options: {
       fallbackCwds?: string[];
       isChat?: boolean;
       readOnlyInspection?: boolean;
     } = {},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ): Promise<ACPSession | null> {
+    agentServer = normalizeAgentServerName(agentServer);
+    const conversationId =
+      seedInfo?.conversationId ??
+      (seedInfo as { id?: string } | undefined)?.id ??
+      newConversationID();
+    const liveRecord =
+      this.liveSessions.get(conversationId) ?? this.sessionFor(sessionId, agentServer);
+    if (liveRecord) {
       // Archived previews deliberately seed a read-only session. Restoring the
       // conversation reopens that same cached record from a writable nav
       // summary, so remove only the transient inspection flag. Do not clear
@@ -900,62 +900,62 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         liveRecord.isChat = options.isChat;
       }
       this.touchSession(liveRecord.conversationId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      // Re-opening a record whose load is still in flight must not replace its
+      // loading state with a partial success snapshot; the in-flight load
+      // publishes its own terminal state.
+      if (!isLoading(liveRecord.loadState)) {
+        liveRecord.loadIntent = null;
+        liveRecord.loadState = success(liveRecord.buildLoadState());
+      }
+      return liveRecord;
+    }
+    // Create the session up-front so we have a stable target for serialize
+    // and replay. Pane callers own active-session state and resolve this
+    // session by key.
+    const session = new ACPSession({
+      env: this.sessionEnv,
+      sessionId,
+      agentServer,
+      conversationId,
       isChat: options.isChat === true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
     session.readOnlyInspection = options.readOnlyInspection === true;
     session.setTranscriptVisible(this.transcriptVisibleFor(session.conversationId));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.liveSessions.set(session.conversationId, session);
     this.touchSession(session.conversationId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    session.loadingCwd = cwd || "/";
+    session.loadIntent = "load";
+    session.loadState = loading;
     await session.serialize(async (gen: number) => {
       await this.hydrateConversationHistory(session, gen);
       if (gen !== session.generation) return;
       await session.loadExisting(gen, cwd, mcpServers, seedInfo, options.fallbackCwds ?? []);
     });
     this.evictInactiveSessions();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return isSuccess(session.loadState) ? session : null;
+  }
+
+  /**
+   * Force a fresh session/load replay into an existing live session,
+   * wholesale-replacing its materialized transcript. Used by hosts whose
+   * transport lost live updates it cannot recover (a remote resume failed
+   * after a reconnect), where the in-memory copy may be missing messages.
+   */
+  async reloadLiveSession(sessionId: SessionId, agentServer: string): Promise<boolean> {
+    const session = this.getSessionById(sessionId, agentServer);
+    if (!session || session.sessionId === null) return false;
     this.touchSession(session.conversationId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const cwd = session.sessionInfo?.cwd ?? session.loadingCwd ?? "/";
+    session.loadIntent = "load";
+    session.loadState = loading;
     await session.serialize(async (gen: number) => {
       await this.hydrateConversationHistory(session, gen);
       if (gen !== session.generation) return;
       await session.loadExisting(gen, cwd, [], session.sessionInfo ?? undefined);
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return isSuccess(session.loadState);
+  }
+
   private async hydrateConversationHistory(session: ACPSession, gen: number): Promise<void> {
     try {
       const history = await poolsideAcpNavGetConversationHistory({
@@ -1015,52 +1015,52 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   private pendingMCPServersRefresh: Promise<void> | null = null;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async loadDebugDump(entries: ACPDumpEntry[] | unknown, agentServer: string): Promise<ACPSession> {
+    const dump = normalizeDumpEntries(entries);
+    agentServer = normalizeAgentServerName(agentServer);
+    const cwd = "/";
+
+    const sessionId = findDumpSessionId(dump) ?? "loaded-session";
+    const session = new ACPSession({
+      env: this.sessionEnv,
+      sessionId,
+      agentServer,
+      conversationId: newConversationID(),
+    });
+    session.sessionInfo = {
+      ...buildSessionInfo(sessionId, cwd, "native_session"),
+      readOnly: true,
+    };
     session.setTranscriptVisible(this.transcriptVisibleFor(session.conversationId));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.liveSessions.set(session.conversationId, session);
     this.touchSession(session.conversationId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.agents.clearAllNonSessionErrors();
+
+    for (const entry of dump) {
+      this.replayDebugDumpEntry(entry, sessionId, agentServer);
+    }
+
+    // Replaying entries above may have scheduled a batched transcript flush.
+    // Cancel it: we publish synchronously here with persist:false for this
+    // read-only session, and a late rAF would call refresh() with the default
+    // persist:true and clobber that.
+    session.cancelTranscriptFlush();
+    session.materializer.completeOpenToolCalls();
+    session.events = [...session.materializer.events];
+    session.turns = [...session.materializer.turns];
+    session.plan = session.materializer.plan;
+    session.metadataManager.refresh({ persist: false });
+    session.loadIntent = null;
+    session.loadState = success(session.buildLoadState());
+    this.publishLiveStatuses();
+    this.emitter.dispatchEvent(
+      new CustomEvent<ACPDebugDumpLoadedEventDetail>(ACP_DEBUG_DUMP_LOADED_EVENT, {
+        detail: debugDumpLoadedDetail(session),
+      }),
+    );
+    return session;
+  }
+
   private touchSession(conversationId: string): void {
     if (!this.liveSessions.has(conversationId)) return;
     this.sessionRecency.set(conversationId, ++this.nextSessionRecency);
@@ -1246,125 +1246,125 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private replayDebugDumpEntry(
+    entry: ACPDumpEntry,
+    sessionId: SessionId,
+    agentServer: string,
+  ): void {
+    if (
+      entry.method === "session/update" &&
+      entry._direction === "incoming" &&
+      entry.params &&
+      typeof entry.params === "object"
+    ) {
+      this.handleSessionUpdate(agentServer, entry.params as SessionNotification);
+      return;
+    }
+
+    if (
+      entry.method === "session/prompt" &&
+      entry._direction === "outgoing" &&
+      entry.params &&
+      typeof entry.params === "object"
+    ) {
+      const prompt = (entry.params as { prompt?: ContentBlock[] }).prompt;
+      if (Array.isArray(prompt)) {
+        this.sessionFor(sessionId, agentServer)?.addUserMessage(prompt);
+      }
+      return;
+    }
+
+    if (
+      entry.method === "session/request_permission" &&
+      entry._direction === "incoming" &&
+      entry._type === "request" &&
+      entry.params &&
+      typeof entry.params === "object"
+    ) {
+      const params = entry.params as RequestPermissionRequest;
+      this.permissions.addDebugPermissionRequest({
+        agentServer,
+        sessionId,
+        params,
+        session: this.sessionFor(sessionId, agentServer),
+      });
+      return;
+    }
+
+    if (
+      entry.method === "session/request_permission" &&
+      entry._direction === "outgoing" &&
+      entry._type === "response"
+    ) {
+      this.permissions.clearDebugPermissionRequests({
+        sessionId,
+        agentServer,
+        sessions: this.liveSessions.values(),
+      });
+    }
+  }
+
+  handleSessionUpdate(
+    agentServerOrParams: string | SessionNotification,
+    maybeParams?: SessionNotification,
+  ): void {
+    const agentServer = normalizeAgentServerName(
+      typeof agentServerOrParams === "string" ? agentServerOrParams : DEFAULT_AGENT_SERVER,
+    );
+    const params = typeof agentServerOrParams === "string" ? maybeParams : agentServerOrParams;
+    if (!params) return;
+
+    const session = this.sessionFor(params.sessionId, agentServer);
+    if (!session) {
+      // Could be a streaming update for a throwaway config probe.
       // If so, apply to same-agent local sessions once the cache settles —
       // preserving each draft's own selections, since a probe's pushes
       // (e.g. an initial current_mode_update on session/new) describe the
       // throwaway session, not the user's draft state.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const handled = this.agents.handleConfigProbeSessionUpdate(agentServer, params);
+      if (handled) {
         this.applyCachedConfigToLocalSessionsForAgent(agentServer, undefined, {
           preserveSelections: true,
         });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
+      return;
+    }
     session.clearPromptSuggestion();
     this.touchSession(session.conversationId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    // Replay path: if the session is currently being loaded (loadSession
+    // or restoreSessionAfterReconnect is in flight), streaming updates go
+    // to a per-session replay materializer instead of the real one.
+    if (session.replayMaterializer) {
+      session.applyReplayUpdate(params);
+      return;
+    }
+
+    session.applySessionUpdate(params);
+  }
+
+  handleRequestPermission(
+    agentServerOrParams: string | RequestPermissionRequest,
+    maybeParams?: RequestPermissionRequest,
+  ): Promise<RequestPermissionResponse> {
+    const agentServer = normalizeAgentServerName(
+      typeof agentServerOrParams === "string" ? agentServerOrParams : DEFAULT_AGENT_SERVER,
+    );
+    const params = typeof agentServerOrParams === "string" ? maybeParams : agentServerOrParams;
+    const session = params ? this.sessionFor(params.sessionId, agentServer) : null;
     if (session) this.touchSession(session.conversationId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return this.permissions.requestPermission({
+      agentServer,
+      params,
+      session,
+    });
+  }
+
+  selectPermissionOption(
+    requestId: string,
+    optionId: PermissionOptionId,
+    overrideRules?: string[],
+  ): void {
     // Store-backed approvals answer through the helper. Remove the card
     // optimistically so it feels instant (matching the elicitation path); the
     // helper is authoritative — the first valid answer wins there and the
@@ -1394,14 +1394,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         });
       return;
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.permissions.selectPermissionOption(
+      requestId,
+      optionId,
+      overrideRules,
+      this.liveSessions.values(),
+    );
+  }
+
   /**
    * Reconcile the helper-pushed pending approval set (the single source of
    * truth for permission prompts and elicitations) into per-session and
@@ -1596,12 +1596,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Route a compaction notification to the targeted session.
    * `params.sessionId` identifies the ACP session; `params.id` only
    * correlates the started and completed phases of one compaction.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+   */
+  handleCompactionUpdate(agentServer: string, params: ACPCompactionNotification): void {
     const session = params.sessionId
       ? this.sessionFor(params.sessionId as SessionId, agentServer)
       : this.uniquePromptingSessionFor(agentServer);
@@ -1620,8 +1620,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       (session) => session.agentServer === agentServer && session.isPromptActive,
     );
     return candidates.length === 1 ? candidates[0] : null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   handlePromptSuggestion(agentServer: string, suggestion: ACPPromptSuggestion): void {
     const session = this.sessionFor(suggestion.sessionId as SessionId, agentServer);
     if (!session) return;
@@ -1636,15 +1636,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     session.setGoal(update.goal);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  publicAPI(): ACPSessionRepository {
+    return this as ACPSessionRepository;
+  }
+
+  cancelPermissionRequests(sessionId: SessionId, agentServer?: string): void {
+    this.permissions.cancelPermissionRequests(sessionId, agentServer, this.liveSessions.values());
+  }
+}
+
 function shallowArrayEquals<T>(a: readonly T[], b: readonly T[]): boolean {
   return a.length === b.length && a.every((item, i) => item === b[i]);
 }
@@ -1662,43 +1662,43 @@ function sameRequestList(
   return true;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function findDumpSessionId(entries: ACPDumpEntry[]): SessionId | null {
+  for (const entry of entries) {
+    const params = entry.params;
+    if (!params || typeof params !== "object") continue;
+    const sessionId = (params as { sessionId?: unknown }).sessionId;
+    if (typeof sessionId === "string" && sessionId.length > 0) {
+      return sessionId;
+    }
+  }
+  return null;
+}
+
+const [getACPContext, setACPRepositoryContext] = createContext<ACPSessionRepository>();
+
+export { getACPContext };
+
+export function setACPContext(
+  conversationStatus?: ACPConversationStatusRepository,
+  elicitation?: ElicitationRepository,
   identifiesClaudeAgent?: (agentServer: string) => boolean,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+): ACPSessionRepositoryWriter {
   const repo = new ACPSessionRepositoryWriter(
     conversationStatus,
     elicitation,
     identifiesClaudeAgent,
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  setACPRepositoryContext(repo.publicAPI());
+  return repo;
+}
+
+export { setACPRepositoryContext as _setACPContextForTests };
+
+export function getACPSessionRepo(): ACPSessionRepository {
+  return getACPContext();
+}
+
+function createSessionEventEmitter(): EventTarget {
+  // TODO decide on a type-safe emitter pattern for general use
+  return new EventTarget();
+}

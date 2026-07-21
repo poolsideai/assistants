@@ -4,7 +4,7 @@
   import type { WorkspaceFolder } from "@poolsideai/rpc";
   import DesktopSideBar from "./DesktopSideBar.svelte";
   import SidebarStoryHarness from "./SidebarStoryHarness.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { ACPNavConversation, ACPNavProject } from "../navTypes";
 
   const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60 * 1000).toISOString();
 

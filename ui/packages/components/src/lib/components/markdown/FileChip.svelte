@@ -104,7 +104,7 @@
   {@const iconProps = hovered
     ? ({ name: "file-go" } as const)
     : ({ type: "file", name: absolutePath } as const)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <span class="mr-0.5 inline-flex items-center align-middle" aria-hidden="true">
     <Icon {...iconProps} size={13} />
   </span>
 {/snippet}

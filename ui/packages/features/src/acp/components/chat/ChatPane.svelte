@@ -1,54 +1,54 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import { appState, resolveSessionCwd } from "../../hostAdapter";
+  import { toolActivityFrom } from "../SessionEventsState.svelte";
+  import Prompt from "./Prompt.svelte";
+  import { getACPContext } from "../../features/SessionRepository.svelte";
+  import { reportConversationViewState } from "../../features/conversationViewState";
+  import { setACPChatSessionScope } from "../../features/ChatSessionScope.svelte";
+  import { getACPAgentServersRepo } from "../../features/AgentServersRepository.svelte";
+  import { getACPConversationRepo } from "../../features/ConversationRepository.svelte";
+  import { getACPProjectRepo } from "../../features/ProjectRepository.svelte";
   import { refreshACPNavState } from "../../features/refreshACPNavState";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getCurrentAssistantTerminalRepo } from "../../features/AssistantTerminalRepository.svelte";
+  import type { ChatPaneChrome } from "./chatPaneChrome";
+  import {
+    getACPSetupScriptOutputRepo,
+    type AcpSetupScriptOutput,
+  } from "../../features/SetupScriptOutputRepository.svelte";
+  import { isWindowsOperatingSystem } from "../../prompt/menus/files/pathRewrites";
+  import SessionPlan from "../events/SessionPlan.svelte";
+  import SessionEventsRenderer from "../SessionEventsRenderer.svelte";
+  import { ScrollManager } from "./ScrollManager";
+  import { Boundary } from "@poolsideai/components/boundary";
+  import { Spinner } from "@poolsideai/components/spinner";
+  import ChatEmptyState from "./ChatEmptyState.svelte";
   import { onMount, tick, untrack, type Snippet } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getKeybindingService } from "../../../keybindings";
+  import AcpAuthRequiredPanel from "../AuthRequiredPanel.svelte";
+  import { getACPAgentRegistryRepo } from "../../features/AgentRegistryRepository.svelte";
+  import AcpEmptyStateProjectSelector from "./EmptyStateProjectSelector.svelte";
   import AcpAddProjectDropzone from "./AddProjectDropzone.svelte";
   import AcpSetupAgentDropzone from "./SetupAgentDropzone.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import AcpConversationHeader from "./ConversationHeader.svelte";
   import AcpPromptConfigControls from "./menus/config/PromptConfigControls.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import AcpPlanModeBanner from "./PlanModeBanner.svelte";
+  import CompactionBanner from "./CompactionBanner.svelte";
+  import AcpEnqueuedInput from "./EnqueuedInput.svelte";
+  import AcpPromptError from "./PromptError.svelte";
   import AcpHistoryUnavailableNotice from "./HistoryUnavailableNotice.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import PermissionRequest from "../events/PermissionRequest.svelte";
+  import { isToolCall, type ToolCall } from "../../types";
+  import StreamingIndicator from "../ui/StreamingIndicator.svelte";
   import AssistantLiveRegion from "../ui/AssistantLiveRegion.svelte";
   import { agentBrandTint, agentIconUrl, agentPickerIconProps } from "./menus/config/agentConfig";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import ElicitationPrompt from "./elicitation/ElicitationPrompt.svelte";
+  import { getElicitationContext } from "../../../elicitation";
+  import AssistantTerminalPanel from "../AssistantTerminalPanel.svelte";
+  import {
+    acpProtocolCwd,
+    acpWorkspaceProjectFolders,
+    acpWorkspaceFolders,
+  } from "../../workspaceScope";
   import {
     DEFAULT_AGENT_SERVER,
     LOCAL_AGENT_SERVER,
@@ -61,11 +61,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     localRuntimeResidency,
     turnHasAgentOutput,
   } from "../../localInferenceRuntime";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import Icon from "@poolsideai/components/icon";
+  import { InfoMessageType } from "@poolsideai/rpc";
+  import type { ACPAuthMethodTerminal } from "../../authMethods";
+  import { rpc } from "../../hostRpc";
+  import {
     DESKTOP_FILE_TREE_CHANGED_EVENT,
     DESKTOP_GIT_CHANGED_EVENT,
     DesktopGitChangesState,
@@ -77,91 +77,91 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     type DesktopOpenDiffTabEventDetail,
   } from "./desktopCommandPicker";
   import DesktopGitChangesSummary from "./DesktopGitChangesSummary.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getOptionalACPConnectionPoolContext } from "../../connectionPoolContext";
+  import { scopeTrajectoryToConversation } from "../../trajectory";
+  import { saveACPTrajectory } from "../../dumpACPConversation";
+  import AcpTrajectoryViewer from "./TrajectoryViewer.svelte";
+  import SetupScriptToolCall from "./SetupScriptToolCall.svelte";
   import {
     imageFromContextMenuEvent,
     showDesktopRenderedImageContextMenu,
   } from "./desktopRenderedImageContextMenu";
   import { getOptionalSubagentTranscriptNavigation } from "./subagentTranscriptNavigation";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  interface Props {
+    /** Affordances the host surface supplies around the pane; see ChatPaneChrome. */
+    chrome?: ChatPaneChrome;
+    onNewConversation: (cwd?: string) => string | null | void | Promise<string | null | void>;
+    onAddProject: () => Promise<void> | void;
+    onShowAgentSettings: () => void;
+    onShowModelSettings?: () => void;
+    editorSurface?: boolean;
+    promptBanners?: Snippet;
+    promptCommandItems?: Snippet;
+    promptMenus?: Snippet;
+    promptFooterLeading?: Snippet;
+    activeConversationId?: string | null;
+    onActiveConversationIdChange?: (key: string | null) => void;
+    markReadWhenVisible?: boolean;
+    /** Focus the composer when the pane opens (mobile new-conversation flow). */
+    autofocusPrompt?: boolean;
     /** Transcript-only presentation for modal inspection of archived conversations. */
     readOnlyPreview?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  let {
+    chrome,
+    onNewConversation,
+    onAddProject,
+    onShowAgentSettings,
+    editorSurface = false,
+    promptBanners,
+    promptCommandItems,
+    promptMenus,
+    promptFooterLeading,
+    activeConversationId = null,
+    onActiveConversationIdChange,
+    markReadWhenVisible = true,
+    autofocusPrompt = false,
     readOnlyPreview = false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }: Props = $props();
+
+  let hostSidebar = $derived(chrome?.sidebar);
+  let sidebarCollapsed = $derived(hostSidebar?.collapsed ?? false);
+  let desktopSidebarWidth = $derived(hostSidebar?.width ?? 260);
+  let showConversationHeader = $derived((chrome?.header ?? "conversation") === "conversation");
+  let terminalSurface = $derived(chrome?.terminal?.surface ?? "legacy-panel");
+  let openExternalTerminal = $derived(
+    chrome?.terminal?.surface === "external" ? chrome.terminal.open : undefined,
+  );
+  let desktopPanelFrame = $derived((chrome?.frame ?? "desktop-panel") === "desktop-panel");
+
+  const acp = getACPContext();
+  const agentServers = getACPAgentServersRepo();
+  const conversations = getACPConversationRepo();
   const useSubagentTranscriptTabs = getOptionalSubagentTranscriptNavigation() !== undefined;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const chatSession = setACPChatSessionScope(
+    acp,
+    () => activeConversationId,
+    (id) => onActiveConversationIdChange?.(id),
+    conversations,
+    () => toolActivityFrom($appState),
     useSubagentTranscriptTabs,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
+  const projects = getACPProjectRepo();
+  const registry = getACPAgentRegistryRepo();
+  const assistantTerminals = getCurrentAssistantTerminalRepo();
+  const setupScriptOutputs = getACPSetupScriptOutputRepo();
+  const elicitation = getElicitationContext();
+
+  const DESKTOP_TERMINAL_WIDTH_STORAGE_KEY = "poolside.desktop.terminalWidth";
+  const DESKTOP_TERMINAL_DEFAULT_WIDTH = 420;
+  const DESKTOP_TERMINAL_MIN_WIDTH = 280;
+  const DESKTOP_TERMINAL_MAX_WIDTH = 900;
   const CHAT_CONTENT_MAX_WIDTH = "48rem";
   const TERMINAL_AUTH_POLL_INTERVAL_MS = 1_000;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  let hasPendingPermissionRequests = $derived(chatSession.pendingPermissionRequests.length > 0);
   // Elicitations are keyed to the session that raised them; other chats'
   // pending elicitations must not surface (or block the composer) here.
   let hasPendingElicitation = $derived(
@@ -193,21 +193,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let desktopConversationOverlaysInset = $derived(
     showConversationOverlayStack ? desktopConversationOverlaysHeight : 0,
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Keep the "Working…" indicator visible for the entire turn the agent is
+  // running — including while a tool call is in flight (e.g. a long, blocking
+  // command). It used to be hidden whenever the last event was an active tool,
+  // so it vanished for the tool's whole duration and the transcript looked
+  // idle. It still hides while a permission request is pending: there the agent
+  // is blocked on the user rather than working, and the prompt already says so.
+  // A turn is "live" whether it was started here (isPrompting) or on another
+  // connected surface (isRemoteWorking, e.g. the phone prompting this
+  // conversation while the desktop watches).
+  let isTurnActive = $derived(chatSession.isPrompting || chatSession.isRemoteWorking);
+  let showWorkingIndicator = $derived(isTurnActive && !hasPendingPermissionRequests);
+  let streamingIndicatorIconUrl = $derived.by(() => {
+    const server = chatSession.sessionAgentServer ?? chatSession.activeAgentServer;
+    return server ? agentIconUrl(registry, server) : undefined;
+  });
   let streamingIndicatorTint = $derived.by(() => {
     const server = chatSession.sessionAgentServer ?? chatSession.activeAgentServer;
     return server ? agentBrandTint(registry, server) : undefined;
@@ -267,34 +267,34 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (loaded === selected) return true;
     return loaded.split("/").at(-1) === selected.split("/").at(-1);
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   // Drop the detached-scroll flag when the conversation changes: it belongs to
   // the previous transcript, and the new one renders (and is scrolled to its
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // bottom) before any scroll event would clear it — without this the
+  // jump-to-bottom button flashes over the incoming conversation.
+  $effect(() => {
+    void chatSession.conversationId;
+    scrollDetached = false;
+  });
+
+  let scrollManager = $state<ScrollManager>();
+  let scrollEl = $state<HTMLElement>();
+  /** True when auto-scroll has let go of the bottom (user scrolled up). */
+  let scrollDetached = $state(false);
   let hasTranscriptTopOverflow = $state(false);
   let hasTranscriptBottomOverflow = $state(false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let terminalCollapsed = $state(true);
+  let desktopTerminalWidth = $state(DESKTOP_TERMINAL_DEFAULT_WIDTH);
+
+  // The "right panel" keyboard shortcut toggles the terminal panel (which this pane owns).
+  // No-op on hosts without a terminal panel or without dispatch (VS Code delegates).
+  const keybindings = getKeybindingService();
+  let desktopTerminalResizeStartX = $state(0);
+  let desktopTerminalResizeStartWidth = $state(DESKTOP_TERMINAL_DEFAULT_WIDTH);
+  let desktopTerminalResizing = $state(false);
+  let hasLoadedProjectsOnce = $state(false);
+  let dismissedReadOnlySessionId = $state<string | null>(null);
+  let pendingTerminalAuthMethodByAgent = $state<Record<string, string>>({});
   // Auth methods the user has launched (terminal or external browser flow).
   // While set, the auth panel swaps the login buttons for "I'm logged in" /
   // "Try again": external flows finish outside the app, so the user confirms
@@ -302,8 +302,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let attemptedAuthMethodByAgent = $state<Record<string, string>>({});
   let authConfirmInProgressFor = $state<Record<string, true>>({});
   const terminalAuthPollControllers = new Map<string, AbortController>();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let autoCollapsedSetupOutputKeys = $state<Record<string, true>>({});
+
   onMount(() => () => {
     for (const controller of terminalAuthPollControllers.values()) {
       controller.abort();
@@ -311,44 +311,44 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     terminalAuthPollControllers.clear();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const acpConnectionPool = getOptionalACPConnectionPoolContext();
+  let trajectoryViewerOpen = $state(false);
+
+  async function saveTrajectory() {
+    if (!acpConnectionPool) {
+      rpc.showInfoMessage("ACP Events is unavailable", InfoMessageType.error);
+      return;
+    }
+    const server = chatSession.sessionAgentServer ?? chatSession.activeAgentServer;
+    const entries = scopeTrajectoryToConversation(
+      acpConnectionPool.debug.dump(server),
+      chatSession.sessionId,
+    );
+    if (entries.length === 0) {
+      rpc.showInfoMessage("No ACP events recorded yet", InfoMessageType.info);
+      return;
+    }
+    await saveACPTrajectory(entries, chatSession.sessionId, $appState.environment.assistantHost);
+  }
   let isSessionLoading = $derived(
     chatSession.sessionLoadState.status === "loading" ||
       (activeConversationId != null && chatSession.conversationId == null),
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let isBlockingSessionLoading = $derived(isSessionLoading && chatSession.events.length === 0);
+  let isSessionSetupPending = $derived(
+    isSessionLoading ||
       agentServers.state.status !== "success" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      chatSession.isConfigCacheLoading ||
+      acp.agents.authInProgressForAgent(chatSession.activeAgentServer),
+  );
+  let readOnlySessionId = $derived(chatSession.conversationId ?? "read-only");
+  let showReadOnlyBanner = $derived(
     readOnlyPreview || (chatSession.isReadOnly && dismissedReadOnlySessionId !== readOnlySessionId),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
+  let isDesktop = $derived($appState.environment.assistantHost === "desktop");
+  // Phone-sized layout: tighter transcript/composer spacing, safe-area bottom
+  // padding, compact empty state.
+  let isMobile = $derived($appState.environment.assistantHost === "mobile");
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -401,44 +401,44 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       openReview();
     }
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let usesEditorSurface = $derived(isDesktop || editorSurface);
+  let supportsTerminalPanel = $derived(Boolean($appState.environment.capabilities.terminalPanel));
+  let usesLegacyTerminalPanel = $derived(
     !readOnlyPreview && supportsTerminalPanel && terminalSurface === "legacy-panel",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
+  let firstProject = $derived(
+    projects.projects.find((project) => !project.isWorktree) ?? projects.projects[0],
+  );
+  let desktopLaunchWorktreeProject = $derived.by(() => {
+    const worktreeName = $appState.environment.desktopInstance?.worktreeName;
+    if (!isDesktop || !worktreeName) return undefined;
+    return projects.projects.find(
+      (project) =>
+        project.isWorktree &&
+        (project.name === worktreeName || pathBasename(project.path) === worktreeName),
+    );
+  });
+  let currentConversationCwd = $derived(chatSession.activeWorkspaceCwd ?? pendingConversationCwd());
+  let setupScriptOutput = $derived(setupScriptOutputs.outputFor(currentConversationCwd));
+  let inlineSetupScriptOutput = $derived(
+    setupScriptOutput?.surface === "terminal" ? null : setupScriptOutput,
+  );
+  let hasUserPrompted = $derived(
+    chatSession.events.some((event) => event.eventKind === "user_message"),
+  );
+  let currentACPWorkspaceFolders = $derived(
+    acpWorkspaceFolders($appState, resolveDesktopWorkspaceRoot(currentConversationCwd)),
+  );
+  let currentWorkspaceProjects = $derived(
+    acpWorkspaceProjectFolders(projects.projects, currentACPWorkspaceFolders),
+  );
+  let terminalScopePath = $derived(resolveTerminalScopePath(currentConversationCwd));
+  let desktopOpenTargetKind = $derived(desktopTargetKind(terminalScopePath));
+  let desktopInstanceWorktreeName = $derived(
+    projectDisplayName(desktopLaunchWorktreeProject) ??
+      projectDisplayNameForPath(terminalScopePath || currentConversationCwd),
+  );
+  let shouldWaitForInitialProject = $derived(isDesktop && !hasLoadedProjectsOnce);
   const initialLoadError = $derived(
     isDesktop && shouldWaitForInitialProject && projects.refreshState.status === "failure"
       ? "Couldn’t load your conversations."
@@ -485,10 +485,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   // means updating or reinstalling the very agent that cannot authenticate.
   let noAuthenticatedAgentAvailable = $derived(
     acp.agents.authRequiredForAgent(chatSession.activeAgentServer),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
+  // The prompt-draft key identifies the conversation the user is composing
+  // in, not the agent they happen to have selected — switching agent on an
+  // empty draft must not throw away the in-progress text.
   // Wait only until the automatic local draft has a stable ID. A short-lived
   // `new:cwd` editor would otherwise remount and discard attachments/undo when
   // bootstrap assigns the ID. Config probing continues with the editor mounted.
@@ -537,8 +537,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   // not disagree about it; both take their size from this. Desktop draws the
   // composer a notch larger than the 14px every other host uses.
   let composerFontSize = $derived(isDesktop ? "15px" : "14px");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let lastScrolledConversationId = $state<string | null>(null);
+
   // Desktop new-conversation hero grid: painted at the pane level (the empty
   // state's own grid would be clipped by the transcript scroller), with its
   // radial fade centred on the parasol. The parasol's position depends on the
@@ -595,22 +595,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return () => observer.disconnect();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  onMount(() => {
+    desktopTerminalWidth = getSavedDesktopTerminalWidth();
+  });
+
+  onMount(() =>
+    keybindings?.register("toggleRightPanel", () => {
+      if (usesLegacyTerminalPanel) terminalCollapsed = !terminalCollapsed;
+    }),
+  );
+
+  $effect(() => {
+    if (projects.refreshState.status === "success") {
+      hasLoadedProjectsOnce = true;
+    }
+  });
+
   $effect(() => {
     const draftKey = promptDraftKey;
     const newConversation = isNewConversation;
@@ -627,80 +627,80 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     previouslyNewConversation = newConversation;
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  $effect(() => {
+    const next = { ...pendingTerminalAuthMethodByAgent };
     const nextAttempted = { ...attemptedAuthMethodByAgent };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let changed = false;
     let attemptedChanged = false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    for (const agentServer of Object.keys(next)) {
+      if (!acp.agents.authRequiredForAgent(agentServer)) {
+        delete next[agentServer];
+        changed = true;
+      }
+    }
     for (const agentServer of Object.keys(nextAttempted)) {
       if (!acp.agents.authRequiredForAgent(agentServer)) {
         delete nextAttempted[agentServer];
         attemptedChanged = true;
       }
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (changed) {
+      pendingTerminalAuthMethodByAgent = next;
+    }
     if (attemptedChanged) {
       attemptedAuthMethodByAgent = nextAttempted;
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  $effect(() => {
+    if (!chatSession.isReadOnly) {
+      dismissedReadOnlySessionId = null;
+    }
+  });
+
+  $effect(() => {
+    if (!inlineSetupScriptOutput || inlineSetupScriptOutput.collapsed) return;
+    const reason =
+      inlineSetupScriptOutput.status === "completed"
+        ? "completed"
+        : hasUserPrompted
+          ? "prompted"
+          : null;
+    if (!reason) return;
+    const key = `${setupOutputKey(inlineSetupScriptOutput)}:${reason}`;
+    if (autoCollapsedSetupOutputKeys[key]) return;
+    autoCollapsedSetupOutputKeys = { ...autoCollapsedSetupOutputKeys, [key]: true };
+    setupScriptOutputs.collapse(inlineSetupScriptOutput.path);
+  });
+
+  $effect(() => {
+    const sessionId = chatSession.sessionId;
+    const agentServer = chatSession.sessionAgentServer;
+    if (!sessionId || !agentServer) return;
+    if (!markReadWhenVisible) return;
+    if (!$appState.isEditorFocused) return;
+    if (acp.getConversationStatus(sessionId, agentServer).unread) {
+      acp.clearUnread(sessionId, agentServer);
+    }
+  });
+
+  // Tell the helper this surface is watching the conversation: completing
+  // turns skip the unread mark while any surface watches, and activating a
+  // conversation clears its unread flag on every surface. Losing focus or
+  // switching away reports the conversation inactive via the effect cleanup.
+  // The focus flag goes through a primitive $derived so unrelated appState
+  // churn does not re-run the effect and emit redundant inactive/active pairs.
+  let editorFocusedForViewState = $derived($appState.isEditorFocused === true);
+  $effect(() => {
+    const sessionId = chatSession.sessionId;
+    const agentServer = chatSession.sessionAgentServer;
+    if (!sessionId || !agentServer) return;
+    if (!markReadWhenVisible) return;
+    if (!editorFocusedForViewState) return;
+    reportConversationViewState({ sessionId, agentServer, active: true });
+    return () => reportConversationViewState({ sessionId, agentServer, active: false });
+  });
+
   // While this pane is the visible chat surface (markReadWhenVisible mirrors
   // the desktop chat tab's selection), keep the active conversation's session
   // on the responsive visible transcript flush cadence. Sessions no pane displays —
@@ -772,25 +772,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  $effect(() => {
+    if (
+      !activeConversationId ||
+      activeConversationId === lastScrolledConversationId ||
+      isSessionLoading ||
+      chatSession.events.length === 0 ||
+      !scrollManager
+    ) {
+      return;
+    }
+    const conversationId = activeConversationId;
+    const manager = scrollManager;
+    lastScrolledConversationId = conversationId;
+    void scrollSessionToBottom(conversationId, manager);
+  });
+
   // Point the git working-tree tracker at the active conversation's worktree
   // on hosts that show the review bar (desktop + VS Code).
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  $effect(() => {
     gitChanges.setWorktreePath(supportsReviewBar ? terminalScopePath : undefined);
   });
 
@@ -801,7 +801,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   // turn-completion refreshes.
   $effect(() => {
     if (!supportsReviewBar) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     const onFileTreeChanged = (event: Event) => {
       const detail = (event as CustomEvent<DesktopFileTreeChangedEventDetail>).detail;
       if (!gitChanges.affectsWorktree(detail)) return;
@@ -830,8 +830,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       gitChanges.scheduleRefresh();
     }
     wasTurnActive = active;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
   function updateTranscriptOverflow(element = scrollEl): void {
     if (!element) {
       hasTranscriptTopOverflow = false;
@@ -843,11 +843,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       element.scrollHeight - element.scrollTop - element.clientHeight > 1;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function scroller(el: HTMLDivElement) {
+    scrollEl = el;
     const manager = new ScrollManager(el, (attached) => (scrollDetached = !attached));
     scrollManager = manager;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    scrollDetached = false;
     updateTranscriptOverflow(el);
 
     let animationFrame = 0;
@@ -885,91 +885,91 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (scrollManager === manager) scrollManager = undefined;
       if (scrollEl === el) scrollEl = undefined;
     };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  function onSubmit() {
     if (isNewConversation) centerNewConversationComposer = false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    scrollManager?.scrollToBottom();
+  }
+
+  async function scrollSessionToBottom(conversationId: string, manager: ScrollManager) {
+    await tick();
+    for (let attempt = 0; attempt < 5; attempt++) {
+      if (activeConversationId !== conversationId || scrollManager !== manager) return;
+      manager.scrollToBottom("instant");
+      if (attempt < 4) await new Promise(requestAnimationFrame);
+    }
+  }
+
+  function defaultConversationCwd(): string {
+    if (isDesktop) {
+      return (
+        desktopLaunchWorktreeProject?.path ?? firstProject?.path ?? resolveSessionCwd($appState)
+      );
+    }
+    return acpProtocolCwd(acpWorkspaceFolders($appState), resolveSessionCwd($appState));
+  }
+
+  function pendingConversationCwd(): string {
+    return chatSession.pendingConversationId && chatSession.pendingSessionCwd
+      ? chatSession.pendingSessionCwd
+      : defaultConversationCwd();
+  }
+
+  function resolveTerminalScopePath(cwd: string): string {
+    return resolveDesktopWorkspaceRoot(cwd);
+  }
+
+  function desktopTargetKind(path: string): "project" | "worktree" {
+    const target = projects.projects.find(
+      (project) => normalizeWorkspacePath(project.path) === normalizeWorkspacePath(path),
+    );
+    return target?.isWorktree ? "worktree" : "project";
+  }
+
+  function resolveDesktopWorkspaceRoot(cwd: string): string {
+    const normalizedCwd = normalizeWorkspacePath(cwd);
+    const project = projects.projects
+      .filter((candidate) => pathContains(candidate.path, normalizedCwd))
+      .sort(
+        (left, right) =>
+          normalizeWorkspacePath(right.path).length - normalizeWorkspacePath(left.path).length,
+      )
+      .at(0);
+
+    return project?.path ?? cwd;
+  }
+
+  function pathContains(parentPath: string, path: string): boolean {
+    const parent = normalizeWorkspacePath(parentPath);
+    if (!parent || !path) return false;
+    return path === parent || path.startsWith(`${parent}/`);
+  }
+
+  function normalizeWorkspacePath(path: string): string {
+    let normalized = path.trim().replace(/\\/g, "/").replace(/\/+/g, "/");
+    if (normalized.length > 1) {
+      normalized = normalized.replace(/\/+$/g, "");
+    }
+    if (/^[A-Z]:\//.test(normalized)) {
+      normalized = normalized[0].toLowerCase() + normalized.slice(1);
+    }
+    return normalized;
+  }
+
+  function setupOutputKey(output: AcpSetupScriptOutput): string {
+    return `${normalizeWorkspacePath(output.path)}:${output.startedAt}`;
+  }
+
+  function pathBasename(path: string): string {
+    return normalizeWorkspacePath(path).split("/").at(-1) || path;
+  }
+
+  function onInterrupt() {
     elicitation.declineAllForChat(chatSession.sessionId, chatSession.sessionAgentServer);
     void chatSession.cancel({ sendQueuedPrompt: true });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   function onSendQueuedNow(id?: string) {
     if (chatSession.canSteerPrompt) {
       void chatSession.steerQueuedPrompt(id);
@@ -983,81 +983,81 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onInterrupt();
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function clampDesktopTerminalWidth(width: number): number {
+    return Math.min(Math.max(width, DESKTOP_TERMINAL_MIN_WIDTH), DESKTOP_TERMINAL_MAX_WIDTH);
+  }
+
+  function getSavedDesktopTerminalWidth(): number {
+    const value = window.localStorage.getItem(DESKTOP_TERMINAL_WIDTH_STORAGE_KEY);
+    if (!value) return DESKTOP_TERMINAL_DEFAULT_WIDTH;
+
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isNaN(parsed)) return DESKTOP_TERMINAL_DEFAULT_WIDTH;
+
+    return clampDesktopTerminalWidth(parsed);
+  }
+
+  function setDesktopTerminalWidth(width: number) {
+    desktopTerminalWidth = clampDesktopTerminalWidth(width);
+    window.localStorage.setItem(
+      DESKTOP_TERMINAL_WIDTH_STORAGE_KEY,
+      desktopTerminalWidth.toString(),
+    );
+  }
+
+  function startDesktopTerminalResize(event: MouseEvent) {
+    if (!usesLegacyTerminalPanel) return;
+
+    desktopTerminalResizeStartX = event.clientX;
+    desktopTerminalResizeStartWidth = desktopTerminalWidth;
+    desktopTerminalResizing = true;
+    document.body.classList.add("desktop-terminal-resizing");
+    event.preventDefault();
+  }
+
+  function moveDesktopTerminalResize(event: MouseEvent) {
+    if (!desktopTerminalResizing) return;
+
+    setDesktopTerminalWidth(
+      desktopTerminalResizeStartWidth - event.clientX + desktopTerminalResizeStartX,
+    );
+  }
+
+  function stopDesktopTerminalResize() {
+    if (!desktopTerminalResizing) return;
+
+    desktopTerminalResizing = false;
+    document.body.classList.remove("desktop-terminal-resizing");
+  }
+
+  function toolCallForPermission(toolCallId: string): ToolCall | undefined {
+    return chatSession.events.find(
+      (event): event is ToolCall => isToolCall(event) && event.toolCallId === toolCallId,
+    );
+  }
+
+  async function handleAuthenticate(methodId: string) {
+    const agentServer = chatSession.activeAgentServer;
+    const method = acp.agents
+      .authMethodsForAgent(agentServer)
+      .find((candidate) => candidate.id === methodId);
+    if (method?.type === "terminal") {
       // Only record the attempt once the login terminal actually launched:
       // the launch can fail (no command, no tab) and the panel must not
       // offer "I'm logged in" for a flow that never started.
       if (await handleTerminalAuthenticate(method, agentServer)) {
         attemptedAuthMethodByAgent = { ...attemptedAuthMethodByAgent, [agentServer]: methodId };
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return;
+    }
+
     // Non-terminal flows resolve outside the app (browser); mark the attempt
     // up front so the confirmation UI is available while authenticate blocks.
     attemptedAuthMethodByAgent = { ...attemptedAuthMethodByAgent, [agentServer]: methodId };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await acp.agents.authenticate(methodId, agentServer);
+    await continueAfterAuthenticated(agentServer);
+  }
+
   // "I'm logged in": the user says they completed the login that runs outside
   // this panel (terminal TUI, browser). Verify with a fresh config probe — an
   // agent that still lacks credentials fails it and re-marks auth required
@@ -1100,7 +1100,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   async function handleRetryAuthentication(methodId: string) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const agentServer = chatSession.activeAgentServer;
     const method = acp.agents
       .authMethodsForAgent(agentServer)
       .find((candidate) => candidate.id === methodId);
@@ -1116,76 +1116,76 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
 
     await handleAuthenticate(methodId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   async function continueAfterAuthenticated(
     agentServer: string,
     options: { skipConfigRefresh?: boolean } = {},
   ) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (acp.agents.authRequiredForAgent(agentServer)) return;
     stopTerminalAuthPolling(agentServer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const next = { ...pendingTerminalAuthMethodByAgent };
+    delete next[agentServer];
+    pendingTerminalAuthMethodByAgent = next;
     const attempted = { ...attemptedAuthMethodByAgent };
     delete attempted[agentServer];
     attemptedAuthMethodByAgent = attempted;
     if (options.skipConfigRefresh) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await acp.agents.refreshCachedConfig(
+      agentServer,
+      chatSession.pendingSessionCwd ??
+        acpProtocolCwd(currentACPWorkspaceFolders, resolveSessionCwd($appState)),
+    );
+  }
+
+  function projectDisplayNameForPath(path: string | null | undefined): string | undefined {
+    if (!path) return undefined;
+    const normalizedPath = normalizeWorkspacePath(path);
+    const project = projects.projects.find(
+      (candidate) => normalizeWorkspacePath(candidate.path) === normalizedPath,
+    );
+    return projectDisplayName(project);
+  }
+
+  function projectDisplayName(
+    project: (typeof projects.projects)[number] | undefined,
+  ): string | undefined {
+    return project ? project.nickname || project.name : undefined;
+  }
+
   /** Returns whether the login terminal was actually launched. */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function handleTerminalAuthenticate(
+    method: ACPAuthMethodTerminal,
+    agentServer: string,
   ): Promise<boolean> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const command = terminalAuthCommand(method, agentServer);
+    if (!command) {
+      rpc.showInfoMessage(
+        `Unable to run ${method.name}: the agent did not provide a CLI command and no configured agent command was found.`,
+        InfoMessageType.error,
+      );
       return false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+
+    const worktreePath =
+      terminalScopePath || currentConversationCwd || resolveSessionCwd($appState);
     // Auth commands open in the bottom panel rather than a main split tab, so
     // the login shell sits alongside the chat instead of replacing it.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const tab =
+      terminalSurface === "external" && openExternalTerminal
         ? await openExternalTerminal(worktreePath, { env: command.env, placement: "bottomPanel" })
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        : await assistantTerminals.createTab(worktreePath, undefined, command.env);
+    if (usesLegacyTerminalPanel) {
+      terminalCollapsed = false;
+    }
     if (!tab) return false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    await delay(100);
+    await assistantTerminals.write(tab.id, `${command.command.trim()}\n`);
+    pendingTerminalAuthMethodByAgent = {
+      ...pendingTerminalAuthMethodByAgent,
+      [agentServer]: method.id,
+    };
     startTerminalAuthPolling(method.id, agentServer);
     return true;
   }
@@ -1236,58 +1236,58 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         terminalAuthPollControllers.delete(agentServer);
       }
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  function terminalAuthCommand(
+    method: ACPAuthMethodTerminal,
+    agentServer: string,
+  ): { command: string; env?: Record<string, string> } | null {
+    const configured = resolveAgentServers($appState.userSettings.acpAgentServers)[agentServer];
+    const command = configured?.command || method.command;
+    if (!command) return null;
+
+    const args = configured?.command
+      ? [...(configured.args ?? []), ...(method.args ?? [])]
+      : (method.args ?? []);
+    const env = { ...(configured?.env ?? {}), ...(method.env ?? {}) };
+    return {
+      command: [command, ...args].map(shellQuote).join(" "),
+      env: Object.keys(env).length > 0 ? env : undefined,
+    };
+  }
+
+  function shellQuote(value: string): string {
+    // The command string is written to the host's terminal, so it must be quoted for that
+    // terminal's shell. The VS host runs it through cmd.exe (see AssistantTerminalManager),
+    // which doesn't understand POSIX single-quote quoting - feeding it a single-quoted path
+    // makes cmd treat the leading quote as part of the filename. Quote for cmd on Windows and
+    // for POSIX shells everywhere else.
+    if (isWindowsOperatingSystem($appState.environment.operatingSystem)) {
+      return windowsShellQuote(value);
+    }
+    if (/^[A-Za-z0-9_/:=-]+$/.test(value)) return value;
+    return `'${value.replace(/'/g, "'\\''")}'`;
+  }
+
+  function windowsShellQuote(value: string): string {
+    if (value === "") return '""';
+    // Drive-letter paths (backslashes, colon, dots) are valid bare tokens in cmd; only wrap
+    // when the value contains a space or a cmd metacharacter, doubling embedded quotes.
+    if (/^[A-Za-z0-9_.:/\\=-]+$/.test(value)) return value;
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+
+  function delay(ms: number): Promise<void> {
+    return new Promise((resolve) => window.setTimeout(resolve, ms));
+  }
+</script>
+
+<svelte:window
+  onmousemove={(event) => moveDesktopTerminalResize(event)}
+  onmouseup={() => stopDesktopTerminalResize()}
+/>
+
+{#snippet chatPaneContent()}
   <div class="relative flex h-full min-w-0 flex-col">
     {#if showConversationHeader}
       <AcpConversationHeader
@@ -1366,7 +1366,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                   onclick={() => void retryInitialLoad()}>Try again</button
                 >
               {:else}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                <Spinner size={24} />
                 <span>Loading conversation…</span>
               {/if}
             </div>
@@ -1391,17 +1391,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                     <span>The session transcript could not be rendered.</span>
                   </div>
                 {/snippet}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
                 <!-- Key by conversation so the renderer's expanded-thought pins
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                       (kept by index) reset per transcript and cannot bleed across
+                       conversations that reuse the same event indices. -->
                 {#key chatSession.conversationId}
                   <!-- Wait for the scroll container's element before rendering
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                         the transcript: without it the renderer can't window, so
+                         opening an already-populated long thread would render every
+                         row once before correcting on the next tick. `scrollEl` is
+                         set by the scroller attachment above and persists across
+                         conversation switches, so this only defers the very first
                          mount by a frame.
 
                          markReadWhenVisible: unmount the transcript while this
@@ -1513,7 +1513,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             </div>
           {/if}
         </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
         {#if !shouldWaitForInitialProject && !shouldWaitForLocalDraft}
           <div
             data-acp-composer
@@ -1622,11 +1622,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             {/if}
             {#if scrollDetached && chatSession.events.length > 0}
               <!-- Instant, not smooth: a smooth animation spends most of its
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                     flight >150px from the bottom, where the position-based
+                     detach would let go again mid-scroll — and under streaming
+                     the click-time target is stale, so it can land short and
+                     stay detached. mousedown is prevented so the click doesn't
+                     steal focus from the composer. -->
               <button
                 type="button"
                 class={[
@@ -1669,13 +1669,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 <div
                   bind:clientHeight={desktopConversationOverlaysHeight}
                   data-conversation-overlays
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                  class={[
                     "flex flex-col gap-2.5",
                     isDesktop
                       ? "desktop-conversation-overlays absolute inset-x-2.5 z-10"
                       : "relative",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                  ]}
+                >
                   {#if chatSession.queuedPrompts.length > 0}
                     <div
                       class="flex max-h-[min(42vh,24rem)] flex-col gap-2.5 overflow-y-auto px-0.5 py-0.5"
@@ -1727,8 +1727,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                       onOpenDiff={openDiff}
                     />
                   {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                </div>
+              {/if}
               <CompactionBanner />
               <ElicitationPrompt
                 sessionId={chatSession.sessionId}
@@ -1820,46 +1820,46 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             {/if}
           </div>
         {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </div>
+    </div>
 
     {#if trajectoryViewerOpen}
       <AcpTrajectoryViewer {sidebarCollapsed} onClose={() => (trajectoryViewerOpen = false)} />
     {/if}
   </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{/snippet}
+
+<div
+  class={[
+    "h-full min-w-0 flex-1",
+    usesEditorSurface && !(isDesktop && desktopPanelFrame) ? "chat-editor-surface" : "",
+    isDesktop && desktopPanelFrame ? "desktop-main-panel" : "",
+    sidebarCollapsed && desktopPanelFrame ? "desktop-main-panel--no-border" : "",
+  ]}
+>
+  {#if isDesktop && desktopPanelFrame}
+    <div class="desktop-main-panel-top-drag-region" data-tauri-drag-region="deep"></div>
+    <div class="desktop-main-panel-frame">
+      {@render chatPaneContent()}
+    </div>
+  {:else}
+    {@render chatPaneContent()}
+  {/if}
+</div>
+
+{#if usesLegacyTerminalPanel && !terminalCollapsed}
+  {#key terminalScopePath}
+    <AssistantTerminalPanel
+      worktreePath={terminalScopePath}
+      width={desktopTerminalWidth}
+      resizing={desktopTerminalResizing}
+      onClose={() => (terminalCollapsed = true)}
+      onResizeStart={startDesktopTerminalResize}
+    />
+  {/key}
+{/if}
+
+<style lang="postcss">
   /* Pointer is reserved for links. Buttons in the prompt box, the chat history,
      and the new-conversation empty state use the native arrow cursor instead of
      the pointer the base reset gives every button. File-open links inside the
@@ -1912,10 +1912,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     flex-direction: column;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .chat-editor-surface {
+    background: var(--psx-editor-background);
+  }
+
   /*
    * Desktop new-conversation hero grid. Spans the whole conversation area (so
    * it can reach the top of the page), with the fade centred on the parasol
@@ -1979,42 +1979,42 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     -webkit-mask-composite: source-in;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .desktop-main-panel {
+    position: relative;
+    z-index: 10;
+    box-sizing: border-box;
+    padding: var(--desktop-main-panel-inset, 8px) var(--desktop-main-panel-inset, 8px)
+      var(--desktop-main-panel-inset, 8px) var(--desktop-main-panel-sidebar-gap, 8px);
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+  }
+
+  .desktop-main-panel--no-border {
+    padding-left: var(--desktop-main-panel-inset, 8px);
+  }
+
+  .desktop-main-panel-top-drag-region {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1;
+    height: var(--desktop-main-panel-inset, 8px);
+  }
+
+  .desktop-main-panel-frame {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: var(--desktop-main-panel-radius, 10px);
     border: var(--psx-hairline, 1px) solid color-mix(in srgb, var(--psx-border) 80%, transparent);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    background: var(--psx-editor-background);
+    box-shadow: 0 0 16px -9px color-mix(in srgb, var(--psx-foreground-primary) 35%, transparent);
+  }
+
   .desktop-transcript-scroller {
     --desktop-transcript-overflow-fade-height: 28px;
     --desktop-transcript-overflow-mask-top: #000;
@@ -2061,12 +2061,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     bottom: calc(100% + var(--desktop-conversation-overlays-height) + 1.125rem);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  :global(body.desktop-terminal-resizing) {
+    cursor: col-resize !important;
+    user-select: none;
+  }
+
+  :global(body.desktop-terminal-resizing *) {
+    cursor: col-resize !important;
+  }
+</style>

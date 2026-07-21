@@ -1,105 +1,105 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import Icon, { type IconName } from "@poolsideai/components/icon";
+  import { getUnknownErrorMessage } from "@poolsideai/lib/errors";
+  import { basename } from "@poolsideai/lib/path";
+  import { InfoMessageType, type AssistantTerminalTab, type AttachedFile } from "@poolsideai/rpc";
+  import {
+    SplitsController,
+    SplitsView,
     type PaneGeometry,
     type ExternalTreeNode,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    type PaneID,
+    type SplitOrientation,
+    type SplitsDelegate,
+    type Tab,
+    type TabID,
+  } from "@poolsideai/splits";
   import { onDestroy, tick, untrack, type Component, type Snippet } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { DEFAULT_AGENT_SERVER, LOCAL_AGENT_SERVER } from "../../agentServers";
   import { agentPickerIconProps, agentPickerIconUrl } from "./menus/config/agentConfig";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { desktopUpdate } from "../../desktopUpdate";
+  import { getContextRepoContext } from "../../../context";
+  import { shortcutHint } from "../../../keybindings";
+  import { getACPAgentRegistryRepo } from "../../features/AgentRegistryRepository.svelte";
+  import { setACPChatSessionScope } from "../../features/ChatSessionScope.svelte";
+  import { getACPConversationRepo } from "../../features/ConversationRepository.svelte";
+  import { getACPContext } from "../../features/SessionRepository.svelte";
+  import { getACPProjectRepo } from "../../features/ProjectRepository.svelte";
   import {
     DESKTOP_FILE_TREE_CHANGED_EVENT,
     DESKTOP_GIT_CHANGED_EVENT,
     DesktopGitChangesState,
     type DesktopFileTreeChangedEventDetail,
   } from "../../features/DesktopGitChangesState.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import {
+    getCurrentAssistantTerminalRepo,
+    type AssistantTerminalCommandMode,
+    type AssistantTerminalPlacement,
+  } from "../../features/AssistantTerminalRepository.svelte";
   import { rpc } from "../../hostRpc";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { appState } from "../../hostAdapter";
+  import { toolActivityFrom } from "../SessionEventsState.svelte";
+  import AssistantTerminalView from "../AssistantTerminalView.svelte";
+  import RegistryAgentIcon from "../RegistryAgentIcon.svelte";
+  import AcpChatPane from "./ChatPane.svelte";
   import SubagentChatPane from "./SubagentChatPane.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import AcpTrajectoryViewer from "./TrajectoryViewer.svelte";
+  import DesktopFilesTree from "./DesktopFilesTree.svelte";
   import DesktopDiffPanel from "./DesktopDiffPanel.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import DesktopGithubControl from "./DesktopGithubControl.svelte";
+  import DesktopGitHubPanel from "./DesktopGitHubPanel.svelte";
+  import type { DesktopFileViewerPanelProps } from "./desktopFileViewerPanel";
+  import DesktopOpenTargetControl from "./DesktopOpenTargetControl.svelte";
+  import {
+    DESKTOP_NEW_TAB_EVENT,
     DESKTOP_OPEN_CHANGES_EVENT,
     DESKTOP_OPEN_CHANGES_VIEW_EVENT,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    DESKTOP_OPEN_CONVERSATION_SEARCH_EVENT,
     DESKTOP_OPEN_DIFF_TAB_EVENT,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    DESKTOP_OPEN_FILE_TAB_EVENT,
+    type DesktopNewTabEventDetail,
+    type DesktopNewTabAvailability,
+    type DesktopNewTabKind,
     type DesktopOpenDiffTabEventDetail,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    type DesktopOpenFileTabEventDetail,
     gitViewDisabledReason,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } from "./desktopCommandPicker";
   import type {
     DesktopSplitNavigationLocation,
     DesktopSplitNavigationRequest,
   } from "./desktopNavigation";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import {
+    desktopChatLiveStatusForSession,
+    desktopChatTabStatusKind,
+  } from "./desktopChatTabStatus";
   import { defaultTabForDesktopAuxiliarySurface } from "./desktopAuxiliarySurfaceDefault";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import {
+    type ClosedDesktopTab,
+    type DesktopSplitsCache,
+    type DesktopSplitsEntry,
+    type DesktopSplitSurface,
+    type DesktopTabDescriptor,
+    type RestorableDesktopTabDescriptor,
+    type TerminalCreateOptions,
+  } from "./desktopSplitsCache";
   import {
     adoptDesktopTabContent,
     desktopTabContentPoolHost,
     pooledDesktopTabContent,
   } from "./desktopTabContentPool";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import {
+    captureDesktopSplitsLayout,
+    isDesktopDefaultLayoutCandidate,
+    readStoredDefaultDesktopLayout,
+    readStoredDesktopLayout,
+    renameStoredDesktopLayout,
+    restorableTerminalCwd,
     shouldApplyStoredDefaultDesktopLayout,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    writeStoredDefaultDesktopLayout,
+    writeStoredDesktopLayout,
+    type PersistedDesktopLayout,
+    type PersistedDesktopTabDescriptor,
+  } from "./desktopLayoutPersistence";
   import { readDesktopFilesTreePrefs, writeDesktopFilesTreePrefs } from "./desktopFilesTreePrefs";
   import { requestDesktopChangesView } from "./desktopChangesViewRequest";
   import { showDesktopContextMenu } from "./desktopContextMenu";
@@ -119,79 +119,79 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     desktopSubagentTabStatusKind,
     matchingDesktopSubagentTabId,
   } from "./desktopSubagentTabs";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const DESKTOP_CLOSE_TAB_EVENT = "poolside:desktop-close-tab";
+  const DESKTOP_REOPEN_CLOSED_TAB_EVENT = "poolside:desktop-reopen-closed-tab";
+  const DESKTOP_SELECT_PREVIOUS_TAB_EVENT = "poolside:desktop-select-previous-tab";
+  const DESKTOP_SELECT_NEXT_TAB_EVENT = "poolside:desktop-select-next-tab";
+  const DESKTOP_SPLIT_RIGHT_EVENT = "poolside:desktop-split-right";
+  const DESKTOP_SPLIT_DOWN_EVENT = "poolside:desktop-split-down";
+  const DESKTOP_CLOSE_WINDOW_EVENT = "poolside:desktop-close-window";
+  const DESKTOP_SAVE_LAYOUT_AS_DEFAULT_EVENT = "poolside:desktop-save-layout-as-default";
+  const DESKTOP_LAYOUT_PERSIST_DELAY_MS = 150;
+
+  interface Props {
+    layoutKey: string;
+    splitsCache: DesktopSplitsCache;
+    terminalWorktreePath: string;
+    sidebarCollapsed?: boolean;
+    desktopSidebarWidth?: number;
+    rightSidebarVisible?: boolean;
+    rightSidebarWidth?: number;
+    rightSidebarMinWidth?: number;
+    rightSidebarMaxWidth?: number;
+    rightSidebarResizing?: boolean;
+    bottomPanelVisible?: boolean;
+    bottomPanelHeight?: number;
+    bottomPanelMinHeight?: number;
+    bottomPanelMaxHeight?: number;
+    bottomPanelResizing?: boolean;
+    onExpandSidebar?: () => void;
+    onRightSidebarVisibleChange?: (visible: boolean) => void;
+    onRightSidebarResizeStart?: (event: MouseEvent) => void;
+    onRightSidebarWidthChange?: (width: number) => void;
+    onBottomPanelVisibleChange?: (visible: boolean) => void;
+    onBottomPanelResizeStart?: (event: MouseEvent) => void;
+    onBottomPanelHeightChange?: (height: number) => void;
+    onNewConversation: (cwd?: string) => string | null | void | Promise<string | null | void>;
+    onAddProject: () => Promise<void> | void;
+    onShowAgentSettings: () => void;
+    onShowModelSettings?: () => void;
+    desktopFileViewerPanel?: Component<DesktopFileViewerPanelProps>;
+    promptBanners?: Snippet;
+    promptCommandItems?: Snippet;
+    promptMenus?: Snippet;
+    promptFooterLeading?: Snippet;
+    activeConversationId?: string | null;
+    onActiveConversationIdChange?: (key: string | null) => void;
+    onNewTabAvailabilityChange?: (availability: DesktopNewTabAvailability) => void;
     navigationRequest?: DesktopSplitNavigationRequest;
     onNavigationChange?: (location: DesktopSplitNavigationLocation) => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  interface DesktopTabFocusRequest {
+    surface: DesktopSplitSurface;
+    paneId: PaneID;
+    tabId: TabID;
+    token: number;
+  }
+
+  interface FilesCreateOptions {
+    rootPath: string;
+  }
+
+  interface GithubCreateOptions {
+    worktreePath: string;
+  }
+
+  interface FileCreateOptions {
+    path: string;
+    cwd?: string;
+    line?: number;
+    column?: number;
+    openToken: number;
+  }
+
   interface DiffCreateOptions {
     worktreePath: string;
     relativePath?: string;
@@ -209,114 +209,114 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     title: string;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  interface DesktopNewTabAction {
+    label: string;
+    icon: IconName;
+    disabled?: boolean;
+    disabledReason?: string;
+    onSelect: () => void;
+  }
+
+  interface VisibleDesktopTab {
+    surface: DesktopSplitSurface;
+    controller: SplitsController;
+    tabId: TabID;
+    tab: Tab;
+  }
+
+  type DesktopFileTabDescriptor = Extract<DesktopTabDescriptor, { kind: "file" }>;
   type DesktopDiffTabDescriptor = Extract<DesktopTabDescriptor, { kind: "diff" }>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  interface VisibleDesktopFileTab {
+    surface: DesktopSplitSurface;
+    paneId: PaneID;
+    tabId: TabID;
+    descriptor: DesktopFileTabDescriptor;
+  }
+
+  let {
+    layoutKey,
+    splitsCache,
+    terminalWorktreePath,
+    sidebarCollapsed = false,
+    desktopSidebarWidth = 260,
+    rightSidebarVisible = false,
+    rightSidebarWidth = 360,
+    rightSidebarMinWidth = 280,
+    rightSidebarMaxWidth = 720,
+    rightSidebarResizing = false,
+    bottomPanelVisible = false,
+    bottomPanelHeight = 280,
+    bottomPanelMinHeight = 180,
+    bottomPanelMaxHeight = 640,
+    bottomPanelResizing = false,
+    onExpandSidebar,
+    onRightSidebarVisibleChange,
+    onRightSidebarResizeStart,
+    onRightSidebarWidthChange,
+    onBottomPanelVisibleChange,
+    onBottomPanelResizeStart,
+    onBottomPanelHeightChange,
+    onNewConversation,
+    onAddProject,
+    onShowAgentSettings,
+    onShowModelSettings,
+    desktopFileViewerPanel,
+    promptBanners,
+    promptCommandItems,
+    promptMenus,
+    promptFooterLeading,
+    activeConversationId = null,
+    onActiveConversationIdChange,
+    onNewTabAvailabilityChange,
     navigationRequest,
     onNavigationChange,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }: Props = $props();
+
+  const acp = getACPContext();
+  const registry = getACPAgentRegistryRepo();
+  const projects = getACPProjectRepo();
   const desktopChatSession = setACPChatSessionScope(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    acp,
+    () => activeConversationId,
+    (id) => onActiveConversationIdChange?.(id),
+    getACPConversationRepo(),
+    () => toolActivityFrom($appState),
+  );
   setSubagentTranscriptNavigation({ open: openDesktopSubagentTranscript });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const assistantTerminals = getCurrentAssistantTerminalRepo();
+  const contextRepo = getContextRepoContext();
+  const disposeVisibleTerminalOpener =
+    assistantTerminals.setVisibleTerminalOpener(openExternalTerminal);
+  const delegate: SplitsDelegate<SplitsController> = {
+    shouldCloseTab(controller, tab, paneId) {
+      if (tab.isClosable === false) return false;
+
+      const targetEntry = splitsCache.entryForController(controller);
+      if (targetEntry) {
+        targetEntry.pendingClosedTab = closedTabSnapshot(targetEntry, controller, tab, paneId);
+      }
+      return true;
+    },
+    didCreateTab(controller, tab, paneId) {
+      const targetEntry = splitsCache.entryForController(controller);
+      if (!targetEntry || targetEntry.descriptors[tab.id]) return;
+      if (pendingFilesCreateOptions) {
+        createFilesForTab(targetEntry, controller, tab, pendingFilesCreateOptions);
+        return;
+      }
+      if (pendingFileCreateOptions) {
+        createFileForTab(targetEntry, controller, tab, pendingFileCreateOptions);
+        return;
+      }
+      if (pendingTrajectoryCreate) {
+        createTrajectoryForTab(targetEntry, controller, tab);
+        return;
+      }
+      if (pendingGithubCreateOptions) {
+        createGithubForTab(targetEntry, controller, tab, pendingGithubCreateOptions);
+        return;
+      }
       if (pendingDiffCreateOptions) {
         createDiffForTab(targetEntry, controller, tab, pendingDiffCreateOptions);
         return;
@@ -326,81 +326,81 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         controller.updateTab(tab.id, desktopSubagentTabOptions(pendingSubagentCreateOptions.title));
         return;
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const options = pendingTerminalCreateOptions ?? {
+        worktreePath: terminalWorktreePath,
+      };
+      void createTerminalForTab(targetEntry, controller, tab, paneId, options);
+    },
+    didCloseTab(controller, tabId) {
+      const targetEntry = splitsCache.entryForController(controller);
+      if (!targetEntry) return;
+      const descriptor = targetEntry.descriptors[tabId];
+      const closedTab =
+        targetEntry.pendingClosedTab?.tabId === tabId ? targetEntry.pendingClosedTab : undefined;
+      targetEntry.pendingClosedTab = undefined;
+      if (closedTab) {
+        targetEntry.lastClosedTab = closedTab;
+      }
+      removeDescriptor(targetEntry, tabId);
+      if (descriptor?.kind === "terminal" && descriptor.terminalId) {
+        void deleteTerminal(descriptor.terminalId);
+      }
+      if (descriptor?.kind === "file") {
+        removeDesktopFileViewOrder(tabId);
+      }
       if (descriptor?.kind === "subagent-chat") {
         removeSubagentTabState(targetEntry, tabId);
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      collapseEmptySideSurfaceForController(targetEntry, controller);
+      invalidateDesktopFileContext();
       reportFocusedControllerNavigation(controller);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+    didMoveTab(controller, _tab, sourcePaneId) {
+      const targetEntry = splitsCache.entryForController(controller);
+      if (!targetEntry) return;
+      collapseEmptySideSurfaceForPane(targetEntry, sourcePaneId);
+    },
+    didSelectTab(controller, tab, paneId) {
+      const targetEntry = splitsCache.entryForController(controller);
+      setActiveSurfaceForController(targetEntry, controller);
+      const descriptor = targetEntry?.descriptors[tab.id];
+      if (descriptor?.kind === "terminal" && descriptor.terminalId) {
+        assistantTerminals.selectTab(descriptor.terminalId);
+      }
+      if (descriptor?.kind === "file") {
+        markDesktopFileViewed(tab.id);
       } else if (targetEntry && descriptor?.kind === "subagent-chat") {
         markSubagentTabRead(targetEntry, tab.id);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      } else {
+        invalidateDesktopFileContext();
+      }
+      if (targetEntry) {
+        requestDesktopTabFocus(targetEntry, controller, paneId, tab.id);
+      }
       reportDesktopNavigation(controller, paneId, tab.id);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+    didFocusPane(controller, paneId) {
+      const targetEntry = splitsCache.entryForController(controller);
+      setActiveSurfaceForController(targetEntry, controller);
+      const selectedTab = controller.selectedTab(paneId);
+      const descriptor = selectedTab ? targetEntry?.descriptors[selectedTab.id] : undefined;
+      if (descriptor?.kind === "file" && selectedTab) {
+        markDesktopFileViewed(selectedTab.id);
+      } else {
+        invalidateDesktopFileContext();
+      }
+      if (targetEntry && selectedTab) {
+        requestDesktopTabFocus(targetEntry, controller, paneId, selectedTab.id);
+      }
       reportDesktopNavigation(controller, paneId, selectedTab?.id);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    },
+  };
+
+  onDestroy(disposeVisibleTerminalOpener);
+  onDestroy(() => {
+    if (desktopLayoutPersistTimer) {
+      clearTimeout(desktopLayoutPersistTimer);
+    }
     if (paneShapeAnimatingTimer) {
       clearTimeout(paneShapeAnimatingTimer);
     }
@@ -487,8 +487,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
 
     return pooledTabOrder.map((tabId) => ({ tabId, ...placements.get(tabId)! }));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
   let panelGeometryAnimating = $state(false);
   let paneShapeAnimatingTimer: ReturnType<typeof setTimeout> | undefined;
   const PANEL_GEOMETRY_ANIMATION_MS = 180;
@@ -522,85 +522,85 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     panelGeometryAnimating || rightSidebarResizing || bottomPanelResizing,
   );
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let entry = $state.raw<DesktopSplitsEntry>();
+  let descriptors = $state<Record<TabID, DesktopTabDescriptor>>({});
+  let mainTopLeftPaneId = $state<PaneID | undefined>();
+  let mainTopRightPaneId = $state<PaneID | undefined>();
+  let rightSidebarTopRightPaneId = $state<PaneID | undefined>();
+  let desktopSplitsFrameElement = $state<HTMLElement>();
+  let desktopTabFocusToken = 0;
   let lastAppliedNavigationRequestToken: number | undefined;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let suppressNextDesktopTabFocusRequest = false;
   // Surfaces that became visible during background work (applyingDesktopTabFocus
   // with takeFocus false); consumed by handleDesktopSurfaceVisibilityChange so
   // opening them does not take focus.
   const surfacesRevealedWithoutFocus = new Set<DesktopAuxiliarySurface>();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let desktopTabFocusRequest = $state<DesktopTabFocusRequest>();
+  let activeSurface = $state<DesktopSplitSurface>("main");
   const desktopSurfaceFocusHistory = new DesktopSurfaceFocusHistory({
     rightSidebar: rightSidebarVisible,
     bottomPanel: bottomPanelVisible,
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let pendingTerminalCreateOptions: TerminalCreateOptions | undefined;
+  let pendingFilesCreateOptions: FilesCreateOptions | undefined;
+  let pendingFileCreateOptions: FileCreateOptions | undefined;
+  let pendingTrajectoryCreate = false;
+  let pendingGithubCreateOptions: GithubCreateOptions | undefined;
   let pendingDiffCreateOptions: DiffCreateOptions | undefined;
   let pendingSubagentCreateOptions: SubagentCreateOptions | undefined;
   let diffOpenRequest = $state.raw<DiffOpenRequest>();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let fileOpenToken = 0;
   let diffOpenToken = 0;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let desktopFileContextRevision = $state(0);
+  let desktopFileViewCounter = 0;
+  let desktopFileViewOrder = $state<Record<TabID, number>>({});
+  let desktopFileContextByPath = $state<Record<string, AttachedFile>>({});
+  let desktopLayoutPersistTimer: ReturnType<typeof setTimeout> | undefined;
   let unreadSubagentTabIds = $state<ReadonlySet<TabID>>(new Set());
   const gitViewAvailability = new DesktopGitChangesState();
   onDestroy(() => gitViewAvailability.dispose());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let activeSession = $derived(acp.getSessionByConversationId(activeConversationId));
+  let filesRootPath = $derived(
+    activeSession?.sessionInfo?.cwd ?? activeSession?.pendingCwd ?? activeSession?.cwd ?? "",
+  );
+  // The GitHub panel only needs the worktree path, not a loaded ACP session, so
+  // fall back to terminalWorktreePath (the workspace root, resolved from the
+  // selected conversation + projects). This keeps GitHub available even while a
+  // conversation is still connecting/loading.
+  let githubWorktreePath = $derived(filesRootPath || terminalWorktreePath);
   let diffViewDisabledReason = $derived(
     gitViewDisabledReason(githubWorktreePath || undefined, gitViewAvailability.status),
   );
   let changesViewDisabledReason = $derived(
     gitViewDisabledReason(filesRootPath || undefined, gitViewAvailability.status),
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let agentServer = $derived(
+    activeSession?.agentServer ?? acp.agents.defaultAgentServer ?? DEFAULT_AGENT_SERVER,
+  );
+  let agent = $derived(registry.getAgent(agentServer) ?? null);
+  let agentName = $derived(
+    agentServer === DEFAULT_AGENT_SERVER
+      ? "Poolside"
+      : agentServer === LOCAL_AGENT_SERVER
+        ? "Poolside Local"
+        : (agent?.name ?? agentServer),
+  );
+  let chatTabTitle = $derived(`Chatting with ${agentName}`);
   let chatTabIconUrl = $derived(agentPickerIconUrl(registry, agentServer));
   let chatTabIconProps = $derived(agentPickerIconProps(registry, agentServer));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let chatTabStatus = $derived.by(() =>
+    desktopChatTabStatusKind(
+      desktopChatLiveStatusForSession(activeSession, (sessionId, statusAgentServer) =>
+        acp.getConversationStatus(sessionId, statusAgentServer),
+      ),
+    ),
+  );
+  let desktopOpenTargetKind = $derived(desktopTargetKind(terminalWorktreePath));
+  let desktopCodeFontFamily = $derived($appState.environment.desktopCodeFontFamily);
+  let desktopCodeFontSize = $derived($appState.environment.desktopCodeFontSize);
+  const desktopFrameActionButtonClass =
     "outline-hidden focus-visible:outline-psx-focus text-psx-icon hover:bg-psx-menu-hover-background flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[6px] focus-visible:outline-2";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   $effect(() => {
     gitViewAvailability.setWorktreePath(githubWorktreePath || undefined);
   });
@@ -659,12 +659,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     };
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  $effect(() => {
+    const nextEntry = entryForLayout(layoutKey);
+    entry = nextEntry;
+    descriptors = nextEntry.descriptors;
+  });
+
   $effect(() => {
     const request = navigationRequest;
     const currentEntry = entry;
@@ -679,10 +679,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     untrack(() => applyDesktopNavigationRequest(currentEntry, request.location));
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  $effect(() => {
+    const currentEntry = entry;
+    if (!currentEntry) return;
+
     // subscribe() invokes the subscriber synchronously, inside this effect, so
     // prime the signature first and that call becomes a no-op. Bumping there
     // would make this effect read (via +=) and write pooledLayoutRevision in
@@ -712,103 +712,103 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const unsubscribeMain = currentEntry.mainController.subscribe(handlePublish);
     const unsubscribeRightSidebar = currentEntry.rightSidebarController.subscribe(handlePublish);
     const unsubscribeBottomPanel = currentEntry.bottomPanelController.subscribe(handlePublish);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return () => {
+      unsubscribeMain();
+      unsubscribeRightSidebar();
+      unsubscribeBottomPanel();
+    };
+  });
+
+  $effect(() => {
+    rightSidebarVisible;
+    bottomPanelVisible;
+    activeSurface;
+    schedulePersistDesktopLayout();
+  });
+
+  $effect(() => {
+    const currentEntry = entry;
+    const sessionId = activeSession?.sessionId;
+    if (!currentEntry || !sessionId || !currentEntry.pendingDefaultLayoutHydration) return;
+    hydratePendingDefaultLayout(currentEntry);
+  });
+
+  $effect(() => {
+    const currentEntry = entry;
+    const title = chatTabTitle;
+    if (!currentEntry) return;
+
+    for (const [tabId, descriptor] of Object.entries(currentEntry.descriptors)) {
+      if (descriptor.kind === "chat") {
+        controllerForTab(currentEntry, tabId)?.updateTab(tabId, {
+          title,
+          icon: "agent",
+        });
       } else if (descriptor.kind === "subagent-chat") {
         const reference = desktopChatSession.subagents.referenceForKey(descriptor.subagentKey);
         controllerForTab(currentEntry, tabId)?.updateTab(tabId, {
           ...desktopSubagentTabOptions(reference?.title ?? descriptor.title),
         });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
+    }
+  });
+
+  $effect(() => {
+    const currentEntry = entry;
+    if (!currentEntry) return;
+    const terminalsById = new Map(
+      assistantTerminals.tabs.map((terminal) => [terminal.id, terminal] as const),
+    );
+    for (const [tabId, descriptor] of Object.entries(descriptors)) {
+      if (
+        descriptor.kind !== "terminal" ||
+        descriptor.status !== "ready" ||
+        !descriptor.terminalId
+      ) {
+        continue;
+      }
+
+      const terminal = terminalsById.get(descriptor.terminalId);
+      if (!terminal || terminal.exitCode !== undefined) {
+        controllerForTab(currentEntry, tabId)?.closeTab(tabId);
+      }
+    }
+  });
+
+  $effect(() => {
+    const currentEntry = entry;
+    const terminals = assistantTerminals.tabs;
+    if (!currentEntry) return;
+
+    syncTerminalTabTitles(currentEntry, terminals);
+  });
+
+  $effect(() => {
+    const currentEntry = entry;
+    const currentDescriptors = descriptors;
+    const fileContexts = desktopFileContextByPath;
+    const fileViewOrder = desktopFileViewOrder;
+    const contextRevision = desktopFileContextRevision;
+    const rightVisible = rightSidebarVisible;
+    const bottomVisible = bottomPanelVisible;
+    syncDesktopVisibleFileContext({
+      currentEntry,
+      currentDescriptors,
+      fileContexts,
+      fileViewOrder,
+      contextRevision,
+      rightVisible,
+      bottomVisible,
+    });
+  });
+
+  $effect(() => {
+    onNewTabAvailabilityChange?.({
+      terminal: { disabled: false },
+      files: {
+        disabled: !filesRootPath,
+        disabledReason: !filesRootPath ? "No working directory" : undefined,
+      },
       diff: {
         disabled: diffViewDisabledReason !== undefined,
         disabledReason: diffViewDisabledReason,
@@ -816,57 +816,57 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       changes: {
         disabled: changesViewDisabledReason !== undefined,
         disabledReason: changesViewDisabledReason,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      },
+      trajectory: {
+        disabled: false,
+      },
+      github: {
+        disabled: !githubWorktreePath,
+        disabledReason: !githubWorktreePath ? "No working directory" : undefined,
+      },
+    });
+  });
+
+  $effect(() => {
+    if (!rightSidebarVisible && activeSurface === "rightSidebar") {
+      activeSurface = "main";
       reportFocusedControllerNavigation(entry?.mainController);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    if (!bottomPanelVisible && activeSurface === "bottomPanel") {
+      activeSurface = "main";
       reportFocusedControllerNavigation(entry?.mainController);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  });
+
+  $effect(() => {
+    const currentEntry = entry;
+    if (!currentEntry) {
+      mainTopLeftPaneId = undefined;
+      mainTopRightPaneId = undefined;
+      rightSidebarTopRightPaneId = undefined;
+      return;
+    }
+
+    const syncTopPanes = () => {
+      mainTopLeftPaneId = topLeftPaneIdForController(currentEntry.mainController);
+      mainTopRightPaneId = topRightPaneIdForController(currentEntry.mainController);
+      rightSidebarTopRightPaneId = topRightPaneIdForController(currentEntry.rightSidebarController);
+    };
+
+    const unsubscribeMain = currentEntry.mainController.subscribe(syncTopPanes);
+    const unsubscribeRightSidebar = currentEntry.rightSidebarController.subscribe(syncTopPanes);
+    return () => {
+      unsubscribeMain();
+      unsubscribeRightSidebar();
+    };
+  });
+
+  $effect(() => {
+    const request = desktopTabFocusRequest;
+    if (!request) return;
+    void tick().then(() => focusRequestedDesktopTab(request));
+  });
+
   $effect(() => {
     const frame = desktopSplitsFrameElement;
     if (!frame) return;
@@ -890,62 +890,62 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     handleDesktopSurfaceVisibilityChange("bottomPanel", bottomPanelVisible);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  $effect(() => {
+    window.addEventListener("keydown", handleDesktopTabKeydown, true);
+    window.addEventListener(DESKTOP_NEW_TAB_EVENT, handleDesktopNewTabEvent);
     window.addEventListener(DESKTOP_OPEN_CHANGES_EVENT, handleDesktopOpenChangesEvent);
     window.addEventListener(DESKTOP_OPEN_CHANGES_VIEW_EVENT, handleDesktopOpenChangesViewEvent);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    window.addEventListener(DESKTOP_CLOSE_TAB_EVENT, handleDesktopCloseTabEvent);
+    window.addEventListener(DESKTOP_REOPEN_CLOSED_TAB_EVENT, handleDesktopReopenClosedTabEvent);
+    window.addEventListener(DESKTOP_OPEN_FILE_TAB_EVENT, handleDesktopOpenFileTabEvent);
     window.addEventListener(DESKTOP_OPEN_DIFF_TAB_EVENT, handleDesktopOpenDiffTabEvent);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    window.addEventListener(DESKTOP_SPLIT_RIGHT_EVENT, handleDesktopSplitRightEvent);
+    window.addEventListener(DESKTOP_SPLIT_DOWN_EVENT, handleDesktopSplitDownEvent);
+    window.addEventListener(DESKTOP_SELECT_PREVIOUS_TAB_EVENT, handleDesktopSelectPreviousTabEvent);
+    window.addEventListener(DESKTOP_SELECT_NEXT_TAB_EVENT, handleDesktopSelectNextTabEvent);
+    window.addEventListener(
+      DESKTOP_SAVE_LAYOUT_AS_DEFAULT_EVENT,
+      handleDesktopSaveLayoutAsDefaultEvent,
+    );
+
+    return () => {
+      window.removeEventListener("keydown", handleDesktopTabKeydown, true);
+      window.removeEventListener(DESKTOP_NEW_TAB_EVENT, handleDesktopNewTabEvent);
       window.removeEventListener(DESKTOP_OPEN_CHANGES_EVENT, handleDesktopOpenChangesEvent);
       window.removeEventListener(
         DESKTOP_OPEN_CHANGES_VIEW_EVENT,
         handleDesktopOpenChangesViewEvent,
       );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      window.removeEventListener(DESKTOP_CLOSE_TAB_EVENT, handleDesktopCloseTabEvent);
+      window.removeEventListener(
+        DESKTOP_REOPEN_CLOSED_TAB_EVENT,
+        handleDesktopReopenClosedTabEvent,
+      );
+      window.removeEventListener(DESKTOP_OPEN_FILE_TAB_EVENT, handleDesktopOpenFileTabEvent);
       window.removeEventListener(DESKTOP_OPEN_DIFF_TAB_EVENT, handleDesktopOpenDiffTabEvent);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      window.removeEventListener(DESKTOP_SPLIT_RIGHT_EVENT, handleDesktopSplitRightEvent);
+      window.removeEventListener(DESKTOP_SPLIT_DOWN_EVENT, handleDesktopSplitDownEvent);
+      window.removeEventListener(
+        DESKTOP_SELECT_PREVIOUS_TAB_EVENT,
+        handleDesktopSelectPreviousTabEvent,
+      );
+      window.removeEventListener(DESKTOP_SELECT_NEXT_TAB_EVENT, handleDesktopSelectNextTabEvent);
+      window.removeEventListener(
+        DESKTOP_SAVE_LAYOUT_AS_DEFAULT_EVENT,
+        handleDesktopSaveLayoutAsDefaultEvent,
+      );
+    };
+  });
+
+  function controllerForSurface(
+    targetEntry: DesktopSplitsEntry,
+    surface: DesktopSplitSurface,
+  ): SplitsController {
+    if (surface === "rightSidebar") return targetEntry.rightSidebarController;
+    if (surface === "bottomPanel") return targetEntry.bottomPanelController;
+    return targetEntry.mainController;
+  }
+
   function reportDesktopNavigation(controller: SplitsController, paneId: PaneID, tabId?: TabID) {
     const currentEntry = entry;
     if (!currentEntry || splitsCache.entryForController(controller) !== currentEntry) return;
@@ -998,265 +998,265 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     requestDesktopTabFocus(currentEntry, controller, location.paneId, location.tabId);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function surfaceForController(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+  ): DesktopSplitSurface | undefined {
+    if (targetEntry.mainController === controller) return "main";
+    if (targetEntry.rightSidebarController === controller) return "rightSidebar";
+    if (targetEntry.bottomPanelController === controller) return "bottomPanel";
+    return undefined;
+  }
+
+  function controllerForTab(
+    targetEntry: DesktopSplitsEntry,
+    tabId: TabID,
+  ): SplitsController | undefined {
+    if (targetEntry.mainController.tab(tabId)) return targetEntry.mainController;
+    if (targetEntry.rightSidebarController.tab(tabId)) return targetEntry.rightSidebarController;
+    if (targetEntry.bottomPanelController.tab(tabId)) return targetEntry.bottomPanelController;
+    return undefined;
+  }
+
+  function activeDesktopController(targetEntry: DesktopSplitsEntry): SplitsController {
+    if (activeSurface === "rightSidebar" && rightSidebarVisible) {
+      return targetEntry.rightSidebarController;
+    }
+    if (activeSurface === "bottomPanel" && bottomPanelVisible) {
+      return targetEntry.bottomPanelController;
+    }
+    return targetEntry.mainController;
+  }
+
+  function activeDesktopPaneTarget(
+    targetEntry: DesktopSplitsEntry,
+  ): { surface: DesktopSplitSurface; paneId: PaneID } | undefined {
+    const controller = activeDesktopController(targetEntry);
+    const surface = surfaceForController(targetEntry, controller);
+    const paneId = controller.focusedPaneId ?? controller.layoutSnapshot().panes[0]?.paneId;
+    if (!surface || !paneId) return undefined;
+    return { surface, paneId };
+  }
+
+  function syncDesktopVisibleFileContext({
+    currentEntry,
+    currentDescriptors,
+    fileContexts,
+    fileViewOrder,
+    contextRevision,
+    rightVisible,
+    bottomVisible,
+  }: {
+    currentEntry: DesktopSplitsEntry | undefined;
+    currentDescriptors: Record<TabID, DesktopTabDescriptor>;
+    fileContexts: Record<string, AttachedFile>;
+    fileViewOrder: Record<TabID, number>;
+    contextRevision: number;
+    rightVisible: boolean;
+    bottomVisible: boolean;
+  }) {
+    void contextRevision;
+
+    if (!currentEntry) {
+      contextRepo.setActiveFiles([]);
+      contextRepo.clearRecentFile();
+      return;
+    }
+
+    const visibleFileTabs = visibleDesktopFileTabs(
+      currentEntry,
+      currentDescriptors,
+      rightVisible,
+      bottomVisible,
+    );
+    const activeFiles = visibleFileTabs.map(({ descriptor }) =>
+      desktopContextFileForDescriptor(descriptor, fileContexts),
+    );
+    contextRepo.setActiveFiles(activeFiles);
+
+    const recentFileTab = mostRecentVisibleDesktopFileTab(visibleFileTabs, fileViewOrder);
+    if (!recentFileTab) {
+      contextRepo.clearRecentFile();
+      return;
+    }
+
+    contextRepo.setRecentFile(
+      desktopContextFileForDescriptor(recentFileTab.descriptor, fileContexts),
+    );
+  }
+
+  function visibleDesktopFileTabs(
+    targetEntry: DesktopSplitsEntry,
+    currentDescriptors: Record<TabID, DesktopTabDescriptor>,
+    rightVisible: boolean,
+    bottomVisible: boolean,
+  ): VisibleDesktopFileTab[] {
+    return [
+      ...visibleDesktopFileTabsForSurface("main", targetEntry.mainController, currentDescriptors),
+      ...(rightVisible
+        ? visibleDesktopFileTabsForSurface(
+            "rightSidebar",
+            targetEntry.rightSidebarController,
+            currentDescriptors,
+          )
+        : []),
+      ...(bottomVisible
+        ? visibleDesktopFileTabsForSurface(
+            "bottomPanel",
+            targetEntry.bottomPanelController,
+            currentDescriptors,
+          )
+        : []),
+    ];
+  }
+
+  function visibleDesktopFileTabsForSurface(
+    surface: DesktopSplitSurface,
+    controller: SplitsController,
+    currentDescriptors: Record<TabID, DesktopTabDescriptor>,
+  ): VisibleDesktopFileTab[] {
+    return controller.layoutSnapshot().panes.flatMap((pane) => {
+      const tabId = pane.selectedTabId;
+      const descriptor = tabId ? currentDescriptors[tabId] : undefined;
+      if (!tabId || descriptor?.kind !== "file") return [];
+      return [{ surface, paneId: pane.paneId, tabId, descriptor }];
+    });
+  }
+
+  function desktopContextFileForDescriptor(
+    descriptor: DesktopFileTabDescriptor,
+    fileContexts: Record<string, AttachedFile>,
+  ): AttachedFile {
+    const contextFile = fileContexts[normalizeWorkspacePath(descriptor.path)];
+    return {
+      ...contextFile,
+      path: contextFile?.path || descriptor.path,
+    };
+  }
+
+  function mostRecentVisibleDesktopFileTab(
+    visibleFileTabs: VisibleDesktopFileTab[],
+    fileViewOrder: Record<TabID, number>,
+  ): VisibleDesktopFileTab | undefined {
+    return visibleFileTabs.reduce<VisibleDesktopFileTab | undefined>((best, candidate) => {
+      if (!best) return candidate;
+      return (fileViewOrder[candidate.tabId] ?? 0) >= (fileViewOrder[best.tabId] ?? 0)
+        ? candidate
+        : best;
+    }, undefined);
+  }
+
+  function handleDesktopFileContextChange(tabId: TabID, file: AttachedFile) {
+    const descriptor = descriptors[tabId];
+    if (descriptor?.kind !== "file") return;
+    const path = file.path || descriptor.path;
+    desktopFileContextByPath = {
+      ...desktopFileContextByPath,
+      [normalizeWorkspacePath(path)]: {
+        ...file,
+        path,
+      },
+    };
+    invalidateDesktopFileContext();
+  }
+
+  function markDesktopFileViewed(tabId: TabID) {
+    desktopFileViewOrder = {
+      ...desktopFileViewOrder,
+      [tabId]: ++desktopFileViewCounter,
+    };
+    invalidateDesktopFileContext();
+  }
+
+  function removeDesktopFileViewOrder(tabId: TabID) {
+    const { [tabId]: _removed, ...nextFileViewOrder } = desktopFileViewOrder;
+    desktopFileViewOrder = nextFileViewOrder;
+  }
+
+  function invalidateDesktopFileContext() {
+    desktopFileContextRevision += 1;
+  }
+
+  function allDesktopTabIds(targetEntry: DesktopSplitsEntry): TabID[] {
+    return [
+      ...targetEntry.mainController.allTabIds,
+      ...targetEntry.rightSidebarController.allTabIds,
+      ...targetEntry.bottomPanelController.allTabIds,
+    ];
+  }
+
+  function setActiveSurfaceForController(
+    targetEntry: DesktopSplitsEntry | undefined,
+    controller: SplitsController,
+  ) {
+    if (!targetEntry) return;
+    const surface = surfaceForController(targetEntry, controller);
+    if (surface) {
+      activeSurface = surface;
+    }
+  }
+
   function setActiveDesktopSurface(surface: DesktopSplitSurface) {
     if (activeSurface !== surface) {
       activeSurface = surface;
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function controllerForPaneId(
+    targetEntry: DesktopSplitsEntry,
+    paneId: PaneID,
+  ): SplitsController | undefined {
+    const controllers = [
+      targetEntry.mainController,
+      targetEntry.rightSidebarController,
+      targetEntry.bottomPanelController,
+    ];
+    return controllers.find((controller) => controller.allPaneIds.includes(paneId));
+  }
+
+  function collapseEmptySideSurfaceForPane(targetEntry: DesktopSplitsEntry, paneId: PaneID) {
+    const controller = controllerForPaneId(targetEntry, paneId);
+    if (controller) {
+      collapseEmptySideSurfaceForController(targetEntry, controller);
+    }
+  }
+
+  function collapseEmptySideSurfaceForController(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+  ) {
+    if (controller.allTabIds.length > 0) return;
+
+    const surface = surfaceForController(targetEntry, controller);
+    if (surface === "rightSidebar" && rightSidebarVisible) {
+      setRightSidebarVisible(false);
+    } else if (surface === "bottomPanel" && bottomPanelVisible) {
+      setBottomPanelVisible(false);
+    }
+  }
+
+  function setRightSidebarVisible(visible: boolean) {
+    onRightSidebarVisibleChange?.(visible);
+    if (!visible && activeSurface === "rightSidebar") {
+      activeSurface = "main";
+    }
+  }
+
+  function toggleRightSidebar() {
+    setRightSidebarVisible(!rightSidebarVisible);
+  }
+
+  function setBottomPanelVisible(visible: boolean) {
+    onBottomPanelVisibleChange?.(visible);
+    if (!visible && activeSurface === "bottomPanel") {
+      activeSurface = "main";
+    }
+  }
+
+  function toggleBottomPanel() {
+    setBottomPanelVisible(!bottomPanelVisible);
+  }
+
   function initializeEmptyDesktopAuxiliarySurface(surface: DesktopAuxiliarySurface) {
     const currentEntry = entry;
     if (!currentEntry) return;
@@ -1404,314 +1404,314 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function sidebarShortcutTitle(label: string): string {
+    const hint = shortcutHint("toggleRightPanel");
+    return hint ? `${label} ${hint}` : label;
+  }
+
+  function panelShortcutTitle(label: string): string {
+    const hint = shortcutHint("toggleBottomPanel");
+    return hint ? `${label} ${hint}` : label;
+  }
+
+  function handleRightSidebarResizeKeydown(event: KeyboardEvent) {
+    if (!onRightSidebarWidthChange) return;
+
+    const step = event.shiftKey ? 32 : 16;
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      onRightSidebarWidthChange(Math.min(rightSidebarWidth + step, rightSidebarMaxWidth));
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      onRightSidebarWidthChange(Math.max(rightSidebarWidth - step, rightSidebarMinWidth));
+    }
+  }
+
+  function handleBottomPanelResizeKeydown(event: KeyboardEvent) {
+    if (!onBottomPanelHeightChange) return;
+
+    const step = event.shiftKey ? 32 : 16;
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      onBottomPanelHeightChange(Math.min(bottomPanelHeight + step, bottomPanelMaxHeight));
+    } else if (event.key === "ArrowDown") {
+      event.preventDefault();
+      onBottomPanelHeightChange(Math.max(bottomPanelHeight - step, bottomPanelMinHeight));
+    }
+  }
+
+  function syncTerminalTabTitles(
+    targetEntry: DesktopSplitsEntry,
+    terminals: AssistantTerminalTab[],
+  ) {
+    for (const [tabId, descriptor] of Object.entries(targetEntry.descriptors)) {
+      if (
+        descriptor.kind !== "terminal" ||
+        descriptor.status !== "ready" ||
+        !descriptor.terminalId
+      ) {
+        continue;
+      }
+      const terminal = terminals.find((candidate) => candidate.id === descriptor.terminalId);
+      if (!terminal) continue;
+      controllerForTab(targetEntry, tabId)?.updateTab(tabId, {
+        title: terminalDisplayTitle(terminal),
+        icon: null,
+      });
+    }
+  }
+
+  function entryForLayout(key: string): DesktopSplitsEntry {
+    const nextEntry = splitsCache.getOrCreate(key, createDesktopSplitsEntry);
+    nextEntry.mainController.delegate = delegate;
+    nextEntry.rightSidebarController.delegate = delegate;
+    nextEntry.bottomPanelController.delegate = delegate;
+    syncTerminalTabTitles(nextEntry, assistantTerminals.tabs);
+    return nextEntry;
+  }
+
+  function createDesktopSplitsController() {
+    return new SplitsController({
+      allowCrossControllerTabMove: true,
+      contentViewLifecycle: "keepAllAlive",
+      newTabPosition: "end",
+      appearance: {
+        tabBarHeight: 34,
+        tabMinWidth: 40,
+        tabMaxWidth: 208,
+        tabSpacing: 4,
+        showSplitButtons: false,
+      },
+    });
+  }
+
+  function createEmptyDesktopSplitsController() {
+    const controller = createDesktopSplitsController();
+    const initialTabId = controller.allTabIds[0];
+    if (initialTabId) {
+      controller.closeTab(initialTabId);
+    }
+    return controller;
+  }
+
+  function createDesktopSplitsEntry(key: string): DesktopSplitsEntry {
+    const shouldDeferDefaultHydration = shouldDeferDefaultLayoutHydration(key);
+    if (!shouldDeferDefaultHydration) {
+      const restoredEntry = createDesktopSplitsEntryFromStoredLayout(key);
+      if (restoredEntry) {
+        return restoredEntry;
+      }
+    }
+
+    const mainController = createDesktopSplitsController();
+    const rightSidebarController = createEmptyDesktopSplitsController();
+    const bottomPanelController = createEmptyDesktopSplitsController();
+    const chatTabId = mainController.allTabIds[0]!;
+    mainController.updateTab(chatTabId, {
+      title: chatTabTitle,
+      icon: "agent",
+      isClosable: false,
+    });
+
+    const nextEntry: DesktopSplitsEntry = {
+      cacheKey: key,
+      mainController,
+      rightSidebarController,
+      bottomPanelController,
+      descriptors: {
+        [chatTabId]: { kind: "chat" },
+      },
+      terminalPromises: new Map(),
+      pendingDefaultLayoutHydration: shouldDeferDefaultHydration,
+      dispose: () => {},
+    };
+    mainController.delegate = delegate;
+    rightSidebarController.delegate = delegate;
+    bottomPanelController.delegate = delegate;
+    return nextEntry;
+  }
+
+  function createDesktopSplitsEntryFromStoredLayout(key: string): DesktopSplitsEntry | undefined {
+    const layout = readStoredDesktopLayout(key);
+    if (!layout) return undefined;
+
+    const mainController = createDesktopSplitsController();
+    const rightSidebarController = createEmptyDesktopSplitsController();
+    const bottomPanelController = createEmptyDesktopSplitsController();
+    const restoredEntry: DesktopSplitsEntry = {
+      cacheKey: key,
+      mainController,
+      rightSidebarController,
+      bottomPanelController,
+      descriptors: {},
+      terminalPromises: new Map(),
+      dispose: () => {},
+    };
+    mainController.delegate = delegate;
+    rightSidebarController.delegate = delegate;
+    bottomPanelController.delegate = delegate;
+
+    if (!restoreDesktopLayoutIntoEntry(restoredEntry, layout)) {
+      return undefined;
+    }
+    return restoredEntry;
+  }
+
+  function shouldDeferDefaultLayoutHydration(key: string): boolean {
+    if (activeSession?.sessionId) return false;
     if (!shouldApplyStoredDefaultDesktopLayout(activeSession?.isChat === true)) return false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return isDesktopDefaultLayoutCandidate(key, activeSession?.pendingConversationId);
+  }
+
+  function hydratePendingDefaultLayout(targetEntry: DesktopSplitsEntry) {
+    targetEntry.pendingDefaultLayoutHydration = false;
+    // Tabs may already exist by the time the session id arrives — a worktree
+    // setup script opens its terminal into this entry while the session is
+    // still connecting. Restoring the default layout would wipe those
+    // descriptors and kill the live terminals behind them, so keep what the
+    // user can already see instead.
+    if (desktopEntryHasLiveContent(targetEntry)) {
+      schedulePersistDesktopLayout();
+      return;
+    }
+    const layout = readStoredDefaultDesktopLayout();
+    if (!layout) {
+      schedulePersistDesktopLayout();
+      return;
+    }
+
+    closeRestoredOverDesktopTabs(targetEntry);
+    if (!restoreDesktopLayoutIntoEntry(targetEntry, layout, terminalWorktreePath)) {
+      schedulePersistDesktopLayout();
+      return;
+    }
+    if (entry === targetEntry) {
+      descriptors = targetEntry.descriptors;
+    }
+    invalidateDesktopFileContext();
+    schedulePersistDesktopLayout();
+  }
+
+  function restoreDesktopLayoutIntoEntry(
+    targetEntry: DesktopSplitsEntry,
+    layout: PersistedDesktopLayout,
+    // Set when restoring a shared *default* layout into a fresh conversation:
+    // the persisted terminal worktree/cwd came from whichever conversation the
+    // template was captured in, so anchor restored terminals to the current
+    // worktree instead of spawning them in that foreign one.
+    terminalWorktreeAnchor?: string,
+  ): boolean {
+    if (
+      !targetEntry.mainController.restoreState(layout.surfaces.main) ||
+      !targetEntry.rightSidebarController.restoreState(layout.surfaces.rightSidebar) ||
+      !targetEntry.bottomPanelController.restoreState(layout.surfaces.bottomPanel)
+    ) {
+      return false;
+    }
+
+    targetEntry.descriptors = {};
+    targetEntry.lastClosedTab = undefined;
+    targetEntry.pendingClosedTab = undefined;
+    targetEntry.terminalPromises.clear();
+
+    if (!restorePersistedDesktopDescriptors(targetEntry, layout, terminalWorktreeAnchor)) {
+      return false;
+    }
+    ensureRestoredChatTab(targetEntry);
+    applyPersistedDesktopPanelState(targetEntry, layout);
+    syncDescriptors(targetEntry);
+    return true;
+  }
+
+  function desktopEntryHasLiveContent(targetEntry: DesktopSplitsEntry): boolean {
+    return Object.values(targetEntry.descriptors).some((descriptor) => {
+      if (descriptor.kind === "chat") return false;
+      // A terminal that failed to open leaves a dead descriptor behind until the
+      // user closes it; it must not masquerade as live content and suppress
+      // restoring the saved layout.
+      if (descriptor.kind === "terminal" && descriptor.status === "failed") return false;
+      return true;
+    });
+  }
+
+  function closeRestoredOverDesktopTabs(targetEntry: DesktopSplitsEntry) {
+    for (const [tabId, descriptor] of Object.entries(targetEntry.descriptors)) {
+      if (descriptor.kind === "terminal" && descriptor.terminalId) {
+        void deleteTerminal(descriptor.terminalId);
+      }
+      if (descriptor.kind === "file") {
+        removeDesktopFileViewOrder(tabId);
+      }
+    }
+  }
+
+  function restorePersistedDesktopDescriptors(
+    targetEntry: DesktopSplitsEntry,
+    layout: PersistedDesktopLayout,
+    terminalWorktreeAnchor?: string,
+  ): boolean {
+    const restorations: Array<{
+      controller: SplitsController;
+      tab: Tab;
+      paneId: PaneID;
+      descriptor: PersistedDesktopTabDescriptor;
+    }> = [];
+
+    for (const tabId of allDesktopTabIds(targetEntry)) {
+      const persistedDescriptor = layout.descriptors[tabId];
+      if (!persistedDescriptor) {
+        return false;
+      }
+
+      const controller = controllerForTab(targetEntry, tabId);
+      const tab = controller?.tab(tabId);
+      const paneId = controller
+        ?.layoutSnapshot()
+        .panes.find((pane) => pane.tabIds.includes(tabId))?.paneId;
+      if (!controller || !tab || !paneId) {
+        return false;
+      }
+
+      restorations.push({
+        controller,
+        tab,
+        paneId,
+        descriptor: persistedDescriptor,
+      });
+    }
+
+    for (const { controller, tab, paneId, descriptor } of restorations) {
+      restorePersistedDesktopDescriptor(
+        targetEntry,
+        controller,
+        tab,
+        paneId,
+        descriptor,
+        terminalWorktreeAnchor,
+      );
+    }
+
+    return true;
+  }
+
+  function restorePersistedDesktopDescriptor(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+    tab: Tab,
+    paneId: PaneID,
+    descriptor: PersistedDesktopTabDescriptor,
+    terminalWorktreeAnchor?: string,
+  ) {
+    switch (descriptor.kind) {
+      case "chat":
+        setDescriptor(targetEntry, tab.id, { kind: "chat" });
+        controller.updateTab(tab.id, {
+          title: chatTabTitle,
+          icon: "agent",
+          isDirty: false,
+          isClosable: false,
+        });
+        return;
       case "subagent-chat":
         setSubagentDescriptorForTab(targetEntry, tab.id, descriptor);
         controller.updateTab(tab.id, {
@@ -1720,20 +1720,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           isClosable: true,
         });
         return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "terminal": {
+        // Anchoring wins over the persisted (foreign) worktree for default-layout
+        // restores; a persisted cwd only survives when it sits inside whichever
+        // worktree the terminal actually spawns in.
+        const worktreePath =
+          terminalWorktreeAnchor || descriptor.worktreePath || terminalWorktreePath;
+        void createTerminalForTab(targetEntry, controller, tab, paneId, {
+          worktreePath,
+          cwd: restorableTerminalCwd(descriptor.cwd, worktreePath),
+          selectWhenReady: false,
+        });
+        return;
+      }
+      case "review":
       case "changes":
         // The legacy review panel and the standalone Changes panel are both
         // removed: restore their persisted tabs as a files tab opening in
@@ -1744,11 +1744,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           tab,
           "worktreePath" in descriptor ? descriptor.worktreePath : undefined,
         );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        return;
+      case "trajectory":
+        setTrajectoryDescriptorForTab(targetEntry, tab.id);
+        controller.updateTab(tab.id, trajectoryTabOptions());
+        return;
       case "files": {
         const rootPath = descriptor.rootPath || filesRootPath;
         setFilesDescriptorForTab(targetEntry, tab.id, { rootPath });
@@ -1767,28 +1767,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             });
           }
         }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        return;
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "github":
+        setGithubDescriptorForTab(
+          targetEntry,
+          tab.id,
+          descriptor.worktreePath || githubWorktreePath,
+        );
+        controller.updateTab(tab.id, githubTabOptions());
+        return;
+      case "file": {
+        const options = {
+          path: descriptor.path,
+          cwd: descriptor.cwd,
+          line: descriptor.line,
+          column: descriptor.column,
+          openToken: ++fileOpenToken,
+        };
+        setFileDescriptorForTab(targetEntry, tab.id, options);
+        controller.updateTab(tab.id, fileViewerTabOptions(descriptor.path));
+        return;
+      }
       case "diff":
         // Re-opens a fresh diff helper session for the worktree; no
         // relativePath, so the restored view starts at the top instead of
@@ -1801,128 +1801,128 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         });
         controller.updateTab(tab.id, diffTabOptions());
         return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  }
+
+  function ensureRestoredChatTab(targetEntry: DesktopSplitsEntry) {
+    if (Object.values(targetEntry.descriptors).some((descriptor) => descriptor.kind === "chat")) {
+      return;
+    }
+
+    const previousDelegate = targetEntry.mainController.delegate;
+    let tabId: TabID | undefined;
+    targetEntry.mainController.delegate = undefined;
+    try {
+      tabId = targetEntry.mainController.createTab({
+        title: chatTabTitle,
+        icon: "agent",
+        isClosable: false,
+      });
+    } finally {
+      targetEntry.mainController.delegate = previousDelegate;
+    }
+    if (tabId) {
+      setDescriptor(targetEntry, tabId, { kind: "chat" });
+    }
+  }
+
+  function applyPersistedDesktopPanelState(
+    targetEntry: DesktopSplitsEntry,
+    layout: PersistedDesktopLayout,
+  ) {
+    setRightSidebarVisible(layout.rightSidebarVisible);
+    setBottomPanelVisible(layout.bottomPanelVisible);
+    if (
+      layout.activeSurface === "rightSidebar" &&
+      layout.rightSidebarVisible &&
+      targetEntry.rightSidebarController.allTabIds.length > 0
+    ) {
+      activeSurface = "rightSidebar";
+    } else if (
+      layout.activeSurface === "bottomPanel" &&
+      layout.bottomPanelVisible &&
+      targetEntry.bottomPanelController.allTabIds.length > 0
+    ) {
+      activeSurface = "bottomPanel";
+    } else {
+      activeSurface = "main";
+    }
+  }
+
+  function handleDesktopTabKeydown(event: KeyboardEvent) {
+    if (event.metaKey && event.altKey && !event.ctrlKey && !event.shiftKey) {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        event.stopPropagation();
+        selectPreviousDesktopTab();
+        return;
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        event.stopPropagation();
+        selectNextDesktopTab();
+        return;
+      }
+    }
+
+    if (event.metaKey && !event.ctrlKey && !event.altKey) {
+      const key = event.key.toLowerCase();
+      if (event.shiftKey && key === "t") {
+        event.preventDefault();
+        event.stopPropagation();
+        reopenLastClosedDesktopTab();
+        return;
+      }
+
+      if (event.key.toLowerCase() === "d") {
+        event.preventDefault();
+        event.stopPropagation();
+        createDesktopTerminalSplit(event.shiftKey ? "vertical" : "horizontal");
+        return;
+      }
+
+      if (!event.shiftKey && event.key.toLowerCase() === "w") {
+        if (closeActiveDesktopTab()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        return;
+      }
+
+      if (event.shiftKey && isPreviousTabKey(event)) {
+        event.preventDefault();
+        event.stopPropagation();
+        selectPreviousDesktopTab();
+        return;
+      }
+
+      if (event.shiftKey && isNextTabKey(event)) {
+        event.preventDefault();
+        event.stopPropagation();
+        selectNextDesktopTab();
+        return;
+      }
+    }
+
+    if (event.ctrlKey && !event.metaKey && !event.altKey && event.key === "Tab") {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.shiftKey) {
+        selectPreviousDesktopTab();
+      } else {
+        selectNextDesktopTab();
+      }
+    }
+  }
+
+  function handleDesktopNewTabEvent(event: Event) {
+    const detail = (event as CustomEvent<DesktopNewTabEventDetail>).detail;
+    if (createDesktopNewTab(detail?.kind ?? "terminal")) {
+      event.preventDefault();
+    }
+  }
+
   // Legacy "open changes" requests (e.g. Review Diff... in the file tree menu)
   // route to the file tree's changes view — the standalone Changes panel has
   // been removed in favor of it.
@@ -1968,43 +1968,43 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function openDesktopNewTabPicker(surface: DesktopSplitSurface, paneId: PaneID) {
+    const currentEntry = entry;
+    desktopTabFocusRequest = undefined;
+    if (currentEntry) {
+      activeSurface = surface;
+      const controller = controllerForSurface(currentEntry, surface);
+      if (controller.focusedPaneId !== paneId) {
+        suppressNextDesktopTabFocusRequest = true;
+        try {
+          controller.focusPane(paneId);
+        } finally {
+          suppressNextDesktopTabFocusRequest = false;
+        }
+      }
+    }
+
+    window.dispatchEvent(
+      new CustomEvent(DESKTOP_OPEN_CONVERSATION_SEARCH_EVENT, {
+        detail: { initialQuery: "+" },
+      }),
+    );
+  }
+
+  function createDesktopNewTab(kind: DesktopNewTabKind): boolean {
+    const currentEntry = entry;
+    if (!currentEntry) return false;
+
+    const target = activeDesktopPaneTarget(currentEntry);
+    if (!target) return false;
+
+    activeSurface = target.surface;
+    const controller = controllerForSurface(currentEntry, target.surface);
+    controller.focusPane(target.paneId);
+
+    switch (kind) {
+      case "files":
+        return createDesktopFilesTab(target.surface, target.paneId);
       case "diff":
         if (diffViewDisabledReason) return false;
         return openDesktopDiffTab(
@@ -2012,23 +2012,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           target.surface,
           target.paneId,
         );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "review":
       case "changes":
         if (changesViewDisabledReason) return false;
         // Legacy kinds: the review/Changes panels are gone; the file tree's
         // changes view is the review surface now.
         requestDesktopChangesView(filesRootPath || undefined);
         return true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "trajectory":
+        return createDesktopTrajectoryTab(target.surface, target.paneId);
+      case "github":
+        return createDesktopGithubTab(target.surface, target.paneId);
+      case "terminal":
+      default:
+        return createDesktopTerminalTab(target.surface, target.paneId);
+    }
+  }
+
   function openDesktopSubagentTranscript(reference: SubagentReference): void {
     if (!subagentProvidesTranscript(reference)) return;
     const currentEntry = entry;
@@ -2119,74 +2119,74 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function handleDesktopCloseTabEvent(event: Event) {
+    if (closeActiveDesktopTab()) {
+      event.preventDefault();
+    }
+  }
+
+  function handleDesktopReopenClosedTabEvent(event: Event) {
+    if (reopenLastClosedDesktopTab()) {
+      event.preventDefault();
+    }
+  }
+
+  function handleDesktopOpenFileTabEvent(event: Event) {
+    const detail = (event as CustomEvent<DesktopOpenFileTabEventDetail>).detail;
+    if (openDesktopFileTab(detail)) {
+      event.preventDefault();
+    }
+  }
+
+  function handleDesktopSplitRightEvent(event: Event) {
+    if (createDesktopTerminalSplit("horizontal")) {
+      event.preventDefault();
+    }
+  }
+
+  function handleDesktopSplitDownEvent(event: Event) {
+    if (createDesktopTerminalSplit("vertical")) {
+      event.preventDefault();
+    }
+  }
+
+  function handleDesktopSelectPreviousTabEvent(event: Event) {
+    if (selectPreviousDesktopTab()) {
+      event.preventDefault();
+    }
+  }
+
+  function handleDesktopSelectNextTabEvent(event: Event) {
+    if (selectNextDesktopTab()) {
+      event.preventDefault();
+    }
+  }
+
+  function handleDesktopSaveLayoutAsDefaultEvent(event: Event) {
+    if (saveCurrentDesktopLayoutAsDefault()) {
+      event.preventDefault();
+    }
+  }
+
+  function createDesktopTerminalSplit(orientation: SplitOrientation): boolean {
+    const currentEntry = entry;
+    if (!currentEntry) return false;
+    const controller = activeDesktopController(currentEntry);
+    if (controller.allTabIds.length === 0) {
+      return Boolean(
+        createTerminalTab(
+          controller,
+          { worktreePath: terminalWorktreePath },
+          controller.focusedPaneId,
+        ),
+      );
+    }
+
+    return Boolean(
+      createTerminalSplit(controller, orientation, { worktreePath: terminalWorktreePath }),
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Tab context menu – neighbour computation
   // ---------------------------------------------------------------------------
@@ -2462,204 +2462,204 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function createTerminalSplit(
+    controller: SplitsController,
+    orientation: SplitOrientation,
+    options: TerminalCreateOptions,
     sourcePaneId?: PaneID,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ): TabID | undefined {
+    pendingTerminalCreateOptions = options;
+    try {
+      const paneId = controller.splitPane({
         paneId: sourcePaneId,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        orientation,
+        withTab: {
+          title: "Terminal",
+          icon: null,
+        },
+      });
+      if (!paneId) return undefined;
+
+      const selectedTab = controller.selectedTab(paneId);
+      if (selectedTab) {
+        controller.selectTab(selectedTab.id);
+      }
+      return selectedTab?.id;
+    } finally {
+      pendingTerminalCreateOptions = undefined;
+    }
+  }
+
+  function createDesktopTerminalTab(
+    surface: DesktopSplitSurface = activeSurface,
+    paneId?: PaneID,
+  ): boolean {
+    const currentEntry = entry;
+    if (!currentEntry) return false;
+    const controller = controllerForSurface(currentEntry, surface);
+    return Boolean(createTerminalTab(controller, { worktreePath: terminalWorktreePath }, paneId));
+  }
+
+  function createTerminalTab(
+    controller: SplitsController,
+    options: TerminalCreateOptions,
+    paneId?: PaneID,
+  ): TabID | undefined {
+    pendingTerminalCreateOptions = options;
+    try {
+      const tabId = controller.createTab("Terminal", { icon: null, inPane: paneId });
+      if (tabId) {
+        controller.selectTab(tabId);
+      }
+      return tabId;
+    } finally {
+      pendingTerminalCreateOptions = undefined;
+    }
+  }
+
+  function openTerminalFromFilesTree(
+    surface: DesktopSplitSurface,
+    paneId: PaneID,
+    worktreePath: string,
+  ): void {
+    const currentEntry = entry;
+    if (!currentEntry) {
+      throw new Error("No desktop split is active.");
+    }
+
+    const controller = controllerForSurface(currentEntry, surface);
+    const tabId = createTerminalTab(controller, { worktreePath }, paneId);
+    if (!tabId) {
+      throw new Error("Terminal tab could not be created.");
+    }
+  }
+
+  function createDesktopFilesTab(
+    surface: DesktopSplitSurface = activeSurface,
+    paneId?: PaneID,
+  ): boolean {
+    const currentEntry = entry;
+    if (!currentEntry || !filesRootPath) return false;
+    const controller = controllerForSurface(currentEntry, surface);
+    return Boolean(createFilesTab(currentEntry, controller, { rootPath: filesRootPath }, paneId));
+  }
+
+  function createFilesTab(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+    options: FilesCreateOptions,
+    paneId?: PaneID,
+  ): TabID | undefined {
+    pendingFilesCreateOptions = options;
+    try {
+      const tabId = controller.createTab({ ...filesTabOptions(options.rootPath), inPane: paneId });
+      if (tabId) {
+        setFilesDescriptorForTab(targetEntry, tabId, options);
+        controller.selectTab(tabId);
+      }
+      return tabId;
+    } finally {
+      pendingFilesCreateOptions = undefined;
+    }
+  }
+
+  function createFilesForTab(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+    tab: Tab,
+    options: FilesCreateOptions,
+  ) {
+    setFilesDescriptorForTab(targetEntry, tab.id, options);
+    controller.updateTab(tab.id, filesTabOptions(options.rootPath));
+  }
+
+  function setFilesDescriptorForTab(
+    targetEntry: DesktopSplitsEntry,
+    tabId: TabID,
+    options: FilesCreateOptions,
+  ) {
+    setDescriptor(targetEntry, tabId, {
+      kind: "files",
+      rootPath: options.rootPath,
+    });
+  }
+
+  function filesTabOptions(rootPath: string): Pick<Tab, "title" | "icon"> {
+    return {
+      title: fileTabTitle(rootPath),
+      icon: "folder-open",
+    };
+  }
+
+  function githubTabOptions(): Pick<Tab, "title" | "icon"> {
+    return { title: "GitHub", icon: "github" };
+  }
+
+  function setGithubDescriptorForTab(
+    targetEntry: DesktopSplitsEntry,
+    tabId: TabID,
+    worktreePath: string,
+  ) {
+    setDescriptor(targetEntry, tabId, { kind: "github", worktreePath });
+  }
+
+  // Opens the GitHub PR panel for the active worktree. Uses githubWorktreePath
+  // (not filesRootPath) so it works without a loaded ACP session.
+  function createDesktopGithubTab(
+    surface: DesktopSplitSurface = activeSurface,
+    paneId?: PaneID,
+  ): boolean {
+    const currentEntry = entry;
+    if (!currentEntry || !githubWorktreePath) return false;
+    const controller = controllerForSurface(currentEntry, surface);
+    return Boolean(
+      createGithubTab(currentEntry, controller, { worktreePath: githubWorktreePath }, paneId),
+    );
+  }
+
+  // Mirrors createFilesTab: the pending marker lets didCreateTab route the new
+  // tab to GitHub instead of falling through to its terminal default (which
+  // would mislabel the tab "Terminal" and spawn a stray terminal).
+  function createGithubTab(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+    options: GithubCreateOptions,
+    paneId?: PaneID,
+  ): TabID | undefined {
+    pendingGithubCreateOptions = options;
+    try {
+      const tabId = controller.createTab({ ...githubTabOptions(), inPane: paneId });
+      if (tabId) {
+        setGithubDescriptorForTab(targetEntry, tabId, options.worktreePath);
+        controller.selectTab(tabId);
+      }
+      return tabId;
+    } finally {
+      pendingGithubCreateOptions = undefined;
+    }
+  }
+
+  function createGithubForTab(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+    tab: Tab,
+    options: GithubCreateOptions,
+  ) {
+    setGithubDescriptorForTab(targetEntry, tab.id, options.worktreePath);
+    controller.updateTab(tab.id, githubTabOptions());
+  }
+
+  function updateGithubTabTitle(tabId: TabID, title: string): void {
+    const currentEntry = entry;
+    if (!currentEntry) return;
+    const descriptor = currentEntry.descriptors[tabId];
+    if (descriptor?.kind !== "github") return;
+    controllerForTab(currentEntry, tabId)?.updateTab(tabId, {
+      title,
+      icon: "github",
+    });
+  }
+
   // Persisted legacy review/Changes tabs restore as a files tab pre-set to
   // its git changes view (the worktree pref is seeded before the tree
   // mounts), so old layouts land on the new review surface.
@@ -2682,99 +2682,99 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     controller.updateTab(tab.id, filesTabOptions(rootPath));
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function fileTabTitle(rootPath: string): string {
+    return basename(rootPath) || rootPath || "Files";
+  }
+
+  function openDesktopFileTab(detail: DesktopOpenFileTabEventDetail | undefined): boolean {
+    const currentEntry = entry;
+    const path = detail?.path?.trim();
+    if (!currentEntry || !path) return false;
+
+    activeSurface = "main";
+    const controller = currentEntry.mainController;
+    const options: FileCreateOptions = {
+      path,
+      cwd: filesRootPath,
+      line: detail?.line,
+      column: detail?.column,
+      openToken: ++fileOpenToken,
+    };
+
+    const existingTabId = fileTabIdForPath(currentEntry, controller, path);
+    if (existingTabId) {
+      setFileDescriptorForTab(currentEntry, existingTabId, options);
+      controller.updateTab(existingTabId, fileViewerTabOptions(path));
+      controller.selectTab(existingTabId);
+      return true;
+    }
+
+    return Boolean(createFileTab(currentEntry, controller, options));
+  }
+
+  function fileTabIdForPath(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+    path: string,
+  ): TabID | undefined {
+    const normalized = normalizeWorkspacePath(path);
+    return controller.allTabIds.find((tabId) => {
+      const descriptor = targetEntry.descriptors[tabId];
+      return descriptor?.kind === "file" && normalizeWorkspacePath(descriptor.path) === normalized;
+    });
+  }
+
+  function createFileTab(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+    options: FileCreateOptions,
+    paneId?: PaneID,
+  ): TabID | undefined {
+    pendingFileCreateOptions = options;
+    try {
+      const tabId = controller.createTab({ ...fileViewerTabOptions(options.path), inPane: paneId });
+      if (tabId) {
+        setFileDescriptorForTab(targetEntry, tabId, options);
+        controller.selectTab(tabId);
+      }
+      return tabId;
+    } finally {
+      pendingFileCreateOptions = undefined;
+    }
+  }
+
+  function createFileForTab(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+    tab: Tab,
+    options: FileCreateOptions,
+  ) {
+    setFileDescriptorForTab(targetEntry, tab.id, options);
+    controller.updateTab(tab.id, fileViewerTabOptions(options.path));
+  }
+
+  function setFileDescriptorForTab(
+    targetEntry: DesktopSplitsEntry,
+    tabId: TabID,
+    options: FileCreateOptions,
+  ) {
+    setDescriptor(targetEntry, tabId, {
+      kind: "file",
+      path: options.path,
+      cwd: options.cwd,
+      line: options.line,
+      column: options.column,
+      openToken: options.openToken,
+    });
+  }
+
+  function fileViewerTabOptions(path: string): Pick<Tab, "title" | "icon"> {
+    return {
+      title: basename(path) || path || "File",
+      icon: "file",
+    };
+  }
+
   // --- Singleton Diff tab -------------------------------------------------
   // At most one diff tab exists per layout. It always shows the diff for all
   // changed files in the worktree; opening a diff focuses the existing tab
@@ -2898,103 +2898,103 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     openDesktopDiffTab(detail);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function createDesktopTrajectoryTab(
+    surface: DesktopSplitSurface = activeSurface,
+    paneId?: PaneID,
+  ): boolean {
+    const currentEntry = entry;
+    if (!currentEntry) return false;
+    const controller = controllerForSurface(currentEntry, surface);
+    return Boolean(createTrajectoryTab(currentEntry, controller, paneId));
+  }
+
+  function createTrajectoryTab(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+    paneId?: PaneID,
+  ): TabID | undefined {
+    pendingTrajectoryCreate = true;
+    try {
+      const tabId = controller.createTab("ACP Events", {
+        icon: "output",
+        inPane: paneId,
+      });
+      if (tabId) {
+        setTrajectoryDescriptorForTab(targetEntry, tabId);
+        controller.selectTab(tabId);
+      }
+      return tabId;
+    } finally {
+      pendingTrajectoryCreate = false;
+    }
+  }
+
+  function createTrajectoryForTab(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+    tab: Tab,
+  ) {
+    setTrajectoryDescriptorForTab(targetEntry, tab.id);
+    controller.updateTab(tab.id, trajectoryTabOptions());
+  }
+
+  function setTrajectoryDescriptorForTab(targetEntry: DesktopSplitsEntry, tabId: TabID) {
+    setDescriptor(targetEntry, tabId, {
+      kind: "trajectory",
+    });
+  }
+
+  function trajectoryTabOptions(): Pick<Tab, "title" | "icon"> {
+    return {
+      title: "ACP Events",
+      icon: "output",
+    };
+  }
+
+  function closeActiveDesktopTab(): boolean {
+    const currentEntry = entry;
+    if (!currentEntry) return false;
+    const controller = activeDesktopController(currentEntry);
+
+    if (allDesktopTabIds(currentEntry).length <= 1) {
+      requestDesktopWindowClose();
+      return true;
+    }
+
+    const paneId = controller.focusedPaneId;
+    if (!paneId) return false;
+
+    const selectedTab = controller.selectedTab(paneId);
+    if (!selectedTab) return false;
     if (selectedTab.isClosable === false) return true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    controller.closeTab(selectedTab.id, paneId);
+    return true;
+  }
+
+  function reopenLastClosedDesktopTab(): boolean {
+    const currentEntry = entry;
+    const closedTab = currentEntry?.lastClosedTab;
+    if (!currentEntry || !closedTab) return false;
+
+    currentEntry.lastClosedTab = undefined;
+    if (closedTab.surface === "rightSidebar") {
+      setRightSidebarVisible(true);
+    } else if (closedTab.surface === "bottomPanel") {
+      setBottomPanelVisible(true);
+    }
+    const controller = controllerForSurface(currentEntry, closedTab.surface);
+
+    const tabOptions = {
+      title: closedTab.tab.title,
+      icon: closedTab.tab.icon,
+      isDirty: closedTab.tab.isDirty,
+      isClosable: closedTab.tab.isClosable,
+    };
     const tabId = createTabFromDescriptor(currentEntry, closedTab, tabOptions, (opts) =>
       createRestoredDesktopTab(controller, closedTab, opts),
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     if (!tabId) {
       currentEntry.lastClosedTab = closedTab;
       return false;
@@ -3019,13 +3019,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     tabOptions: Pick<Tab, "title" | "icon" | "isDirty" | "isClosable">,
     createTab: (opts: Pick<Tab, "title" | "icon" | "isDirty" | "isClosable">) => TabID | undefined,
   ): TabID | undefined {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (closedTab.descriptor.kind === "terminal") {
+      pendingTerminalCreateOptions = terminalCreateOptionsForClosedTab(closedTab);
+      try {
         return createTab(tabOptions);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      } finally {
+        pendingTerminalCreateOptions = undefined;
+      }
     } else if (closedTab.descriptor.kind === "subagent-chat") {
       pendingSubagentCreateOptions = closedTab.descriptor;
       try {
@@ -3037,153 +3037,153 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       } finally {
         pendingSubagentCreateOptions = undefined;
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } else if (closedTab.descriptor.kind === "trajectory") {
+      pendingTrajectoryCreate = true;
+      try {
         const tabId = createTab(tabOptions);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (tabId) {
           setTrajectoryDescriptorForTab(targetEntry, tabId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
         return tabId;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      } finally {
+        pendingTrajectoryCreate = false;
+      }
+    } else if (closedTab.descriptor.kind === "files") {
       const opts = { rootPath: closedTab.descriptor.rootPath };
       pendingFilesCreateOptions = opts;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      try {
         const tabId = createTab(tabOptions);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (tabId) {
           setFilesDescriptorForTab(targetEntry, tabId, opts);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
         return tabId;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      } finally {
+        pendingFilesCreateOptions = undefined;
+      }
+    } else if (closedTab.descriptor.kind === "github") {
       const opts = { worktreePath: closedTab.descriptor.worktreePath };
       pendingGithubCreateOptions = opts;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      try {
         const tabId = createTab(tabOptions);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (tabId) {
           setGithubDescriptorForTab(targetEntry, tabId, opts.worktreePath);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
         return tabId;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      } finally {
+        pendingGithubCreateOptions = undefined;
+      }
+    } else if (closedTab.descriptor.kind === "file") {
       const opts = {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        path: closedTab.descriptor.path,
+        cwd: closedTab.descriptor.cwd,
+        line: closedTab.descriptor.line,
+        column: closedTab.descriptor.column,
+        openToken: ++fileOpenToken,
+      };
       pendingFileCreateOptions = opts;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      try {
         const tabId = createTab({ ...tabOptions, isDirty: false });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (tabId) {
           setFileDescriptorForTab(targetEntry, tabId, opts);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
         return tabId;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      } finally {
+        pendingFileCreateOptions = undefined;
+      }
+    }
+  }
+
+  function createRestoredDesktopTab(
+    controller: SplitsController,
+    closedTab: ClosedDesktopTab,
+    tabOptions: Pick<Tab, "title" | "icon" | "isDirty" | "isClosable">,
+  ): TabID | undefined {
+    if (controller.allPaneIds.includes(closedTab.paneId)) {
+      return controller.createTab({
+        ...tabOptions,
+        inPane: closedTab.paneId,
+      });
+    }
+    if (closedTab.wasOnlyTabInPane) {
+      return createTabInRestoredSplit(controller, closedTab, tabOptions);
+    }
+    return controller.createTab(tabOptions);
+  }
+
+  function createTabInRestoredSplit(
+    controller: SplitsController,
+    closedTab: ClosedDesktopTab,
+    tabOptions: Pick<Tab, "title" | "icon" | "isDirty" | "isClosable">,
+  ): TabID | undefined {
+    const targetPaneId = controller.focusedPaneId ?? controller.allPaneIds[0];
+    if (!targetPaneId) return undefined;
+
+    const placement = restoredSplitPlacement(controller, closedTab, targetPaneId);
+    const newPaneId = controller.splitPane({
+      paneId: targetPaneId,
+      orientation: placement.orientation,
+      insertFirst: placement.insertFirst,
+      withTab: tabOptions,
+    });
+    if (!newPaneId) return undefined;
+
+    return controller.selectedTab(newPaneId)?.id;
+  }
+
+  function restoredSplitPlacement(
+    controller: SplitsController,
+    closedTab: ClosedDesktopTab,
+    targetPaneId: PaneID,
+  ): { orientation: "horizontal" | "vertical"; insertFirst: boolean } {
+    const targetPane = controller
+      .layoutSnapshot()
+      .panes.find((pane) => pane.paneId === targetPaneId);
+    if (!closedTab.paneFrame || !targetPane) {
+      return { orientation: "horizontal", insertFirst: false };
+    }
+
+    const closedCenterX = closedTab.paneFrame.x + closedTab.paneFrame.width / 2;
+    const closedCenterY = closedTab.paneFrame.y + closedTab.paneFrame.height / 2;
+    const targetCenterX = targetPane.frame.x + targetPane.frame.width / 2;
+    const targetCenterY = targetPane.frame.y + targetPane.frame.height / 2;
+    const deltaX = closedCenterX - targetCenterX;
+    const deltaY = closedCenterY - targetCenterY;
+
+    if (Math.abs(deltaY) > Math.abs(deltaX)) {
+      return { orientation: "vertical", insertFirst: deltaY < 0 };
+    }
+
+    return { orientation: "horizontal", insertFirst: deltaX < 0 };
+  }
+
+  function selectPreviousDesktopTab(): boolean {
+    const currentEntry = entry;
+    return currentEntry ? selectRelativeVisibleDesktopTab(currentEntry, -1) : false;
+  }
+
+  function selectNextDesktopTab(): boolean {
+    const currentEntry = entry;
+    return currentEntry ? selectRelativeVisibleDesktopTab(currentEntry, 1) : false;
+  }
+
+  function requestDesktopTabFocus(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+    paneId: PaneID,
+    tabId: TabID,
+  ) {
+    if (suppressNextDesktopTabFocusRequest) return;
+
+    const surface = surfaceForController(targetEntry, controller);
+    if (!surface || entry !== targetEntry) return;
+    desktopTabFocusRequest = {
+      surface,
+      paneId,
+      tabId,
+      token: ++desktopTabFocusToken,
+    };
+  }
+
   // Runs `apply` as background work when `takeFocus` is false: focus requests
   // raised inside the span are suppressed, `activeSurface` is pinned back to
   // where the user was, and any auxiliary surface the work made visible —
@@ -3237,292 +3237,292 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function focusTokenForDesktopTab(
+    surface: DesktopSplitSurface,
+    paneId: PaneID,
+    tabId: TabID,
+  ): number {
+    return desktopTabFocusRequest?.surface === surface &&
+      desktopTabFocusRequest.paneId === paneId &&
+      desktopTabFocusRequest.tabId === tabId
+      ? desktopTabFocusRequest.token
+      : 0;
+  }
+
+  function isSelectedDesktopTab(
+    surface: DesktopSplitSurface,
+    paneId: PaneID,
+    tabId: TabID,
+  ): boolean {
     // Controller state is not reactive, so callers in pooled content (which the
     // owning pane never re-renders) would never see selection move. Reading the
     // revision makes every such caller recompute when it does.
     selectionRevision;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const currentEntry = entry;
+    return currentEntry
+      ? controllerForSurface(currentEntry, surface).selectedTab(paneId)?.id === tabId
+      : false;
+  }
+
+  function isDesktopPaneEmpty(surface: DesktopSplitSurface, paneId: PaneID): boolean {
+    const currentEntry = entry;
+    return currentEntry
+      ? controllerForSurface(currentEntry, surface).tabs(paneId).length === 0
+      : false;
+  }
+
+  function isDesktopSurfaceEmpty(surface: DesktopSplitSurface): boolean {
+    const currentEntry = entry;
+    return currentEntry
+      ? controllerForSurface(currentEntry, surface).allTabIds.length === 0
+      : false;
+  }
+
+  function focusRequestedDesktopTab(request: DesktopTabFocusRequest) {
+    if (desktopTabFocusRequest?.token !== request.token) return;
     if (request.surface === "rightSidebar" && !rightSidebarVisible) return;
     if (request.surface === "bottomPanel" && !bottomPanelVisible) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    const contentElement = desktopTabContentElement(request);
+    if (!contentElement) return;
+
+    const focusTarget =
+      contentElement.querySelector<HTMLElement>('[data-testid="prompt-input"]') ??
+      contentElement.querySelector<HTMLElement>(".xterm-helper-textarea") ??
+      contentElement.querySelector<HTMLElement>('[contenteditable="true"]');
+
+    if (focusTarget) {
+      focusTarget.focus({ preventScroll: true });
+      return;
+    }
+
+    contentElement.focus({ preventScroll: true });
+  }
+
+  function desktopTabContentElement(
+    request: Pick<DesktopTabFocusRequest, "surface" | "paneId" | "tabId">,
+  ): HTMLElement | undefined {
+    const elements =
+      desktopSplitsFrameElement?.querySelectorAll<HTMLElement>(
+        "[data-desktop-tab-content-pane-id][data-desktop-tab-content-tab-id]",
+      ) ?? [];
+
+    return [...elements].find(
+      (element) =>
+        element.dataset.desktopTabContentSurface === request.surface &&
+        element.dataset.desktopTabContentPaneId === request.paneId &&
+        element.dataset.desktopTabContentTabId === request.tabId,
+    );
+  }
+
+  function selectRelativeVisibleDesktopTab(
+    targetEntry: DesktopSplitsEntry,
+    direction: -1 | 1,
+  ): boolean {
+    const tabs = visibleDesktopTabs(targetEntry);
+    if (tabs.length === 0) return false;
+
+    const currentIndex = currentVisibleDesktopTabIndex(targetEntry, tabs);
+    const targetIndex = (currentIndex + direction + tabs.length) % tabs.length;
+    const target = tabs[targetIndex];
+    if (!target) return false;
+
+    activeSurface = target.surface;
+    return selectVisibleDesktopTab(targetEntry, target);
+  }
+
+  function selectVisibleDesktopTab(
+    targetEntry: DesktopSplitsEntry,
+    target: VisibleDesktopTab,
+  ): boolean {
+    const didSelect = target.controller.selectTab(target.tabId);
+    if (!didSelect) return false;
+
+    const paneId = target.controller
+      .layoutSnapshot()
+      .panes.find((pane) => pane.tabIds.includes(target.tabId))?.paneId;
+    if (paneId) {
+      requestDesktopTabFocus(targetEntry, target.controller, paneId, target.tabId);
+    }
+
+    return true;
+  }
+
+  function currentVisibleDesktopTabIndex(
+    targetEntry: DesktopSplitsEntry,
+    tabs: VisibleDesktopTab[],
+  ): number {
+    const controller = activeDesktopController(targetEntry);
+    const surface = surfaceForController(targetEntry, controller) ?? "main";
+    const focusedPaneId = controller.focusedPaneId;
+    const selectedTabId = focusedPaneId ? controller.selectedTab(focusedPaneId)?.id : undefined;
+    if (selectedTabId) {
+      const index = tabs.findIndex(
+        (candidate) => candidate.surface === surface && candidate.tabId === selectedTabId,
+      );
+      if (index !== -1) return index;
+    }
+
+    const firstTabInSurface = tabs.findIndex((candidate) => candidate.surface === surface);
+    return firstTabInSurface === -1 ? 0 : firstTabInSurface;
+  }
+
+  function visibleDesktopTabs(targetEntry: DesktopSplitsEntry): VisibleDesktopTab[] {
+    return visibleDesktopSurfaces().flatMap((surface) => {
+      const controller = controllerForSurface(targetEntry, surface);
+      return controller.allTabIds.flatMap((tabId) => {
+        const tab = controller.tab(tabId);
+        return tab ? [{ surface, controller, tabId, tab }] : [];
+      });
+    });
+  }
+
+  function visibleDesktopSurfaces(): DesktopSplitSurface[] {
+    return [
+      "main",
+      ...(rightSidebarVisible ? (["rightSidebar"] as const) : []),
+      ...(bottomPanelVisible ? (["bottomPanel"] as const) : []),
+    ];
+  }
+
+  function requestDesktopWindowClose() {
+    window.dispatchEvent(new CustomEvent(DESKTOP_CLOSE_WINDOW_EVENT));
+  }
+
+  function handleChatActiveConversationIdChange(conversationId: string | null) {
+    if (conversationId && conversationId !== activeConversationId) {
+      const renamedEntry = splitsCache.rename(layoutKey, conversationId);
+      try {
+        renameStoredDesktopLayout(layoutKey, conversationId);
+      } catch (error) {
+        console.debug("Unable to rename persisted desktop layout", error);
+      }
+      if (renamedEntry && entry === renamedEntry) {
+        entry = renamedEntry;
+        descriptors = renamedEntry.descriptors;
+      }
+    }
+    onActiveConversationIdChange?.(conversationId);
+  }
+
+  function isPreviousTabKey(event: KeyboardEvent): boolean {
+    return event.code === "BracketLeft" || event.key === "[" || event.key === "{";
+  }
+
+  function isNextTabKey(event: KeyboardEvent): boolean {
+    return event.code === "BracketRight" || event.key === "]" || event.key === "}";
+  }
+
+  function closedTabSnapshot(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+    tab: Tab,
+    paneId: PaneID,
+  ): ClosedDesktopTab | undefined {
+    const descriptor = restorableDesktopTabDescriptor(targetEntry.descriptors[tab.id]);
+    if (!descriptor) return undefined;
+
+    const surface = surfaceForController(targetEntry, controller);
+    if (!surface) return undefined;
+
+    const paneFrame = controller
+      .layoutSnapshot()
+      .panes.find((pane) => pane.paneId === paneId)?.frame;
+
+    return {
+      tabId: tab.id,
+      tab: {
+        title: tab.title,
+        icon: tab.icon,
+        isDirty: tab.isDirty,
+        isClosable: tab.isClosable,
+      },
+      descriptor,
+      surface,
+      paneId,
+      paneFrame,
+      wasOnlyTabInPane: controller.tabs(paneId).length <= 1,
+    };
+  }
+
+  function restorableDesktopTabDescriptor(
+    descriptor: DesktopTabDescriptor | undefined,
+  ): RestorableDesktopTabDescriptor | undefined {
     if (descriptor?.kind === "subagent-chat") {
       return { ...descriptor };
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (descriptor?.kind === "trajectory") {
+      return {
+        kind: "trajectory",
+      };
+    }
+    if (descriptor?.kind === "files") {
+      return {
+        kind: "files",
+        rootPath: descriptor.rootPath || filesRootPath,
+      };
+    }
+    if (descriptor?.kind === "github") {
+      return {
+        kind: "github",
+        worktreePath: descriptor.worktreePath || filesRootPath,
+      };
+    }
+    if (descriptor?.kind === "file") {
+      return {
+        kind: "file",
+        path: descriptor.path,
+        cwd: descriptor.cwd,
+        line: descriptor.line,
+        column: descriptor.column,
+      };
+    }
+    if (descriptor?.kind !== "terminal") return undefined;
+
+    const worktreePath = descriptor.worktreePath || terminalWorktreePath;
+    const liveCwd = descriptor.terminalId
+      ? assistantTerminals.tabs.find((candidate) => candidate.id === descriptor.terminalId)?.cwd
+      : undefined;
+    return {
+      kind: "terminal",
+      worktreePath,
+      cwd: restorableTerminalCwd(liveCwd, worktreePath),
+    };
+  }
+
+  function terminalCreateOptionsForClosedTab(closedTab: ClosedDesktopTab): TerminalCreateOptions {
+    if (closedTab.descriptor.kind !== "terminal") {
+      return { worktreePath: terminalWorktreePath };
+    }
+    return {
+      worktreePath: closedTab.descriptor.worktreePath || terminalWorktreePath,
+      cwd: closedTab.descriptor.cwd,
+    };
+  }
+
+  async function openExternalTerminal(
+    worktreePath: string,
+    options: {
+      command?: string;
+      env?: Record<string, string>;
+      commandMode?: AssistantTerminalCommandMode;
+      placement?: AssistantTerminalPlacement;
+      layoutKey?: string;
       reuseExisting?: boolean;
       focus?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } = {},
+  ): Promise<AssistantTerminalTab | undefined> {
+    await tick();
+    const targetEntry = options.layoutKey ? entryForLayout(options.layoutKey) : entry;
+    if (!targetEntry) return undefined;
+    const createOptions = {
+      worktreePath,
+      command: options.command,
+      env: options.env,
+      commandMode: options.commandMode,
+      placement: options.placement,
       focus: options.focus,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    };
     const surface = surfaceForTerminalPlacement(options.placement);
 
     // Creating or selecting a tab normally asks for focus (didSelectTab); a
@@ -3556,10 +3556,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }
       return openedTabId;
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (!tabId) return undefined;
+    return await targetEntry.terminalPromises.get(tabId);
+  }
+
   // Reuses an existing terminal tab on the target surface (e.g. one restored
   // from the default layout) as the slot for a visible command: the tab keeps
   // its place in the layout, but its idle shell is replaced with a fresh
@@ -3626,354 +3626,354 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return surface === "rightSidebar" ? rightSidebarVisible : bottomPanelVisible;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function createTerminalForTab(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+    tab: Tab,
+    _paneId: PaneID,
+    options: TerminalCreateOptions,
+  ): Promise<AssistantTerminalTab | undefined> {
+    const requestId = crypto.randomUUID();
+    const worktreePath = options.worktreePath || terminalWorktreePath;
+    setDescriptor(targetEntry, tab.id, {
+      kind: "terminal",
+      worktreePath,
+      status: "pending",
+      requestId,
+    });
+    controller.updateTab(tab.id, {
+      title: "Terminal",
+      icon: null,
+    });
+
+    const promise = (async () => {
+      if (targetEntry.disposed) {
+        return undefined;
+      }
+
+      if (!worktreePath) {
+        setTerminalFailed(targetEntry, tab.id, requestId, "No workspace is available.");
+        return undefined;
+      }
+
+      try {
+        const terminal = await assistantTerminals.createTab(
+          worktreePath,
+          options.command,
+          options.env,
+          options.commandMode,
+          options.cwd,
+        );
+        if (!terminal) {
+          setTerminalFailed(targetEntry, tab.id, requestId, "Terminal could not be created.");
+          return undefined;
+        }
+
+        if (targetEntry.disposed) {
+          await deleteTerminal(terminal.id);
+          return undefined;
+        }
+
+        const currentDescriptor = targetEntry.descriptors[tab.id];
+        if (currentDescriptor?.kind !== "terminal" || currentDescriptor.requestId !== requestId) {
+          await deleteTerminal(terminal.id);
+          return undefined;
+        }
+
+        setDescriptor(targetEntry, tab.id, {
+          kind: "terminal",
+          worktreePath: terminal.worktreePath,
+          status: "ready",
+          terminalId: terminal.id,
+          requestId,
+        });
+        controllerForTab(targetEntry, tab.id)?.updateTab(tab.id, {
+          title: terminalDisplayTitle(terminal),
+          icon: null,
+        });
+        if (options.selectWhenReady !== false) {
           // The tab comes forward when its shell finally arrives, but a
           // background terminal must not take focus that late — the user has
           // long since started typing somewhere else.
           applyingDesktopTabFocus(options.focus !== false, () =>
             controllerForTab(targetEntry, tab.id)?.selectTab(tab.id),
           );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
+        return terminal;
+      } catch (error) {
+        setTerminalFailed(targetEntry, tab.id, requestId, getUnknownErrorMessage(error));
+        return undefined;
+      }
+    })();
+
+    targetEntry.terminalPromises.set(tab.id, promise);
+    void promise.finally(() => targetEntry.terminalPromises.delete(tab.id));
+    return promise;
+  }
+
+  function setTerminalFailed(
+    targetEntry: DesktopSplitsEntry,
+    tabId: TabID,
+    requestId: string,
+    error: string,
+  ) {
+    if (targetEntry.disposed) return;
+    const descriptor = targetEntry.descriptors[tabId];
+    if (descriptor?.kind !== "terminal" || descriptor.requestId !== requestId) return;
+    setDescriptor(targetEntry, tabId, {
+      ...descriptor,
+      status: "failed",
+      error,
+    });
+    controllerForTab(targetEntry, tabId)?.updateTab(tabId, {
+      title: "Terminal failed",
+      icon: null,
+    });
+  }
+
+  function setDescriptor(
+    targetEntry: DesktopSplitsEntry,
+    tabId: TabID,
+    descriptor: DesktopTabDescriptor,
+  ) {
+    if (targetEntry.disposed) return;
+    targetEntry.descriptors = {
+      ...targetEntry.descriptors,
+      [tabId]: descriptor,
+    };
+    syncDescriptors(targetEntry);
+  }
+
+  function removeDescriptor(targetEntry: DesktopSplitsEntry, tabId: TabID) {
+    if (targetEntry.disposed) return;
+    const { [tabId]: _removed, ...nextDescriptors } = targetEntry.descriptors;
+    targetEntry.descriptors = nextDescriptors;
+    syncDescriptors(targetEntry);
+  }
+
+  function syncDescriptors(targetEntry: DesktopSplitsEntry) {
+    if (entry === targetEntry) {
+      descriptors = targetEntry.descriptors;
+    }
+    schedulePersistDesktopLayout();
+  }
+
+  function schedulePersistDesktopLayout() {
+    const currentEntry = entry;
+    if (!currentEntry || currentEntry.disposed) return;
+
+    if (desktopLayoutPersistTimer) {
+      clearTimeout(desktopLayoutPersistTimer);
+    }
+    desktopLayoutPersistTimer = setTimeout(() => {
+      desktopLayoutPersistTimer = undefined;
+      if (entry !== currentEntry || currentEntry.disposed) return;
+      persistDesktopLayout(currentEntry);
+    }, DESKTOP_LAYOUT_PERSIST_DELAY_MS);
+  }
+
+  function persistDesktopLayout(targetEntry: DesktopSplitsEntry) {
+    if (targetEntry.disposed || targetEntry.pendingDefaultLayoutHydration) return;
+
+    try {
+      const layout = captureCurrentDesktopLayout(targetEntry);
+      if (!layout) return;
+      writeStoredDesktopLayout(targetEntry.cacheKey, layout);
+    } catch (error) {
+      console.debug("Unable to persist desktop layout", error);
+    }
+  }
+
+  function captureCurrentDesktopLayout(
+    targetEntry: DesktopSplitsEntry,
+    { shapeOnly = false }: { shapeOnly?: boolean } = {},
+  ): PersistedDesktopLayout | undefined {
+    return captureDesktopSplitsLayout(targetEntry, {
+      rightSidebarVisible,
+      bottomPanelVisible,
+      activeSurface,
+      // The default layout is a template reused across worktrees; persisting a
+      // terminal's worktree/cwd there would leak one conversation's paths into
+      // every other. Conversation layouts keep their own paths.
+      shapeOnlyTerminals: shapeOnly,
       excludeConversationSpecificTabs: shapeOnly,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      terminalCwd: (terminalId) =>
+        assistantTerminals.tabs.find((tab) => tab.id === terminalId)?.cwd,
+    });
+  }
+
+  function saveCurrentDesktopLayoutAsDefault(): boolean {
+    const currentEntry = entry;
+    if (!currentEntry) return false;
+
+    try {
+      const layout = captureCurrentDesktopLayout(currentEntry, { shapeOnly: true });
+      if (!layout) {
+        throw new Error("The current layout is not ready to save.");
+      }
+      writeStoredDefaultDesktopLayout(layout);
+      return true;
+    } catch (error) {
+      rpc.showInfoMessage(
+        `Failed to save layout: ${getUnknownErrorMessage(error)}`,
+        InfoMessageType.error,
+      );
+      return false;
+    }
+  }
+
+  async function deleteTerminal(terminalId: string) {
+    try {
+      await assistantTerminals.deleteTab(terminalId);
+    } catch (error) {
+      console.debug("Unable to delete assistant terminal", error);
+    }
+  }
+
+  function desktopTargetKind(path: string): "project" | "worktree" {
+    const target = projects.projects.find(
+      (project) => normalizeWorkspacePath(project.path) === normalizeWorkspacePath(path),
+    );
+    return target?.isWorktree ? "worktree" : "project";
+  }
+
+  function normalizeWorkspacePath(path: string): string {
+    let normalized = path.trim().replace(/\\/g, "/").replace(/\/+/g, "/");
+    if (normalized.length > 1) {
+      normalized = normalized.replace(/\/+$/g, "");
+    }
+    if (/^[A-Z]:\//.test(normalized)) {
+      normalized = normalized[0].toLowerCase() + normalized.slice(1);
+    }
+    return normalized;
+  }
+
+  function formatTerminalCwdTitle(path: string | undefined): string {
+    if (!path) return "Terminal";
+
+    const normalized = normalizeWorkspacePath(path);
+    if (!normalized) return "Terminal";
+
+    const homePath = inferHomePath(normalized);
+    if (!homePath) return normalized;
+    if (normalized === homePath) return "~";
+
+    return `~/${normalized.slice(homePath.length).replace(/^\/+/, "")}`;
+  }
+
+  function terminalDisplayTitle(terminal: AssistantTerminalTab): string {
+    return formatTerminalCwdTitle(terminal.cwd || terminal.worktreePath || terminal.title);
+  }
+
+  function inferHomePath(path: string): string | null {
+    const posixHome = path.match(/^\/(?:Users|home)\/[^/]+(?=\/|$)/);
+    if (posixHome) return posixHome[0];
+
+    const windowsHome = path.match(/^[a-z]:\/Users\/[^/]+(?=\/|$)/i);
+    return windowsHome?.[0] ?? null;
+  }
+
+  function topRightPaneIdForController(controller: SplitsController): PaneID | undefined {
+    const panes = controller.layoutSnapshot().panes;
+    if (panes.length === 0) return undefined;
+
+    const tolerance = 1;
+    return panes.reduce((best, pane) => {
+      const paneTop = pane.frame.y;
+      const bestTop = best.frame.y;
+      if (paneTop < bestTop - tolerance) return pane;
+
+      if (Math.abs(paneTop - bestTop) <= tolerance) {
+        const paneRight = pane.frame.x + pane.frame.width;
+        const bestRight = best.frame.x + best.frame.width;
+        if (paneRight > bestRight + tolerance) return pane;
+
+        if (Math.abs(paneRight - bestRight) <= tolerance && pane.frame.x > best.frame.x) {
+          return pane;
+        }
+      }
+
+      return best;
+    }).paneId;
+  }
+
+  function topLeftPaneIdForController(controller: SplitsController): PaneID | undefined {
+    const panes = controller.layoutSnapshot().panes;
+    if (panes.length === 0) return undefined;
+
+    const tolerance = 1;
+    return panes.reduce((best, pane) => {
+      const paneTop = pane.frame.y;
+      const bestTop = best.frame.y;
+      if (paneTop < bestTop - tolerance) return pane;
+
+      if (Math.abs(paneTop - bestTop) <= tolerance) {
+        if (pane.frame.x < best.frame.x - tolerance) return pane;
+      }
+
+      return best;
+    }).paneId;
+  }
+
+  function desktopNewTabActions(
+    surface: DesktopSplitSurface,
+    paneId: PaneID,
+  ): DesktopNewTabAction[] {
+    return [
+      {
+        label: "Terminal",
+        icon: "terminal",
+        onSelect: () => createDesktopTerminalTab(surface, paneId),
+      },
+      {
+        label: "Files",
+        icon: "folder-open",
+        disabled: !filesRootPath,
+        disabledReason: "No working directory",
+        onSelect: () => createDesktopFilesTab(surface, paneId),
+      },
+      {
         label: "Review Diff",
         icon: "diff",
         disabled: diffViewDisabledReason !== undefined,
         disabledReason: diffViewDisabledReason,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        onSelect: () => {
           openDesktopDiffTab({ worktreePath: githubWorktreePath }, surface, paneId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        },
+      },
+      {
+        label: "GitHub",
+        icon: "github",
+        disabled: !githubWorktreePath,
+        disabledReason: "No working directory",
+        onSelect: () => {
+          activeSurface = surface;
+          createDesktopGithubTab(surface, paneId);
+        },
+      },
+      {
+        label: "ACP Events",
+        icon: "output",
+        onSelect: () => {
+          activeSurface = surface;
+          createDesktopTrajectoryTab(surface, paneId);
+        },
+      },
+    ];
+  }
+</script>
+
+{#snippet desktopTabIcon(tab: Tab)}
+  {@const descriptor = descriptors[tab.id]}
+  {#if descriptor?.kind === "chat"}
+    <span class="desktop-chat-tab-icon" aria-hidden="true">
       <RegistryAgentIcon
         iconUrl={chatTabIconUrl}
         size={14}
         {...chatTabIconProps}
         class={chatTabIconProps.class}
       />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </span>
   {:else if descriptor?.kind === "subagent-chat"}
     <span class="desktop-chat-tab-icon" aria-hidden="true">
       <RegistryAgentIcon
@@ -3983,37 +3983,37 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         class={chatTabIconProps.class}
       />
     </span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {:else if descriptor?.kind === "terminal"}
+    <Icon name="terminal" size={14} class="opacity-80" aria-hidden="true" />
+  {:else if descriptor?.kind === "files"}
+    <Icon name="folder-open" size={14} class="opacity-80" aria-hidden="true" />
+  {:else if descriptor?.kind === "github"}
+    <Icon name="github" size={14} class="opacity-80" aria-hidden="true" />
   {:else if descriptor?.kind === "diff"}
     <Icon name="diff" size={14} class="opacity-80" aria-hidden="true" />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {:else if descriptor?.kind === "file"}
+    <Icon
+      type="file"
       name={descriptor?.path ?? ""}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      fallback="file"
+      size={14}
+      class="opacity-80"
+      aria-hidden="true"
+    />
+  {:else if descriptor?.kind === "trajectory"}
+    <Icon name="output" size={14} class="opacity-80" aria-hidden="true" />
+  {/if}
+{/snippet}
+
+{#snippet desktopTabTrailing(tab: Tab)}
+  {@const descriptor = descriptors[tab.id]}
+  {#if descriptor?.kind === "chat" && chatTabStatus !== "default"}
+    <span
+      aria-hidden="true"
+      class={["desktop-chat-tab-status", `desktop-chat-tab-status--${chatTabStatus}`]}
+      data-testid="desktop-chat-tab-status"
+      data-status={chatTabStatus}
+    ></span>
   {:else if descriptor?.kind === "subagent-chat"}
     {@const subagentStatus = desktopChatSession.subagents.referenceForKey(
       descriptor.subagentKey,
@@ -4027,112 +4027,112 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         data-status={status}
       ></span>
     {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {/if}
+{/snippet}
+
+{#snippet desktopNewTabButton(surface: DesktopSplitSurface, paneId: PaneID)}
+  {#if !isDesktopPaneEmpty(surface, paneId)}
+    <div class="desktop-new-tab-button-frame">
+      <button
+        type="button"
+        class="desktop-new-tab-button"
+        aria-label="New tab"
         title="New Tab"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        data-tauri-drag-region="false"
+        onclick={() => openDesktopNewTabPicker(surface, paneId)}
+      >
+        <Icon name="plus" aria-hidden="true" size={18} weight={0.85} />
+      </button>
+    </div>
+  {/if}
+{/snippet}
+
+{#snippet desktopEmptyPane(surface: DesktopSplitSurface, paneId: PaneID)}
+  {@const actions = desktopNewTabActions(surface, paneId)}
+  {#if isDesktopSurfaceEmpty(surface)}
+    <div class="desktop-empty-pane" aria-label="Open tab">
+      <div class="desktop-empty-pane-content">
+        <div class="desktop-empty-pane-title">Create new tab</div>
+        <div class="desktop-empty-pane-actions">
+          {#each actions as action (action.label)}
+            <button
+              type="button"
+              class="desktop-empty-pane-button"
+              data-tauri-drag-region="false"
+              disabled={action.disabled}
+              aria-disabled={action.disabled}
+              title={action.disabled ? action.disabledReason : undefined}
+              onclick={() => {
+                if (action.disabled) return;
+                action.onSelect();
+              }}
+            >
+              <Icon name={action.icon} size={15} aria-hidden="true" />
+              <span>{action.label}</span>
+            </button>
+          {/each}
+        </div>
+      </div>
+    </div>
+  {/if}
+{/snippet}
+
+{#snippet rightSidebarToggleButton(visible: boolean)}
+  <button
+    type="button"
+    aria-label={visible ? "Hide secondary sidebar" : "Show secondary sidebar"}
+    title={sidebarShortcutTitle(visible ? "Hide secondary sidebar" : "Show secondary sidebar")}
+    class={desktopFrameActionButtonClass}
+    data-tauri-drag-region="false"
     onpointerdown={() => captureFocusBeforeDesktopSurfaceToggle("rightSidebar")}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onclick={toggleRightSidebar}
+  >
+    <Icon
+      name={visible ? "sidebar-right-open" : "sidebar-right-closed"}
+      size={16}
+      aria-hidden="true"
+    />
+  </button>
+{/snippet}
+
+{#snippet bottomPanelToggleButton(visible: boolean)}
+  <button
+    type="button"
+    aria-label={visible ? "Hide panel" : "Show panel"}
+    title={panelShortcutTitle(visible ? "Hide panel" : "Show panel")}
+    class={desktopFrameActionButtonClass}
+    data-tauri-drag-region="false"
     onpointerdown={() => captureFocusBeforeDesktopSurfaceToggle("bottomPanel")}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onclick={toggleBottomPanel}
+  >
+    <Icon
+      name={visible ? "panel-bottom-open" : "panel-bottom-closed"}
+      size={16}
+      aria-hidden="true"
+    />
+  </button>
+{/snippet}
+
+{#snippet desktopUtilityTabBarActions()}
+  <!-- Unlike AcpConversationHeader, the tab strip is never painted with the
+       desktop instance color, so the controls keep their themed tone (the
+       white-on-color treatment would be invisible on the light theme). -->
+  <DesktopGithubControl compact targetPath={terminalWorktreePath} />
+  <DesktopOpenTargetControl
+    compact
+    targetKind={desktopOpenTargetKind}
+    targetPath={terminalWorktreePath}
+  />
+{/snippet}
+
+{#snippet desktopTabBarActions(surface: DesktopSplitSurface, paneId: PaneID)}
+  {#if surface === "main" && paneId === mainTopRightPaneId && !rightSidebarVisible}
+    <div class="desktop-frame-actions-spacer" aria-hidden="true"></div>
+  {:else if surface === "rightSidebar" && paneId === rightSidebarTopRightPaneId && rightSidebarVisible}
+    <div class="desktop-frame-actions-spacer" aria-hidden="true"></div>
+  {/if}
+{/snippet}
+
 {#snippet desktopTabContent(surface: DesktopSplitSurface, tabId: TabID, paneId: PaneID)}
   <!-- `descriptors` can momentarily lack this tab while stale content is being
        torn down (entry swap, tab close): descriptor-dependent reads re-evaluate
@@ -4141,68 +4141,68 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   {@const descriptor = descriptors[tabId]}
   {@const focusToken = focusTokenForDesktopTab(surface, paneId, tabId)}
   {@const isSelected = isSelectedDesktopTab(surface, paneId, tabId)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div
+    class="desktop-tab-content"
+    tabindex="-1"
+    data-desktop-tab-content-surface={surface}
+    data-desktop-tab-content-pane-id={paneId}
     data-desktop-tab-content-tab-id={tabId}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  >
+    {#if descriptor?.kind === "chat"}
+      <AcpChatPane
+        chrome={{
+          sidebar: {
+            collapsed: sidebarCollapsed,
+            width: desktopSidebarWidth,
+            onExpand: () => onExpandSidebar?.(),
+          },
+          header: "none",
+          terminal: { surface: "external", open: openExternalTerminal },
+          frame: "plain",
+        }}
+        {promptBanners}
+        {promptCommandItems}
+        {promptMenus}
+        {promptFooterLeading}
+        {activeConversationId}
+        markReadWhenVisible={isSelected}
+        onActiveConversationIdChange={handleChatActiveConversationIdChange}
+        {onNewConversation}
+        {onAddProject}
+        {onShowAgentSettings}
+        {onShowModelSettings}
+      />
     {:else if descriptor?.kind === "subagent-chat"}
       <SubagentChatPane subagentKey={descriptor.subagentKey} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {:else if descriptor?.kind === "terminal"}
+      <div class="desktop-terminal-split-content">
         {#if descriptor?.status === "failed"}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <div class="desktop-terminal-message">
+            <div>Terminal could not open.</div>
             {#if descriptor?.error}
               <div class="desktop-terminal-error">{descriptor?.error}</div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            {/if}
+          </div>
+        {:else}
           <AssistantTerminalView terminalId={descriptor?.terminalId} {focusToken} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {/if}
+      </div>
+    {:else if descriptor?.kind === "files"}
+      <DesktopFilesTree
         cacheKey={`${entry?.cacheKey ?? "desktop"}:${tabId}`}
         rootPath={descriptor?.rootPath ?? ""}
         active={isSelected &&
           (surface === "main" ||
             (surface === "rightSidebar" && rightSidebarVisible) ||
             (surface === "bottomPanel" && bottomPanelVisible))}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        openTerminal={(cwd) => openTerminalFromFilesTree(surface, paneId, cwd)}
+      />
+    {:else if descriptor?.kind === "github"}
+      <DesktopGitHubPanel
         worktreePath={descriptor?.worktreePath ?? ""}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {focusToken}
         onTitleChange={(title) => updateGithubTabTitle(tabId, title)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      />
     {:else if descriptor?.kind === "diff"}
       {@const request = diffRequestForTab(tabId, descriptor)}
       <DesktopDiffPanel
@@ -4210,36 +4210,36 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         relativePath={request?.relativePath}
         openToken={request?.openToken ?? 0}
       />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {:else if descriptor?.kind === "file"}
+      {#if desktopFileViewerPanel}
+        {@const DesktopFileViewerPanel = desktopFileViewerPanel}
+        <DesktopFileViewerPanel
           path={descriptor?.path ?? ""}
           cwd={descriptor?.cwd}
           line={descriptor?.line}
           column={descriptor?.column}
           openToken={descriptor?.openToken ?? 0}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          {focusToken}
+          initialCodeFontFamily={desktopCodeFontFamily}
+          initialCodeFontSize={desktopCodeFontSize}
           onFileContextChange={(file) => handleDesktopFileContextChange(tabId, file)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        />
+      {:else}
+        <div class="desktop-terminal-message">File viewer is unavailable.</div>
+      {/if}
+    {:else if descriptor?.kind === "trajectory"}
+      <AcpTrajectoryViewer sidebarCollapsed={false} embedded />
+    {:else}
+      <div class="desktop-terminal-message">This view is unavailable.</div>
+    {/if}
+  </div>
+{/snippet}
+
+<div class={["desktop-splits-panel", sidebarCollapsed ? "desktop-splits-panel--no-border" : ""]}>
+  <div class="desktop-main-panel-top-drag-region" data-tauri-drag-region="deep"></div>
+
   <div bind:this={desktopSplitsFrameElement} class="desktop-splits-frame">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {#if entry}
       <!-- Keyed on the entry so a layout-key switch tears the old tabs' content
            down as a unit: without the boundary, mounted content can observe the
            new entry's `descriptors` map (whose keys don't match its tab) before
@@ -4333,7 +4333,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
               tabindex="-1"
               aria-hidden={bottomPanelVisible ? undefined : "true"}
               inert={!bottomPanelVisible}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            >
               <div
                 role="slider"
                 aria-label="Resize panel"
@@ -4391,14 +4391,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 </div>
               </div>
             </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          </div>
+
+          <div
+            class={[
               "desktop-right-sidebar-surface",
               rightSidebarVisible ? "desktop-right-sidebar-surface--visible" : "",
               rightSidebarResizing ? "desktop-right-sidebar-surface--resizing" : "",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            ]}
             style:--desktop-right-sidebar-width={`${rightSidebarWidth}px`}
             data-desktop-surface="rightSidebar"
             data-desktop-surface-active={activeSurface === "rightSidebar" ? "true" : undefined}
@@ -4407,76 +4407,76 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             tabindex="-1"
             aria-hidden={rightSidebarVisible ? undefined : "true"}
             inert={!rightSidebarVisible}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          >
+            <div
+              role="slider"
               aria-label="Resize right sidebar"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              aria-orientation="vertical"
               aria-valuemin={rightSidebarMinWidth}
               aria-valuemax={rightSidebarMaxWidth}
               aria-valuenow={rightSidebarWidth}
               tabindex={rightSidebarVisible ? 0 : -1}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              data-tauri-drag-region="false"
+              class={[
                 "desktop-right-sidebar-resize-handle",
                 rightSidebarResizing ? "desktop-right-sidebar-resize-handle--active" : "",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              ]}
               onmousedown={(event) => onRightSidebarResizeStart?.(event)}
               onkeydown={handleRightSidebarResizeKeydown}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            ></div>
+
             <div class="desktop-right-sidebar-clip">
               <div class="desktop-right-sidebar-content">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                <SplitsView
                   controller={entry.rightSidebarController}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                  style="--splits-tab-action-icon-size: 12px; --splits-tab-close-size: 16px;"
+                  tabBarWindowDrag
                   usePaneShape
                   paneShapeAnimating={paneShapesAnimating && rightSidebarVisible}
                   onTabContextMenu={handleTabContextMenu}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                >
+                  {#snippet tabIcon(tab)}
+                    {@render desktopTabIcon(tab)}
+                  {/snippet}
+
+                  {#snippet tabTrailing(tab)}
+                    {@render desktopTabTrailing(tab)}
+                  {/snippet}
+
+                  {#snippet newTabButton(paneId)}
                     {@render desktopNewTabButton("rightSidebar", paneId)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                  {/snippet}
+
+                  {#snippet tabBarActions(paneId)}
                     {@render desktopTabBarActions("rightSidebar", paneId)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                  {/snippet}
+
+                  {#snippet children(tab, paneId)}
                     <div class="desktop-tab-content-slot" use:adoptDesktopTabContent={tab.id}></div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                  {/snippet}
+
+                  {#snippet emptyPane(paneId)}
                     {@render desktopEmptyPane("rightSidebar", paneId)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                  {/snippet}
+                </SplitsView>
+              </div>
+            </div>
+          </div>
+        </div>
       {/key}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <div class="desktop-frame-actions" data-tauri-drag-region="false">
+        {@render desktopUtilityTabBarActions()}
+        {@render bottomPanelToggleButton(bottomPanelVisible)}
+        {@render rightSidebarToggleButton(rightSidebarVisible)}
+      </div>
+    {/if}
+  </div>
+</div>
+
+<style lang="postcss">
+  .desktop-splits-panel {
+    --desktop-splits-tab-top-margin: 6px;
+    --desktop-splits-shadow-gutter: 6px;
     /* Light-mode panes use a soft shadow and contact edge.
        Keep the contact edge on the uniform stroke ring so it cannot pool in
        the concave tab shoulders. CSS box-shadow blur is twice the SVG sigma. */
@@ -4512,36 +4512,36 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     --desktop-splits-inactive-pane-shape-motion-filter: var(
       --desktop-splits-inactive-pane-shape-filter
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --desktop-splits-panel-top-inset: max(
+      0px,
+      calc(var(--desktop-splits-tab-top-margin) - var(--desktop-splits-shadow-gutter))
+    );
+    --desktop-splits-panel-inset: max(
+      0px,
+      calc(var(--desktop-main-panel-inset, 8px) - var(--desktop-splits-shadow-gutter))
+    );
+    --desktop-splits-panel-sidebar-gap: max(
+      0px,
+      calc(var(--desktop-main-panel-sidebar-gap, 8px) - var(--desktop-splits-shadow-gutter))
+    );
+
+    position: relative;
+    z-index: 10;
+    box-sizing: border-box;
+    padding: var(--desktop-splits-panel-top-inset) var(--desktop-splits-panel-inset)
+      var(--desktop-splits-panel-inset) var(--desktop-splits-panel-sidebar-gap);
+    min-width: 0;
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+    flex: 1 1 0;
+  }
+
+  .desktop-splits-panel--no-border {
+    padding-left: var(--desktop-splits-panel-inset);
+  }
+
+  :global(.vscode-dark) .desktop-splits-panel {
     /* Softer than before (was 0.38): the tight black edge halo was swallowing
        the lighter pane stroke. Keep enough for depth, let the stroke read. */
     --desktop-splits-pane-edge-shadow-color: rgba(0, 0, 0, 0.15);
@@ -4570,181 +4570,181 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     --desktop-splits-inactive-pane-shape-motion-filter: var(
       --desktop-splits-inactive-pane-shape-filter
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  .desktop-splits-panel--no-border
+    .desktop-splits-frame
+    :global(.splits-pane:has(.desktop-tab-bar-traffic-light-spacer)) {
+    --splits-pane-content-top-left-radius: var(--splits-pane-radius);
+  }
+
+  .desktop-main-panel-top-drag-region {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1;
+    height: var(--desktop-splits-tab-top-margin);
+  }
+
+  .desktop-splits-frame {
+    --desktop-frame-actions-width: 122px;
+
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: visible;
+    border-radius: var(--desktop-main-panel-radius, 10px);
+    background: var(--psx-panel);
+  }
+
+  .desktop-frame-actions {
+    position: absolute;
+    top: calc(var(--desktop-splits-shadow-gutter) + 6px);
+    right: calc(var(--desktop-splits-shadow-gutter) + 8px);
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    pointer-events: none;
+  }
+
+  .desktop-frame-actions :global(button) {
+    pointer-events: auto;
     /* Match the left sidebar toggle: native arrow cursor, not a pointer. */
     cursor: default;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  .desktop-frame-actions-spacer {
+    width: var(--desktop-frame-actions-width);
+    height: 22px;
+    flex: 0 0 var(--desktop-frame-actions-width);
+    pointer-events: none;
+  }
+
+  .desktop-new-tab-button-frame {
+    position: relative;
+    flex: 0 0 var(--splits-tab-action-button-size);
+    align-self: center;
+    margin: 0 4px;
+  }
+
+  .desktop-new-tab-button {
+    position: relative;
+    display: inline-flex;
+    width: var(--splits-tab-action-button-size);
+    height: var(--splits-tab-action-button-size);
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--splits-muted-foreground);
+    cursor: pointer;
+    transform: translate(-1.5px, 1.5px);
+  }
+
+  .desktop-new-tab-button:hover {
+    background: var(--splits-tab-hover-background);
+    color: var(--splits-foreground);
+  }
+
+  .desktop-new-tab-button:focus-visible {
+    outline: 2px solid var(--splits-focus-ring);
+    outline-offset: 1px;
+  }
+
+  .desktop-splits-layout {
+    --desktop-right-sidebar-surface-gap: calc(
+      var(--desktop-main-panel-inset, 8px) - var(--desktop-splits-shadow-gutter) -
+        var(--desktop-splits-shadow-gutter)
+    );
+    --desktop-bottom-panel-surface-gap: var(--desktop-right-sidebar-surface-gap);
+
+    display: flex;
+    gap: 0;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .desktop-splits-main-stack {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 0;
+    flex-direction: column;
+  }
+
+  .desktop-splits-main-surface {
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 0;
+  }
+
+  .desktop-bottom-panel-surface {
+    position: relative;
+    height: 0;
+    margin-top: 0;
+    min-width: 0;
+    min-height: 0;
+    flex: 0 0 auto;
+    overflow: visible;
+    pointer-events: none;
     /* height/margin are layout properties, so will-change buys nothing here
        (they can never be composited) and only pins extra layer memory. */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    transition:
       height 140ms cubic-bezier(0.2, 0, 0, 1),
       margin-top 140ms cubic-bezier(0.2, 0, 0, 1);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  .desktop-bottom-panel-surface--visible {
+    height: var(--desktop-bottom-panel-height);
+    margin-top: var(--desktop-bottom-panel-surface-gap);
+    pointer-events: auto;
+  }
+
+  .desktop-bottom-panel-surface--resizing {
+    transition: none;
+  }
+
+  /* No overflow clipping: the pane shadows inside must spill over the main
+     surface like any other pane shadow. The show/hide slide stays tidy
+     without it because the content is anchored to the surface edge that
+     remains on screen — whatever sticks out extends past the window edge,
+     where the body's overflow: hidden swallows it. */
+  .desktop-bottom-panel-clip {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .desktop-bottom-panel-content {
+    width: 100%;
+    height: var(--desktop-bottom-panel-height);
+    min-height: var(--desktop-bottom-panel-height);
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
       opacity 0ms linear 140ms,
       transform 140ms cubic-bezier(0.2, 0, 0, 1);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  .desktop-bottom-panel-surface--visible .desktop-bottom-panel-content {
+    opacity: 1;
     /* Release the animation's stacking context once settled so pane shadows
        can paint behind the neighboring surfaces as well as their own. */
     transform: none;
     transition:
       opacity 100ms ease,
       transform 140ms cubic-bezier(0.2, 0, 0, 1);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   /* While closed, skip the panel's whole subtree in layout/paint. The surface
      collapses to height 0 but does not clip (overflow stays visible for pane
      shadows), so without this every terminal/tab in the closed panel still
@@ -4779,10 +4779,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .desktop-bottom-panel-surface--resizing .desktop-bottom-panel-content {
+    transition: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .desktop-bottom-panel-surface,
     .desktop-bottom-panel-content {
@@ -4790,29 +4790,29 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .desktop-bottom-panel-resize-handle {
+    position: absolute;
+    right: var(--desktop-splits-shadow-gutter);
+    left: var(--desktop-splits-shadow-gutter);
+    top: calc(-0.5 * var(--desktop-bottom-panel-surface-gap) - 4px);
+    z-index: 40;
+    height: 8px;
+    cursor: row-resize;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    outline: none;
+  }
+
+  .desktop-bottom-panel-resize-handle::before {
+    content: "";
+    position: absolute;
     right: 8px;
     left: 8px;
     top: 0;
     height: 1px;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    border-radius: 999px;
+    background: transparent;
     mask-image: linear-gradient(
       to right,
       transparent,
@@ -4820,194 +4820,194 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       #000 calc(100% - 40px),
       transparent
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    transition: background 120ms ease;
+  }
+
+  .desktop-bottom-panel-resize-handle:hover::before,
+  .desktop-bottom-panel-resize-handle:focus-visible::before,
+  .desktop-bottom-panel-resize-handle--active::before {
+    background: var(--psx-focus);
+  }
+
+  .desktop-empty-pane {
+    --desktop-empty-pane-action-width: 210px;
+    --desktop-empty-pane-action-rows: 5;
+    --desktop-empty-pane-actions-width: min(100%, var(--desktop-empty-pane-action-width));
+
+    box-sizing: border-box;
+    container-type: size;
+    display: flex;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 16px;
+
+    /* Negative margin to account for blank tabs above */
+    margin-top: -17px;
+  }
+
+  .desktop-empty-pane-content {
+    display: flex;
+    width: var(--desktop-empty-pane-actions-width);
+    max-width: 100%;
+    max-height: 100%;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .desktop-empty-pane-title {
+    width: 100%;
+    color: var(--psx-foreground-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    text-align: left;
+  }
+
+  .desktop-empty-pane-actions {
+    display: grid;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    grid-auto-columns: minmax(0, min(var(--desktop-empty-pane-action-width), 100%));
+    grid-auto-flow: column;
+    grid-template-rows: repeat(var(--desktop-empty-pane-action-rows), 34px);
+    gap: 8px 10px;
+  }
+
+  @container (max-height: 227px) and (min-width: 430px) {
+    .desktop-empty-pane-content {
+      --desktop-empty-pane-actions-width: min(
+        100%,
+        calc(var(--desktop-empty-pane-action-width) * 2 + 10px)
+      );
+    }
+
+    .desktop-empty-pane-actions {
+      --desktop-empty-pane-action-rows: 3;
+    }
+  }
+
+  @container (max-height: 143px) and (min-width: 650px) {
+    .desktop-empty-pane-content {
+      --desktop-empty-pane-actions-width: min(
+        100%,
+        calc(var(--desktop-empty-pane-action-width) * 3 + 20px)
+      );
+    }
+
+    .desktop-empty-pane-actions {
+      --desktop-empty-pane-action-rows: 2;
+    }
+  }
+
+  .desktop-empty-pane-button {
+    display: inline-flex;
+    box-sizing: border-box;
+    height: 34px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    border: 1px solid color-mix(in srgb, var(--psx-border) 78%, transparent);
+    border-radius: 6px;
+    padding: 0 14px;
+    background: color-mix(in srgb, var(--psx-panel) 98%, var(--psx-foreground-primary));
+    color: var(--psx-foreground-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .desktop-empty-pane-button span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .desktop-empty-pane-button:hover:not(:disabled) {
+    background: var(--psx-menu-hover-background);
+    color: var(--psx-foreground-primary);
+  }
+
+  .desktop-empty-pane-button:focus-visible {
+    outline: 2px solid var(--psx-focus);
+    outline-offset: 2px;
+  }
+
+  .desktop-empty-pane-button:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  .desktop-right-sidebar-surface {
+    position: relative;
+    width: 0;
+    margin-left: 0;
+    min-width: 0;
+    min-height: 0;
+    flex: 0 0 auto;
+    overflow: visible;
+    pointer-events: none;
     /* width/margin are layout properties, so will-change buys nothing here
        (they can never be composited) and only pins extra layer memory. */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    transition:
       width 140ms cubic-bezier(0.2, 0, 0, 1),
       margin-left 140ms cubic-bezier(0.2, 0, 0, 1);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  .desktop-right-sidebar-surface--visible {
+    width: var(--desktop-right-sidebar-width);
+    margin-left: var(--desktop-right-sidebar-surface-gap);
+    pointer-events: auto;
+  }
+
+  .desktop-right-sidebar-surface--resizing {
+    transition: none;
+  }
+
+  /* No overflow clipping, for the same reason as .desktop-bottom-panel-clip:
+     the sidebar pane's shadow must spill over the main surface, and the
+     show/hide slide only ever overflows past the window edge. */
+  .desktop-right-sidebar-clip {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .desktop-right-sidebar-content {
+    width: var(--desktop-right-sidebar-width);
+    min-width: var(--desktop-right-sidebar-width);
+    height: 100%;
+    min-height: 0;
+    opacity: 0;
+    transform: translateX(10px);
+    transition:
       opacity 0ms linear 140ms,
       transform 140ms cubic-bezier(0.2, 0, 0, 1);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  .desktop-right-sidebar-surface--visible .desktop-right-sidebar-content {
+    opacity: 1;
     /* As with the bottom panel, keep a separate layer only during motion. */
     transform: none;
     transition:
       opacity 100ms ease,
       transform 140ms cubic-bezier(0.2, 0, 0, 1);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   /* Skip the closed sidebar's subtree in layout/paint; see the matching
      comment on .desktop-bottom-panel-content. */
   @supports (transition-behavior: allow-discrete) {
@@ -5029,10 +5029,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .desktop-right-sidebar-surface--resizing .desktop-right-sidebar-content {
+    transition: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .desktop-right-sidebar-surface,
     .desktop-right-sidebar-content {
@@ -5040,29 +5040,29 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .desktop-right-sidebar-resize-handle {
+    position: absolute;
+    top: var(--desktop-splits-shadow-gutter);
+    bottom: var(--desktop-splits-shadow-gutter);
+    left: calc(-0.5 * var(--desktop-right-sidebar-surface-gap) - 4px);
+    z-index: 40;
+    width: 8px;
+    cursor: col-resize;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    outline: none;
+  }
+
+  .desktop-right-sidebar-resize-handle::before {
+    content: "";
+    position: absolute;
     top: 8px;
     right: 0;
     bottom: 8px;
     width: 1px;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    border-radius: 999px;
+    background: transparent;
     mask-image: linear-gradient(
       to bottom,
       transparent,
@@ -5070,15 +5070,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       #000 calc(100% - 40px),
       transparent
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    transition: background 120ms ease;
+  }
+
+  .desktop-right-sidebar-resize-handle:hover::before,
+  .desktop-right-sidebar-resize-handle:focus-visible::before,
+  .desktop-right-sidebar-resize-handle--active::before {
+    background: var(--psx-focus);
+  }
+
   /* All settled panes share a paint order: shadows, surfaces, content, rims.
      Isolating each pane lets a later sibling's broad shadow paint over an
      earlier pane's fill and white rim, creating a dark strip at their join. */
@@ -5098,60 +5098,60 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     z-index: 3;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .desktop-splits-frame :global(.splits-root) {
+    --splits-tab-bar-background: transparent;
+    --splits-tab-bar-separator-display: none;
+    --splits-tab-background: transparent;
+    --splits-tab-hover-visual-background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--psx-foreground-primary) 5%, transparent) 0%,
+      color-mix(in srgb, var(--psx-foreground-primary) 2.5%, transparent) 58%,
+      transparent 100%
+    );
+    --splits-tab-hover-background: color-mix(
+      in srgb,
+      var(--psx-foreground-primary) 5%,
+      transparent
+    );
+    --splits-tab-radius: var(--splits-pane-radius);
     --splits-tab-shadow-gutter: var(--desktop-splits-shadow-gutter);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --splits-first-tab-margin-left: 0px;
+    --splits-inactive-tab-bottom-radius: var(--splits-tab-radius);
     --splits-pane-border-color: var(--desktop-splits-pane-border-color);
     --splits-active-tab-background: var(--splits-pane-background);
     --splits-active-tab-border: transparent;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --splits-active-tab-visual-border: transparent;
     --splits-active-tab-shadow:
       var(--desktop-splits-pane-edge-shadow), var(--desktop-splits-pane-shadow);
     --splits-active-tab-shoulder-edge-width: 1.25px;
     --splits-active-tab-shoulder-edge-color: var(--desktop-splits-pane-shoulder-edge-color);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --splits-tab-top: 0px;
+    --splits-tab-height-extension: 0px;
+    --splits-tab-padding-bottom: 1px;
+    --splits-split-gap: var(--desktop-main-panel-inset, 8px);
+    /* Keep the gap background transparent so pane shadows can spill into the
+       shadow gutters of the sibling surfaces (bottom panel, right sidebar),
+       which overlap this surface by design. The frame behind paints the same
+       var(--psx-panel), so an opaque gap background here would hard-clip a
+       neighboring pane's shadow ~2px past its border instead. */
+    --splits-split-gap-background: transparent;
     --splits-pane-border: var(--psx-hairline, 1px) solid var(--splits-pane-border-color);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --splits-pane-radius: var(--desktop-main-panel-radius, 10px);
+    --splits-pane-shadow: var(--desktop-splits-pane-shadow);
+    --splits-pane-overflow: visible;
     --splits-pane-shell-border: var(--psx-hairline, 1px);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --splits-pane-shell-background: transparent;
+    --splits-pane-shell-shadow: none;
+    --splits-pane-shape-top: 0px;
+    --splits-pane-shape-height-extension: 0px;
+    --splits-pane-shape-shoulder-radius: var(--splits-pane-radius);
+    --splits-pane-shape-fill-tab-radius: max(0px, calc(var(--splits-tab-radius) - 3px));
+    --splits-pane-shape-fill-shoulder-radius: max(
+      0px,
+      calc(var(--splits-pane-shape-shoulder-radius) - 3px)
+    );
+    --splits-pane-shape-fill-pane-radius: max(0px, calc(var(--splits-pane-radius) - 3px));
+    --splits-pane-shape-filter: var(--desktop-splits-pane-shape-filter);
     --splits-pane-shape-motion-filter: var(--desktop-splits-pane-shape-motion-filter);
     --splits-pane-shape-edge-ring-color: var(--desktop-splits-pane-shape-edge-ring-color);
     --splits-pane-shape-edge-ring-blur: var(--desktop-splits-pane-edge-ring-blur);
@@ -5165,18 +5165,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     --splits-pane-content-shadow:
       var(--desktop-splits-pane-edge-shadow), var(--desktop-splits-pane-shadow),
       inset 0 0 0 var(--psx-hairline, 1px) var(--splits-pane-border-color);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --splits-pane-content-top-right-radius: var(--splits-pane-radius);
+    --splits-pane-content-detached-top-left-radius: var(--splits-pane-radius);
+    --splits-separator: color-mix(in srgb, var(--psx-border) 70%, transparent);
+
+    box-sizing: border-box;
+    height: 100%;
+    overflow: visible;
+    padding: var(--desktop-splits-shadow-gutter);
+    background: var(--splits-split-gap-background);
+  }
+
+  :global(.vscode-dark) .desktop-splits-frame :global(.splits-root) {
     --splits-pane-border-color: var(--psx-overlay-stroke-dark);
     /* No white inner glow in dark mode: keep the pane edge a clean solid
        stroke matching the dark popover outline (--psx-overlay-stroke-dark). */
@@ -5211,86 +5211,86 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       inset 0 0 0 var(--psx-hairline, 1px) var(--splits-pane-border-color);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .desktop-tab-bar-traffic-light-spacer {
+    width: calc(var(--desktop-window-controls-space, 88px) + 24px);
+    min-width: calc(var(--desktop-window-controls-space, 88px) + 24px);
+    height: 100%;
+    flex: 0 0 auto;
+    transition:
       width 140ms cubic-bezier(0.2, 0, 0, 1),
       min-width 140ms cubic-bezier(0.2, 0, 0, 1);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  .desktop-tab-bar-traffic-light-spacer--hidden {
+    width: 0;
+    min-width: 0;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .desktop-tab-bar-traffic-light-spacer {
       transition: none;
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /* Collapsed sidebar + a downloaded update: reserve extra room so the sidebar
+     "Update" pill doesn't overlap the first chat tab. */
+  .desktop-tab-bar-traffic-light-spacer--with-update {
+    width: calc(var(--desktop-window-controls-space, 88px) + 24px + 72px);
+    min-width: calc(var(--desktop-window-controls-space, 88px) + 24px + 72px);
+  }
+
+  :global(body.desktop-window-fullscreen) .desktop-tab-bar-traffic-light-spacer {
+    width: calc(var(--desktop-fullscreen-sidebar-icon-offset, 5px) + 22px + 4px);
+    min-width: calc(var(--desktop-fullscreen-sidebar-icon-offset, 5px) + 22px + 4px);
+  }
+
+  :global(body.desktop-window-fullscreen) .desktop-tab-bar-traffic-light-spacer--with-update {
+    width: calc(var(--desktop-fullscreen-sidebar-icon-offset, 5px) + 22px + 4px + 72px);
+    min-width: calc(var(--desktop-fullscreen-sidebar-icon-offset, 5px) + 22px + 4px + 72px);
+  }
+
+  :global(body.desktop-window-fullscreen) .desktop-tab-bar-traffic-light-spacer--hidden {
+    width: 0;
+    min-width: 0;
+  }
+
+  .desktop-chat-tab-icon {
+    display: inline-flex;
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .desktop-chat-tab-status {
+    --desktop-chat-tab-status-blue: #3794ff;
+    --desktop-chat-tab-status-yellow: #cca700;
+    display: inline-block;
+    box-sizing: border-box;
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    pointer-events: none;
+  }
+
+  .desktop-chat-tab-status--waiting {
+    background: var(--desktop-chat-tab-status-yellow);
+  }
+
+  .desktop-chat-tab-status--unread {
+    background: var(--desktop-chat-tab-status-blue);
+  }
+
+  .desktop-tab-content {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    outline: none;
+  }
+
   .desktop-tab-content-pool {
     display: none;
   }
@@ -5309,33 +5309,33 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     opacity: var(--desktop-splits-pane-content-opacity, 1);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .desktop-terminal-split-content {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--psx-terminal-background);
+  }
+
+  .desktop-terminal-message {
+    color: var(--psx-foreground-secondary);
+    display: flex;
+    height: 100%;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 16px;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  .desktop-terminal-error {
+    color: var(--psx-foreground-tertiary);
+    max-width: 520px;
+  }
+</style>

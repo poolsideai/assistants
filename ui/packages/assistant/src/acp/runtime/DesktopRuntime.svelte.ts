@@ -606,18 +606,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const agentServer = this.#core.acpRepo.agents.defaultAgentServer;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     cwd = protocolCwd;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    const activeSession = this.#activeSession;
+    if (
+      activeSession?.sessionId === null &&
+      (activeSession.events?.length ?? 0) === 0 &&
+      cwd === (activeSession.cwd ?? "")
+    ) {
+      activeSession.requestPromptFocus();
       this.#onNavigationChange?.();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return activeSession.conversationId;
+    }
+
     this.#bootstrap.markPrepared(agentServer, cwd);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

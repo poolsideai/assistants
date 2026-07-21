@@ -1,5 +1,5 @@
 <script lang="ts">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { setACPGithubContext } from "../../features/GithubRepository.svelte";
   import DesktopGitHubPanel from "./DesktopGitHubPanel.svelte";
 
   interface Props {

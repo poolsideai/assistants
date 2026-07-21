@@ -1,5 +1,5 @@
 <script lang="ts">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { ACPConversationStatusRepositoryWriter } from "../src/acp";
   import { setElicitationContext } from "../src/elicitation";
   import type { Snippet } from "svelte";
 
@@ -10,8 +10,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   let { children, pendingElicitationIds = [] }: Props = $props();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const conversationStatus = new ACPConversationStatusRepositoryWriter().publicAPI();
+  const elicitation = setElicitationContext(conversationStatus);
   for (const id of pendingElicitationIds) {
     void elicitation.register({ elicitationId: id, mode: "form", message: "" });
   }

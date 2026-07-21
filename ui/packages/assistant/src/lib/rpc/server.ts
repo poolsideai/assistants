@@ -5,7 +5,7 @@ import {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   type ACPConversationRepository,
   type ACPProjectRepository,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  type ACPSession,
   type ACPSessionRepository,
   type ACPTransport,
   type LocalInferenceRepository,
@@ -73,7 +73,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     readonly assistantTerminals: AssistantTerminalEventSink,
     readonly acpRepo?: ACPSessionRepository,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    readonly getActiveSession?: () => ACPSession | null,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     readonly acpProjectRepo?: ACPProjectRepository,
     readonly acpConversationRepo?: ACPConversationRepository,
@@ -184,8 +184,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.contextRepo.setRecentFile(context.recentFile);
+    this.contextRepo.setActiveFiles(context.activeFiles);
   };
 
   setKeybindings = (keybindings: Keybindings) => {
@@ -217,7 +217,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.getActiveSession?.()?.togglePlanMode();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   // Utility handlers

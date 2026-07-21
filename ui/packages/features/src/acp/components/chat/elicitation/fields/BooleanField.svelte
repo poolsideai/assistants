@@ -14,7 +14,7 @@
 </script>
 
 <div class="flex flex-col gap-1">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <label for={field.name} class="text-psx-foreground-primary flex items-start gap-2 text-sm">
     <Checkbox
       id={field.name}
       checked={field.state.value === true}

@@ -142,8 +142,8 @@ export interface ActiveFileContext {
   // Working directory the assistant should use when no folder is open.
   // Computed by the host (e.g. extension) since only it can resolve $HOME.
   defaultCwd?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  recentFile?: AttachedFile;
+  activeFiles?: AttachedFile[];
 }
 
 export type AttachedUrl = {

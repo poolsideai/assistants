@@ -2,7 +2,7 @@
   import { AcpChatPane } from "@poolsideai/features/acp";
   import { onDestroy } from "svelte";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import ACPAgentUpdateBanner from "./AgentUpdateBanner.svelte";
   import AssistantConfigErrorBanner from "./AssistantConfigErrorBanner.svelte";
   import { installPinchZoomBlocker } from "../lib/utils/pinchZoom";
   import RuntimeProviders from "./RuntimeProviders.svelte";

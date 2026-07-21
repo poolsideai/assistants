@@ -6,7 +6,7 @@
  */
 
 export interface ACPNavConfigCacheEntry {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  agentInfo?: unknown;
   agentServer: string;
   availableCommands: unknown;
   cachedAt: string;

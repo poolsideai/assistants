@@ -1,8 +1,8 @@
 import type { ContentBlock, Plan, SessionUpdate } from "@agentclientprotocol/sdk";
 import { isHandoffContextBlock } from "./features/session/handoffContext";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { isHostContextBlock, stripInjectedContextBlock } from "./features/session/hostContext";
 import { ACP_USER_MESSAGE_STEER_META_KEY } from "./features/session/steering";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { unwrapUserMessageBlock } from "./features/session/userMessageBoundary";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import type { AgentMessage, AgentThought, SessionEvent, ToolCall, UserMessage } from "./types";
 
@@ -271,7 +271,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   private applyPlan(update: SessionUpdate & { sessionUpdate: "plan" }): void {
     const { sessionUpdate: _, ...rest } = update;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this._plan = reconcilePlan(this._plan, rest as Plan);
     this.lastMessageKey = null;
   }
 
@@ -381,23 +381,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Agents may reorder plan entries between updates (e.g. moving completed items
+// around). Keep entries at their first-seen position so the rendered todo list
+// stays stable; a zero-overlap update means a new plan, taken as-is.
+function reconcilePlan(previous: Plan | null, next: Plan): Plan {
+  if (!previous) return next;
+  const previousOrder = new Map(previous.entries.map((e, i) => [e.content, i]));
+  const hasOverlap = next.entries.some((e) => previousOrder.has(e.content));
+  if (!hasOverlap) return next;
+
+  const entries = [...next.entries].sort((a, b) => {
+    const ai = previousOrder.get(a.content) ?? Number.POSITIVE_INFINITY;
+    const bi = previousOrder.get(b.content) ?? Number.POSITIVE_INFINITY;
+    return ai - bi;
+  });
+  return { ...next, entries };
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

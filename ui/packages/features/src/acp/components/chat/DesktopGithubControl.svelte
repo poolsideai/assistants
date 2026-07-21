@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon, { type IconName } from "@poolsideai/components/icon";
   import type { GitHubLinksOutput } from "@poolsideai/helperapi";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPGithubRepo } from "../../features/GithubRepository.svelte";
   import { githubDotColorClass } from "../../github/githubStatus";
   import { appState } from "../../hostAdapter";
   import { rpc } from "../../hostRpc";

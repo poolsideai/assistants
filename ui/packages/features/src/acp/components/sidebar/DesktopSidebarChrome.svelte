@@ -1,5 +1,5 @@
 <script lang="ts">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import Kbd from "@poolsideai/components/kbd";
   import { MarkdownBlock } from "@poolsideai/components/markdown";
   import type { Snippet } from "svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -15,7 +15,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     collapseDisabled?: boolean;
     ariaLabel: string;
     toggleTitle: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    toggleShortcutHint?: string;
     onCollapsedChange: (collapsed: boolean) => void;
     onResizeStart?: (event: MouseEvent) => void;
     onResizeKeydown?: (event: KeyboardEvent) => void;
@@ -32,7 +32,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     collapseDisabled = false,
     ariaLabel,
     toggleTitle,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    toggleShortcutHint,
     onCollapsedChange,
     onResizeStart,
     onResizeKeydown,
@@ -104,7 +104,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   aria-label={ariaLabel}
 >
   {#if !collapsed || showCollapsedActions}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div class="desktop-sidebar-toggle-button flex items-center gap-1">
       <SidebarIconButton
         icon={collapsed ? "sidebar-left-closed" : "sidebar-left-open"}
         label={collapsed ? "Show sidebar" : "Hide sidebar"}
@@ -115,9 +115,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         disabled={toggleDisabled}
         onclick={() => onCollapsedChange(!collapsed)}
       />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {#if !collapsed && toggleShortcutHint}
+        <Kbd label={toggleShortcutHint} class="shrink-0" aria-hidden="true" />
+      {/if}
     </div>
   {/if}
 

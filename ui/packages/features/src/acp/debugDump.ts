@@ -1,24 +1,24 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { DEFAULT_AGENT_SERVER, normalizeAgentServerName } from "./agentServers";
+import type { ACPSession } from "./features/Session.svelte";
+
+export const ACP_DEBUG_DUMP_LOADED_EVENT = "acp:debug-dump-loaded";
+
+export interface ACPDebugDumpLoadedEventDetail {
+  agentServer: string;
+  conversationId: string;
+  sessionId: string | null;
+}
+
+export interface ACPDumpEntry {
+  _direction: "incoming" | "outgoing";
+  _type: "request" | "response" | "notification";
+  id?: unknown;
+  method?: string;
+  params?: unknown;
+  error?: unknown;
+  [key: string]: unknown;
+}
+
 export interface ACPDebugCaptureState {
   /**
    * Always false: capture has no global default, only per-session overrides.
@@ -87,7 +87,7 @@ export const MAX_ACP_DEBUG_LOG_BYTES_PER_AGENT = 32 * 1024 * 1024;
 export const MAX_ACP_DEBUG_CORRELATIONS_PER_AGENT = 4_096;
 const ESTIMATED_ENTRY_OVERHEAD_BYTES = 256;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export class ACPDebugLog {
   private messages = new Map<string, StoredDebugLog>();
   private methods = new Map<
     string,
@@ -197,19 +197,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (sessionId === null) return false;
     return this.sessionCollecting.get(sessionCollectingKey(agentServer, sessionId)) ?? false;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  record(agentServer: string, direction: "incoming" | "outgoing", raw: unknown): void {
+    if (!raw || typeof raw !== "object") return;
+
+    const server = normalizeAgentServerName(agentServer);
+    const msg = raw as Record<string, unknown>;
+    const id = msg.id;
+    const method = typeof msg.method === "string" ? msg.method : undefined;
+
+    let type: ACPDumpEntry["_type"];
+    let correlatedMethod: string | undefined;
+    if (id != null && method) {
+      type = "request";
       const sessionId = rawSessionId(msg);
       const conversationId = method === "session/new" ? rawConversationId(msg) : null;
       // Correlate even while paused so responses that arrive after collection
@@ -228,8 +228,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         conversationId,
       });
       if (!this.shouldCollect(server, sessionId, conversationId)) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } else if (id != null) {
+      type = "response";
       const methodMap = this.methods.get(server);
       const correlationKey = requestCorrelationKey(oppositeDirection(direction), id);
       const correlated = methodMap?.get(correlationKey);
@@ -245,45 +245,45 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (!this.shouldCollect(server, responseSessionId, correlated?.conversationId ?? null)) {
         return;
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } else {
+      type = "notification";
       if (!this.shouldCollect(server, rawSessionId(msg), null)) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+
+    const entry: ACPDumpEntry = {
+      ...msg,
+      _direction: direction,
+      _type: type,
+    };
+    delete entry.jsonrpc;
+
+    if (type === "response") {
+      if (correlatedMethod) entry.method = correlatedMethod;
+      if ("result" in entry) {
+        entry.params = entry.result;
+        delete entry.result;
+      }
+    }
+
     this.storeEntry(server, entry);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  dump(agentServer = DEFAULT_AGENT_SERVER): ACPDumpEntry[] {
     const log = this.messages.get(normalizeAgentServerName(agentServer));
     const entries =
       log?.entries
         .slice(log.startIndex)
         .filter((entry): entry is ACPDumpEntry => entry !== undefined) ?? [];
     return JSON.parse(JSON.stringify(entries)) as ACPDumpEntry[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  clear(agentServer = DEFAULT_AGENT_SERVER): void {
     const server = normalizeAgentServerName(agentServer);
     this.messages.delete(server);
     this.methods.delete(server);
     this.emitEntries(server);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   /**
    * Drop pending request/response correlation state for an agent, e.g. when
    * its connection is torn down. Captured messages are left intact so the
@@ -293,17 +293,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.methods.delete(normalizeAgentServerName(agentServer));
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  replace(agentServer: string, entries: ACPDumpEntry[]): void {
+    const server = normalizeAgentServerName(agentServer);
     this.messages.delete(server);
     for (const entry of entries) {
       // Avoid cloning a loaded frame that will be discarded immediately.
       if (estimatedEntryBytes(entry) > this.maxBytesPerAgent) continue;
       this.storeEntry(server, JSON.parse(JSON.stringify(entry)) as ACPDumpEntry);
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.methods.delete(server);
+  }
+
   private storeEntry(server: string, entry: ACPDumpEntry): void {
     const entryBytes = estimatedEntryBytes(entry);
     // An individual frame larger than the whole budget cannot be retained.
@@ -342,15 +342,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   private methodMap(
     agentServer: string,
   ): Map<string, { method: string; sessionId: string | null; conversationId: string | null }> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const existing = this.methods.get(agentServer);
+    if (existing) return existing;
     const next = new Map<
       string,
       { method: string; sessionId: string | null; conversationId: string | null }
     >();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.methods.set(agentServer, next);
+    return next;
+  }
 
   private shouldCollect(
     agentServer: string,
@@ -448,8 +448,8 @@ function splitSessionCollectingKey(key: string): { agentServer: string; sessionI
     agentServer: key.slice(0, separator),
     sessionId: key.slice(separator + 1),
   };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 function requestCorrelationKey(direction: "incoming" | "outgoing", id: unknown): string {
   return `${direction}\0${JSON.stringify(id)}`;
 }
@@ -458,27 +458,27 @@ function oppositeDirection(direction: "incoming" | "outgoing"): "incoming" | "ou
   return direction === "incoming" ? "outgoing" : "incoming";
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export interface ACPDebugAPI {
   capture: ACPDebugCaptureAPI;
   subscribeEntries(listener: (agentServer: string) => void): () => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  dump(agentServer?: string): ACPDumpEntry[];
+  dumpJSON(agentServer?: string): string;
+  clear(agentServer?: string): void;
+  load(entries: ACPDumpEntry[] | string, agentServer?: string): Promise<void>;
+  restartServer(agentServer?: string): Promise<void>;
+}
+
+export function debugDumpLoadedDetail(session: ACPSession): ACPDebugDumpLoadedEventDetail {
+  return {
+    agentServer: session.agentServer,
+    conversationId: session.conversationId,
+    sessionId: session.sessionId,
+  };
+}
+
+export function normalizeDumpEntries(input: unknown): ACPDumpEntry[] {
+  if (!Array.isArray(input)) {
+    throw new Error("ACP dump must be a JSON array");
+  }
+  return input as ACPDumpEntry[];
+}

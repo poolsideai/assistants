@@ -4,7 +4,7 @@ import type {
   SessionModeState,
 } from "@agentclientprotocol/sdk";
 import { describe, expect, it, vi } from "vitest";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import {
   applyDefaultConfigOptions,
   applySessionConfigSelections,
   collaborationModeSurface,
@@ -12,29 +12,29 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   findCollaborationModeConfigOption,
   isBehavioralModeConfigOption,
   mergeConfigSelections,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  normalizeSessionConfigSnapshot,
   planValueForConfigOption,
   promptConfigKind,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  sessionConfigSnapshot,
   shouldPersistConfigSelection,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  updateBooleanConfigOptionValue,
+  updateConfigOptionValue,
+} from "./configOptions";
+
+function selectOption(id: string, currentValue: string, values: string[]): SessionConfigOption {
+  return {
+    id,
+    type: "select",
+    name: id,
+    currentValue,
+    options: values.map((v) => ({ value: v, name: v })),
+  } as SessionConfigOption;
+}
+
+function booleanOption(id: string, currentValue: boolean): SessionConfigOption {
+  return { id, type: "boolean", name: id, currentValue } as SessionConfigOption;
+}
+
 describe("collaboration mode options", () => {
   it("recognizes canonical collaboration identity when the optional category is omitted", () => {
     const option = {
@@ -280,21 +280,21 @@ describe("shouldPersistConfigSelection", () => {
   });
 });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+describe("boolean config options", () => {
+  it("updates only the matching boolean option's value", () => {
+    const options = [selectOption("model", "a", ["a", "b"]), booleanOption("fast", false)];
+    const next = updateBooleanConfigOptionValue(options, "fast", true);
+    expect(next[1]).toMatchObject({ id: "fast", type: "boolean", currentValue: true });
+    // Non-matching / wrong-typed options are left untouched.
+    expect(next[0]).toBe(options[0]);
+  });
+
+  it("leaves boolean options untouched when using the select updater", () => {
+    const options = [booleanOption("fast", false)];
+    expect(updateConfigOptionValue(options, "fast", "true")[0]).toBe(options[0]);
+  });
+});
+
 describe("applyDefaultConfigOptions", () => {
   it("applies stored select values that the option still offers", () => {
     const options = [selectOption("model", "a", ["a", "b"])];
@@ -327,81 +327,81 @@ describe("applyDefaultConfigOptions", () => {
   });
 });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+describe("sessionConfigSnapshot", () => {
+  it("returns undefined when configOptions is empty and modes is null", () => {
+    expect(sessionConfigSnapshot([], null)).toBeUndefined();
+  });
+
   it("captures select and boolean option values and modeId", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const configOptions: SessionConfigOption[] = [
+      selectOption("model", "model-b", ["model-a", "model-b"]),
+      selectOption("permission_mode", "full_access", ["default", "full_access"]),
       booleanOption("thinking", true),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ];
+    const modes: SessionModeState = {
+      currentModeId: "plan",
+      availableModes: [
+        { id: "default", name: "Default" },
+        { id: "plan", name: "Plan" },
+      ],
+    };
+
+    const snapshot = sessionConfigSnapshot(configOptions, modes);
+
+    expect(snapshot).toEqual({
       selections: { model: "model-b", permission_mode: "full_access", thinking: true },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      modeId: "plan",
+    });
+  });
+
+  it("returns a snapshot with null modeId when modes is null but configOptions are present", () => {
+    const configOptions: SessionConfigOption[] = [
+      selectOption("model", "model-a", ["model-a", "model-b"]),
+    ];
+    const snapshot = sessionConfigSnapshot(configOptions, null);
+    expect(snapshot).toEqual({ selections: { model: "model-a" }, modeId: null });
+  });
+});
+
+describe("normalizeSessionConfigSnapshot", () => {
+  it("returns undefined for non-objects", () => {
+    expect(normalizeSessionConfigSnapshot(null)).toBeUndefined();
+    expect(normalizeSessionConfigSnapshot("string")).toBeUndefined();
+    expect(normalizeSessionConfigSnapshot(42)).toBeUndefined();
+  });
+
+  it("returns undefined when selections is missing or not an object", () => {
+    expect(normalizeSessionConfigSnapshot({})).toBeUndefined();
+    expect(normalizeSessionConfigSnapshot({ selections: "bad" })).toBeUndefined();
+  });
+
   it("keeps string and boolean selection values and drops the rest", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const result = normalizeSessionConfigSnapshot({
       selections: { model: "model-a", thinking: false, bad: 42, alsobad: null },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      modeId: "plan",
+    });
     expect(result).toEqual({ selections: { model: "model-a", thinking: false }, modeId: "plan" });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  it("normalizes bad modeId to null", () => {
+    const result = normalizeSessionConfigSnapshot({
+      selections: { model: "model-a" },
+      modeId: 123,
+    });
+    expect(result).toEqual({ selections: { model: "model-a" }, modeId: null });
+  });
+
+  it("accepts a valid snapshot", () => {
+    const result = normalizeSessionConfigSnapshot({
+      selections: { model: "model-b", permission_mode: "full_access" },
+      modeId: "plan",
+    });
+    expect(result).toEqual({
+      selections: { model: "model-b", permission_mode: "full_access" },
+      modeId: "plan",
+    });
+  });
+});
 
 describe("mergeConfigSelections", () => {
   it("overlays applicable selections onto the options", () => {
