@@ -52,37 +52,37 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    padding: var(--desktop-splits-shadow-gutter, 6px)
+      var(--settings-section-stack-inline-padding, 6px);
+  }
+
+  :global(.ide-agent-settings-section-stack) {
+    gap: 20px;
+    padding: 12px;
+  }
+
+  :global(.ide-agent-settings-section-stack) .settings-section {
+    overflow: visible;
+    outline: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  :global(.ide-agent-settings-section-stack) .settings-section-header {
+    border-bottom: 0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: color-mix(in srgb, var(--psx-chrome) 70%, transparent);
+  }
+
+  :global(.vscode-dark) :global(.ide-agent-settings-section-stack) .settings-section-header {
+    border-bottom: 0;
+    background: var(--psx-chrome);
+  }
+
+  :global(.ide-agent-settings-section-stack) .settings-section-content {
+    min-width: 0;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

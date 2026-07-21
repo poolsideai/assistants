@@ -142,7 +142,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   .desktop-settings-panel {
     --desktop-splits-tab-top-margin: 6px;
     --desktop-splits-shadow-gutter: 6px;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --settings-section-stack-inline-padding: 0px;
     /* Keep the settings card's soft, layered lift aligned with the chat pane. */
     --desktop-splits-pane-shadow:
       0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 6px rgba(0, 0, 0, 0.025),

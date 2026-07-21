@@ -1,15 +1,15 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { ACP_AUTH_REQUIRED_ERROR_CODE } from "../../authMethods";
+import { ACPError, type ACPRequestError } from "../../errors";
+
+export function isAuthRequiredError(err: ACPRequestError): boolean {
+  if (!(err instanceof ACPError)) {
+    return containsAuthRequiredMessage(err.message);
+  }
+  if (err.code === ACP_AUTH_REQUIRED_ERROR_CODE) return true;
+  return containsAuthRequiredMessage(err.message) || containsAuthRequiredMessage(err.data);
+}
+
+export function isStaleSessionError(err: ACPRequestError): boolean {
   if (!(err instanceof ACPError)) return false;
   if (err.code === -32002 && err.message.toLowerCase().includes("resource not found")) {
     return true;
@@ -45,23 +45,23 @@ function stringifyData(data: unknown): string {
   } catch {
     return "";
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+function containsAuthRequiredMessage(value: unknown): boolean {
+  if (typeof value === "string") {
+    return (
+      /\b401\b/.test(value) ||
+      /\bunauthori[sz]ed\b/i.test(value) ||
+      /\bauth[_ -]?required\b/i.test(value) ||
+      /authentication[_ -]?failed/i.test(value) ||
+      /\bfailed to authenticate\b/i.test(value) ||
+      /\bcould not authenticate\b/i.test(value) ||
+      /\binvalid authentication credentials\b/i.test(value)
+    );
+  }
+  if (!value || typeof value !== "object") return false;
+  if (Array.isArray(value)) {
+    return value.some(containsAuthRequiredMessage);
+  }
+  return Object.values(value as Record<string, unknown>).some(containsAuthRequiredMessage);
+}

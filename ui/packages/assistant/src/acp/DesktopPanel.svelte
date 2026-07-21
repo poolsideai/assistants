@@ -23,7 +23,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   } from "@poolsideai/features/acp";
   import { onDestroy, onMount, type Component } from "svelte";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import ACPAgentUpdateBanner from "./AgentUpdateBanner.svelte";
   import AssistantConfigErrorBanner from "./AssistantConfigErrorBanner.svelte";
   import { installPinchZoomBlocker } from "../lib/utils/pinchZoom";
   import RuntimeProviders from "./RuntimeProviders.svelte";
@@ -451,7 +451,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       {:else}
         <IDESideBar
           collapsed={desktop.sidebarCollapsed}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          showCollapsedActions={desktop.isBlockingSessionLoading}
           currentWorkspaceFolders={desktop.currentACPWorkspaceFolders}
           onCollapsedChange={desktop.setSidebarCollapsed}
           onNewConversation={() => desktop.handleNewConversation()}

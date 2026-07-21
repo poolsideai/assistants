@@ -3,15 +3,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { affectsConfiguration, getPoolsideConfigurationSection } from "./api/configuration";
 import * as apiProposals from "./apiProposals";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { getPoolsideConfig } from "./configuration";
 import { sendActiveFileContext } from "./context";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { configureExtensionIdentity, POOLSIDE } from "./extensionIdentity";
+import { getHelperSingleton, initializeHelperClient, updateHelperConfig } from "./helper";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -78,7 +78,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   registerCommand("newConversation", () => openNewConversation(system));
   registerCommand("focusInput", () => focusInput(system));
   registerCommand("togglePlanMode", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    system.acpChatPanels.togglePlanModeOnActivePanel();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   registerCommand("showSidebar", () => system.assistant.showSidebar());
 
@@ -142,7 +142,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   system.context.subscriptions.push(
     vscode.window.onDidChangeVisibleTextEditors(() => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      debouncedSendActiveFileContext(system);
       system.decorationProvider.applyInserts();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   );

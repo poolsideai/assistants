@@ -68,12 +68,12 @@ const GROUPS = [
         hosts: ["desktop", "vscode"],
         defaults: { desktop: "mod+n" },
       },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {
+        id: "searchConversations",
+        title: "Search Conversations",
+        hosts: ["desktop"],
+        defaults: { desktop: "mod+k" },
+      },
       {
         id: "nextUnreadConversation",
         title: "Next Unread Conversation",

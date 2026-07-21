@@ -372,9 +372,9 @@ func (s *Store) GetConfigCache(ctx context.Context, agentServer string) (*method
 	}
 
 	var entry methods.ACPNavConfigCacheEntry
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	var configOptionsJSON, modesJSON, availableCommandsJSON, promptCapabilitiesJSON, agentInfoJSON string
 	err := s.db.QueryRowContext(ctx, `
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+SELECT agent_server, config_options_json, modes_json, available_commands_json, prompt_capabilities_json, agent_info_json, cached_at
 FROM acp_config_cache
 WHERE agent_server = ?
 `, agentServer).Scan(
@@ -383,7 +383,7 @@ WHERE agent_server = ?
 		&modesJSON,
 		&availableCommandsJSON,
 		&promptCapabilitiesJSON,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		&agentInfoJSON,
 		&entry.CachedAt,
 	)
 	if stderrors.Is(err, sql.ErrNoRows) {
@@ -396,7 +396,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	entry.Modes = json.RawMessage(modesJSON)
 	entry.AvailableCommands = json.RawMessage(availableCommandsJSON)
 	entry.PromptCapabilities = json.RawMessage(promptCapabilitiesJSON)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	entry.AgentInfo = json.RawMessage(agentInfoJSON)
 	return &entry, nil
 }
 
@@ -409,20 +409,20 @@ func (s *Store) UpsertConfigCache(ctx context.Context, entry methods.ACPNavUpser
 	modesJSON := rawJSONOrDefault(entry.Modes, "null")
 	availableCommandsJSON := rawJSONOrDefault(entry.AvailableCommands, "[]")
 	promptCapabilitiesJSON := rawJSONOrDefault(entry.PromptCapabilities, "null")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	agentInfoJSON := rawJSONOrDefault(entry.AgentInfo, "null")
 	cachedAt := nowString()
 
 	_, err := s.db.ExecContext(ctx, `
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+INSERT INTO acp_config_cache(agent_server, config_options_json, modes_json, available_commands_json, prompt_capabilities_json, agent_info_json, cached_at)
+VALUES (?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(agent_server) DO UPDATE SET
   config_options_json = excluded.config_options_json,
   modes_json = excluded.modes_json,
   available_commands_json = excluded.available_commands_json,
   prompt_capabilities_json = excluded.prompt_capabilities_json,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  agent_info_json = excluded.agent_info_json,
   cached_at = excluded.cached_at
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+`, agentServer, configOptionsJSON, modesJSON, availableCommandsJSON, promptCapabilitiesJSON, agentInfoJSON, cachedAt)
 	if err != nil {
 		return nil, fmt.Errorf("upserting ACP config cache for %q: %w", agentServer, err)
 	}
@@ -433,7 +433,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		Modes:              json.RawMessage(modesJSON),
 		AvailableCommands:  json.RawMessage(availableCommandsJSON),
 		PromptCapabilities: json.RawMessage(promptCapabilitiesJSON),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		AgentInfo:          json.RawMessage(agentInfoJSON),
 		CachedAt:           cachedAt,
 	}, nil
 }

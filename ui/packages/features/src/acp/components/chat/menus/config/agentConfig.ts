@@ -1,7 +1,7 @@
 import { DEFAULT_AGENT_SERVER, LOCAL_AGENT_SERVER } from "../../../../agentServers";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { AcpAgentRegistryRepository } from "../../../../features/AgentRegistryRepository.svelte";
+import type { ACPChatSessionScope } from "../../../../features/ChatSessionScope.svelte";
+import type { ACPSessionRepository } from "../../../../features/SessionRepository.svelte";
 import {
   agentServerIconUrl,
   LOCAL_AGENT_ROUNDEL_ICON_URL,

@@ -1,26 +1,26 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ACPCompactionNotification } from "@poolsideai/helperapi/schemas";
+
+export class PoolsideSessionExtensions {
+  compacting = $state(false);
   private activeCompactionId: string | null = null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  reset(): void {
+    this.compacting = false;
     this.activeCompactionId = null;
   }
 
   endTurn(): void {
     this.reset();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  handleCompactionUpdate(params: ACPCompactionNotification): void {
+    if (params.phase === "started") {
       this.activeCompactionId = params.id;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.compacting = true;
+    } else if (params.phase === "completed") {
       if (this.activeCompactionId !== null && params.id !== this.activeCompactionId) return;
       this.activeCompactionId = null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.compacting = false;
+    }
+  }
+}

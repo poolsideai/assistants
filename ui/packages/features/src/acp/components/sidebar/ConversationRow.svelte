@@ -1,8 +1,8 @@
 <script lang="ts">
   import Icon from "@poolsideai/components/icon";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import Kbd from "@poolsideai/components/kbd";
   import { formatRelativeTimeWithoutAgo } from "../../shared/time";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { ACPConversationSummary } from "../../navTypes";
   import RegistryAgentIcon from "../RegistryAgentIcon.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import RenamableLabel from "./RenamableLabel.svelte";
@@ -91,7 +91,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         class={desktop ? "text-[13px]/[16px]" : "text-sm"}
         onSubmit={(name) => sidebar.commitRename(name)}
         onCancel={() => sidebar.cancelRename()}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      />
     </div>
   {:else}
     <button

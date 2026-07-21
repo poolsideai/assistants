@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Spinner } from "@poolsideai/components/spinner";
   import { slide } from "svelte/transition";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPChatSessionScope } from "../../features/ChatSessionScope.svelte";
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 </script>

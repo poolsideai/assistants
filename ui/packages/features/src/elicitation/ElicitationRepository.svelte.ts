@@ -1,8 +1,8 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { SessionId } from "@agentclientprotocol/sdk";
 import { poolsideAcpApprovalsRespond, type ACPApproval } from "@poolsideai/helperapi";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { find } from "lodash";
+import type { ACPConversationStatusRepository } from "../acp";
 import type { FieldValue } from "./types";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -17,12 +17,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   approval?: { agentServer: string; sessionId: string; kind: "elicitation"; id: string };
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private conversationStatus: ACPConversationStatusRepository;
+
+  constructor(conversationStatus: ACPConversationStatusRepository) {
+    this.conversationStatus = conversationStatus;
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   private approvalsRevision = 0;
@@ -69,13 +69,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (request.sessionId != null && request.agentServer != null) {
+      this.conversationStatus.markWaitingForUser({
+        type: "elicitation",
+        sessionId: request.sessionId as SessionId,
+        agentServer: request.agentServer,
+      });
+    }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -108,15 +108,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  hasPendingForSession(sessionId: SessionId, agentServer: string): boolean {
+    return (
+      find(
+        Array.from(this.pendingByElicitationId.values()),
+        ({ request }) => request.sessionId === sessionId && request.agentServer === agentServer,
+      ) != null
+    );
+  }
+
   /**
    * Reconcile helper-pushed elicitation approvals: the pending map's
    * store-backed entries are fully replaced on every push, so an elicitation
@@ -204,12 +204,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           this.restoreStoreBackedEntry(elicitationId, entry, approvalsRevision);
         });
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (entry.request.sessionId != null && entry.request.agentServer != null) {
+      this.conversationStatus.clearWaitingForUser(
+        entry.request.sessionId as SessionId,
+        entry.request.agentServer,
+      );
+    }
     // A promise-backed entry has no round trip to lose, so its removal is
     // authoritative immediately; store-backed ones drop their draft in the
     // response handler above.

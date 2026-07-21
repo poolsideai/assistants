@@ -3,7 +3,7 @@
   import { KeyboardShortcutsSection } from "../../keybindings";
   import BadgedIcon from "./BadgedIcon.svelte";
   import { appState } from "../hostAdapter";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import AcpAgentConfigurationSection from "./AgentConfigurationSection.svelte";
   import DesktopArchivedChatsSection from "./DesktopArchivedChatsSection.svelte";
   import DesktopGitHubConnectorSection from "./DesktopGitHubConnectorSection.svelte";
   import DesktopPreferencesSection from "./DesktopPreferencesSection.svelte";
@@ -195,22 +195,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         </p>
       </div>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {#if onDone}
+        <div
+          class={["relative z-10", centerHeader ? "flex shrink-0 justify-end" : ""]}
+          style={centerHeader ? `width: ${sidebarWidth}px;` : undefined}
         >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <button
+            type="button"
+            data-tauri-drag-region="false"
+            class="text-psx-foreground-secondary outline-hidden hover:bg-psx-menu-hover-background hover:text-psx-foreground-primary focus-visible:outline-psx-focus flex shrink-0 items-center gap-1 rounded-[6px] px-2 py-1 text-xs focus-visible:outline-2"
+            onclick={onDone}
+          >
+            <Icon name="arrow-left" size={14} aria-hidden="true" />
+            <span>Back to Conversations</span>
+          </button>
+        </div>
+      {/if}
     </div>
 
     <div class="flex min-h-0 flex-1">
@@ -260,12 +260,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       <div class="min-h-0 min-w-0 flex-1 overflow-y-auto">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <div
+          class={[
+            "settings-section-stack",
+            !isDesktop && section === "agents" && "ide-agent-settings-section-stack",
+          ]}
+        >
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       </div>

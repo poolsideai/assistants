@@ -1,79 +1,79 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { appState, initializeACPHostRpc, type ACPNavProject } from "@poolsideai/features/acp";
 import { initializeStatefulModule as initializeHelperApi } from "@poolsideai/helperapi";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { get } from "svelte/store";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DesktopRuntime } from "./DesktopRuntime.svelte";
+import type { Runtime } from "./shared/types";
+
+describe("DesktopRuntime", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    const initial = get(appState);
+    appState.set({
+      ...initial,
+      defaultCwd: "/fallback",
+      workspaces: [],
+      environment: {
+        ...initial.environment,
+        assistantHost: "desktop",
+      },
+    });
+    initializeACPHostRpc(vi.fn().mockResolvedValue(undefined));
     initializeHelperApi({
       jsonrpcCall: vi.fn().mockResolvedValue({ path: "/state/poolside/chat" }),
       jsonrpcNotify: vi.fn().mockResolvedValue(undefined),
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  it("opens a draft conversation and surfaces it in the sidebar immediately", async () => {
+    const core = createCore({ projects: [project("/repo")] });
+    const runtime = new DesktopRuntime(core);
+
+    await runtime.handleNewConversation("/repo/packages/app");
+
     expect(core.acpAgentServers.refresh).not.toHaveBeenCalled();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(core.acpConversationRepo.createPendingConversation).not.toHaveBeenCalled();
+    expect(core.acpRepo.createSession).toHaveBeenCalledWith("/repo/packages/app", "codex", null);
+    // Persisted on create (not on first keystroke), so the draft shows right away.
+    expect(
+      core.acpRepo.getSessionByConversationId("conversation-1")!.persistPendingConversation,
+    ).toHaveBeenCalled();
+    // Ready to type: the prompt editor is asked to grab focus.
+    expect(
+      core.acpRepo.getSessionByConversationId("conversation-1")!.requestPromptFocus,
+    ).toHaveBeenCalled();
+    expect(core.activeConversationId).toBe("conversation-1");
+  });
+
+  it("reuses the open empty draft when requesting a new conversation in the same cwd", async () => {
+    const core = createCore({ projects: [project("/repo")] });
+    const runtime = new DesktopRuntime(core);
+
+    const firstId = await runtime.handleNewConversation("/repo");
+    expect(core.acpRepo.createSession).toHaveBeenCalledTimes(1);
+
+    const secondId = await runtime.handleNewConversation("/repo");
+
+    expect(secondId).toBe(firstId);
+    expect(core.acpRepo.createSession).toHaveBeenCalledTimes(1);
+    expect(
+      core.acpRepo.getSessionByConversationId(firstId!)!.requestPromptFocus,
+    ).toHaveBeenCalledTimes(2);
+  });
+
+  it("creates a new session when explicitly requesting new conversation in a different cwd", async () => {
+    const core = createCore({ projects: [project("/repo")] });
+    const runtime = new DesktopRuntime(core);
+
+    await runtime.handleNewConversation("/repo/packages/app");
+    expect(core.acpRepo.createSession).toHaveBeenCalledWith("/repo/packages/app", "codex", null);
+    expect(core.activeConversationId).toBe("conversation-1");
+
+    await runtime.handleNewConversation("/other/cwd");
+    expect(core.acpRepo.createSession).toHaveBeenCalledWith("/other/cwd", "codex", null);
+    expect(core.acpRepo.createSession).toHaveBeenCalledTimes(2);
+  });
+
   it("creates a standalone chat in helper-managed state storage", async () => {
     const jsonrpcCall = vi.fn().mockResolvedValue({ path: "/state/poolside/chat-1" });
     initializeHelperApi({
@@ -301,51 +301,51 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(session.requestPromptFocus).toHaveBeenCalledTimes(1);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("ignores new conversation requests while conversations are loading", async () => {
+    const core = createCore({
+      conversationRefreshState: { status: "loading" },
+    });
+    const runtime = new DesktopRuntime(core);
+
+    await runtime.handleNewConversation("/repo");
+
+    expect(core.acpAgentServers.refresh).not.toHaveBeenCalled();
+    expect(core.acpConversationRepo.createPendingConversation).not.toHaveBeenCalled();
+    expect(core.acpRepo.createSession).not.toHaveBeenCalled();
+    expect(core.activeConversationId).toBeNull();
+  });
+
+  it("seeds a replacement empty session when deselecting the active chat outside desktop project gating", () => {
+    const initial = get(appState);
+    appState.set({
+      ...initial,
+      defaultCwd: "/fallback",
+      workspaces: [{ path: "/workspace", name: "workspace", index: 0 }],
+      environment: {
+        ...initial.environment,
+        assistantHost: "visualstudio",
+      },
+    });
+    const core = createCore({ projects: [project("/repo")] });
+    core.activeConversationId = "conversation-existing";
+    const runtime = new DesktopRuntime(core);
+
+    runtime.handleActiveConversationIdChange(null);
+
+    expect(core.acpRepo.createSession).toHaveBeenCalledWith("/workspace", "codex", null);
+    expect(core.activeConversationId).toBe("conversation-1");
+  });
+
+  it("selects an existing conversation id without creating another session", () => {
+    const core = createCore();
+    const runtime = new DesktopRuntime(core);
+
+    runtime.handleActiveConversationIdChange("conversation-existing");
+
+    expect(core.activeConversationId).toBe("conversation-existing");
+    expect(core.acpRepo.createSession).not.toHaveBeenCalled();
+  });
+
   it("opens a conversation from the host, leaving any settings view for the chat", () => {
     const core = createCore();
     const runtime = new DesktopRuntime(core);
@@ -358,90 +358,90 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(core.acpRepo.createSession).not.toHaveBeenCalled();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("scopes right sidebar and bottom panel visibility per conversation while left sidebar stays global", () => {
+    const core = createCore();
+    const runtime = new DesktopRuntime(core);
+
+    core.activeConversationId = "conversation-a";
+    runtime.setSidebarCollapsed(true);
+    runtime.setDesktopRightSidebarVisible(true);
+    runtime.setDesktopBottomPanelVisible(true);
+
+    core.activeConversationId = "conversation-b";
+
+    expect(runtime.sidebarCollapsed).toBe(true);
+    expect(runtime.desktopRightSidebarVisible).toBe(false);
+    expect(runtime.desktopBottomPanelVisible).toBe(false);
+
+    runtime.setDesktopBottomPanelVisible(true);
+
+    core.activeConversationId = "conversation-a";
+
+    expect(runtime.sidebarCollapsed).toBe(true);
+    expect(runtime.desktopRightSidebarVisible).toBe(true);
+    expect(runtime.desktopBottomPanelVisible).toBe(true);
+
+    const restoredRuntime = new DesktopRuntime(core);
+    expect(restoredRuntime.desktopRightSidebarVisible).toBe(true);
+    expect(restoredRuntime.desktopBottomPanelVisible).toBe(true);
+
+    core.activeConversationId = "conversation-b";
+
+    expect(restoredRuntime.desktopRightSidebarVisible).toBe(false);
+    expect(restoredRuntime.desktopBottomPanelVisible).toBe(true);
+  });
+
+  it("adds a selected desktop project and opens a draft conversation", async () => {
+    const hostSender = vi.fn().mockImplementation((method: string) => {
+      if (method === "selectProjectFolder") {
+        return Promise.resolve({ path: "/new-project", name: "New project" });
+      }
+      return Promise.resolve(undefined);
+    });
+    initializeACPHostRpc(hostSender);
+    const core = createCore();
+    const runtime = new DesktopRuntime(core);
+    runtime.showSettings();
+
+    await runtime.handleAddProject();
+
+    expect(hostSender).toHaveBeenCalledWith("selectProjectFolder", []);
+    expect(core.acpProjectRepo.upsertProject).toHaveBeenCalledWith({
+      path: "/new-project",
+      name: "New project",
+    });
+    expect(core.acpConversationRepo.refresh).toHaveBeenCalledTimes(1);
     expect(core.acpAgentServers.refresh).not.toHaveBeenCalled();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(core.acpConversationRepo.createPendingConversation).not.toHaveBeenCalled();
+    expect(core.acpRepo.createSession).toHaveBeenCalledWith("/new-project", "codex", null);
+    expect(
+      core.acpRepo.getSessionByConversationId("conversation-1")!.persistPendingConversation,
+    ).toHaveBeenCalled();
+    // Adding a project lands in a ready-to-type conversation: prompt focus requested.
+    expect(
+      core.acpRepo.getSessionByConversationId("conversation-1")!.requestPromptFocus,
+    ).toHaveBeenCalled();
+    expect(core.activeConversationId).toBe("conversation-1");
+    expect(runtime.view).toBe("chat");
+    expect(runtime.addingProject).toBe(false);
+  });
+
+  it("does not mutate repos when project selection is cancelled", async () => {
+    const hostSender = vi.fn().mockResolvedValue(null);
+    initializeACPHostRpc(hostSender);
+    const core = createCore();
+    const runtime = new DesktopRuntime(core);
+
+    await runtime.handleAddProject();
+
+    expect(hostSender).toHaveBeenCalledWith("selectProjectFolder", []);
+    expect(core.acpProjectRepo.upsertProject).not.toHaveBeenCalled();
+    expect(core.acpConversationRepo.refresh).not.toHaveBeenCalled();
+    expect(core.acpAgentServers.refresh).not.toHaveBeenCalled();
+    expect(core.acpConversationRepo.createPendingConversation).not.toHaveBeenCalled();
+    expect(core.acpRepo.createSession).not.toHaveBeenCalled();
+    expect(runtime.addingProject).toBe(false);
+  });
 
   it("settles the initial screen only after navigation and the new session terminate", () => {
     const core = createCore({
@@ -520,75 +520,75 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       activeSessionLoadState: "idle",
     });
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+});
+
+type Session = {
+  conversationId: string;
+  sessionId: string | null;
+  agentServer: string;
+  cwd: string;
+  pendingCwd?: string;
+  pendingConversationId?: string | null;
+  persistPendingConversation: ReturnType<typeof vi.fn>;
+  requestPromptFocus: ReturnType<typeof vi.fn>;
+  loadState: { status: "idle" | "loading" | "success" | "failure"; error?: unknown };
+  events: unknown[];
+  isSending: boolean;
+};
+
+function createCore({
+  projects = [],
+  conversationRefreshState = { status: "success" },
   projectRefreshState = { status: "success" },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}: {
+  projects?: ACPNavProject[];
   conversationRefreshState?: { status: "loading" | "success" | "failure" };
   projectRefreshState?: { status: "loading" | "success" | "failure" };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} = {}) {
+  const sessions = new Map<string, Session>();
+  let nextConversation = 1;
+  let currentConversationId = $state<string | null>(null);
+
+  const core = {
+    target: "desktop",
+    get activeConversationId() {
+      return currentConversationId;
+    },
+    set activeConversationId(value: string | null) {
+      currentConversationId = value;
+    },
+    acpAgentServers: {
+      state: { status: "success" },
+      refresh: vi.fn().mockResolvedValue(undefined),
+    },
+    acpConversationRepo: {
+      emitter: new EventTarget(),
+      refreshState: conversationRefreshState,
       sessions: [],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      refresh: vi.fn().mockResolvedValue(undefined),
+      createPendingConversation: vi.fn().mockResolvedValue({
+        id: "pending-1",
+        agentServer: "codex",
+      }),
+    },
+    acpProjectRepo: {
+      projects,
       refreshState: projectRefreshState,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      upsertProject: vi.fn().mockResolvedValue(undefined),
+    },
+    acpRepo: {
+      emitter: new EventTarget(),
+      agents: {
+        defaultAgentServer: "codex",
+        isConfigCacheLoadingFor: vi.fn().mockReturnValue(false),
+        authRequiredForAgent: vi.fn().mockReturnValue(false),
         authInProgressForAgent: vi.fn().mockReturnValue(false),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        nonSessionErrorFor: vi.fn().mockReturnValue(null),
+      },
+      getSessionByConversationId: vi.fn((conversationId: string | null) =>
+        conversationId ? (sessions.get(conversationId) ?? null) : null,
+      ),
+      createSession: vi.fn(
         (
           cwd: string,
           agentServer: string,
@@ -596,40 +596,40 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           _options?: { isChat?: boolean },
         ) => {
           const conversationId = pendingConversationId ?? `conversation-${nextConversation++}`;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          const session: Session = {
+            conversationId,
+            sessionId: null,
+            agentServer,
+            cwd,
+            pendingCwd: cwd,
+            pendingConversationId,
+            persistPendingConversation: vi.fn(),
+            requestPromptFocus: vi.fn(),
+            loadState: { status: "idle" },
+            events: [],
+            isSending: false,
+          };
+          sessions.set(conversationId, session);
+          return session;
+        },
+      ),
+    },
+  };
+
+  return core as unknown as Runtime & typeof core;
+}
+
+function project(path: string): ACPNavProject {
+  return {
+    path,
+    name: path.split("/").filter(Boolean).at(-1) ?? path,
+    isWorktree: false,
+    collapsed: false,
+    displayOrder: 0,
+    createdAt: "2026-06-01T00:00:00Z",
+    updatedAt: "2026-06-01T00:00:00Z",
+  };
+}
 
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;

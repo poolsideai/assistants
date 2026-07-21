@@ -1,23 +1,23 @@
 <script lang="ts">
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import Icon, { type IconName } from "@poolsideai/components/icon";
   import { formatError } from "@poolsideai/lib/errors";
   import { InfoMessageType, type WorkspaceFolder } from "@poolsideai/rpc";
   import { onDestroy, onMount } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { ACPSession } from "../features/Session.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import {
     ACP_DESKTOP_CONVERSATIONS_EVENT,
     type ACPConversationSummary,
     type ACPConversationsState,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } from "../navTypes";
+  import { getACPConversationRepo } from "../features/ConversationRepository.svelte";
+  import { getACPLocalHistoryRepo } from "../features/LocalHistoryRepository.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { findVisibleNavSession, groupSessions, historySessionKey } from "./sessionPickerUtil";
   import CollapsedSidebarActions from "./sidebar/CollapsedSidebarActions.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { setAcpSidebarController } from "./sidebar/SidebarController.svelte";
   import ConversationGroup from "./sidebar/ConversationGroup.svelte";
   import ConversationPreview from "./sidebar/ConversationPreview.svelte";
   import ContextMenu, { type ContextMenuItem } from "./sidebar/ContextMenu.svelte";
@@ -33,7 +33,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import SidebarToasts from "./sidebar/SidebarToasts.svelte";
   import { sidebarToasts } from "./sidebar/sidebarToastsState.svelte";
   import { suppressContextMenu } from "./sidebar/contextMenuHelpers";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import IDESettingsPill from "./sidebar/IDESettingsPill.svelte";
   import { UNDO_COUNTDOWN_SECONDS, UndoCountdown } from "./sidebar/undoCountdown";
   import { rowExitAnimation } from "./sidebar/rowExitAnimation.svelte";
 
@@ -43,7 +43,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     currentWorkspaceFolders: WorkspaceFolder[];
     onCollapsedChange: (collapsed: boolean) => void;
     onNewConversation: () => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onShowAgents: () => void;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     onShowChat: () => void;
     fillWidth?: boolean;
@@ -81,7 +81,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    isChatActive: () => true,
   });
   onDestroy(() => sidebar.destroy());
 
@@ -144,7 +144,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         ACP_DESKTOP_CONVERSATIONS_EVENT,
         handleConversationState,
       );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      conversationArchiveCountdown.destroy();
       for (const conversationId of exitingConversationIds) {
         sidebarToasts.dismiss(conversationArchiveToastId(conversationId));
       }
@@ -185,8 +185,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     else next.delete(conversationId);
     exitingConversationIds = next;
     if (exiting) rowExitAnimation.hold();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   async function openHistory() {
     restoredHistorySessionKeys = new Set();
     searchQuery = "";
@@ -235,12 +235,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function performArchiveSession(
     sessionId: string | null,
     agentServer: string,
     conversationId: string,
   ) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    conversationArchiveCountdown.cancel(conversationId);
     sidebarToasts.dismiss(conversationArchiveToastId(conversationId));
     setConversationExiting(conversationId, true);
     try {
@@ -268,20 +268,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function handleArchiveSession(
+    sessionId: string | null,
+    agentServer: string,
+    conversationId: string,
+    event: Event,
+  ) {
+    event.preventDefault();
+    event.stopPropagation();
+    await performArchiveSession(sessionId, agentServer, conversationId);
+  }
+
+  function handleArchiveRowSession(session: ACPConversationSummary, event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
     setConversationExiting(session.id, true);
     sidebarToasts.addProgressToast(
       conversationArchiveToastId(session.id),
@@ -289,25 +289,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       { kind: "countdown", durationMs: UNDO_COUNTDOWN_SECONDS * 1000 },
       { label: "Cancel", onClick: () => undoArchiveSession(session.id) },
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    conversationArchiveCountdown.start(
       session.id,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      () =>
+        void performArchiveSession(session.sessionId, getSessionAgentServer(session), session.id),
     );
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function handleArchiveRowSessionNow(session: ACPConversationSummary, event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    void performArchiveSession(session.sessionId, getSessionAgentServer(session), session.id);
+  }
+
   function undoArchiveSession(conversationId: string) {
     conversationArchiveCountdown.cancel(conversationId);
     sidebarToasts.dismiss(conversationArchiveToastId(conversationId));
     setConversationExiting(conversationId, false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   async function handleArchiveHistorySession(
     session: ACPConversationSummary,
     navSession: ACPConversationSummary,
@@ -403,7 +403,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       {
         name: "Archive Conversation",
         icon: "archive",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        callback: () => handleArchiveRowSession(session, event),
       },
       {
         name: sidebarOpensViewLabel("Delete Conversation"),
@@ -438,28 +438,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let isCollapsed = $derived(collapsible && collapsed);
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#snippet settingsMenuItem(
+  icon: IconName,
+  title: string,
+  description: string,
+  onclick: () => void,
+  disabled = false,
+)}
+  <button
+    type="button"
+    class="hover:bg-psx-menu-hover-background outline-hidden focus-visible:outline-psx-focus flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left focus-visible:outline-2 disabled:cursor-default disabled:opacity-50 disabled:hover:bg-transparent"
+    {onclick}
+    {disabled}
+    oncontextmenu={suppressContextMenu}
+  >
+    <Icon name={icon} size={18} class="text-psx-icon shrink-0" />
+    <span class="flex min-w-0 flex-col">
+      <span class="text-psx-foreground-primary text-xs font-medium">{title}</span>
+      <span class="text-psx-foreground-secondary text-[11px]">{description}</span>
+    </span>
+  </button>
+{/snippet}
+
 {#if isCollapsed}
   {#if showCollapsedActions}
     <CollapsedSidebarActions
@@ -543,7 +543,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           visibleLimit={visibleSessions.length}
           onToggleExpanded={() => {}}
           onArchiveSession={handleArchiveRowSession}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          onArchiveSessionNow={handleArchiveRowSessionNow}
           onSessionContextMenu={openSessionContextMenu}
           {isSessionExiting}
         />
@@ -571,33 +571,33 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       />
     {/if}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <IDESettingsPill trigger={$settingsTrigger} active={$settingsOpen} />
+
+    {#if $settingsOpen}
+      <div
+        use:melt={$settingsContent}
         class="menu-surface z-50 flex w-[224px] flex-col gap-0.5 p-1.5"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {#if onShowConnectors}
+          {@render settingsMenuItem("mcp", "Connectors", "MCP servers & tools", () => {
+            settingsOpen.set(false);
+            onShowConnectors();
+          })}
+        {/if}
+        {@render settingsMenuItem("sparkles", "Agents", "Configure & enable agents", () => {
+          settingsOpen.set(false);
+          onShowAgents();
+        })}
+        {@render settingsMenuItem(
+          "gear",
+          "Extension Settings",
+          "Poolside extension options",
+          () => {
+            settingsOpen.set(false);
+            rpc.openSettings();
+          },
+        )}
+      </div>
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   </aside>
 {/if}

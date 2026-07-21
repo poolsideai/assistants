@@ -1,32 +1,32 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
   import type { AvailableCommand } from "@agentclientprotocol/sdk";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import * as Prompt from "@poolsideai/components/prompt";
+  import { getACPChatSessionScope } from "../../../../features/ChatSessionScope.svelte";
   import { resolvedSkillCommands, visibleServerCommandEntries } from "./serverCommands";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import SkillCommandItems from "./SkillCommandItems.svelte";
+
   interface Props {
     fallbackSkills?: AvailableCommand[];
   }
 
   let { fallbackSkills = [] }: Props = $props();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const chatSession = getACPChatSessionScope();
   const { search } = Prompt.getMenus();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   const skills = $derived(
     visibleServerCommandEntries(
       resolvedSkillCommands(chatSession.availableCommands, fallbackSkills),
       $search,
     ),
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
+<Prompt.Menu.Popup.Root>
+  <Prompt.Menu.Popup.List>
+    <Prompt.Menu.Popup.Empty title="No skills available" icon="skills" />
+    <Prompt.Menu.Popup.Section title="Skills">
+      <SkillCommandItems {skills} />
+    </Prompt.Menu.Popup.Section>
+  </Prompt.Menu.Popup.List>
+</Prompt.Menu.Popup.Root>

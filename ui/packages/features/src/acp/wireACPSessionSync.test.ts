@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { ACP_SESSION_CLOSE_EVENT, ACP_SESSION_DELETE_EVENT } from "./navTypes";
 import { wireACPSessionSync } from "./wireACPSessionSync";
 
 describe("wireACPSessionSync", () => {

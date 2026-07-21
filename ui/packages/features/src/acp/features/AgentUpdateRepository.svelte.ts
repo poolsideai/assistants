@@ -1,67 +1,67 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { poolsideAcpNavInstallAgentServer } from "@poolsideai/helperapi";
+import type { ACPAgentServerConfig, ACPAgentServers } from "@poolsideai/rpc";
+import { createContext } from "svelte";
+import { get } from "svelte/store";
+import {
+  agentServerConfigFromRegistryAgent,
+  sameAgentServerConfig,
+  type ACPRegistryAgent,
+} from "../agentRegistry";
+import {
+  DEFAULT_AGENT_SERVER,
+  LEGACY_DEFAULT_AGENT_SERVER,
+  normalizeAgentServerName,
+  resolveAgentServers,
+} from "../agentServers";
 import { isOlderStableVersion, versionFromConfig } from "../agentVersions";
 import { extractErrorMessage } from "../errors";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { AppStore } from "../hostAdapter";
+import { rpc } from "../hostRpc";
+import type { AcpAgentRegistryRepository } from "./AgentRegistryRepository.svelte";
+import type { ACPSessionRepositoryWriter } from "./SessionRepository.svelte";
+
 export type ACPAgentUpdateStage =
   | "downloading"
   | "unpacking"
   | "installing"
   | "enabling"
   | "restarting";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type ACPAgentInstallMode = "binary" | "npm" | "uvx" | "command";
+
+export interface ACPAgentUpdate {
+  agentServer: string;
+  agent: ACPRegistryAgent;
   kind: "install" | "update" | "restart";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  currentConfig: ACPAgentServerConfig | undefined;
+  nextConfig: ACPAgentServerConfig;
+}
+
+export interface ACPAgentUpdateProgress {
+  label: string;
+  width: string;
+}
+
+export interface ACPAgentUpdateRepositoryOptions {
+  appState: AppStore;
+  registryRepo: AcpAgentRegistryRepository;
+  sessionRepo: ACPSessionRepositoryWriter;
+}
+
+export class ACPAgentUpdateRepository {
+  updates = $state<ACPAgentUpdate[]>([]);
+  busyAgentServer = $state<string | null>(null);
+  stage = $state<ACPAgentUpdateStage | null>(null);
+  error = $state<string | null>(null);
   private restartRetries = new Map<string, ACPAgentUpdate>();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  constructor(private readonly options: ACPAgentUpdateRepositoryOptions) {}
+
+  refresh(): ACPAgentUpdate[] {
+    const configured = get(this.options.appState).userSettings.acpAgentServers ?? {};
+    const resolved = resolveAgentServers(configured);
+    const nextUpdates = this.options.registryRepo.agents.flatMap((agent) =>
+      this.updateForAgent(agent, configured, resolved),
+    );
     for (const retry of this.restartRetries.values()) {
       const runningVersion = this.runningVersionFor(retry.agentServer);
       if (
@@ -75,63 +75,63 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         nextUpdates.push(retry);
       }
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.updates = nextUpdates;
+    return nextUpdates;
+  }
+
+  updateFor(agentServer: string): ACPAgentUpdate | undefined {
+    const normalized = normalizeAgentServerName(agentServer);
+    return this.updates.find((update) => update.agentServer === normalized);
+  }
+
+  hasUpdate(agentServer: string): boolean {
+    return this.updateFor(agentServer) != null;
+  }
+
   restartBlockedFor(agentServer: string): boolean {
     return this.options.sessionRepo.hasActiveConversationsForAgent(agentServer);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  progressFor(agentServer: string): ACPAgentUpdateProgress | null {
+    if (this.busyAgentServer !== normalizeAgentServerName(agentServer) || !this.stage) {
+      return null;
+    }
+
+    const update = this.updateFor(agentServer);
+    const agent = update?.agent;
     if (this.stage === "restarting") return { label: "Restarting agent", width: "92%" };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (this.stage === "downloading") return { label: "Downloading package", width: "34%" };
+    if (this.stage === "unpacking") return { label: "Unpacking package", width: "68%" };
+    if (this.stage === "installing") {
+      const label = agent?.distribution.uvx ? "Installing uvx package" : "Installing npm package";
+      return { label, width: "58%" };
+    }
+    return { label: "Enabling extension", width: "92%" };
+  }
+
+  busyLabel(agentServer: string): string {
+    if (this.busyAgentServer !== normalizeAgentServerName(agentServer)) return "";
+    if (this.stage === "downloading") return "Downloading";
+    if (this.stage === "unpacking") return "Unpacking";
+    if (this.stage === "installing") return "Installing";
+    if (this.stage === "enabling") return "Installing";
     if (this.stage === "restarting") return "Restarting";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return "Installing";
+  }
+
+  async update(agentServer: string): Promise<void> {
+    const normalized = normalizeAgentServerName(agentServer);
+    if (this.busyAgentServer) return;
+
+    this.refresh();
+    const update = this.updateFor(normalized);
+    if (!update) return;
+
+    this.busyAgentServer = normalized;
+    this.stage = null;
+    this.error = null;
+
+    try {
       if (update.kind === "restart") {
         if (this.restartBlockedFor(normalized)) {
           throw new Error(
@@ -150,74 +150,74 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         this.refresh();
         return;
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      await this.install(update.agent, update.nextConfig);
+      this.stage = "enabling";
+      const configured = get(this.options.appState).userSettings.acpAgentServers ?? {};
+      const resolved = resolveAgentServers(configured);
+      const nextAgentServers = {
+        ...configured,
+        [normalized]: {
+          ...update.nextConfig,
+          default_config_options: (normalized === DEFAULT_AGENT_SERVER
+            ? resolved[normalized]
+            : configured[normalized]
+          )?.default_config_options,
+        },
+      };
+
+      const snapshot = $state.snapshot(nextAgentServers) as ACPAgentServers;
+      await rpc.setACPAgentServers(snapshot);
+      this.options.appState.update((state) => ({
+        ...state,
+        userSettings: {
+          ...state.userSettings,
+          acpAgentServers: snapshot,
+        },
+      }));
+      this.refresh();
+
+      if (normalized === DEFAULT_AGENT_SERVER) {
         await this.options.sessionRepo.agents.restart(DEFAULT_AGENT_SERVER);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
       await this.options.sessionRepo.agents.refreshCachedConfig(normalized);
       this.refresh();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } catch (error) {
       this.error = extractErrorMessage(
         error,
         `The ${update.agent.name} agent updater did not return error details`,
       );
       this.refresh();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      throw error;
+    } finally {
+      this.busyAgentServer = null;
+      this.stage = null;
+    }
+  }
+
+  private updateForAgent(
+    agent: ACPRegistryAgent,
+    configured: ACPAgentServers,
+    resolved: ACPAgentServers,
+  ): ACPAgentUpdate[] {
+    const nextConfig = agentServerConfigFromRegistryAgent(agent);
+    if (!nextConfig) return [];
+
+    const agentServer = normalizeAgentServerName(agent.id);
+    if (agentServer === DEFAULT_AGENT_SERVER) {
+      if (resolved[DEFAULT_AGENT_SERVER]?.command) return [];
+      const currentConfig =
+        resolved[DEFAULT_AGENT_SERVER] ??
+        configured[DEFAULT_AGENT_SERVER] ??
+        configured[LEGACY_DEFAULT_AGENT_SERVER];
       // Without a registry opt-in or a local install, the helper launches the
       // bundled Poolside agent automatically — nothing to install or update.
       if (currentConfig?.type !== "registry" && !hasRunnableAgentServerConfig(currentConfig)) {
         return [];
       }
       return this.updateForConfig(agent, agentServer, currentConfig, nextConfig);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+
+    const configuredConfig = configured[agentServer];
     if (!configuredConfig) return [];
     if (configuredConfig.type !== "registry") {
       // Older Assistant releases stored registry-installed npm agents without
@@ -235,8 +235,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         },
       ];
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    const currentConfig = resolved[agentServer] ?? configuredConfig;
     return this.updateForConfig(agent, agentServer, currentConfig, nextConfig);
   }
 
@@ -285,48 +285,48 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       ? (this.options.sessionRepo.agents.getInitializeResponse(agentServer)?.agentInfo?.version ??
           null)
       : null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  private async install(agent: ACPRegistryAgent, config: ACPAgentServerConfig): Promise<void> {
+    const mode = installMode(agent, config);
+    if (mode === "command") {
+      this.stage = "enabling";
+      return;
+    }
+
+    this.stage = mode === "binary" ? "downloading" : "installing";
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    if (mode === "binary") {
+      timers.push(
+        setTimeout(() => {
+          if (
+            this.busyAgentServer === normalizeAgentServerName(agent.id) &&
+            this.stage === "downloading"
+          ) {
+            this.stage = "unpacking";
+          }
+        }, 1200),
+      );
+    }
+
+    try {
+      await Promise.all([
+        poolsideAcpNavInstallAgentServer({
+          agentServer: agent.id,
+          config: $state.snapshot(config) as ACPAgentServerConfig,
+        }),
+        minimumInstallProgressDelay(mode),
+      ]);
+    } finally {
+      timers.forEach((timer) => clearTimeout(timer));
+    }
+  }
+}
+
+function hasRunnableAgentServerConfig(config: ACPAgentServerConfig | undefined): boolean {
+  return !!config && (Boolean(config.command) || Object.keys(config.binary ?? {}).length > 0);
+}
+
 function isLegacyRegistryNpxConfig(agent: ACPRegistryAgent, config: ACPAgentServerConfig): boolean {
   if (config.type !== "custom" || config.command !== "npx" || config.binary) return false;
 
@@ -362,31 +362,31 @@ function npmPackageBaseName(packageName: string): string {
   return packageName.split("/").at(-1) ?? packageName;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function installMode(agent: ACPRegistryAgent, config: ACPAgentServerConfig): ACPAgentInstallMode {
+  if (Object.keys(config.binary ?? {}).length > 0) return "binary";
+  if (agent.distribution.npx) return "npm";
+  if (agent.distribution.uvx) return "uvx";
+  return "command";
+}
+
+async function minimumInstallProgressDelay(mode: ACPAgentInstallMode): Promise<void> {
+  if (mode === "command") return;
+  await new Promise((resolve) => setTimeout(resolve, 500));
+}
+
+const [getACPAgentUpdateContext, setACPAgentUpdateRepositoryContext] =
+  createContext<ACPAgentUpdateRepository>();
+
+export { getACPAgentUpdateContext };
+
+export function setACPAgentUpdateContext(
+  options: ACPAgentUpdateRepositoryOptions,
+): ACPAgentUpdateRepository {
+  return setACPAgentUpdateRepositoryContext(new ACPAgentUpdateRepository(options));
+}
+
+export { setACPAgentUpdateRepositoryContext as _setACPAgentUpdateContextForTests };
+
+export function getACPAgentUpdateRepo(): ACPAgentUpdateRepository {
+  return getACPAgentUpdateContext();
+}

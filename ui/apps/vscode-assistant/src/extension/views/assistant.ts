@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { countAttentionConversations, type ACPNavConversation } from "@poolsideai/features/acp/nav";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -56,7 +56,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   private rpcListenerDisposable: vscode.Disposable | undefined;
   private sidebarVisibilityDisposable: vscode.Disposable | undefined;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private attentionCount = 0;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -84,7 +84,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
 
     await this.initializeWebview(webviewView);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.updateAttentionBadge();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.sidebarVisibilityDisposable?.dispose();
     this.sidebarVisibilityDisposable = webviewView.onDidChangeVisibility(() => {
@@ -142,24 +142,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     await this.show();
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  updateAttentionCount(conversations: readonly ACPNavConversation[] | null | undefined): void {
+    this.attentionCount = countAttentionConversations(conversations ?? []);
+    this.updateAttentionBadge();
+  }
+
+  updateAttentionBadge(): void {
+    if (!this.webviewView) return;
+    if (this.attentionCount === 0) {
+      // Documentation says to assign badge = undefined. But that doesn't work.
+      this.webviewView.badge = { value: 0, tooltip: "" };
+      return;
+    }
+    this.webviewView.badge = {
+      value: this.attentionCount,
+      tooltip: `${this.attentionCount} conversation${this.attentionCount === 1 ? "" : "s"} ${this.attentionCount === 1 ? "needs" : "need"} attention`,
+    };
+  }
+
   private waitForReady(): Promise<void> {
     if (this.isReady) {
       return Promise.resolve();

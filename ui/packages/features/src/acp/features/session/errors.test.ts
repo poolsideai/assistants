@@ -1,96 +1,96 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { describe, expect, it } from "vitest";
+import { ACP_AUTH_REQUIRED_ERROR_CODE } from "../../authMethods";
+import { ACPError } from "../../errors";
 import { isAuthRequiredError, isStaleSessionError, isUnresumableSessionError } from "./errors";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+describe("isAuthRequiredError", () => {
+  it("recognizes the protocol auth-required error code", () => {
+    expect(
+      isAuthRequiredError(
+        new ACPError({
+          code: ACP_AUTH_REQUIRED_ERROR_CODE,
+          message: "Authentication required",
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it("recognizes nested 401 ACP failures from agents", () => {
+    expect(
+      isAuthRequiredError(
+        new ACPError({
+          code: -32603,
+          message: "Internal error",
+          data: {
+            error: "starting conversation: API request failed with status 401",
+          },
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it("recognizes unauthorized ACP failures", () => {
+    expect(
+      isAuthRequiredError(
+        new ACPError({
+          code: -32603,
+          message: "Unauthorized",
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it("recognizes 401 Error instances thrown by the ACP SDK", () => {
+    expect(
+      isAuthRequiredError(
+        new Error(
+          "Internal error: Failed to authenticate. API Error: 401 Invalid authentication credentials",
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it("recognizes structured authentication_failed errors", () => {
+    expect(
+      isAuthRequiredError(
+        new ACPError({
+          code: -32603,
+          message: "Internal error",
+          data: { errorKind: "authentication_failed" },
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it("recognizes protocol auth_required errors", () => {
+    expect(
+      isAuthRequiredError(
+        new ACPError({
+          code: -32603,
+          message: "Internal error",
+          data: { error: "auth_required" },
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it("recognizes could-not-authenticate errors", () => {
+    expect(isAuthRequiredError(new Error("Could not authenticate"))).toBe(true);
+  });
+
+  it("does not treat unrelated ACP failures as auth-required", () => {
+    expect(
+      isAuthRequiredError(
+        new ACPError({
+          code: -32603,
+          message: "Internal error",
+          data: {
+            error: "model unavailable",
+          },
+        }),
+      ),
+    ).toBe(false);
+  });
 
   it("does not mistake MCP connector credentials for agent authentication", () => {
     expect(
@@ -103,20 +103,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       ),
     ).toBe(false);
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+});
+
+describe("isStaleSessionError", () => {
+  it("recognizes resource-not-found ACP failures for stale sessions", () => {
+    expect(
+      isStaleSessionError(
+        new ACPError({
+          code: -32002,
+          message: "Resource not found",
+        }),
+      ),
+    ).toBe(true);
+  });
+
   it("recognizes a closed session reported in the error message", () => {
     expect(
       isStaleSessionError(
@@ -140,21 +140,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     ).toBe(true);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("does not treat plain Error instances as stale-session ACP failures", () => {
+    expect(isStaleSessionError(new Error("Resource not found"))).toBe(false);
+  });
+
+  it("does not treat other ACP failures as stale-session errors", () => {
+    expect(
+      isStaleSessionError(
+        new ACPError({
+          code: -32603,
+          message: "Resource not found",
+        }),
+      ),
+    ).toBe(false);
+  });
+});
 
 describe("isUnresumableSessionError", () => {
   // Verbatim shape of the helper's error_data from PE-2460.

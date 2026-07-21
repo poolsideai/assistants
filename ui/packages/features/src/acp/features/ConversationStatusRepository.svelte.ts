@@ -1,30 +1,30 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { SessionId } from "@agentclientprotocol/sdk";
+import { keyBy, mapValues } from "lodash";
+import { createContext } from "svelte";
+import { DEFAULT_AGENT_SERVER, normalizeAgentServerName } from "../agentServers";
+import type {
+  NotificationRepository,
+  NotificationShowParams,
+} from "./NotificationRepository.svelte";
+import type { ACPConversationLiveStatus } from "./session";
+
+export type ACPConversationStatusRepository = Readonly<ACPConversationStatusRepositoryWriter>;
+
+type LiveSessionStatus = Pick<NotificationShowParams, "agentServer"> &
+  Pick<ACPConversationLiveStatus, "working" | "waitingForUser"> & {
+    conversationId: string;
+    sessionId: SessionId | null;
+  };
+
+const emptyConversationStatus: ACPConversationLiveStatus = {
+  working: false,
+  waitingForUser: false,
+  unread: false,
+};
+
+export class ACPConversationStatusRepositoryWriter {
+  private statuses = $state.raw<Record<string, ACPConversationLiveStatus>>({});
+  private conversationBySession = new Map<string, string>();
   // Helper-pushed statuses from the conversation summaries — the only signal
   // for turns driven on ANOTHER surface (see SidebarController.rowLiveStatus);
   // `syncLiveSessions` only sees this surface's own flags. Plain Map, not
@@ -35,9 +35,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     Pick<ACPConversationLiveStatus, "working" | "waitingForUser">
   >();
   private remoteStatusRevision = $state(0);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  constructor(private notifications?: NotificationRepository) {}
+
   /**
    * Local status merged with the helper-pushed remote overlay. NOTE: the
    * remote overlay is intentionally NOT reactive ($state) — it exists for
@@ -46,14 +46,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
    * anything that must render remote turns should read the pushed liveStatus
    * off the conversation summaries instead (see SidebarController).
    */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  getConversationStatus(
+    sessionId: SessionId,
+    agentServer = DEFAULT_AGENT_SERVER,
+  ): ACPConversationLiveStatus {
+    const conversationId = this.getConversationId(sessionId, agentServer);
     const local = conversationId
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      ? (this.statuses[conversationId] ?? emptyConversationStatus)
+      : emptyConversationStatus;
     const remote = this.remoteStatuses.get(sessionKey(sessionId, agentServer));
     if (!remote) return local;
     return {
@@ -94,8 +94,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       Object.values(this.statuses).some((status) => status.working) ||
       [...this.remoteStatuses.values()].some((status) => status.working)
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   hasWorkingConversationForAgent(agentServer: string): boolean {
     void this.remoteStatusRevision;
     const prefix = `${normalizeAgentServerName(agentServer)}\0`;
@@ -108,101 +108,101 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return false;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  syncLiveSessions(sessions: LiveSessionStatus[]): void {
+    const liveSessionKeys = new Set<string>();
+
+    for (const session of sessions) {
+      if (session.sessionId) {
+        const key = sessionKey(session.sessionId, session.agentServer);
+        liveSessionKeys.add(key);
+        this.conversationBySession.set(key, session.conversationId);
+      }
+    }
+
+    for (const key of this.conversationBySession.keys()) {
+      if (!liveSessionKeys.has(key)) {
+        this.conversationBySession.delete(key);
+      }
+    }
+
     const next = mapValues(keyBy(sessions, "conversationId"), (session) => ({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      working: session.working,
+      waitingForUser: session.waitingForUser,
+      unread: this.statuses[session.conversationId]?.unread ?? false,
+    }));
     // Called on every session update of every session; keep the record's
     // identity stable when no status changed so sidebar rows and tab status
     // badges are not re-derived once per streaming chunk.
     if (!statusesEqual(this.statuses, next)) {
       this.statuses = next;
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  markUnread(sessionId: SessionId, agentServer: string): void {
+    this.patchSessionStatus(sessionId, agentServer, { working: false, unread: true });
+    this.notifications?.dismiss(sessionId, agentServer);
+    void this.notifications?.show({ type: "turn_completed", sessionId, agentServer });
+  }
+
+  clearUnread(sessionId: SessionId, agentServer: string): void {
+    this.patchSessionStatus(sessionId, agentServer, { unread: false });
+    this.notifications?.dismiss(sessionId, agentServer);
+  }
+
+  markWaitingForUser(params: NotificationShowParams): void {
+    this.patchSessionStatus(params.sessionId, params.agentServer, {
+      waitingForUser: true,
+      unread: true,
+    });
+    void this.notifications?.show(params);
+  }
+
+  clearWaitingForUser(sessionId: SessionId, agentServer: string): void {
+    this.patchSessionStatus(sessionId, agentServer, { waitingForUser: false });
+    this.notifications?.dismiss(sessionId, agentServer);
+  }
+
+  publicAPI(): ACPConversationStatusRepository {
+    return this as ACPConversationStatusRepository;
+  }
+
+  private patchSessionStatus(
+    sessionId: SessionId,
+    agentServer: string,
+    patch: Partial<ACPConversationLiveStatus>,
+  ): void {
+    const conversationId = this.getConversationId(sessionId, agentServer);
+    if (!conversationId) return;
+    this.statuses = {
+      ...this.statuses,
+      [conversationId]: {
+        ...(this.statuses[conversationId] ?? emptyConversationStatus),
+        ...patch,
+      },
+    };
+  }
+
+  private getConversationId(sessionId: SessionId, agentServer: string): string | undefined {
+    return this.conversationBySession.get(sessionKey(sessionId, agentServer));
+  }
+}
+
+const [getACPConversationStatusContext, setACPConversationStatusRepositoryContext] =
+  createContext<ACPConversationStatusRepository>();
+
+export { getACPConversationStatusContext };
+
+export function setACPConversationStatusContext(
+  notifications?: NotificationRepository,
+): ACPConversationStatusRepositoryWriter {
+  const repo = new ACPConversationStatusRepositoryWriter(notifications);
+  setACPConversationStatusRepositoryContext(repo.publicAPI());
+  return repo;
+}
+
+function sessionKey(sessionId: SessionId, agentServer: string): string {
+  return `${normalizeAgentServerName(agentServer)}\0${sessionId}`;
+}
 
 function statusesEqual(
   a: Record<string, ACPConversationLiveStatus>,

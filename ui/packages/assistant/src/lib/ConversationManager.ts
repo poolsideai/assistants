@@ -10,14 +10,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { derived, get, writable } from "svelte/store";
 import { appState } from "./store";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+interface ConversationMessageOnClient {
+  id: string;
+  conversation_id: string;
+  agent_id?: string;
+  agent_session_id?: string;
+  response?: { trimmed?: boolean };
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

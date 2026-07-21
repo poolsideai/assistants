@@ -40,9 +40,9 @@
     plan.entries.find((entry) => entry.status === "in_progress") ??
       plan.entries.find((entry) => entry.status === "pending"),
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let inProgressCount = $derived(
+    plan.entries.filter((entry) => entry.status === "in_progress").length,
+  );
   let isRunning = $derived(
     isPrompting && plan.entries.some((entry) => entry.status !== "completed"),
   );
@@ -59,20 +59,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           class="bg-linear-to-r relative z-10 h-1 from-[#6670fedd] to-[#6670fe] transition-all duration-300 ease-out dark:from-[#7185f8dd] dark:to-[#7185f8]"
           style="width: {progressPercentage}%"
         ></div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+        {#if currentEntry && completedCount < entriesCount}
+          {@const currentItemWidth = (Math.max(inProgressCount, 1) / entriesCount) * 100}
+          <div
+            class="absolute top-0 z-0 h-1 overflow-hidden rounded-full"
+            style="left: calc({progressPercentage}% - 5px); width: calc({currentItemWidth}% + 5px)"
+          >
+            <div class="relative h-full overflow-hidden rounded-full">
+              <div
+                class="animate-pulse-gradient progress-gradient absolute inset-0 h-full w-[400%] rounded-full"
+              ></div>
+            </div>
+          </div>
+        {/if}
       </div>
     </div>
   </div>
@@ -141,17 +141,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             ]}
           >
             <div class="mt-0.5">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              {#if entry.status === "in_progress"}
+                <div class="flex h-3 w-3 shrink-0 items-center justify-center">
+                  <div
+                    class="pulsing-dot h-2.5 w-2.5 rounded-full bg-[#6670fe] dark:bg-[#7185f8]"
+                    aria-hidden="true"
+                  ></div>
+                  <span class="sr-only">In progress</span>
+                </div>
+              {:else}
+                <Checkbox checked={entry.status === "completed"} disabled />
+              {/if}
             </div>
             <span class:line-through={entry.status === "completed"}>
               {entry.content}
@@ -166,72 +166,72 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     {/if}
   </div>
 {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+<style>
   :global(.desktop-tinted-glass) {
     background: color-mix(in srgb, var(--psx-menu-hover-background) 70%, transparent);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .progress-gradient {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      #6670fe3a 25%,
+      #6670fe92 50%,
+      #6670fe3a 75%,
+      transparent 100%
+    );
+  }
+
+  :global(.psx-dark) .progress-gradient,
+  :global(.vscode-dark) .progress-gradient {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      #7185f83a 25%,
+      #7185f892 50%,
+      #7185f83a 75%,
+      transparent 100%
+    );
+  }
+
+  @keyframes pulse-gradient {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .animate-pulse-gradient {
+    animation: pulse-gradient 1.5s linear infinite;
+  }
+
+  .pulsing-dot {
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(0.6);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(0.4);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulsing-dot {
+      animation: none;
+      transform: scale(0.6);
+    }
+
+    .animate-pulse-gradient {
+      display: none;
+    }
+  }
+</style>

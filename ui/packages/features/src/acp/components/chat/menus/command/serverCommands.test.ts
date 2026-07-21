@@ -54,9 +54,9 @@ describe("skill commands", () => {
     expect(resolved[0]?.description).toBe("Published description");
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("normalizes skill invocations to the $ convention", () => {
     expect(skillInvocation("$uv")).toBe("$uv");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(skillInvocation("piano")).toBe("$piano");
   });
 
   it("includes helper-discovered skills in the names used by transcript markdown", () => {

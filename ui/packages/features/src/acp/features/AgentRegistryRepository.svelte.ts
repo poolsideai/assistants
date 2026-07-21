@@ -1,93 +1,93 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { fromPromise, isSuccess, loading, type AsyncState } from "@poolsideai/lib/async-state";
+import { toError } from "@poolsideai/lib/errors";
+import { createContext } from "svelte";
+import {
+  ACP_AGENT_REGISTRY_URL,
+  registryAgentsById,
+  sortRegistryAgents,
+  type ACPAgentRegistry,
+  type ACPRegistryAgent,
+} from "../agentRegistry";
+
+const ACP_AGENT_REGISTRY_CACHE_KEY = "poolside.acp.agentRegistry";
+
+export class AcpAgentRegistryRepository {
+  state = $state<AsyncState<ACPRegistryAgent[]>>(loading);
+  readonly agents = $derived(isSuccess(this.state) ? this.state.value : []);
+  readonly agentsById = $derived(registryAgentsById(this.agents));
   private inFlight: Promise<AsyncState<ACPRegistryAgent[]>> | null = null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  constructor(private readonly registryUrl = ACP_AGENT_REGISTRY_URL) {}
+
+  getAgent(id: string): ACPRegistryAgent | undefined {
+    return this.agentsById.get(id);
+  }
+
+  load(fetcher: typeof fetch = fetch): Promise<AsyncState<ACPRegistryAgent[]>> {
     if (this.inFlight) return this.inFlight;
     const previous = this.state;
     this.inFlight = fromPromise(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      async () => {
+        try {
           const response = await fetcher(this.registryUrl, { cache: "no-cache" });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          if (!response.ok) {
+            throw new Error(`Registry request failed: ${response.status} ${response.statusText}`);
+          }
+
+          const registry = (await response.json()) as ACPAgentRegistry;
+          writeCachedRegistry(registry);
+          return sortRegistryAgents(registry.agents ?? []);
+        } catch (error) {
           if (isSuccess(previous)) return previous.value;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          const cached = readCachedRegistry();
+          if (cached) {
+            return sortRegistryAgents(cached.agents ?? []);
+          }
+          throw error;
+        }
+      },
+      (state) => {
         // Background checks must not temporarily hide agent names or update banners.
         if (state.status !== "loading" || !isSuccess(previous)) this.state = state;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      },
+      { mapError: toError },
     ).finally(() => {
       this.inFlight = null;
     });
     return this.inFlight;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+}
+
+function readCachedRegistry(): ACPAgentRegistry | null {
+  try {
+    const storage = globalThis.localStorage;
+    const raw = storage?.getItem(ACP_AGENT_REGISTRY_CACHE_KEY);
+    return raw ? (JSON.parse(raw) as ACPAgentRegistry) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedRegistry(registry: ACPAgentRegistry): void {
+  try {
+    globalThis.localStorage?.setItem(ACP_AGENT_REGISTRY_CACHE_KEY, JSON.stringify(registry));
+  } catch {
+    // Best-effort cache only.
+  }
+}
+
+const [getACPAgentRegistryContext, setACPAgentRegistryRepositoryContext] =
+  createContext<AcpAgentRegistryRepository>();
+
+export { getACPAgentRegistryContext };
+
+export function setACPAgentRegistryContext(): AcpAgentRegistryRepository {
+  const repo = new AcpAgentRegistryRepository();
+  return setACPAgentRegistryRepositoryContext(repo);
+}
+
+export { setACPAgentRegistryRepositoryContext as _setACPAgentRegistryContextForTests };
+
+export function getACPAgentRegistryRepo(): AcpAgentRegistryRepository {
+  return getACPAgentRegistryContext();
+}

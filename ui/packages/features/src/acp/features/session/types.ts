@@ -1,29 +1,29 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type {
+  AvailableCommand,
+  ContentBlock,
+  PermissionOption,
+  Plan,
+  RequestPermissionRequest,
+  SessionConfigOption,
+  SessionId,
+  SessionModeState,
+} from "@agentclientprotocol/sdk";
 import type { ACPNavPrepareConversationHandoffParams } from "@poolsideai/helperapi/schemas";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ACPRequestError } from "../../errors";
+import type { ACPResolvedSessionInfo } from "../../sessionInfo";
+import type { SessionEvent } from "../../TurnMaterializer";
+import type { ACPAgentRepository } from "../AgentRepository.svelte";
 import type { ACPSession } from "./Session.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+export const ACP_SESSION_NEW_EVENT = "session:new";
+export const ACP_SESSION_TURN_EVENT = "session:turn";
+export const ACP_SESSION_TURN_COMPLETED_EVENT = "session:turn-completed";
+export const ACP_SESSION_TITLE_EVENT = "session:title";
+export const ACP_PENDING_CONVERSATION_AGENT_EVENT = "pending-conversation:agent";
+
+export const ACP_PLAN_MODE_ID = "plan";
+export const ACP_DEFAULT_MODE_ID = "default";
+
 /**
  * Category agents use for the option that says how the agent works
  * (build vs plan) as opposed to what it is allowed to do without asking —
@@ -45,19 +45,19 @@ export const ACP_COLLABORATION_MODE_CATEGORY = "collaboration_mode";
  */
 export type ACPCollaborationModeSurface = "none" | "plan-toggle" | "picker";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type ACPSessionLoadIntent = "load" | "new";
+
+export type StringSelectSessionConfigOption = SessionConfigOption & {
+  type: "select";
+  currentValue: string;
+};
+
+export interface ACPPendingPermissionRequest {
+  id: string;
+  agentServer: string;
+  sessionId: SessionId;
+  toolCall: RequestPermissionRequest["toolCall"];
+  options: PermissionOption[];
   /**
    * Set for requests reconciled from the helper's approval store: answering
    * goes through poolside/acp/approvals/respond with this identity instead of
@@ -70,39 +70,39 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     kind: "permission";
     id: string;
   };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+export interface ACPPendingConfigOption {
+  configId: string;
+  value: string;
+  requestId: number;
+  error: ACPRequestError | null;
+}
+
 export type ACPGoalAction = "pause" | "resume" | "clear";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export interface ACPConversationLiveStatus {
+  working: boolean;
+  waitingForUser: boolean;
+  unread: boolean;
+}
+
+export interface ACPPromptError {
+  error: ACPRequestError;
+  prompt: string;
+  content?: ContentBlock[];
+}
+
+export interface ACPQueuedPrompt {
   /** Stable only for the lifetime of the local queue. */
   id?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  text: string;
+  content: ContentBlock[];
+  sandboxDefinitionId?: string;
+  newSessionMeta?: Record<string, unknown>;
+  cwd: string;
+}
+
 export interface ACPSessionCancelOptions {
   sendQueuedPrompt?: boolean;
 }
@@ -123,40 +123,40 @@ export interface ACPPendingHandoff {
   prepareParams: ACPNavPrepareConversationHandoffParams;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type ACPSessionSendCoreArgs = [
+  gen: number,
+  text: string,
+  sandboxDefinitionId: string | undefined,
+  newSessionMeta?: Record<string, unknown>,
+  cwd?: string,
+  content?: ContentBlock[],
   options?: {
     skipOptimisticUserMessage?: boolean;
     initialTitle?: string | null;
     preserveAgentToolDefaults?: boolean;
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+];
+
+export interface ACPSessionLoadState {
+  sessionId: SessionId;
+  agentServer: string;
+  sessionInfo: ACPResolvedSessionInfo | null;
+  events: SessionEvent[];
+  plan: Plan | null;
+  configOptions: SessionConfigOption[];
+  availableCommands: AvailableCommand[];
+  modes: SessionModeState | null;
+}
+
+export interface ACPSessionEnvironment {
+  agents: ACPAgentRepository;
+  emitter: EventTarget;
   isClaudeAgent(agentServer: string): boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  applyCachedConfigToLocalSessionsForAgent(
+    agentServer: string,
+    exceptConversationId?: string,
+  ): void;
+  cancelPendingPermissionRequestsForSession(sessionId: SessionId, agentServer?: string): void;
+  markUnread(sessionId: SessionId, agentServer: string): void;
+  publishLiveStatuses(): void;
+}

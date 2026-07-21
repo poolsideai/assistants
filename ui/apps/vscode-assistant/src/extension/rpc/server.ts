@@ -210,18 +210,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     const result = await client.sendRequest(methodName, params);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (this.options.acpChatPanels && conversationId) {
+      let sessionId: string | undefined;
+      switch (methodName) {
+        case "poolside/acp/session/new":
+          sessionId = sessionIdFromResult(result);
+          break;
+        case "poolside/acp/session/load":
+          sessionId = sessionIdFromParams(params);
+          break;
+        default:
+          break;
+      }
       if (sessionId) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -376,9 +376,9 @@ function sessionIdFromResult(result: unknown): string | undefined {
     return (result as any).session_id;
   }
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+function sessionIdFromParams(params: unknown): string | undefined {
+  if (params && typeof params === "object" && typeof (params as any).sessionId === "string") {
+    return (params as any).sessionId;
+  }
+}

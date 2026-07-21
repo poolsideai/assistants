@@ -1,10 +1,10 @@
 <script lang="ts">
   import Icon from "@poolsideai/components/icon";
   import { onDestroy } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPProjectRepo } from "../features/ProjectRepository.svelte";
+  import { getACPConversationRepo } from "../features/ConversationRepository.svelte";
+  import { getACPWorktreeRepo } from "../features/WorktreeRepository";
+  import type { ACPNavProjectSettings } from "../navTypes";
   import DesktopSettingsPanelFrame from "./settings/DesktopSettingsPanelFrame.svelte";
   import ConfirmationDialog from "./ui/ConfirmationDialog.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__

@@ -9,11 +9,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { hostContextBlock } from "./features/session/hostContext";
 import {
   USER_MESSAGE_END_BOUNDARY,
   USER_MESSAGE_START_BOUNDARY,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/session/userMessageBoundary";
 import {
   MAX_AGENT_THOUGHT_CONTENT_BYTES,
   MAX_AGENT_THOUGHT_TEXT_CHARS,
@@ -635,102 +635,102 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  describe("plan entry reconciliation", () => {
+    it("keeps entries at their first-seen position when an update reorders them", () => {
+      const m = new TurnMaterializer();
+      m.apply(
+        plan([
+          { content: "gather ingredients", priority: "medium", status: "completed" },
+          { content: "boil water", priority: "medium", status: "in_progress" },
+          { content: "cut guanciale", priority: "medium", status: "pending" },
+          { content: "whisk eggs", priority: "medium", status: "pending" },
+        ]),
+      );
+      m.apply(
+        plan([
+          { content: "cut guanciale", priority: "medium", status: "completed" },
+          { content: "whisk eggs", priority: "medium", status: "in_progress" },
+          { content: "gather ingredients", priority: "medium", status: "completed" },
+          { content: "boil water", priority: "medium", status: "completed" },
+        ]),
+      );
+      expect(m.plan?.entries.map((e) => e.content)).toEqual([
+        "gather ingredients",
+        "boil water",
+        "cut guanciale",
+        "whisk eggs",
+      ]);
+      expect(m.plan?.entries.map((e) => e.status)).toEqual([
+        "completed",
+        "completed",
+        "completed",
+        "in_progress",
+      ]);
+    });
+
+    it("appends new entries at the end in update order", () => {
+      const m = new TurnMaterializer();
+      m.apply(plan([{ content: "step 1", priority: "medium", status: "in_progress" }]));
+      m.apply(
+        plan([
+          { content: "step 3", priority: "medium", status: "pending" },
+          { content: "step 1", priority: "medium", status: "completed" },
+          { content: "step 2", priority: "medium", status: "pending" },
+        ]),
+      );
+      expect(m.plan?.entries.map((e) => e.content)).toEqual(["step 1", "step 3", "step 2"]);
+    });
+
+    it("drops entries missing from an update", () => {
+      const m = new TurnMaterializer();
+      m.apply(
+        plan([
+          { content: "keep", priority: "medium", status: "pending" },
+          { content: "remove", priority: "medium", status: "pending" },
+        ]),
+      );
+      m.apply(plan([{ content: "keep", priority: "medium", status: "completed" }]));
+      expect(m.plan?.entries).toEqual([
+        { content: "keep", priority: "medium", status: "completed" },
+      ]);
+    });
+
+    it("replaces the plan when an update shares no entries", () => {
+      const m = new TurnMaterializer();
+      m.apply(
+        plan([
+          { content: "old a", priority: "medium", status: "completed" },
+          { content: "old b", priority: "medium", status: "completed" },
+        ]),
+      );
+      m.apply(
+        plan([
+          { content: "new b", priority: "medium", status: "pending" },
+          { content: "new a", priority: "medium", status: "pending" },
+        ]),
+      );
+      expect(m.plan?.entries.map((e) => e.content)).toEqual(["new b", "new a"]);
+    });
+
+    it("takes the first plan after reset verbatim", () => {
+      const m = new TurnMaterializer();
+      m.apply(
+        plan([
+          { content: "a", priority: "medium", status: "pending" },
+          { content: "b", priority: "medium", status: "pending" },
+        ]),
+      );
+      m.reset();
+      m.apply(
+        plan([
+          { content: "b", priority: "medium", status: "pending" },
+          { content: "a", priority: "medium", status: "pending" },
+        ]),
+      );
+      expect(m.plan?.entries.map((e) => e.content)).toEqual(["b", "a"]);
+    });
+  });
+
   it("appends mode_change event for current_mode_update", () => {
     const items = applyAll([modeUpdate("code")]);
     expect(items).toHaveLength(1);

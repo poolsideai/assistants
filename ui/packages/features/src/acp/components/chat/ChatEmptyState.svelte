@@ -1,50 +1,50 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import type { Snippet } from "svelte";
+  import { InteractiveLogo } from "@poolsideai/components/interactive-logo";
+
+  interface Props {
+    headerControls?: Snippet;
+    leadingControls?: Snippet;
+    afterControls?: Snippet;
+    showConversationControls?: boolean;
+    showLeadingControls?: boolean;
     showHeader?: boolean;
     adjacentHeaderControls?: boolean;
     /** Use intrinsic heights so the parent can center the complete new-conversation stack. */
     centeredLayout?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    title?: string;
+    /** Phone-sized layout: smaller logo, tighter spacing. */
+    compact?: boolean;
     /** Hidden on desktop, which paints its own pane-wide grid backdrop behind this component. */
     showGrid?: boolean;
     /** Desktop hero treatment: taller stage with the parasol centred in it and rendered larger. */
     hero?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  let {
+    headerControls,
+    leadingControls,
+    afterControls,
+    showLeadingControls = true,
     showHeader = true,
     adjacentHeaderControls = false,
     centeredLayout = false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    title = "Starting a new conversation...",
+    compact = false,
     showGrid = true,
     hero = false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }: Props = $props();
+
+  // On mobile, keep the composer focused (and the keyboard up) when a picker in
+  // the empty state is tapped. preventDefault on the button's pointerdown blocks
+  // the focus shift that would dismiss the keyboard, while the click still fires
+  // to open the sheet — which is sized to sit above the keyboard.
+  function keepComposerFocused(event: PointerEvent) {
+    if (!compact) return;
+    if ((event.target as HTMLElement | null)?.closest("button")) {
+      event.preventDefault();
+    }
+  }
 
   // mb-8 mirrors the composer's gap below the "Start a new conversation"
   // header so the header gets equal breathing room on both sides. It lives at
@@ -57,16 +57,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       ? "mb-8 h-[min(44dvh,26rem)] min-h-48 shrink-0"
       : "mb-8 h-[min(32dvh,18rem)] min-h-40 shrink-0",
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
 <div
   data-centered-layout={centeredLayout}
   class={["@container relative flex w-full flex-col", centeredLayout ? "shrink-0" : "h-full"]}
 >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div
+    data-empty-state-logo
+    class={[
+      "relative flex w-full items-center justify-center",
       compact
         ? centeredLayout
           ? "h-44 shrink-0"
@@ -74,45 +74,45 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         : centeredLayout
           ? centeredStageClass
           : "mt-11 h-2/5",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ]}
+  >
     {#if showGrid}
       <div
         aria-hidden="true"
         class={["grid-background absolute inset-0", compact || centeredLayout ? "" : "-top-11"]}
       ></div>
     {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div
       class={[
         "absolute inset-0 flex h-full items-center justify-center",
         compact || centeredLayout ? "" : "-top-11",
       ]}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    >
       {#if hero}
         <InteractiveLogo centerModel modelScale={1.4} />
       {:else}
         <InteractiveLogo />
       {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </div>
+  </div>
   {#if showHeader}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div
       class={[
         "mx-auto flex w-full max-w-[48rem] items-start justify-center px-4",
         compact ? "pb-4 pt-2" : centeredLayout ? "pb-4" : "pb-8 pt-4",
       ]}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    >
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         class="grid w-full auto-cols-fr items-start justify-center gap-4 overflow-visible"
         onpointerdown={keepComposerFocused}
       >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <div
           class={[
             "mx-auto flex w-full items-start",
             adjacentHeaderControls ? "max-w-full justify-center" : "max-w-sm justify-start",
           ]}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        >
           <div
             class={[
               "flex min-w-0 flex-row",
@@ -127,8 +127,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             </span>
             {@render headerControls?.()}
           </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        </div>
+
         <div class="flex w-full max-w-full flex-col items-center justify-center gap-3 text-center">
           <div class="relative flex w-full flex-col items-center gap-2">
             {#if showLeadingControls}
@@ -140,16 +140,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             {/if}
             <div class="w-full max-w-sm text-left">
               {@render afterControls?.()}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</div>
+
+<style lang="postcss">
+  @reference "#tailwind.css";
 
   .grid-background {
     --fade-start: 75%;
@@ -182,4 +182,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     mask-image: none;
     -webkit-mask-image: none;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</style>

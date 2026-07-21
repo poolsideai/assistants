@@ -8,7 +8,7 @@
     scrollElement?: HTMLElement;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let { event, streaming = false, scrollElement }: Props = $props();
 </script>
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__

@@ -8,7 +8,7 @@
 export interface ACPNavUpsertConfigCacheParams {
   /** A URL to the JSON Schema for this object. */
   readonly $schema?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  agentInfo?: unknown;
   agentServer: string;
   availableCommands: unknown;
   configOptions: unknown;

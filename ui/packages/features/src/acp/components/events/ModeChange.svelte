@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon from "@poolsideai/components/icon";
   import type { ModeChange } from "../../types";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPChatSessionScope } from "../../features/ChatSessionScope.svelte";
 
   interface Props {
     event: ModeChange;
@@ -10,17 +10,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   let { event, source }: Props = $props();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const chatSession = getACPChatSessionScope();
+
   let mode = $derived(event.currentModeId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let label = $derived(chatSession.modeNameById.get(mode) ?? mode);
 </script>
 
 <div
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  class="bg-psx-editor-background text-auto relative isolate flex flex-col overflow-hidden rounded-xl {source ===
+  'user'
+    ? 'self-end'
+    : 'self-start'}"
 >
   <div
     data-size="sm"

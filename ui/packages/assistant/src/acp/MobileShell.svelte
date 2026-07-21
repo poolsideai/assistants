@@ -9,7 +9,7 @@
   } from "@poolsideai/features/acp";
   import { tick } from "svelte";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import ACPAgentUpdateBanner from "./AgentUpdateBanner.svelte";
   import AssistantConfigErrorBanner from "./AssistantConfigErrorBanner.svelte";
   import type { MobileAppearance } from "./mobile/appearance";
   import MobileFileViewer from "./mobile/MobileFileViewer.svelte";

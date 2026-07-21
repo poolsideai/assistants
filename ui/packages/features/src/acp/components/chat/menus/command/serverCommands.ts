@@ -10,12 +10,12 @@ export interface ServerCommandEntry {
   key: string;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function isSkillCommand(command: AvailableCommand): boolean {
+  return (
+    command.name.startsWith("$") || command._meta?.["poolside/slash_command_category"] === "skill"
+  );
+}
+
 export interface InstalledSkill {
   name: string;
   description: string;
@@ -53,10 +53,10 @@ function normalizedSkillName(name: string): string {
   return (name.startsWith("$") ? name.slice(1) : name).toLocaleLowerCase();
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Pool established $name as the skill invocation convention in prompt text
+// (forge #44905); agents may still publish skill names without the prefix.
 export function skillInvocation(name: string): string {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return name.startsWith("$") ? name : `$${name}`;
 }
 
 export function resolvedSlashCommandNames(

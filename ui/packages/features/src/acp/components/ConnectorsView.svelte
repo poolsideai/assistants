@@ -1,20 +1,20 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import Icon from "@poolsideai/components/icon";
+  import UserMCPServersSection from "./UserMCPServersSection.svelte";
+  import DesktopSettingsPanelFrame from "./settings/DesktopSettingsPanelFrame.svelte";
+  import SettingsSection from "./settings/SettingsSection.svelte";
+
+  // Connectors is its own top-level destination, not a settings section. On
+  // desktop it renders inside the main-content panel frame; on IDE hosts it
+  // renders as a plain full-height section inside the sidebar.
+  interface Props {
+    desktopFrame?: boolean;
     // Desktop only: drives the panel frame's traffic-light spacer. Unlike
     // settings sections, connectors keeps the sidebar collapsible.
     sidebarCollapsed?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onDone?: () => void;
+  }
+
   let { desktopFrame = false, sidebarCollapsed = false, onDone }: Props = $props();
   let hasTopOverflow = $state(false);
   let hasBottomOverflow = $state(false);
@@ -50,9 +50,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       },
     };
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
+{#if desktopFrame}
   <DesktopSettingsPanelFrame
     title="Connectors"
     rootLabel="Connectors"
@@ -74,33 +74,33 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         >
           <UserMCPServersSection showHeading={false} />
         </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </SettingsSection>
+    </div>
+  </DesktopSettingsPanelFrame>
+{:else}
+  <section
+    class="bg-psx-editor-background text-psx-foreground-primary flex h-full min-w-0 flex-col"
+  >
+    <div
+      class="border-psx-border flex h-12 shrink-0 items-center justify-between border-b py-1.5 pl-4 pr-4"
+    >
+      <div class="min-w-0">
+        <h1 class="truncate text-sm font-medium">Connectors</h1>
+        <p class="text-psx-foreground-secondary truncate text-xs/[14px]">
+          MCP servers available to your agents.
+        </p>
+      </div>
+      {#if onDone}
+        <button
+          type="button"
+          class="text-psx-foreground-secondary outline-hidden hover:bg-psx-menu-hover-background hover:text-psx-foreground-primary focus-visible:outline-psx-focus flex shrink-0 items-center gap-1 rounded-[6px] px-2 py-1 text-xs focus-visible:outline-2"
+          onclick={onDone}
+        >
+          <Icon name="arrow-left" size={14} aria-hidden="true" />
+          <span>Back to Conversations</span>
+        </button>
+      {/if}
+    </div>
     <div
       use:observeOverflow
       class="connectors-panel-scroller min-h-0 flex-1"
@@ -108,10 +108,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       data-overflow-bottom={hasBottomOverflow}
       onscroll={(event) => updateOverflow(event.currentTarget)}
     >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <UserMCPServersSection showHeading={false} />
+    </div>
+  </section>
+{/if}
 
 <style lang="postcss">
   .connectors-panel-stack {

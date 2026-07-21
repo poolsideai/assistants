@@ -5,12 +5,12 @@
   import Icon from "@poolsideai/components/icon";
   import { fuzzyScore } from "@poolsideai/components/assistant-ui";
   import { LOCAL_AGENT_SERVER } from "../../../../agentServers";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPChatSessionScope } from "../../../../features/ChatSessionScope.svelte";
+  import { getACPAgentRegistryRepo } from "../../../../features/AgentRegistryRepository.svelte";
+  import { getACPAgentServersRepo } from "../../../../features/AgentServersRepository.svelte";
   import { getACPHandoffConfirmation } from "../../../../features/HandoffConfirmationContext";
   import { getLocalInferenceRepo } from "../../../../features/LocalInferenceRepository.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPSessionRepo } from "../../../../features/SessionRepository.svelte";
   import { appState, resolveSessionCwd } from "../../../../hostAdapter";
   import {
     formatLastPrompt,

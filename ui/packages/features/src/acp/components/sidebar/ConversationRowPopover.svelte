@@ -2,7 +2,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { onDestroy } from "svelte";
   import { cubicIn } from "svelte/easing";
   import { fly } from "svelte/transition";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { ACPConversationSummary } from "../../navTypes";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import {
     getAcpSidebarController,

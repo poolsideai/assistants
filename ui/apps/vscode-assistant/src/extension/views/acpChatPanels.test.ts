@@ -194,83 +194,83 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  test("reuses an open pending panel instead of creating another", async () => {
+    const panels = createPanels();
+
+    await panels.openSession({});
+    expect(createdPanels).toHaveLength(1);
+    expect(initialACPChatState(createdPanels[0]).kind).toBe("pending");
+
+    await panels.openSession({});
+
+    expect(createdPanels).toHaveLength(1);
+    expect(createdPanels[0].reveal).toHaveBeenCalledOnce();
+    expect(createdPanels[0].webview.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ command: "focusInput", payload: [] }),
+    );
+  });
+
+  test("opens a new panel when every open chat has a session", async () => {
+    const panels = createPanels();
+
+    await panels.openSession({
+      conversationId: "conversation:live",
+      agentServer: "poolside",
+      sessionId: "session-live",
+    });
+    await panels.openSession({});
+
+    expect(createdPanels).toHaveLength(2);
+    expect(initialACPChatState(createdPanels[1]).kind).toBe("pending");
+  });
+
+  test("opens a new panel once the pending panel gains a session", async () => {
+    const panels = createPanels();
+
+    await panels.openSession({});
+    const initialState = initialACPChatState(createdPanels[0]);
+    panels.attachSessionId(initialState.conversationId, "poolside", "session-created");
+
+    await panels.openSession({});
+
+    expect(createdPanels).toHaveLength(2);
+  });
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  test("reveals the existing panel when opened by session id without a conversation id", async () => {
+    const panels = createPanels();
+
+    await panels.openSession({
+      conversationId: "conversation:existing",
+      agentServer: "poolside",
+      sessionId: "session-1",
+    });
+    await panels.openSession({
+      agentServer: "poolside",
+      sessionId: "session-1",
+    });
+
+    expect(createdPanels).toHaveLength(1);
+    expect(createdPanels[0].reveal).toHaveBeenCalledOnce();
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -454,184 +454,184 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     expect(createdPanels[0].iconPath).toBe(cachedIconPath);
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  test("togglePlanModeOnActivePanel posts to the active panel", async () => {
+    const panels = createPanels();
+
+    await panels.openSession({ conversationId: "conversation:a" });
+    await panels.openSession({ conversationId: "conversation:b" });
+    createdPanels[0].active = false;
+    createdPanels[1].active = true;
+
+    panels.togglePlanModeOnActivePanel();
+
+    expect(createdPanels[1].webview.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ command: "togglePlanMode", payload: [] }),
+    );
+    expect(createdPanels[0].webview.postMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ command: "togglePlanMode" }),
+    );
+  });
+
+  test("togglePlanModeOnActivePanel does nothing when no panel is active", async () => {
+    const panels = createPanels();
+
+    await panels.openSession({ conversationId: "conversation:a" });
+    createdPanels[0].active = false;
+
+    panels.togglePlanModeOnActivePanel();
+
+    expect(createdPanels[0].webview.postMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ command: "togglePlanMode" }),
+    );
+  });
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  // A panel that misses an agent exit keeps prompting the restarted agent
+  // with a stale sessionId and every approval gets denied (PE-2362), so
+  // failed deliveries are replayed once the webview reports ready.
+  test("replays agent server exit on panelReady when initial delivery failed", async () => {
+    const panels = createPanels();
+
+    await panels.openSession({
+      conversationId: "conversation:poolside",
+      agentServer: "poolside",
+      sessionId: "session-poolside",
+    });
+    const panel = createdPanels[0];
+    panel.webview.postMessage.mockResolvedValueOnce(false);
+
+    await panels.routeInbound("poolside/acp/serverDidExit", { agentServer: "poolside" });
+    // let the postMessage(false) promise settle so the replay is queued
+    await Promise.resolve();
+    await Promise.resolve();
+
+    panel.webview.postMessage.mockClear();
+    panels.panelReady("conversation:poolside");
+
+    expect(panel.webview.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        command: "acpAgentServerDidExit",
+        payload: [{ agentServer: "poolside" }],
+      }),
+    );
+
+    // a second panelReady must not deliver the exit twice
+    panel.webview.postMessage.mockClear();
+    panels.panelReady("conversation:poolside");
+    expect(panel.webview.postMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ command: "acpAgentServerDidExit" }),
+    );
+  });
+
+  // After an agent restart the webview re-binds its session via session/load;
+  // HostRPCServer.jsonrpc writes that through via attachSessionId. A
+  // session-keyed request (e.g. session/request_permission) for the re-bound
+  // session must reach the panel instead of throwing "No ACP chat panel is
+  // open" (PE-2362).
+  test("routes session-keyed requests after attachSessionId rebinds the session", async () => {
+    const panels = createPanels();
+
+    await panels.openSession({
+      conversationId: "conversation:rebound",
+      agentServer: "poolside",
+      sessionId: "session-old",
+    });
+    const panel = createdPanels[0];
+    panels.attachSessionId("conversation:rebound", "poolside", "session-new");
+
+    panel.webview.postMessage.mockClear();
+    const request = panels.routeInbound("poolside/jsonrpc/request", {
+      agentServer: "poolside",
+      message: {
+        jsonrpc: "2.0",
+        id: "req-1",
+        method: "session/request_permission",
+        params: { sessionId: "session-new" },
+      },
+    });
+
+    await vi.waitFor(() => {
+      expect(panel.webview.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ command: "jsonrpcRequest" }),
+      );
+    });
+
+    // resolve the pending request through the webview response listener so
+    // the routed promise settles
+    const posted = panel.webview.postMessage.mock.calls.find(
+      ([msg]: [{ command: string }]) => msg.command === "jsonrpcRequest",
+    )![0] as { requestId: string };
+    const listener = panel.webview.onDidReceiveMessage.mock.calls.at(-1)![0] as (
+      event: unknown,
+    ) => void;
+    listener({ payload: { requestId: posted.requestId, response: { ok: true } } });
+    await expect(request).resolves.toEqual({ ok: true });
+  });
+
+  // Repeated failed deliveries keep only the latest replay: the webview
+  // handling is idempotent and only needs to learn the agent went away.
+  test("a later missed exit replaces the queued replay", async () => {
+    const panels = createPanels();
+
+    await panels.openSession({
+      conversationId: "conversation:poolside",
+      agentServer: "poolside",
+      sessionId: "session-poolside",
+    });
+    const panel = createdPanels[0];
+
+    panel.webview.postMessage.mockResolvedValueOnce(false);
+    await panels.routeInbound("poolside/acp/serverDidExit", { agentServer: "poolside" });
+    panel.webview.postMessage.mockResolvedValueOnce(false);
+    await panels.routeInbound("poolside/acp/serverDidExit", {
+      agentServer: "poolside",
+      error: "exit status 1",
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    panel.webview.postMessage.mockClear();
+    panels.panelReady("conversation:poolside");
+
+    const exitCalls = panel.webview.postMessage.mock.calls.filter(
+      ([msg]: [{ command: string }]) => msg.command === "acpAgentServerDidExit",
+    );
+    expect(exitCalls).toHaveLength(1);
+    expect(exitCalls[0][0]).toEqual(
+      expect.objectContaining({
+        payload: [{ agentServer: "poolside", error: "exit status 1" }],
+      }),
+    );
+  });
 });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

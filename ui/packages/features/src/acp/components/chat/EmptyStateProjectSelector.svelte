@@ -1,64 +1,64 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import { createDropdownMenu, melt } from "@melt-ui/svelte";
+  import Icon from "@poolsideai/components/icon";
   import { Badge } from "@poolsideai/components/badge";
   import { createACPChatWorkingDirectory } from "../../chatWorkspaces";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { appState } from "../../hostAdapter";
+  import { getACPProjectRepo } from "../../features/ProjectRepository.svelte";
+  import { getACPChatSessionScope } from "../../features/ChatSessionScope.svelte";
+  import { flattenProjectsWithWorktrees } from "../../navTypes";
+  import MobileSelectSheet, { type MobileSelectOption } from "../ui/MobileSelectSheet.svelte";
   import { presentNativeMenu, type MenuSpecItem } from "../ui/menuSpec";
   import { supportsNativeMenus } from "./desktopContextMenu";
   import { fileIconDataUri } from "./fileIconDataUri";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  interface Props {
+    onAddProject?: () => void;
     underlineLabel?: boolean;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  // Lets a not-yet-started (draft) conversation pick which project / worktree it
+  // will run in, mirroring the agent selector. Switching re-creates the pending
+  // session in the chosen workspace, preserving the draft conversation id.
+  const projectsRepo = getACPProjectRepo();
+  const chatSession = getACPChatSessionScope();
+
+  const isDesktop = $derived($appState.environment.assistantHost === "desktop");
   // On the phone the same picker opens as a bottom sheet, and "Add Project…"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // is not offered: there is no folder picker to open a new project with.
+  const isMobile = $derived($appState.environment.assistantHost === "mobile");
+  const allProjects = $derived(projectsRepo.projects);
+
+  // Render order: each root project followed by its worktrees (indented).
+  const options = $derived(flattenProjectsWithWorktrees(allProjects));
+
+  const currentCwd = $derived(chatSession.pendingSessionCwd);
+  const currentProject = $derived(
+    allProjects.find((project) => project.path === currentCwd) ?? null,
+  );
+  const currentLabel = $derived(
     chatSession.isChat
       ? "Chat"
       : currentProject
         ? (currentProject.nickname ?? currentProject.name)
         : "Select project",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
+
+  // Only offered for a pending draft, and only when there is at least one
+  // project to anchor the conversation to.
+  const shouldRender = $derived(
+    (isDesktop || isMobile) &&
+      allProjects.length > 0 &&
+      chatSession.canChangeAgent &&
+      chatSession.pendingConversationId !== null,
+  );
+
+  let sheetOpen = $state(false);
   const sheetOptions = $derived<MobileSelectOption[]>([
     {
       id: "__chat__",
@@ -67,37 +67,37 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       selected: chatSession.isChat,
     },
     ...options.map(({ project, depth }) => ({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      id: project.path,
+      label: project.nickname ?? project.name,
       icon: project.isWorktree ? ("git-branch" as const) : ("folder" as const),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      indent: depth > 0,
+      selected: project.path === currentCwd,
+    })),
   ]);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const {
+    elements: { trigger, menu, item },
+    states: { open },
+  } = createDropdownMenu({
+    positioning: { placement: "bottom-start" },
+    forceVisible: true,
+  });
+
+  function selectProject(path: string): void {
     if (path === "__chat__") {
       void selectChat();
       return;
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (path !== currentCwd) {
+      chatSession.createSession(
+        path,
+        chatSession.selectedAgentServer,
+        chatSession.pendingConversationId,
         { isChat: false },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      );
+    }
+    $open = false;
+  }
 
   async function selectChat(): Promise<void> {
     const conversationId = chatSession.pendingConversationId;
@@ -209,9 +209,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       nativeMenuOpen = false;
     }
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
+{#snippet triggerContent()}
   {#if triggerIconDataUri !== undefined}
     <img src={triggerIconDataUri} alt="" class="size-4 shrink-0" aria-hidden="true" />
   {:else}
@@ -231,28 +231,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     {currentLabel}
   </span>
   <Icon name="chevron" size={12} class="shrink-0 opacity-60" aria-hidden="true" />
+{/snippet}
+
+{#if shouldRender}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {#if isMobile}
+      <button
+        type="button"
         aria-label={`Change chat, project, or worktree — current: ${currentLabel}`}
         class="text-psx-foreground-primary hover:bg-psx-chrome-hover focus:outline-psx-focus flex h-7 min-w-0 max-w-full items-center gap-1 rounded-md px-1.5 text-sm transition-colors focus-visible:outline-2 active:outline-0"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        onpointerdown={(event) => event.preventDefault()}
+        onclick={() => (sheetOpen = true)}
+      >
+        {@render triggerContent()}
+      </button>
+      {#if sheetOpen}
+        <MobileSelectSheet
           title="Chat, project, or worktree"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          options={sheetOptions}
+          onSelect={selectProject}
+          onClose={() => (sheetOpen = false)}
+        />
+      {/if}
     {:else if nativeMenus}
       <button
         type="button"
@@ -270,24 +270,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       >
         {@render triggerContent()}
       </button>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {:else}
+      <button
+        type="button"
+        use:melt={$trigger}
         aria-label={`Change chat, project, or worktree — current: ${currentLabel}`}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      >
+        {@render triggerContent()}
+      </button>
+
+      {#if $open}
+        <div
+          use:melt={$menu}
           class="menu-surface z-50 max-h-[300px] w-[300px] max-w-[calc(100vw-2rem)] overflow-y-auto p-1"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        >
           <!-- svelte-ignore a11y_click_events_have_key_events -->
           <div
             use:melt={$item}
@@ -306,44 +306,44 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             Projects
           </div>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          {#each options as { project, depth } (project.path)}
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <div
+              use:melt={$item}
               class="text-psx-foreground-primary outline-hidden hover:bg-psx-menu-hover-background data-[highlighted]:bg-psx-menu-hover-background group flex w-full items-center gap-2 rounded-md py-1.5 pr-2 text-left"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              style:padding-left={depth > 0 ? "1.75rem" : "0.5rem"}
+              onclick={() => selectProject(project.path)}
+            >
+              <Icon
+                name={project.isWorktree ? "git-branch" : "folder"}
+                size={16}
+                class="shrink-0"
+                aria-hidden="true"
+              />
+              <span class="min-w-0 truncate">{project.nickname ?? project.name}</span>
+              {#if project.path === currentCwd}
                 <Badge size="xs" class="ml-auto uppercase">Selected</Badge>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              {/if}
+            </div>
+          {/each}
+
+          {#if onAddProject}
             <div class="menu-separator"></div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <div
+              use:melt={$item}
               class="text-psx-foreground-primary outline-hidden hover:bg-psx-menu-hover-background data-[highlighted]:bg-psx-menu-hover-background flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              onclick={() => {
+                $open = false;
+                onAddProject?.();
+              }}
+            >
+              <Icon name="folder-plus" size={16} class="shrink-0" aria-hidden="true" />
               <span class="min-w-0 truncate">Add Project…</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            </div>
+          {/if}
+        </div>
+      {/if}
+    {/if}
+  </div>
+{/if}

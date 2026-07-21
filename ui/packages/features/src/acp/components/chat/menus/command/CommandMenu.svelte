@@ -1,11 +1,11 @@
 <script lang="ts">
   import type { AvailableCommand, SessionConfigOption } from "@agentclientprotocol/sdk";
   import * as Prompt from "@poolsideai/components/prompt";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import Kbd from "@poolsideai/components/kbd";
+  import { shortcutHint } from "../../../../../keybindings";
+  import { getACPChatSessionScope } from "../../../../features/ChatSessionScope.svelte";
   import { menus } from "../../../../prompt/menus/menus";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPAgentRegistryRepo } from "../../../../features/AgentRegistryRepository.svelte";
   import { agentName, selectedAgentServer } from "../config/agentConfig";
   import { DEFAULT_AGENT_SERVER } from "../../../../agentServers";
   import type { AcpSlashCommand } from "./commands";
@@ -27,7 +27,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     resolvedSkillCommands,
     visibleServerCommandEntries,
   } from "./serverCommands";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import SkillCommandItems from "./SkillCommandItems.svelte";
   import type { Snippet } from "svelte";
   import { slashCommandIcon } from "../../goalPresentation";
 
@@ -103,7 +103,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       $search,
     ),
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const otherCommands = $derived(
     chatSession.availableCommands.filter(
       (command) => !isSkillCommand(command) && !(planIsLocal && command.name === "plan"),
     ),
@@ -193,10 +193,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       </Prompt.Menu.Popup.Item>
 
       {#if planIsLocal || (chatSession.canTogglePlanMode && !hasServerPlanCommand)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {@const planModeHint = shortcutHint("togglePlanMode")}
+        {#snippet planModeAccessories()}
+          <Kbd label={planModeHint ?? ""} aria-hidden="true" />
+        {/snippet}
         <!-- Where /plan is the only way in and out of plan mode, the command
              keeps that name in both states so typing it always matches; it
              reads as a toggle. Agents with a mode (or collaboration) picker
@@ -210,7 +210,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             : "Switch to plan mode"}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
           keywords={["mode"]}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          accessories={planModeHint ? planModeAccessories : undefined}
         >
           <Prompt.Actions.Action onAction={() => onCommand?.(LocalCommand.plan)} />
         </Prompt.Menu.Popup.Item>
@@ -259,7 +259,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     {#if skillCommands.length > 0}
       <Prompt.Menu.Popup.Separator />
       <Prompt.Menu.Popup.Section title="Skills">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <SkillCommandItems skills={skillCommands} />
       </Prompt.Menu.Popup.Section>
     {/if}
 

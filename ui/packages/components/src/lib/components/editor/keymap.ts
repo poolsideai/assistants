@@ -70,32 +70,32 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * When the cursor is on the last line of a code block that ends the document,
+ * create a paragraph below and move there. Bound in the prompt editor's keymap
+ * after history navigation, not in baseKeymap, so ArrowDown on a clean restored
+ * prompt still steps through history first.
+ */
+export const exitTrailingCodeBlockBelow: Command = (state, dispatch) => {
+  const { selection, schema } = state;
+  const { $anchor, $from, empty } = selection;
+
+  if (!dispatch || !empty || $anchor.parent.type !== schema.nodes.code_block) return false;
+
+  // Only when on the last line of the code block
+  const textAfter = $anchor.parent.textBetween($anchor.parentOffset, $anchor.parent.content.size);
+  if (textAfter.includes("\n")) return false;
+
+  // Check if code block is at the end of the document
+  const pos = $from.after();
+  if (pos !== state.doc.content.size) return false;
+
+  const tr = state.tr.replaceWith(pos, pos, schema.nodes.paragraph.createAndFill()!);
+  tr.setSelection(Selection.near(tr.doc.resolve(pos + 1), 1));
+  dispatch(tr.scrollIntoView());
+  return true;
+};
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

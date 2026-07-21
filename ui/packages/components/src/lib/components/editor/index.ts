@@ -2,7 +2,7 @@ export type { Command, EditorState, Transaction } from "prosemirror-state";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { baseKeymap, exitTrailingCodeBlockBelow, nativeMacWordNavigation } from "./keymap.js";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

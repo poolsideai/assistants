@@ -41,8 +41,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "migrations/20260626120000_rename_nicknames.up.sql",
         "migrations/20260626130000_project_user_prompt.down.sql",
         "migrations/20260626130000_project_user_prompt.up.sql",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "migrations/20260709130000_config_cache_agent_info.down.sql",
+        "migrations/20260709130000_config_cache_agent_info.up.sql",
         "migrations/20260716120000_conversation_legs.down.sql",
         "migrations/20260716120000_conversation_legs.up.sql",
     ],

@@ -1,94 +1,94 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { AnyMessage } from "@agentclientprotocol/sdk";
 import { poolsideAcpServerRestart } from "@poolsideai/helperapi";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { get } from "svelte/store";
+import { describe, expect, it, vi } from "vitest";
+import { ACPConnectionPool } from "./ConnectionPool";
 import { ACPDebugLog } from "./debugDump";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ACPSessionRepositoryWriter } from "./features/SessionRepository.svelte";
+import { appState } from "./hostAdapter";
+import type { HelperAPIClient } from "./hostRpc";
 import { RPCTransport } from "./RPCTransport";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 vi.mock("@poolsideai/helperapi", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poolsideai/helperapi")>();
   return { ...actual, poolsideAcpServerRestart: vi.fn().mockResolvedValue(undefined) };
 });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+describe("ACPConnectionPool", () => {
+  it("initializes agents with host client info", async () => {
+    const initialAppState = get(appState);
+    const helperApiClient = mockHelperApiClient();
+    vi.mocked(helperApiClient.jsonrpcCall).mockResolvedValue({
+      protocolVersion: 1,
+      authMethods: [],
+      agentCapabilities: {},
+    });
+    const pool = new ACPConnectionPool(helperApiClient, mockSessionRepo());
+
+    try {
+      appState.update((state) => ({
+        ...state,
+        environment: {
+          ...state.environment,
+          assistantHost: "desktop",
+          assistantVersion: "0.3.12",
+        },
+      }));
+
+      await pool.connect("poolside");
+
+      expect(helperApiClient.jsonrpcCall).toHaveBeenCalledWith(
+        "poolside/acp/initialize",
+        expect.objectContaining({
+          agentServer: "poolside",
+          clientInfo: {
+            name: "poolside-desktop",
+            version: "0.3.12",
+          },
           clientCapabilities: expect.objectContaining({
             _meta: {
               "terminal-auth": true,
               "subagent-transcript": true,
             },
           }),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }),
+      );
+    } finally {
+      appState.set(initialAppState);
+    }
+  });
+
   it("drops legacy ACP task notifications instead of forwarding them", () => {
     const pool = new ACPConnectionPool(mockHelperApiClient(), mockSessionRepo());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const transport = { receive: vi.fn(), sendRequest: vi.fn() };
+    connections(pool).set("poolside", { transport });
+
+    pool.receive({
+      agentServer: "poolside",
+      message: {
+        jsonrpc: "2.0",
         method: "poolside/acpTask/didChange",
         params: { sessionId: "s1" },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      } as AnyMessage,
+    });
+
+    expect(transport.receive).not.toHaveBeenCalled();
+  });
+
+  it("forwards normal ACP messages to the transport", () => {
     const pool = new ACPConnectionPool(mockHelperApiClient(), mockSessionRepo());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const transport = { receive: vi.fn(), sendRequest: vi.fn() };
+    connections(pool).set("poolside", { transport });
+    const message = {
+      jsonrpc: "2.0",
+      method: "session/update",
+      params: { sessionId: "s1" },
+    } as AnyMessage;
+
+    pool.receive({ agentServer: "poolside", message });
+
+    expect(transport.receive).toHaveBeenCalledWith(message);
+  });
 
   it("buffers early notifications until their agent transport initializes", async () => {
     let resolveInitialize!: (value: unknown) => void;
@@ -128,52 +128,52 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       receive.mockRestore();
     }
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+});
+
+describe("ACPConnectionPool debug API", () => {
+  it("loads dumps into the selected agent server and stores them in the pool log", async () => {
+    const repo = mockSessionRepo();
+    const pool = new ACPConnectionPool(mockHelperApiClient(), repo);
+    const entries = [
+      {
+        _direction: "incoming" as const,
+        _type: "notification" as const,
+        method: "session/update",
+        params: { sessionId: "s1" },
+      },
+    ];
+
+    await pool.debug.load(entries, "selected-agent");
+
+    expect(repo.loadDebugDump).toHaveBeenCalledWith(entries, "selected-agent");
+    expect(pool.debug.dump("selected-agent")).toEqual(entries);
+    expect(pool.debug.dumpJSON("selected-agent")).toBe(JSON.stringify(entries, null, 2));
+  });
+
+  it("defaults debug operations to the repo default agent server", async () => {
+    const repo = mockSessionRepo("repo-default");
+    const pool = new ACPConnectionPool(mockHelperApiClient(), repo);
+    const entries = [
+      {
+        _direction: "outgoing" as const,
+        _type: "request" as const,
+        id: 1,
+        method: "session/prompt",
+        params: { sessionId: "s1", prompt: [] },
+      },
+    ];
+
+    await pool.debug.load(JSON.stringify(entries));
+
+    expect(repo.loadDebugDump).toHaveBeenCalledWith(entries, "repo-default");
+    expect(pool.debug.dump()).toEqual(entries);
+
+    pool.debug.clear();
+
+    expect(pool.debug.dump()).toEqual([]);
+  });
+});
+
 describe("ACPConnectionPool restart serialization", () => {
   it("discards a handshake a restart invalidated and reconnects to the restarted process", async () => {
     const helperApiClient = mockHelperApiClient();
@@ -327,29 +327,29 @@ function debugLog(pool: ACPConnectionPool): ACPDebugLog {
   return (pool as unknown as { debugLog: ACPDebugLog }).debugLog;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function connections(
+  pool: ACPConnectionPool,
+): Map<string, { transport: { receive: (msg: unknown) => void } }> {
+  return (
+    pool as unknown as {
+      connections: Map<string, { transport: { receive: (msg: unknown) => void } }>;
+    }
+  ).connections;
+}
+
+function mockHelperApiClient(): HelperAPIClient {
+  return {
+    jsonrpcCall: vi.fn().mockResolvedValue({ ok: true }),
+    jsonrpcNotify: vi.fn().mockResolvedValue(undefined),
+  };
+}
+
+function mockSessionRepo(defaultAgentServer = "default-agent"): ACPSessionRepositoryWriter {
+  return {
+    agents: {
+      defaultAgentServer,
+    },
     handleSessionUpdate: vi.fn(),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    loadDebugDump: vi.fn().mockResolvedValue(undefined),
+  } as unknown as ACPSessionRepositoryWriter;
+}

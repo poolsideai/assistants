@@ -37,7 +37,7 @@ const HELPER_NOTIFICATION_BATCH_WINDOW: Duration = Duration::from_millis(32);
 const HELPER_NOTIFICATION_ACK_TIMEOUT: Duration = Duration::from_secs(30);
 const HELPER_NOTIFICATION_READY_POLL: Duration = Duration::from_millis(10);
 const HELPER_NOTIFICATION_RETRY_DELAY: Duration = Duration::from_millis(100);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const HELPER_LOG_SESSIONS_TO_KEEP: usize = 20;
 // Upper bound on waiting for the helper to acknowledge LSP `shutdown` before
 // escalating to kill. Its shutdown handler runs cleanup before responding —
 // including giving ACP agents a graceful stop so they can flush session state
@@ -46,8 +46,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 // voice-input (2s) cleanup sequentially; leave margin above that combined
 // budget.
 const HELPER_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(15);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+static HELPER_LOG_FILE_NAME: OnceLock<String> = OnceLock::new();
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -727,50 +727,50 @@ fn helper_log_path(app_handle: &AppHandle) -> Result<PathBuf, String> {
         return Ok(PathBuf::from(path));
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let dir = app_handle
         .path()
         .app_log_dir()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        .map_err(|err| err.to_string())?;
+    let name = HELPER_LOG_FILE_NAME.get_or_init(|| {
+        prune_helper_session_logs(&dir, HELPER_LOG_SESSIONS_TO_KEEP - 1);
+        // UTC with millisecond precision so names sort chronologically even
+        // across DST changes and same-second relaunches get distinct files.
+        format!(
+            "poolside-helper-{}.log",
+            chrono::Utc::now().format("%Y-%m-%dT%H-%M-%S%.3f")
+        )
+    });
+    Ok(dir.join(name))
+}
+
+fn prune_helper_session_logs(dir: &Path, keep: usize) {
+    // The pre-session-split single log file; delete it so it does not linger
+    // forever after the format change.
+    let _ = fs::remove_file(dir.join("poolside-helper.log"));
+
+    let Ok(entries) = fs::read_dir(dir) else {
+        return;
+    };
+    let mut sessions: Vec<PathBuf> = entries
+        .flatten()
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name.starts_with("poolside-helper-") && name.ends_with(".log"))
+        })
+        .collect();
+    // Timestamped names sort lexicographically in chronological order.
+    sessions.sort();
+    let excess = sessions.len().saturating_sub(keep);
+    for path in &sessions[..excess] {
+        if let Err(err) = fs::remove_file(path) {
+            eprintln!(
+                "failed to remove old poolside-helper log {}: {err}",
+                path.display()
+            );
+        }
+    }
 }
 
 fn append_helper_log(app_handle: &AppHandle, message: &str) {
@@ -1752,84 +1752,84 @@ mod tests {
             assert_eq!(rx.recv().await, Some(3));
         });
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    fn temp_log_dir(label: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!(
+            "poolside-helper-log-prune-{label}-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    fn session_log_names(dir: &Path) -> Vec<String> {
+        let mut names: Vec<String> = fs::read_dir(dir)
+            .unwrap()
+            .flatten()
+            .map(|entry| entry.file_name().to_string_lossy().to_string())
+            .collect();
+        names.sort();
+        names
+    }
+
+    #[test]
+    fn prune_keeps_the_newest_session_logs() {
+        let dir = temp_log_dir("keeps-newest");
+        for i in 0..25 {
+            fs::write(
+                dir.join(format!("poolside-helper-2026-01-01T00-00-{i:02}.000.log")),
+                "",
+            )
+            .unwrap();
+        }
+
+        prune_helper_session_logs(&dir, 19);
+
+        let names = session_log_names(&dir);
+        assert_eq!(names.len(), 19);
+        assert_eq!(names[0], "poolside-helper-2026-01-01T00-00-06.000.log");
+        assert_eq!(
+            names.last().unwrap(),
+            "poolside-helper-2026-01-01T00-00-24.000.log"
+        );
+
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn prune_removes_the_legacy_single_log_file() {
+        let dir = temp_log_dir("legacy");
+        fs::write(dir.join("poolside-helper.log"), "old").unwrap();
+
+        prune_helper_session_logs(&dir, 19);
+
+        assert!(session_log_names(&dir).is_empty());
+
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn prune_ignores_unrelated_files_and_small_session_counts() {
+        let dir = temp_log_dir("unrelated");
+        fs::write(dir.join("other.log"), "").unwrap();
+        fs::write(dir.join("poolside-helper-2026-01-01T00-00-00.000.log"), "").unwrap();
+        fs::write(dir.join("poolside-helper-2026-01-02T00-00-00.000.log"), "").unwrap();
+
+        prune_helper_session_logs(&dir, 19);
+
+        assert_eq!(
+            session_log_names(&dir),
+            vec![
+                "other.log",
+                "poolside-helper-2026-01-01T00-00-00.000.log",
+                "poolside-helper-2026-01-02T00-00-00.000.log",
+            ]
+        );
+
+        fs::remove_dir_all(dir).unwrap();
+    }
 }

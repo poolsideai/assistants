@@ -2,7 +2,7 @@ import { poolsideSearchFiles } from "@poolsideai/helperapi";
 import type { SearchFilesOutput } from "@poolsideai/helperapi/schemas";
 import { classifyQuery, type ClassifiedQuery } from "@poolsideai/lib/path-query";
 import type { AppState } from "../../../hostAdapter";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { acpWorkspaceFolders } from "../../../workspaceScope";
 import { isWindowsOperatingSystem } from "./pathRewrites";
 
 export interface SearchProjectFilesOptions {

@@ -17,7 +17,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     code,
     docHistory,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    exitTrailingCodeBlockBelow,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     matchDecoration,
     nodeObserver,
@@ -155,9 +155,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         return false;
       },
       ArrowUp: restorePreviousDoc,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      // History navigation first: a clean restored prompt ending in a code
+      // block should step to the next entry, not grow an exit paragraph.
+      ArrowDown: chainCommands(restoreNextDoc, exitTrailingCodeBlockBelow),
     }),
     selectionDecoration({
       filter: (node) => node.type === schema.nodes["chip"],

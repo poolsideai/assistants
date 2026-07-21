@@ -9,124 +9,124 @@ import {
   poolsideAcpNavGetProjectSettings,
   poolsideAcpNavPrepareConversationHandoff,
 } from "@poolsideai/helperapi";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { failure, loading, success, waiting } from "@poolsideai/lib/async-state";
+import { get } from "svelte/store";
 import {
   withClaudeAppendSystemPrompt,
   withClaudeSessionFeatures,
 } from "../../claudePromptSuggestions";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { normalizeACPError } from "../../errors";
 import { parseClaudeGoalCommand, type ACPGoalState } from "../../goals";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { appState, appStateUpdates } from "../../hostAdapter";
 import { mergeLocalInferenceModelConfigOptionDefinitionsForAgent } from "../../localInferenceModelOptions";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { buildSessionInfo } from "../../sessionInfo";
+import {
+  ACP_IDE_WORKSPACE_PATH,
   acpSessionWorkspacePath,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  acpWorkingDirectories,
+  acpWorkspaceFolders,
+} from "../../workspaceScope";
+import type { ACPSession } from "./Session.svelte";
 import {
   applySessionConfigSelections,
   currentConfigSelections,
   mergeConfigSelections,
 } from "./configOptions";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { textPromptContent, titleFromPrompt } from "./content";
 import { isAuthRequiredError, isStaleSessionError, isUnresumableSessionError } from "./errors";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { hostContextBlock } from "./hostContext";
 import { ACP_STEER_FALLBACK_META_KEY, steerSession, type ACPSteerOutcome } from "./steering";
 import type { ACPQueuedPrompt, ACPSessionCancelOptions } from "./types";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import {
+  ACP_SESSION_NEW_EVENT,
+  ACP_SESSION_TURN_COMPLETED_EVENT,
+  ACP_SESSION_TURN_EVENT,
+} from "./types";
+
 type AgentSessionConfigOptions = {
   configOptions: SessionConfigOption[];
   reportedConfigOptions: SessionConfigOption[];
 };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export class ACPSessionPrompting {
   private queuedPromptSequence = 0;
   private queuedSendScheduled = false;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  constructor(private readonly session: ACPSession) {}
+
   get hasQueuedSendPending(): boolean {
     return this.queuedSendScheduled || this.session.queuedPrompts.length > 0;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async prompt(text: string, content: ContentBlock[] = textPromptContent(text)): Promise<void> {
+    if (this.session.sessionId === null) return;
     await this.session.serialize((gen) => this.promptCore(gen, text, content));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  async retryLastPrompt(): Promise<void> {
+    if (this.session.sessionId === null) return;
+    const prompt = this.session.promptError?.prompt;
+    if (!prompt) return;
+    const content = this.session.promptError?.content ?? textPromptContent(prompt);
+    this.session.promptError = null;
     this.session.restoreRequired = true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await this.session.env.agents.restart(this.session.agentServer);
     await this.session.serialize((gen) =>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.promptCore(gen, prompt, content, { addUserMessage: false }),
+    );
+  }
+
+  async retryAfterError(): Promise<void> {
+    const s = this.session;
+    s.env.agents.clearNonSessionError(s.agentServer);
+    s.promptError = null;
+    if (s.loadState.status === "failure") {
+      s.loadState = waiting;
+      s.loadIntent = null;
+    }
+
+    const pendingDraftSend = s.pendingDraftSend;
+    await s.env.agents.restart(s.agentServer);
+    return s.serialize(async (gen) => {
+      if (gen !== s.generation) return;
+      const conn = await s.env.agents.activate(s.agentServer);
+      if (gen !== s.generation || !conn) return;
+      if (s.sessionId !== null) {
         // The restart above took this session's agent-side state with it, so
         // reload it here rather than waiting for the agent's exit notification
         // to mark it — that races this retry and would make the reload a no-op.
         s.restoreRequired = true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        await s.loader.restoreAfterReconnect(gen, conn);
+        return;
+      }
+      if (pendingDraftSend) {
+        s.pendingDraftSend = null;
+        await this.sendCore(
+          gen,
+          pendingDraftSend.text,
+          pendingDraftSend.sandboxDefinitionId,
+          pendingDraftSend.newSessionMeta,
+          pendingDraftSend.cwd,
+          pendingDraftSend.content,
+          { skipOptimisticUserMessage: true },
+        );
+      }
+    });
+  }
+
+  async send(
+    text: string,
+    sandboxDefinitionId: string | undefined,
+    newSessionMeta?: Record<string, unknown>,
+    cwd = "",
+    content: ContentBlock[] = textPromptContent(text),
+  ): Promise<string | null> {
+    return this.session.serialize((gen) =>
+      this.sendCore(gen, text, sandboxDefinitionId, newSessionMeta, cwd, content),
+    );
+  }
+
+  enqueue(prompt: ACPQueuedPrompt): void {
     if (this.session.isPromptActive && !this.session.sessionInfo?.readOnly) {
       this.session.clearPromptSuggestion();
       this.session.queuedPrompts = [
@@ -136,11 +136,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           id: prompt.id ?? `queued-prompt-${++this.queuedPromptSequence}`,
         },
       ];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return;
+    }
+    throw new Error("Cannot enqueue prompt");
+  }
+
   clearQueued(id?: string): void {
     if (id === undefined) {
       this.session.queuedPrompts = this.session.queuedPrompts.slice(1);
@@ -264,23 +264,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     // response and send the same queued prompt as a second, ordinary turn.
     this.session.queuedPrompts = this.session.queuedPrompts.filter((_, i) => i !== index);
     return this.steer(queued.text, queued.content);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   async cancel({ sendQueuedPrompt = false }: ACPSessionCancelOptions = {}): Promise<void> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const s = this.session;
+    if (s.sessionId === null) return;
+    const sessionId = s.sessionId;
+    const agentServer = s.agentServer;
     if (!sendQueuedPrompt) s.queuedPrompts = [];
     s.titles.finalizeInlineTitle(s.materializer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    s.materializer.resetContinuation();
+    s.materializer.cancelOpenToolCalls(new Date());
+    s.publishTranscript();
+    s.env.cancelPendingPermissionRequestsForSession(sessionId, agentServer);
+    s.isPrompting = false;
+    s.isSending = false;
+    s.lastPromptInterrupted = true;
+    s.env.publishLiveStatuses();
     try {
       const conn =
         s.env.agents.connectionFor(agentServer) ?? (await s.env.agents.activate(agentServer));
@@ -288,30 +288,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       await conn.cancel({ sessionId });
     } finally {
       if (sendQueuedPrompt) this.sendQueuedPromptAfterCurrentTurn();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  }
+
   // Resolves true when the message reached the agent or was recorded for
   // retry (promptError, or a restarted session's draft), false when it was
   // abandoned because the session state moved on first — an agent exit or
   // rebind between enqueueing this call and running it. Callers that own a
   // message with no other trace (steer's promptRequired fallback) use false
   // to leave their own retryable error instead of losing it silently.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async promptCore(
+    gen: number,
+    text: string,
+    content: ContentBlock[],
+    {
+      addUserMessage = true,
+      retryStaleSession = true,
       steerFallback = false,
     }: { addUserMessage?: boolean; retryStaleSession?: boolean; steerFallback?: boolean } = {},
   ): Promise<boolean> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const s = this.session;
     if (gen !== s.generation || s.sessionId === null) return false;
     s.clearPromptSuggestion();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const sessionId = s.sessionId;
+    const agentServer = s.agentServer;
     // A failed prompt's content never reached the agent (retryLastPrompt
     // resends it on the same assumption), and it already shows as a user
     // message in the transcript. Fold it into this prompt so typing a new
@@ -329,8 +329,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       : null;
     const hadClaudeGoal = s.goal?.source === "claude";
     let fallbackGoal: ACPGoalState | null = null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    const conn = await s.env.agents.activate(agentServer);
     if (gen !== s.generation || !conn) return false;
     if (!(await s.loader.restoreAfterReconnect(gen, conn))) return false;
     // A suspended session's agent-side resources were closed while idle;
@@ -348,27 +348,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       return false;
     }
     if (gen !== s.generation) return false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     // Transcript size before this turn adds anything: an unresumable-session
     // failure is only recoverable by starting over when there is nothing to
     // start over from, and an agent may deliver a late replay after its load
     // settled — which would make restoredWithoutHistory alone stale.
     const eventsBeforeTurn = s.events.length;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const turnStartedAt = new Date();
+    s.isPrompting = true;
+    s.promptError = null;
+    s.lastPromptInterrupted = false;
+    s.env.agents.clearNonSessionError(agentServer);
+    s.env.publishLiveStatuses();
+    this.emitSessionTurn();
     let delivered = true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    try {
+      s.materializer.startTurn(turnStartedAt);
+      if (addUserMessage) {
+        s.addUserMessage(content);
+      } else {
+        s.materializer.resetContinuation();
+      }
       if (claudeGoalCommand?.action === "set") {
         fallbackGoal = {
           source: "claude",
@@ -384,18 +384,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       });
       if (gen !== s.generation) return true;
       s.titles.finalizeInlineTitle(s.materializer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (res?.stopReason === "cancelled") {
+        s.lastPromptInterrupted = true;
+        s.materializer.cancelOpenToolCalls(new Date());
+        s.publishTranscript();
+      } else {
+        s.materializer.completeOpenToolCalls(new Date());
+        s.publishTranscript();
         s.restoredWithoutHistory = false;
         if (s.queuedPrompts.length === 0) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          s.env.markUnread(sessionId, agentServer);
+          this.emitSessionTurnCompleted(sessionId, agentServer);
+        }
         if (
           claudeGoalCommand?.action === "clear" ||
           claudeGoalCommand?.action === "set" ||
@@ -403,60 +403,60 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         ) {
           s.setGoal(null);
         }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
+    } catch (e) {
+      const err = normalizeACPError(e);
       if (gen !== s.generation) return true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (isAuthRequiredError(err)) {
+        s.env.agents.markAuthRequired(agentServer);
+        s.env.agents.clearNonSessionError(agentServer);
       } else if (
         s.restoredWithoutHistory &&
         eventsBeforeTurn === 0 &&
         isUnresumableSessionError(err)
       ) {
         await this.restartOnUnresumableSession(gen, outgoingText, outgoingContent);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      } else if (retryStaleSession && isStaleSessionError(err)) {
         s.restoreRequired = true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (await s.loader.restoreAfterReconnect(gen, conn)) {
           delivered = await this.promptCore(gen, outgoingText, outgoingContent, {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            addUserMessage: false,
+            retryStaleSession: false,
             steerFallback,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          });
+        } else {
           if (gen !== s.generation) return false;
           s.promptError = { error: err, prompt: outgoingText, content: outgoingContent };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
+      } else {
         s.promptError = { error: err, prompt: outgoingText, content: outgoingContent };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
       if (fallbackGoal !== null && s.promptError !== null && s.goal === fallbackGoal) {
         s.setGoal(null);
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } finally {
+      if (gen === s.generation) {
         // Agents do not currently emit a terminal compaction phase when the
         // summarizer fails or the turn is cancelled. Never let that transient
         // state survive the turn and keep the conversation permanently active.
         s.extensions.poolside?.endTurn();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Flush any batched streaming events synchronously so the transcript is
+        // current the instant isPrompting flips. The success/cancel branches
+        // already do this; without it the error path would show idle/error one
+        // frame before the last streamed events land.
         s.titles.finalizeInlineTitle(s.materializer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        s.publishTranscript();
+      }
+      s.isPrompting = false;
+      s.isSending = false;
+      s.env.publishLiveStatuses();
+      if (gen === s.generation) {
+        this.sendQueuedPromptAfterCurrentTurn();
+      }
+    }
     return delivered;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   // Recovers a conversation whose agent-side session cannot be prompted again
   // (see isUnresumableSessionError). Only reached when the restore replayed no
   // transcript, so nothing is thrown away: the dead session id is dropped and
@@ -496,29 +496,29 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async sendCore(
+    gen: number,
+    text: string,
+    sandboxDefinitionId: string | undefined,
+    newSessionMeta?: Record<string, unknown>,
+    cwd = "",
+    content: ContentBlock[] = textPromptContent(text),
     options: {
       skipOptimisticUserMessage?: boolean;
       initialTitle?: string | null;
       preserveAgentToolDefaults?: boolean;
     } = {},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ): Promise<string | null> {
+    const s = this.session;
+    if (gen !== s.generation) return null;
+
     s.clearPromptSuggestion();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    s.isSending = true;
+    s.env.publishLiveStatuses();
     let preparedHandoffId: string | null = null;
     let handoffCommitted = false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    try {
+      const startedWithoutSessionId = s.sessionId === null;
       const pendingHandoff = startedWithoutSessionId ? s.pendingHandoff : null;
       // A draft whose earlier send failed before a session existed already
       // shows as a user message in the transcript. Fold it into this send so
@@ -535,8 +535,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       const initialTitle =
         options.initialTitle === undefined ? pendingHandoff?.initialTitle : options.initialTitle;
       const preserveAgentToolDefaults = options.preserveAgentToolDefaults === true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const hadEvents = s.events.length > 0;
+      const sessionCwd = cwd || s.cwd || "";
       const standaloneClaudeCommand =
         startedWithoutSessionId &&
         s.env.isClaudeAgent(s.agentServer) &&
@@ -544,15 +544,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       const commandHostContext = standaloneClaudeCommand
         ? await this.initialHostContextBlock(sessionCwd)
         : null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      let addedOptimisticUserMessage = false;
+      if (startedWithoutSessionId) {
+        if (options.skipOptimisticUserMessage) {
+          addedOptimisticUserMessage = true;
+        } else {
+          s.addUserMessage(content);
+          addedOptimisticUserMessage = true;
+        }
+        const pendingConfigOptions = currentConfigSelections(s.configOptions);
         if (pendingHandoff) {
           try {
             await poolsideAcpNavPrepareConversationHandoff(pendingHandoff.prepareParams);
@@ -606,88 +606,88 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           ),
           pendingConfigOptions,
         );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (gen !== s.generation) return null;
+        if (s.sessionId === null) {
+          s.pendingDraftSend = {
             text: sendText,
             content: sendContent,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            sandboxDefinitionId,
+            newSessionMeta,
+            cwd: sessionCwd,
+          };
+          return null;
+        }
         if (pendingHandoff) {
           handoffCommitted = true;
           if (s.pendingHandoff === pendingHandoff) {
             s.pendingHandoff = null;
           }
         }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        s.pendingDraftSend = null;
+        // Announce the new session as soon as the agent creates it — before
+        // applying config options. For the local agent, applying the model
+        // option can trigger a slow sidecar model load or an agent restart;
+        // emitting here guarantees the conversation reaches the sidebar and the
+        // setup UI renders even if the config step then stalls or fails.
         const newSessionTitle =
           initialTitle === undefined ? titleFromPrompt(sendText) : initialTitle;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (newSessionTitle) {
+          s.titles.set(newSessionTitle);
+        }
+        this.emitNewSession(s.sessionId, s.agentServer, s.sessionInfo?.cwd || cwd || "/", {
+          title: newSessionTitle ?? undefined,
+          conversationId: s.conversationId,
+        });
+        if (pendingConfigOptions.size > 0) {
+          s.setupStatus = "Applying configuration...";
+        }
+        try {
           await this.applyPendingConfigOptions(
             gen,
             pendingConfigOptions,
             agentConfig?.configOptions ?? s.configOptions,
             agentConfig?.reportedConfigOptions,
           );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        } catch (e) {
+          if (gen !== s.generation) return null;
+          // Surface config-apply failures (e.g. a local model the agent cannot
+          // load) as a prompt error instead of letting the rejection escape
+          // unhandled and showing the user nothing.
           s.promptError = {
             error: normalizeACPError(e),
             prompt: sendText,
             content: initialPromptContent,
           };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          return null;
+        } finally {
+          s.setupStatus = null;
+        }
+      }
+      const createdSessionId = startedWithoutSessionId ? s.sessionId : null;
+      const sentSessionId = s.sessionId;
+      const existingSessionFirstPromptId =
+        !startedWithoutSessionId && !hadEvents && sentSessionId ? sentSessionId : null;
+      if (existingSessionFirstPromptId) {
         const initialTitle = titleFromPrompt(sendText);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (initialTitle) {
+          s.titles.set(initialTitle);
+        }
+      }
+      const titleSessionId = createdSessionId ?? existingSessionFirstPromptId;
       const promptContent =
         startedWithoutSessionId && !standaloneClaudeCommand
           ? await this.contentWithInitialHostContext(initialPromptContent, sessionCwd)
           : initialPromptContent;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (gen !== s.generation) return null;
       await this.promptCore(gen, sendText, promptContent, {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        addUserMessage: !addedOptimisticUserMessage,
+      });
       if (titleSessionId && initialTitle === undefined) {
         void s.titles.fetch(sendText);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
+
+      return gen === s.generation ? createdSessionId : null;
+    } finally {
       if (preparedHandoffId !== null && !handoffCommitted) {
         try {
           await poolsideAcpNavAbortConversationHandoff({ handoffId: preparedHandoffId });
@@ -695,15 +695,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           console.warn("Unable to abort prepared ACP conversation handoff", error);
         }
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (gen === s.generation) {
+        s.isSending = false;
+        s.setupStatus = null;
+        s.env.publishLiveStatuses();
+      }
+    }
+  }
+
+  private sendQueuedPromptAfterCurrentTurn(): void {
     const s = this.session;
     if (this.queuedSendScheduled || s.isPromptActive) return;
     const queued = s.queuedPrompts[0];
@@ -713,20 +713,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     void s.serialize(async (gen) => {
       this.queuedSendScheduled = false;
       return this.sendCore(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        gen,
+        queued.text,
+        queued.sandboxDefinitionId,
+        queued.newSessionMeta,
+        queued.cwd,
+        queued.content,
       );
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  private async contentWithInitialHostContext(
+    content: ContentBlock[],
+    cwd: string,
+  ): Promise<ContentBlock[]> {
     const context = await this.initialHostContextBlock(cwd);
     return context ? [...content, context] : content;
   }
@@ -734,73 +734,73 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   private async initialHostContextBlock(
     cwd: string,
   ): Promise<ReturnType<typeof hostContextBlock> | null> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const supportsEmbeddedContext =
+      this.session.env.agents.promptCapabilitiesFor(this.session.agentServer)?.embeddedContext ===
+      true;
     if (!supportsEmbeddedContext) return null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    const state = get(appState);
+    const userPrompt = await this.projectUserPrompt(cwd, state);
     return hostContextBlock({
       assistantVersion: state.environment.assistantVersion,
       userPrompt,
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  private async projectUserPrompt(cwd: string, state = get(appState)): Promise<string | undefined> {
     if (state.environment.assistantHost !== "desktop" || this.session.isChat) return undefined;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const workspaceFolders = acpWorkspaceFolders(state, cwd);
     const projectPath = acpSessionWorkspacePath(state, workspaceFolders, cwd, this.session.isChat);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (!projectPath || projectPath === ACP_IDE_WORKSPACE_PATH) return undefined;
+
+    try {
+      const response = await poolsideAcpNavGetProjectSettings({ path: projectPath });
+      return response.settings.userPrompt?.trim() || undefined;
+    } catch (e) {
+      console.debug("Unable to load ACP project guidelines for agent", e);
+      return undefined;
+    }
+  }
+
+  private async createAgentSession(
+    gen: number,
+    cwd: string,
+    mcpServers: McpServer[],
     _meta: Record<string, unknown> | undefined,
     pendingSelections: Map<string, string | boolean>,
   ): Promise<AgentSessionConfigOptions | null> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const s = this.session;
     if (gen !== s.generation) return null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const agentServer = s.agentServer;
+
+    s.loadIntent = "new";
+    s.loadState = loading;
+    s.promptError = null;
+    s.env.agents.clearNonSessionError(agentServer);
+    s.setupStatus = "Starting ACP agent...";
+
     // The helper catalog is the source of truth for local models. Capture the
     // draft's catalog-backed option before session/new: the local agent may
     // return only the model it bootstrapped with, which is not enough to
     // validate and apply another downloaded model selected in the draft.
     const draftConfigOptions = s.configOptions;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const conn = await s.env.agents.useAgentServer(agentServer);
     if (gen !== s.generation) return null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (!conn) {
+      s.loadState = waiting;
+      s.setupStatus = null;
       return null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+
+    try {
+      s.setupStatus = "Creating session...";
+      const res = await conn.newSession({ cwd, mcpServers, _meta: _meta ?? null });
       if (gen !== s.generation) return null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+      s.sessionId = res.sessionId;
+      s.sessionInfo = buildSessionInfo(res.sessionId, cwd || "/", "native_session");
+      appState.update(appStateUpdates.ensureWorkspaceForCwd(s.sessionInfo.cwd));
       // The response carries the agent's defaults; show the draft's selections
       // immediately so the picker never flashes those defaults while sendCore
       // re-applies the selections over the wire. For the local agent, retain
@@ -814,95 +814,95 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         draftConfigOptions,
       );
       s.configOptions = mergeConfigSelections(agentConfigOptions, pendingSelections);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      s.availableCommands = s.env.agents.cachedAvailableCommands(agentServer);
+      s.modes = res.modes ?? null;
+      s.pendingConfigOptions = {};
       // A real session/new is as authoritative as a config probe; recording
       // it defers the next TTL-gated probe.
       s.env.agents.markAgentConfigFresh(agentServer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      void s.env.agents.upsertCachedConfig(agentServer, {
+        configOptions: s.configOptions,
+        availableCommands: s.availableCommands,
+        modes: s.modes,
+      });
+      s.loadState = success(s.loader.buildLoadState());
+      s.setupStatus = null;
+      s.env.agents.clearAuthRequired(agentServer);
+      s.env.publishLiveStatuses();
       return { configOptions: agentConfigOptions, reportedConfigOptions };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } catch (e) {
       if (gen !== s.generation) return null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const err = normalizeACPError(e);
+      if (isAuthRequiredError(err)) {
+        s.env.agents.markAuthRequired(agentServer);
+        s.loadState = waiting;
+        s.env.agents.clearNonSessionError(agentServer);
+      } else {
+        s.loadState = failure(err);
+      }
+      s.setupStatus = null;
       return null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  }
+
+  private emitNewSession(
+    sessionId: SessionId,
+    agentServer: string,
+    cwd: string,
+    options: { title?: string; conversationId?: string | null } = {},
+  ): void {
+    const state = get(appState);
+    const workspaceFolders = acpWorkspaceFolders(state, cwd);
+    this.session.env.emitter.dispatchEvent(
+      new CustomEvent(ACP_SESSION_NEW_EVENT, {
+        detail: {
+          sessionId,
+          agentServer,
+          cwd,
           workspacePath: acpSessionWorkspacePath(state, workspaceFolders, cwd, this.session.isChat),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          workingDirectories: acpWorkingDirectories(workspaceFolders, cwd),
+          conversationId: options.conversationId,
+          title: options.title,
+        },
+      }),
+    );
+  }
+
+  // Bumps the conversation's updatedAt to "now" whenever the user starts a
+  // turn, so the sidebar reflects the time of the last user prompt rather than
+  // when the conversation was created. Agent activity does not go through here,
+  // so streaming output never advances updatedAt.
+  private emitSessionTurn(): void {
+    const conversationId = this.session.conversationId;
+    if (!conversationId) return;
+    this.session.env.emitter.dispatchEvent(
+      new CustomEvent(ACP_SESSION_TURN_EVENT, {
+        detail: { conversationId },
+      }),
+    );
+  }
+
+  private emitSessionTurnCompleted(sessionId: SessionId, agentServer: string): void {
+    this.session.env.emitter.dispatchEvent(
+      new CustomEvent(ACP_SESSION_TURN_COMPLETED_EVENT, {
+        detail: { sessionId, agentServer },
+      }),
+    );
+  }
+
+  private async applyPendingConfigOptions(
+    gen: number,
     pendingConfigOptions: Map<string, string | boolean>,
     agentConfigOptions: SessionConfigOption[],
     reportedConfigOptions = agentConfigOptions,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ): Promise<void> {
+    const s = this.session;
+    if (gen !== s.generation || s.sessionId === null) return;
+
+    if (pendingConfigOptions.size > 0) {
+      const conn = await s.env.agents.activate(s.agentServer);
+      if (gen !== s.generation || !conn || s.sessionId === null) return;
+
       // s.configOptions already shows the draft's selections optimistically
       // (createAgentSession merged them); reconcile against the agent's raw
       // session/new config so the wire calls are not skipped as already
@@ -933,22 +933,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         if (gen === s.generation) s.configOptions = applied;
         throw e;
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (!configOptions) return;
+      s.configOptions = configOptions;
+
+      void s.env.agents.upsertCachedConfig(s.agentServer, {
+        configOptions: s.configOptions,
+        availableCommands: s.availableCommands,
+        modes: s.modes,
+      });
+    }
+
+    // Persist the session config snapshot now rather than waiting for the
+    // first transcript flush — if the first prompt errors or the app exits
+    // mid-turn, the draft selections would otherwise never reach storage.
+    s.metadataManager.refresh();
+  }
+}
 
 function isStandaloneSlashCommand(text: string, content: ContentBlock[]): boolean {
   return (

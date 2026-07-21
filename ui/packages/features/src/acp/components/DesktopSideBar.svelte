@@ -28,16 +28,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     type ACPConversationsState,
     type ACPNavProject,
     type ACPProjectsState,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } from "../navTypes";
+  import { getACPConversationRepo } from "../features/ConversationRepository.svelte";
   import { getACPAgentUpdateRepo } from "../features/AgentUpdateRepository.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPGithubRepo } from "../features/GithubRepository.svelte";
+  import { getACPProjectRepo } from "../features/ProjectRepository.svelte";
+  import { getACPWorktreeRepo } from "../features/WorktreeRepository";
+  import type { ACPSession } from "../features/Session.svelte";
   import { workspacePathFitsWorkspaceFolders } from "../workspacePaths";
   import { githubPRActionLabel } from "../github/githubStatus";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { setAcpSidebarController } from "./sidebar/SidebarController.svelte";
   import {
     CONVERSATION_SHORTCUT_LIMIT,
     conversationShortcutIndexFromKeyboardEvent,
@@ -632,8 +632,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   onDestroy(() => {
     sidebar.destroy();
     heldModifierHint.destroy();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    conversationArchiveCountdown.destroy();
+    worktreeRemovalCountdown.destroy();
     for (const conversationId of exitingConversationIds) {
       sidebarToasts.dismiss(conversationArchiveToastId(conversationId));
     }
@@ -820,7 +820,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     sessionToCancel: ACPSession | null = null,
     selectionRollback?: SelectionRollback,
   ) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    worktreeRemovalCountdown.cancel(path);
     setWorktreeExiting(path, true);
     sidebarToasts.updateProgressToast(worktreeDeleteToastId(path), "Running teardown script", {
       kind: "indeterminate",
@@ -914,7 +914,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   function undoRemoveWorktree(path: string) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    worktreeRemovalCountdown.cancel(path);
     sidebarToasts.dismiss(worktreeDeleteToastId(path));
     setWorktreeExiting(path, false);
     const selectionRollback = worktreeSelectionRollbacks.get(path);
@@ -1172,7 +1172,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     sessionToCancel: ACPSession | null = null,
     selectionRollback?: SelectionRollback,
   ) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    conversationArchiveCountdown.cancel(conversationId);
     sidebarToasts.dismiss(conversationArchiveToastId(conversationId));
     setConversationExiting(conversationId, true);
     try {
@@ -1221,18 +1221,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       { kind: "countdown", durationMs: UNDO_COUNTDOWN_SECONDS * 1000 },
       { label: "Cancel", onClick: () => undoArchiveSession(session.id) },
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    conversationArchiveCountdown.start(
+      session.id,
+      () =>
         void performArchiveSession(
           session.cwd,
           session.sessionId,
           agentServer,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          session.id,
           sessionToCancel,
           selectionRollback,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        ),
+    );
   }
 
   function handleArchiveSessionNow(session: ACPConversationSummary, event: MouseEvent) {
@@ -1654,9 +1654,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   {collapseDisabled}
   ariaLabel="ACP conversations"
   toggleTitle={sidebarToggleTitle()}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  toggleShortcutHint={conversationShortcutHintsVisible
+    ? (shortcutHint("toggleLeftPanel") ?? undefined)
+    : undefined}
   onCollapsedChange={setCollapsed}
   {onResizeStart}
   onResizeKeydown={handleResizeKeydown}
@@ -1686,9 +1686,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          shortcutHint={conversationShortcutHintsVisible
+            ? (shortcutHint("newConversation") ?? undefined)
+            : undefined}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
           onclick={() => {
             void handleNewSession();
@@ -1718,10 +1718,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         <SidebarNavButton
           icon="search"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          title={withShortcut("Search conversations", "searchConversations")}
+          shortcutHint={conversationShortcutHintsVisible
+            ? (shortcutHint("searchConversations") ?? undefined)
+            : undefined}
           selected={conversationSearchOpen}
           onclick={() => openConversationSearch()}
         />

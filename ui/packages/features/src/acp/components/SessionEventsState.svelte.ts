@@ -97,8 +97,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
  * migration. Finished turns summarize regardless of the mode — except
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ * interrupted ones, which keep their streaming layout (see
+ * `groupModeForTool`).
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -125,10 +125,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      /**
+       * Set on groups formed while the turn streams and kept on interrupted
+       * turns' groups; absent on end-of-turn summaries.
+       */
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
@@ -221,10 +221,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (tools.length >= 2) {
         result.push({
           // Anchor the id on the first tool, matching the compact folds, so an
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          // interrupted compact group that absorbed a leading message keeps
+          // the id it had while streaming and the row is not re-keyed
+          // (remounting would collapse an expanded group).
+          id: `group-${tools[0].index}`,
           kind: "event_group",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -378,7 +378,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         // keep absorbing all bufferable events. Interrupted "compact" turns
         // absorb via their membership fold above, never here.
         const absorbs = nextMode && (!nextMode.live || isSteerMessage(event));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (absorbs) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         } else if (isSteerMessage(event) && addSteerToExistingGroup({ event, index: i })) {
           continue;
@@ -420,11 +420,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   ): GroupMode | null {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      // An interrupted turn keeps its streaming shape rather than compacting
+      // into the whole-turn summary a naturally completed turn gets: in
+      // "grouped" mode agent messages stay outside the fold and split the tool
+      // runs, in "compact" mode the turn stays one fold with the interim
+      // messages absorbed (see `grouped`), and in "detailed" mode nothing
       // folds at all. Once the interrupt settles, the automatic two-slot tail
       // joins the fold: it was only kept out to stabilize the live transcript.
       // A tool the user explicitly expanded still pins the fold boundary, so

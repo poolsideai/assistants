@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon, { type IconName } from "@poolsideai/components/icon";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import Kbd from "@poolsideai/components/kbd";
   import BadgedIcon from "../BadgedIcon.svelte";
   import { suppressContextMenu } from "./contextMenuHelpers";
 
@@ -14,7 +14,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     selected?: boolean;
     disabled?: boolean;
     title?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    shortcutHint?: string;
     /** Small trailing pill, e.g. "Experimental". */
     pill?: string;
     pillAppearance?: "default" | "vibrant";
@@ -31,7 +31,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     selected = false,
     disabled = false,
     title,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    shortcutHint,
     pill,
     pillAppearance = "default",
     class: className = "",
@@ -85,7 +85,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       {pill}
     </span>
   {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {#if shortcutHint}
     <!-- Pinned to secondary so the ⌘-hint stays a step dimmer than the label,
          matching the hints in the conversation rows. -->
     <Kbd
@@ -93,7 +93,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       class={["ml-auto shrink-0", !selected && "text-psx-foreground-secondary"]}
       aria-hidden="true"
     />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {/if}
 </button>
 
 <style>

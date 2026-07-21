@@ -1,31 +1,31 @@
 import type { SessionConfigOption, SessionNotification } from "@agentclientprotocol/sdk";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { LocalInferenceModel, LocalInferenceState } from "@poolsideai/helperapi/schemas";
 import type { ACPAgentServers } from "@poolsideai/rpc";
 import { get } from "svelte/store";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ACP_AUTH_REQUIRED_ERROR_CODE } from "../authMethods";
 import { ACPError } from "../errors";
 import { appState, type AppState } from "../hostAdapter";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { ACPAgentRepository } from "./AgentRepository.svelte";
 import { applyDefaultConfigOptions } from "./session/configOptions";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+vi.mock("@poolsideai/helperapi", () => ({
+  initializeStatefulModule: vi.fn(),
+  poolsideAcpNavGetConfigCache: vi.fn(),
+  poolsideAcpNavListAgentServers: vi.fn(),
+  poolsideAcpNavSetAgentServers: vi.fn(),
+  poolsideAcpNavUpsertConfigCache: vi.fn(async () => ({ entry: null })),
   poolsideAcpSessionClose: vi.fn(async () => ({})),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}));
+
+describe("ACPAgentRepository", () => {
   let previousAppState: AppState;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  beforeEach(() => {
     previousAppState = get(appState);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    vi.clearAllMocks();
+  });
+
   afterEach(() => {
     appState.set(previousAppState);
   });
@@ -702,50 +702,50 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(repo.defaultAgentServerPinned).toBe(false);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("logs out only when the agent advertises logout support", async () => {
+    const logout = vi.fn().mockResolvedValue({});
+    const repo = new ACPAgentRepository();
+    repo.setConnectionPool({
+      connect: vi.fn().mockResolvedValue({
+        conn: { logout },
+        initializeResponse: {
+          protocolVersion: 1,
+          agentCapabilities: { auth: { logout: {} } },
+          authMethods: [{ id: "login", name: "Login" }],
+        },
+      }),
+    });
+    repo.handleAuthenticateUpdate({ authUri: "https://example.com/device" }, "codex-acp");
+
+    await repo.logout("codex-acp");
+
+    expect(logout).toHaveBeenCalledWith({});
+    expect(repo.supportsLogout("codex-acp")).toBe(true);
+    expect(repo.authRequiredForAgent("codex-acp")).toBe(true);
+    expect(repo.authUriForAgent("codex-acp")).toBeNull();
+  });
+
+  it("does not call logout when the capability is omitted", async () => {
+    const logout = vi.fn().mockResolvedValue({});
+    const repo = new ACPAgentRepository();
+    repo.setConnectionPool({
+      connect: vi.fn().mockResolvedValue({
+        conn: { logout },
+        initializeResponse: {
+          protocolVersion: 1,
+          agentCapabilities: {},
+          authMethods: [{ id: "login", name: "Login" }],
+        },
+      }),
+    });
+
+    await repo.logout("codex-acp");
+
+    expect(logout).not.toHaveBeenCalled();
+    expect(repo.supportsLogout("codex-acp")).toBe(false);
+    expect(repo.authRequiredForAgent("codex-acp")).toBe(false);
+  });
+
   it("recognizes native Claude and Codex steering but not Pool", () => {
     const repo = new ACPAgentRepository();
     repo.initializeResponses = {
@@ -781,17 +781,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(repo.supportsSteering("other")).toBe(false);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("clears auth-required state using normalized agent names", () => {
+    const repo = new ACPAgentRepository();
+
+    repo.markAuthRequired("default");
+    repo.handleAuthenticateUpdate({ authUri: "https://example.com/device" }, "default");
+    repo.clearAuthRequired("default");
+
+    expect(repo.authRequiredForAgent("poolside")).toBe(false);
+    expect(repo.authUriForAgent("poolside")).toBeNull();
+  });
+
   it("quietly keeps polling when an auth probe still requires authentication", async () => {
     const authenticate = vi.fn().mockRejectedValue(
       new ACPError({
@@ -840,82 +840,82 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(repo.nonSessionErrorFor("poolside")).toBeNull();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("prefers the live agentInfo version over the cached one", async () => {
+    const repo = new ACPAgentRepository();
+    repo.setConnectionPool({
+      connect: vi.fn().mockResolvedValue({
+        conn: {},
+        initializeResponse: {
+          protocolVersion: 1,
+          agentCapabilities: {},
+          authMethods: [],
+          agentInfo: { name: "pool", title: "Poolside", version: "0.3.20" },
+        },
+      }),
+    });
+    repo.configCacheByAgentServer = {
+      poolside: {
+        agentServer: "poolside",
+        configOptions: [],
+        availableCommands: [],
+        modes: null,
+        promptCapabilities: null,
+        agentInfo: { name: "pool", version: "0.3.19" },
+        cachedAt: "2026-06-22T00:00:00.000Z",
+      },
+    };
+
+    expect(repo.installedVersionFor("default")).toBe("0.3.19");
+    await repo.connectServer("poolside");
+    expect(repo.installedVersionFor("default")).toBe("0.3.20");
+  });
+
+  it("returns null when no agentInfo version is known", () => {
+    const repo = new ACPAgentRepository();
+    expect(repo.installedVersionFor("poolside")).toBeNull();
+  });
+
+  it("persists agentInfo on refresh and serves it from the store in a fresh repository", async () => {
+    const { poolsideAcpNavGetConfigCache, poolsideAcpNavUpsertConfigCache } = await import(
+      "@poolsideai/helperapi"
+    );
+    const repo = new ACPAgentRepository();
+    repo.setConnectionPool({
+      connect: vi.fn().mockResolvedValue({
+        conn: {
+          newSession: vi.fn().mockResolvedValue({ sessionId: "probe-session", configOptions: [] }),
+        },
+        initializeResponse: {
+          protocolVersion: 1,
+          agentCapabilities: {},
+          authMethods: [],
+          agentInfo: { name: "pool", title: "Poolside", version: "0.3.20" },
+        },
+      }),
+    });
+    vi.mocked(poolsideAcpNavUpsertConfigCache).mockImplementationOnce(async (params) => ({
+      entry: { ...params, cachedAt: "2026-07-10T00:00:00.000Z" },
+    }));
+
+    await repo.refreshCachedConfig("poolside", "/");
+
+    expect(poolsideAcpNavUpsertConfigCache).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentServer: "poolside",
+        agentInfo: { name: "pool", title: "Poolside", version: "0.3.20" },
+      }),
+    );
+
+    const persisted = vi.mocked(poolsideAcpNavUpsertConfigCache).mock.calls[0][0];
+    vi.mocked(poolsideAcpNavGetConfigCache).mockResolvedValueOnce({
+      entry: { ...persisted, cachedAt: "2026-07-10T00:00:00.000Z" },
+    });
+
+    const fresh = new ACPAgentRepository();
+    await fresh.loadCachedConfigFromStore("poolside");
+    expect(fresh.installedVersionFor("poolside")).toBe("0.3.20");
+  });
+
   it("re-probes a stale config probe and closes the superseded probe session after a drain delay", async () => {
     vi.useFakeTimers({ toFake: ["Date", "setTimeout"] });
     try {
@@ -1477,307 +1477,307 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(core).toHaveBeenCalledTimes(1);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("reports config cache refreshes using normalized agent names", () => {
+    const repo = new ACPAgentRepository();
+    repo.configCacheRefreshes.set("poolside", Promise.resolve());
+
+    expect(repo.isConfigCacheRefreshInFlightFor("default")).toBe(true);
+    expect(repo.isConfigCacheRefreshInFlightFor("codex-acp")).toBe(false);
+  });
+
+  it("returns the in-flight refresh instead of starting another", async () => {
+    const repo = new ACPAgentRepository();
+    let releaseFirst = () => {};
+    const core = vi
+      .spyOn(
+        repo as unknown as { refreshCachedConfigCore: (a: string, c: string) => Promise<void> },
+        "refreshCachedConfigCore",
+      )
+      .mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            releaseFirst = resolve;
+          }),
+      );
+
+    const first = repo.refreshCachedConfig("local", "/");
+    const second = repo.refreshCachedConfig("local", "/");
+
+    await flushMicrotasks();
+    expect(core).toHaveBeenCalledTimes(1);
+    releaseFirst();
+    await Promise.all([first, second]);
+    expect(core).toHaveBeenCalledTimes(1);
+    expect(repo.isConfigCacheRefreshInFlightFor("local")).toBe(false);
+  });
+
+  it("chains a fresh refresh behind an in-flight one", async () => {
+    const repo = new ACPAgentRepository();
+    let releaseFirst = () => {};
+    const core = vi
+      .spyOn(
+        repo as unknown as { refreshCachedConfigCore: (a: string, c: string) => Promise<void> },
+        "refreshCachedConfigCore",
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            releaseFirst = resolve;
+          }),
+      )
+      .mockResolvedValueOnce(undefined);
+
+    const first = repo.refreshCachedConfig("local", "/");
+    const second = repo.refreshCachedConfig("local", "/", { fresh: true });
+
+    await flushMicrotasks();
+    // The fresh refresh waits for the in-flight probe to finish.
+    expect(core).toHaveBeenCalledTimes(1);
+
+    releaseFirst();
+    await Promise.all([first, second]);
+    expect(core).toHaveBeenCalledTimes(2);
+    expect(repo.isConfigCacheRefreshInFlightFor("local")).toBe(false);
+  });
+
+  it("merges downloaded local inference models into the cached model config option", async () => {
+    const { poolsideAcpNavUpsertConfigCache } = await import("@poolsideai/helperapi");
+    const repo = new ACPAgentRepository();
+    repo.configCacheByAgentServer = {
+      local: {
+        agentServer: "local",
+        configOptions: [
+          {
+            id: "mode",
+            type: "select",
+            name: "Mode",
+            category: "mode",
+            options: [{ name: "Default", value: "default" }],
+            currentValue: "default",
+          },
+          {
+            id: "model",
+            type: "select",
+            name: "Model",
+            category: "model",
+            options: [{ name: "old-model", value: "old-model" }],
+            currentValue: "old-model",
+          },
+        ],
+        availableCommands: [{ name: "help", description: "Help" }],
+        modes: { currentModeId: "default", availableModes: [] },
+        promptCapabilities: null,
+        agentInfo: null,
+        cachedAt: "2026-06-22T00:00:00.000Z",
+      },
+    };
+
+    await repo.upsertLocalInferenceModelConfigOptions(
+      "local",
+      localInferenceState([
+        localInferenceModel({
           id: "mlx-community/Laguna-XS-2.1-4bit",
           name: "Laguna XS 2.1 4-bit",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          downloaded: true,
+          recommended: true,
+          default: true,
+        }),
+        localInferenceModel({
+          id: "mlx-community/Qwen3.6-35B-A3B-OptiQ-4bit",
+          name: "Qwen3.6 35B A3B OptiQ 4-bit",
+          downloaded: true,
+          recommended: true,
+        }),
+        localInferenceModel({
+          id: "custom/Downloaded-From-Search-4bit",
+          name: "Downloaded From Search 4bit",
+          downloaded: true,
+          recommended: false,
+        }),
+        localInferenceModel({
+          id: "custom/Disabled-4bit",
+          name: "Disabled 4bit",
+          downloaded: true,
+          disabled: true,
+        }),
+        localInferenceModel({
+          id: "mlx-community/gemma-4-e4b-it-qat-OptiQ-4bit",
+          name: "Gemma 4 E4B IT QAT OptiQ 4-bit",
+          downloaded: false,
+          recommended: true,
+        }),
+      ]),
+    );
+
+    expect(repo.configCacheByAgentServer.local.configOptions).toEqual([
+      expect.objectContaining({ id: "mode", currentValue: "default" }),
+      {
+        id: "model",
+        type: "select",
+        name: "Model",
+        category: "model",
+        currentValue: "mlx-community/Qwen3.6-35B-A3B-OptiQ-4bit",
+        options: [
+          {
             name: "mlx-community/Laguna-XS-2.1-4bit",
             value: "mlx-community/Laguna-XS-2.1-4bit",
             description: "mlx-community/Laguna-XS-2.1-4bit",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          },
+          {
+            name: "mlx-community/Qwen3.6-35B-A3B-OptiQ-4bit",
+            value: "mlx-community/Qwen3.6-35B-A3B-OptiQ-4bit",
+            description: "mlx-community/Qwen3.6-35B-A3B-OptiQ-4bit",
+          },
+          {
+            name: "custom/Downloaded-From-Search-4bit",
+            value: "custom/Downloaded-From-Search-4bit",
+            description: "custom/Downloaded-From-Search-4bit",
+          },
+        ],
+      },
+    ]);
+    expect(poolsideAcpNavUpsertConfigCache).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentServer: "local",
+        configOptions: [
+          expect.objectContaining({ id: "mode", currentValue: "default" }),
+          expect.objectContaining({
+            id: "model",
+            currentValue: "mlx-community/Qwen3.6-35B-A3B-OptiQ-4bit",
+          }),
+        ],
+      }),
+    );
+  });
+
+  it("removes stale local model config options when no models are downloaded", async () => {
+    const repo = new ACPAgentRepository();
+    repo.configCacheByAgentServer = {
+      local: {
+        agentServer: "local",
+        configOptions: [
+          {
+            id: "mode",
+            type: "select",
+            name: "Mode",
+            category: "mode",
+            options: [{ name: "Default", value: "default" }],
+            currentValue: "default",
+          },
+          {
+            id: "model",
+            type: "select",
+            name: "Model",
+            category: "model",
+            options: [{ name: "old-model", value: "old-model" }],
+            currentValue: "old-model",
+          },
+        ],
+        availableCommands: [],
+        modes: null,
+        promptCapabilities: null,
+        agentInfo: null,
+        cachedAt: "2026-06-22T00:00:00.000Z",
+      },
+    };
+
+    await repo.upsertLocalInferenceModelConfigOptions(
+      "local",
+      localInferenceState([
+        localInferenceModel({
+          id: "custom/Not-Downloaded-4bit",
+          name: "Not Downloaded 4bit",
+          downloaded: false,
+        }),
+      ]),
+    );
+
+    expect(repo.configCacheByAgentServer.local.configOptions).toEqual([
+      expect.objectContaining({ id: "mode" }),
+    ]);
+  });
+
+  it("syncs config-probe mode updates into cached mode config options", async () => {
+    const { poolsideAcpNavUpsertConfigCache } = await import("@poolsideai/helperapi");
+    const repo = new ACPAgentRepository();
+    repo.configProbeSessionIds.set("poolside", "probe-session");
+    repo.configCacheByAgentServer = {
+      poolside: {
+        agentServer: "poolside",
+        configOptions: [
+          {
+            id: "mode",
+            type: "select",
+            name: "Mode",
+            category: "mode",
+            options: [
+              { name: "Default", value: "default" },
+              { name: "Plan", value: "plan" },
+            ],
+            currentValue: "default",
+          },
+        ],
+        availableCommands: [],
+        modes: null,
+        promptCapabilities: null,
+        agentInfo: null,
+        cachedAt: "2026-06-22T00:00:00.000Z",
+      },
+    };
+
+    const handled = repo.handleConfigProbeSessionUpdate("poolside", {
+      sessionId: "probe-session",
+      update: { sessionUpdate: "current_mode_update", currentModeId: "plan" },
+    } as SessionNotification);
+
+    expect(handled).toBe(true);
+    expect(repo.configCacheByAgentServer.poolside.configOptions).toEqual([
+      expect.objectContaining({ id: "mode", currentValue: "plan" }),
+    ]);
+    expect(repo.configCacheByAgentServer.poolside.modes).toEqual({
+      currentModeId: "plan",
+      availableModes: [],
+    });
+    expect(poolsideAcpNavUpsertConfigCache).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentServer: "poolside",
+        configOptions: [expect.objectContaining({ id: "mode", currentValue: "plan" })],
+        modes: { currentModeId: "plan", availableModes: [] },
+      }),
+    );
+  });
+});
+
+function localInferenceState(catalog: LocalInferenceModel[]): LocalInferenceState {
+  return {
+    catalog,
+    modelsDirectory: "/tmp/models",
+    runtime: {
+      supported: true,
+      status: "running",
+      agentServer: "local",
+      defaultModelId: "mlx-community/Qwen3.6-35B-A3B-OptiQ-4bit",
+    },
+  };
+}
+
+function localInferenceModel(
+  model: Partial<LocalInferenceModel> & { id: string },
+): LocalInferenceModel {
+  return {
+    id: model.id,
+    repoId: model.repoId ?? model.id,
+    name: model.name ?? model.id,
+    provider: model.provider ?? "provider",
+    downloaded: model.downloaded ?? false,
+    recommended: model.recommended,
+    default: model.default,
+    disabled: model.disabled,
+  };
+}
+
+async function flushMicrotasks(): Promise<void> {
+  for (let i = 0; i < 10; i += 1) {
+    await Promise.resolve();
+  }
+}

@@ -3,7 +3,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { formatRelativeTimeWithoutAgo } from "../../shared/time";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { ACPConversationSummary } from "../../navTypes";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -14,10 +14,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } from "../../features/session/SessionMetadata";
   import { appState } from "../../hostAdapter";
   import { shortenHomeDirectoryInText } from "../../shared/paths";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getAcpSidebarController } from "./SidebarController.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

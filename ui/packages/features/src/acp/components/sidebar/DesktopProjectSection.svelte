@@ -11,11 +11,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     worktreeBusyLabel,
     type ACPConversationSummary,
     type ACPNavProject,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } from "../../navTypes";
   import ConversationGroup from "./ConversationGroup.svelte";
   import RenamableLabel from "./RenamableLabel.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getAcpSidebarController } from "./SidebarController.svelte";
+  import { getACPGithubRepo } from "../../features/GithubRepository.svelte";
   import { githubDotColorClass, githubStatusSummary } from "../../github/githubStatus";
   import GithubWorktreeTooltip from "./GithubWorktreeTooltip.svelte";
   import { withShortcut } from "../../../keybindings";

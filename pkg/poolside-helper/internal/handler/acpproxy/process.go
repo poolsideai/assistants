@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"crypto/sha512"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -154,7 +154,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	p.sessionIsProbe = false
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	p.exited = nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	p.onStop = nil
 	p.claudeAuthVerified = false
 	p.promptRuntimeErr = nil
 	p.promptCancels = nil
@@ -350,31 +350,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	return initReq
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// startLocked spawns the subprocess and performs the ACP handshake.
 // It must be called with p.mu held.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 		return nil
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	err := p.spawnAndInitializeLocked(ctx, cfg, client, initReq)
+	var handshakeErr *initializeHandshakeError
+	if err == nil || !errors.As(err, &handshakeErr) {
+		return err
+	}
+	if ctx.Err() != nil {
+		return err
+	}
+	if clearErr := clearNpxCacheEntry(cfg); clearErr != nil {
+		slog.Debug("acpproxy: initialize failed; not retrying", "server", cfg.serverName, "reason", clearErr)
+		return err
+	}
+	slog.Warn("acpproxy: initialize failed; cleared npx cache entry and retrying once", "server", cfg.serverName, "error", err)
+	return p.spawnAndInitializeLocked(ctx, cfg, client, initReq)
+}
+
+// spawnAndInitializeLocked must be called with p.mu held.
+func (p *process) spawnAndInitializeLocked(ctx context.Context, cfg startConfig, client *acpClient, initReq acpsdk.InitializeRequest) error {
 	env, err := buildProcessEnv(cfg)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 		return err
@@ -439,7 +439,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	initResp, err := conn.Initialize(initCtx, initReq)
 	if err != nil {
 		stdin.Close()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		_ = killProcessTree(cmd)
 		_ = cmd.Wait()
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -457,12 +457,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	p.initReq = &initReqCopy
 	p.stdin = stdin
 	p.exited = exited
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	p.onStop = func() {
+		slog.Info("acpproxy: subprocess stopped", "server", cfg.serverName)
+		if cfg.onExit != nil {
+			cfg.onExit(cfg.serverName, nil)
+		}
+	}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 	go p.watchExit(cfg.serverName, cmd, exited, cfg.onExit)
@@ -610,25 +610,25 @@ func (p *process) resumeSessionLocked(ctx context.Context, req acpsdk.ResumeSess
 // ignores EOF cannot outlive the helper.
 func (p *process) stop() error {
 	serverName, cmd, exited, onStop, closeErr := func() (string, *exec.Cmd, chan struct{}, func(), error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		p.mu.Lock()
+		defer p.mu.Unlock()
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		if !p.isRunningLocked() {
+			p.resetLocked(processState{})
 			return p.serverName, nil, nil, nil, nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		}
+
+		var closeErr error
+		if p.stdin != nil {
+			closeErr = p.stdin.Close()
+		}
 		serverName, cmd, exited, onStop := p.serverName, p.cmd, p.exited, p.onStop
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 		return serverName, cmd, exited, onStop, closeErr
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}()
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if onStop != nil {
+		onStop()
 	}
 	awaitProcessExit(serverName, cmd, exited)
 	return closeErr
@@ -1041,80 +1041,80 @@ func pruneBrokenNpxCache(cacheDir string) error {
 	return nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// clearNpxCacheEntry removes the agent's install dir from the helper-owned npx
+// cache.
+func clearNpxCacheEntry(cfg startConfig) error {
+	if !shouldUsePoolsideNPMCache(cfg) {
+		return errors.New("agent does not use the helper-owned npm cache")
+	}
+	pkgs := npxPackageSpecs(cfg.extraArgs)
+	if len(pkgs) == 0 {
+		return errors.New("no npx package spec in agent args")
+	}
+	if len(pkgs) > 1 {
+		return errors.New("multiple npx package specs; cache key not reproducible")
+	}
+	cacheDir, err := poolsideNPMCacheDir()
+	if err != nil {
+		return err
+	}
+	installDir := filepath.Join(cacheDir, "_npx", npxInstallDirName(pkgs[0]))
+	if _, err := os.Stat(installDir); err != nil {
+		return fmt.Errorf("no npx cache entry: %w", err)
+	}
+	if err := os.RemoveAll(installDir); err != nil {
+		return fmt.Errorf("remove npx cache entry: %w", err)
+	}
+	slog.Info("acpproxy: cleared npx cache entry", "packages", pkgs, "dir", installDir)
+	return nil
+}
+
+// npxInstallDirName mirrors libnpmexec's cache key for a single package spec.
+func npxInstallDirName(pkg string) string {
+	sum := sha512.Sum512([]byte(pkg))
+	return hex.EncodeToString(sum[:])[:16]
+}
+
+var npxBooleanFlags = map[string]struct{}{
+	"-y": {}, "--yes": {}, "--no": {}, "-q": {}, "--quiet": {},
+}
+
+// npxPackageSpecs returns explicit package options or the positional package.
+// It returns nil when the positional package is ambiguous.
+func npxPackageSpecs(args []string) []string {
+	var packages []string
+	var positional string
+	ambiguous := false
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch {
+		case arg == "--package" || arg == "-p":
+			if i+1 < len(args) {
+				i++
+				packages = append(packages, args[i])
+			}
+		case strings.HasPrefix(arg, "--package="):
+			packages = append(packages, strings.TrimPrefix(arg, "--package="))
+		case strings.HasPrefix(arg, "-p="):
+			packages = append(packages, strings.TrimPrefix(arg, "-p="))
+		case arg == "" || strings.Contains(arg, "="):
+		case strings.HasPrefix(arg, "-"):
+			if _, ok := npxBooleanFlags[arg]; !ok && positional == "" {
+				ambiguous = true
+			}
+		case positional == "":
+			positional = arg
+		}
+	}
+	if len(packages) > 0 {
+		return packages
+	}
+	if positional != "" && !ambiguous {
+		return []string{positional}
+	}
+	return nil
+}
+
 func filterThirdPartyEnv(env []string) []string {
 	filtered := make([]string, 0, len(env))
 	for _, entry := range env {
@@ -1189,19 +1189,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+type initializeHandshakeError struct {
+	err error
+}
+
+func (e *initializeHandshakeError) Error() string { return e.err.Error() }
+
+func (e *initializeHandshakeError) Unwrap() error { return e.err }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		return &initializeHandshakeError{err: fmt.Errorf("acpproxy: initialize: %w", err)}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return &initializeHandshakeError{err: fmt.Errorf("acpproxy: initialize: %w; subprocess stderr:\n%s", err, stderrTail)}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 type mcpConnectorCredentialsError struct{}

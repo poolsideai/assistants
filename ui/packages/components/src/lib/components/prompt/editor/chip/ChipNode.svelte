@@ -58,7 +58,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     {#if icon && isSnippet(icon)}
       {@render icon()}
     {:else if fileIconPath}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <span class="mr-0.5 inline-flex items-center align-middle" aria-hidden="true">
         <Icon
           type="file"
           name={fileIconPath}
@@ -67,7 +67,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         />
       </span>
     {:else if icon}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <Icon name={icon} size={12} class="mr-1 align-middle" />
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   </div>
 </ChipTooltip>
@@ -75,7 +75,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    @apply relative isolate inline-block truncate align-middle text-sm select-none;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -113,7 +113,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        @apply border-none opacity-25;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

@@ -1424,13 +1424,13 @@ func TestStoreConfigCache(t *testing.T) {
 		Modes:              []byte(`{"currentModeId":"plan","availableModes":[]}`),
 		AvailableCommands:  []byte(`[{"name":"help"}]`),
 		PromptCapabilities: []byte(`{"image":true,"embeddedContext":false}`),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		AgentInfo:          []byte(`{"name":"pool","title":"Poolside","version":"0.3.19"}`),
 	})
 	require.NoError(t, err)
 	require.Equal(t, "poolside", entry.AgentServer)
 	require.JSONEq(t, `[{"id":"model","type":"select","currentValue":"gpt-5"}]`, string(entry.ConfigOptions))
 	require.JSONEq(t, `{"image":true,"embeddedContext":false}`, string(entry.PromptCapabilities))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.JSONEq(t, `{"name":"pool","title":"Poolside","version":"0.3.19"}`, string(entry.AgentInfo))
 	require.NotEmpty(t, entry.CachedAt)
 
 	entry, err = store.GetConfigCache(ctx, "poolside")
@@ -1439,17 +1439,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	require.JSONEq(t, `{"currentModeId":"plan","availableModes":[]}`, string(entry.Modes))
 	require.JSONEq(t, `[{"name":"help"}]`, string(entry.AvailableCommands))
 	require.JSONEq(t, `{"image":true,"embeddedContext":false}`, string(entry.PromptCapabilities))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.JSONEq(t, `{"name":"pool","title":"Poolside","version":"0.3.19"}`, string(entry.AgentInfo))
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// Capabilities and agent info default to JSON null when omitted (not
+	// persisted as empty).
 	entry, err = store.UpsertConfigCache(ctx, methods.ACPNavUpsertConfigCacheParams{
 		AgentServer:   "no-caps",
 		ConfigOptions: []byte(`[]`),
 	})
 	require.NoError(t, err)
 	require.JSONEq(t, `null`, string(entry.PromptCapabilities))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.JSONEq(t, `null`, string(entry.AgentInfo))
 }
 
 func TestSetAgentServersPreservesConfigCache(t *testing.T) {

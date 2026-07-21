@@ -4,8 +4,8 @@ import {
   ACP_SESSION_NEW_EVENT,
   ACP_SESSION_TITLE_EVENT,
   ACP_SESSION_TURN_EVENT,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/Session.svelte";
+import type { ACPSessionMetadataSnapshot } from "./features/session/SessionMetadata";
 
 interface ACPHistorySyncTarget {
   refresh?: (cwd?: string) => Promise<void>;

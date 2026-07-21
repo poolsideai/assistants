@@ -21,11 +21,11 @@
   import {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } from "../../../features/ChatSessionScope.svelte";
   import {
     getACPProjectRepo,
     type ACPProjectRepository,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } from "../../../features/ProjectRepository.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   // Reserved sentinel values for menu rows that don't map to a real file.
@@ -418,7 +418,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 label: `${folderName}/`,
                 icon: "folder",
                 value: control.path,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                clipboard: `\`${control.path}\``,
                 tooltip: control.displayPath,
               }}
             />
@@ -463,7 +463,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 icon: isDirectory ? "folder" : "file",
                 fileIconPath: isDirectory ? undefined : path,
                 value: path,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                clipboard: `\`${path}\``,
                 tooltip: displayPath ?? path,
               }}
               onInsert={async ({ value }) => {

@@ -2,7 +2,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPMCPSettingsRepo } from "../../features/MCPSettingsRepository.context";
   import type { MenuSpecItem } from "../ui/menuSpec";
   import ConnectorServiceIcon from "./ConnectorServiceIcon.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__

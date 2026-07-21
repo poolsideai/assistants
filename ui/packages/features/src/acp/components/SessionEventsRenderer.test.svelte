@@ -9,9 +9,9 @@
   import {
     setACPChatSessionScope,
     type ACPChatSessionScope,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } from "../features/ChatSessionScope.svelte";
   import { setACPAgentRegistryContext } from "../features/AgentRegistryRepository.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { ACPSessionRepository } from "../features/SessionRepository.svelte";
   import type { GroupedItem, ToolActivityMode } from "./SessionEventsState.svelte";
   import type { SessionEvent } from "../types";
   import SessionEventsRenderer from "./SessionEventsRenderer.svelte";

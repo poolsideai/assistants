@@ -1,37 +1,37 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type {
+  ClientSideConnection,
+  InitializeResponse,
+  PromptResponse,
+  RequestPermissionRequest,
+  SessionNotification,
   SessionUpdate,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "@agentclientprotocol/sdk";
+import { initializeStatefulModule as initializeHelperApi } from "@poolsideai/helperapi";
+import { isLoading, isSuccess } from "@poolsideai/lib/async-state";
 import { render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { get } from "svelte/store";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ElicitationRepository } from "../../elicitation/ElicitationRepository.svelte";
+import { DEFAULT_AGENT_SERVER } from "../agentServers";
+import type { ACPConnectionPool } from "../ConnectionPool";
+import { ACP_DEBUG_DUMP_LOADED_EVENT, type ACPDebugDumpLoadedEventDetail } from "../debugDump";
+import { ACPError } from "../errors";
+import { appState } from "../hostAdapter";
+import { ACP_PERMISSION_OVERRIDE_RULES_META_KEY } from "../permissionMeta";
+import { buildSessionInfo } from "../sessionInfo";
+import { ACPConversationStatusRepositoryWriter } from "./ConversationStatusRepository.svelte";
+import {
+  ACP_PENDING_CONVERSATION_AGENT_EVENT,
+  ACP_SESSION_NEW_EVENT,
+  ACP_SESSION_TURN_COMPLETED_EVENT,
+} from "./Session.svelte";
 import { HANDOFF_CONTEXT_RESOURCE_URI_PREFIX } from "./session/handoffContext";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { HOST_CONTEXT_RESOURCE_URI, hostContextBlock } from "./session/hostContext";
 import { ACPSessionRepositoryWriter as BaseACPSessionRepositoryWriter } from "./SessionRepository.svelte";
 import SessionRepositoryRouteHarness from "./SessionRepositoryRoute.test.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+let helperJsonrpcCall: ReturnType<typeof vi.fn>;
 const createdRepos: BaseACPSessionRepositoryWriter[] = [];
 
 // Every repository created in this file is tracked automatically so tests that
@@ -42,87 +42,87 @@ class ACPSessionRepositoryWriter extends BaseACPSessionRepositoryWriter {
     createdRepos.push(this);
   }
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+beforeEach(() => {
+  helperJsonrpcCall = vi.fn().mockResolvedValue({ entry: null });
+  initializeHelperApi({
+    jsonrpcCall: helperJsonrpcCall,
+    jsonrpcNotify: vi.fn().mockResolvedValue(undefined),
+  });
+});
+
+afterEach(() => {
+  vi.clearAllMocks();
   // Repositories whose tests claimed a conversation started the real
   // idle-sweep interval; dispose so it cannot leak across the test run.
   for (const repo of createdRepos.splice(0)) {
     repo.dispose();
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+});
+
+function mockConnection(overrides: Partial<ClientSideConnection> = {}): ClientSideConnection {
+  return {
+    initialize: vi.fn().mockResolvedValue({}),
+    newSession: vi.fn().mockResolvedValue({ sessionId: "s-new" }),
+    loadSession: vi.fn().mockResolvedValue({}),
     resumeSession: vi.fn().mockResolvedValue({}),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    prompt: vi.fn().mockResolvedValue({}),
     request: vi.fn().mockResolvedValue({}),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    cancel: vi.fn().mockResolvedValue({}),
+    setSessionMode: vi.fn().mockResolvedValue({}),
+    setSessionConfigOption: vi.fn().mockResolvedValue({}),
+    ...overrides,
+  } as unknown as ClientSideConnection;
+}
+
+async function connectRepo(
+  repo: ACPSessionRepositoryWriter,
+  conn: ClientSideConnection = mockConnection(),
+  initializeResponse: InitializeResponse = {
+    protocolVersion: 1,
+    authMethods: [],
+    agentCapabilities: {
+      loadSession: true,
+      sessionCapabilities: { list: {} },
+    },
+  } as InitializeResponse,
   agentServer = DEFAULT_AGENT_SERVER,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+): Promise<ClientSideConnection> {
+  repo.agents.setConnectionPool({
+    connect: vi.fn().mockResolvedValue({ conn, initializeResponse, transport: {} }),
+  } as unknown as ACPConnectionPool);
   const result = await repo.agents.activate(agentServer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  expect(result).toBe(conn);
+  return conn;
+}
+
+function sessionNotification(text: string, sessionId = "s-loaded"): SessionNotification {
+  return {
+    sessionId,
+    update: {
+      sessionUpdate: "agent_message_chunk",
+      content: { type: "text", text },
+    },
+  } as SessionNotification;
+}
+
+function textBlock(text: string) {
   return { type: "text" as const, text };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+function toolNotification(sessionId = "s-loaded"): SessionNotification {
+  return {
+    sessionId,
+    update: {
+      sessionUpdate: "tool_call",
+      toolCallId: "tool-1",
+      title: "Edit",
+      kind: "edit",
+      rawInput: { path: "/repo/src/app.ts" },
+    },
+  } as SessionNotification;
+}
+
 async function loadNamedSession(repo: ACPSessionRepositoryWriter, conversationId: string) {
   const session = await repo.loadSessionRecord(
     `session-${conversationId}`,
@@ -135,26 +135,26 @@ async function loadNamedSession(repo: ACPSessionRepositoryWriter, conversationId
   return session!;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function permissionRequest(
+  overrides: Partial<RequestPermissionRequest> = {},
+): RequestPermissionRequest {
+  return {
+    sessionId: "s-loaded",
+    toolCall: {
+      toolCallId: "tool-1",
+      title: "Run test command",
+      kind: "execute",
+      rawInput: { cmd: "touch test.txt" },
+    },
+    options: [
+      { optionId: "allow-once", kind: "allow_once", name: "Allow once" },
+      { optionId: "reject-once", kind: "reject_once", name: "Deny" },
+    ],
+    ...overrides,
+  };
+}
+
+describe("ACPSessionRepositoryWriter", () => {
   it("routes compaction updates by session id rather than compaction id", () => {
     const repo = new ACPSessionRepositoryWriter();
     const session = repo.createSession("/repo", DEFAULT_AGENT_SERVER, "conv-compaction");
@@ -1821,127 +1821,127 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("connects with the configured transport", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection();
+
+    await connectRepo(repo, conn, {
+      protocolVersion: 1,
+      authMethods: [],
+      agentCapabilities: {},
+    } as InitializeResponse);
+
+    expect(repo.isConnected).toBe(true);
+    expect(repo.agents.getInitializeResponse(DEFAULT_AGENT_SERVER)).toMatchObject({
+      protocolVersion: 1,
+    });
+  });
+
+  it("keeps background agent connection failures off the global error surface", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    repo.agents.setConnectionPool({
+      connect: vi.fn().mockRejectedValue(new Error("third-party failed")),
+    } as unknown as ACPConnectionPool);
+
+    await expect(repo.agents.connectServer("third-party")).resolves.toBeNull();
+    expect(repo.agents.nonSessionError).toBeNull();
+
+    await expect(
+      repo.agents.connectServer("third-party", { surfaceErrors: true }),
+    ).resolves.toBeNull();
+    expect(repo.agents.nonSessionError?.message).toBe("third-party failed");
+  });
+
+  it("connects configured servers around the configured default agent", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const defaultConn = mockConnection();
+    const connect = vi.fn(async (agentServer: string) => {
+      if (agentServer === DEFAULT_AGENT_SERVER) {
+        return {
+          conn: defaultConn,
+          initializeResponse: {
+            protocolVersion: 1,
+            authMethods: [],
+            agentCapabilities: { loadSession: true },
+          },
+        };
+      }
+      throw new Error("third-party failed");
+    });
+    repo.agents.setConnectionPool({ connect } as unknown as ACPConnectionPool);
+    repo.agents.configureAgentServers([DEFAULT_AGENT_SERVER, "third-party"], DEFAULT_AGENT_SERVER);
+
+    await expect(repo.agents.connectConfiguredServers()).resolves.toBe(defaultConn);
+
+    expect(repo.agents.connectionFor(DEFAULT_AGENT_SERVER)).toBe(defaultConn);
+    expect(repo.agents.nonSessionError).toBeNull();
+  });
+
+  it("includes pending elicitations in published waiting status", () => {
+    const conversationStatus = new ACPConversationStatusRepositoryWriter();
+    const elicitation = new ElicitationRepository(conversationStatus.publicAPI());
+    const repo = new ACPSessionRepositoryWriter(conversationStatus.publicAPI(), elicitation);
+    const session = repo.createSession("/repo", DEFAULT_AGENT_SERVER, "conv-1");
+    session.sessionId = "session-1";
+    repo.publishLiveStatuses();
+    elicitation.register({
+      mode: "form",
+      elicitationId: "elicitation-1",
+      message: "test",
+      sessionId: "session-1",
+      agentServer: DEFAULT_AGENT_SERVER,
+    });
+
+    repo.publishLiveStatuses();
+
+    expect(repo.getConversationStatus("session-1", DEFAULT_AGENT_SERVER)).toEqual({
+      working: false,
+      waitingForUser: true,
+      unread: true,
+    });
+  });
+
+  it("clears cached connection state when an agent server exits", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const firstConn = mockConnection();
+    const secondConn = mockConnection();
+    let starts = 0;
+    let cached: {
+      conn: ClientSideConnection;
+      initializeResponse: InitializeResponse;
+      transport: {};
+    } | null = null;
+    const connect = vi.fn(async () => {
+      if (cached) return cached;
+      starts += 1;
+      cached = {
+        conn: starts === 1 ? firstConn : secondConn,
+        initializeResponse: {
+          protocolVersion: 1,
+          authMethods: [],
+          agentCapabilities: { loadSession: true },
+        },
+        transport: {},
+      };
+      return cached;
+    });
+    const disconnect = vi.fn(() => {
+      cached = null;
+    });
+    repo.agents.setConnectionPool({ connect, disconnect } as unknown as ACPConnectionPool);
+
+    await repo.agents.connect();
+    repo.handleAgentServerDidExit(DEFAULT_AGENT_SERVER, "exit status 2");
+
+    expect(repo.isConnected).toBe(false);
+    expect(repo.agents.capabilitiesFor(DEFAULT_AGENT_SERVER)).toBeNull();
+    expect(repo.agents.nonSessionError?.message).toBe("ACP agent server exited");
+    expect(disconnect).toHaveBeenCalledWith(DEFAULT_AGENT_SERVER);
+
+    await expect(repo.agents.connect()).resolves.toBe(secondConn);
+    expect(connect).toHaveBeenCalledTimes(2);
+  });
+
   it("clears in-flight steering and stale goal state when its agent server exits", () => {
     const repo = new ACPSessionRepositoryWriter();
     const session = repo.createSession("/repo", DEFAULT_AGENT_SERVER, "conv-active");
@@ -1984,24 +1984,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     ]);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("creates independent local sessions", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+
+    const first = repo.createSession("/repo/a", DEFAULT_AGENT_SERVER, "conv-a");
+    const second = repo.createSession("/repo/b", DEFAULT_AGENT_SERVER, "conv-b");
+
+    expect(first.conversationId).not.toBe(second.conversationId);
+    expect(repo.getSessionByConversationId(first.conversationId)).toBe(first);
+    expect(repo.getSessionByConversationId(second.conversationId)).toBe(second);
+    expect(first).toMatchObject({
+      sessionId: null,
+      cwd: "/repo/a",
+      conversationId: "conv-a",
+    });
+    expect(first.pendingConversationId).toBe("conv-a");
+    expect(first.pendingCwd).toBe("/repo/a");
+  });
+
   it("does not carry plan mode into a new draft for the same agent", async () => {
     const repo = new ACPSessionRepositoryWriter();
     vi.spyOn(repo.agents, "loadOrInitCachedConfig").mockResolvedValue(undefined);
@@ -2216,84 +2216,84 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("updates an existing pending conversation when its agent changes", () => {
+    const repo = new ACPSessionRepositoryWriter();
+
+    const first = repo.createSession("/repo/a", "codex-acp", "conv-a", {
+      isPendingConversationPersisted: true,
+    });
+    const second = repo.createSession("/repo/b", "claude-acp", "conv-a");
+
+    expect(second).toBe(first);
+    expect(repo.getSessionByConversationId("conv-a")).toBe(first);
+    expect(first).toMatchObject({
+      sessionId: null,
+      agentServer: "claude-acp",
+      cwd: "/repo/b",
+      conversationId: "conv-a",
+    });
+  });
+
+  it("merges local inference models into agent-created sessions' model config option", () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const modelOption = {
+      id: "model",
+      type: "select" as const,
+      name: "Model",
+      category: "model",
+      options: [{ name: "old-model", value: "old-model" }],
+      currentValue: "old-model",
+    };
+    const live = repo.createSession("/repo", "local", "conv-live");
+    live.sessionId = "s-live";
+    live.configOptions = [modelOption];
+    const pending = repo.createSession("/repo", "local", "conv-pending");
+    pending.configOptions = [modelOption];
+    const otherAgent = repo.createSession("/repo", "codex-acp", "conv-other");
+    otherAgent.sessionId = "s-other";
+    otherAgent.configOptions = [modelOption];
+
+    repo.applyLocalInferenceModelConfigToSessionsForAgent("local", {
+      modelsDirectory: "/tmp/models",
+      catalog: [
+        {
           id: "mlx-community/Laguna-XS-2.1-4bit",
           repoId: "mlx-community/Laguna-XS-2.1-4bit",
           name: "Laguna XS 2.1 4-bit",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          provider: "mlx-community",
+          downloaded: true,
+        },
+        {
+          id: "custom/Downloaded-From-Search-4bit",
+          repoId: "custom/Downloaded-From-Search-4bit",
+          name: "Downloaded From Search 4bit",
+          provider: "custom",
+          downloaded: true,
+        },
+      ],
+      runtime: {
+        supported: true,
+        status: "running",
+        agentServer: "local",
         defaultModelId: "mlx-community/Laguna-XS-2.1-4bit",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      },
+    });
+
+    expect(live.configOptions).toEqual([
+      expect.objectContaining({
+        id: "model",
         currentValue: "mlx-community/Laguna-XS-2.1-4bit",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        options: [
           expect.objectContaining({ value: "mlx-community/Laguna-XS-2.1-4bit" }),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          expect.objectContaining({ value: "custom/Downloaded-From-Search-4bit" }),
+        ],
+      }),
+    ]);
+    // Local-only sessions mirror the config cache via applyCachedConfig instead.
+    expect(pending.configOptions).toEqual([modelOption]);
+    expect(otherAgent.configOptions).toEqual([modelOption]);
+  });
+
   it("pushes a changed local inference model selection to the agent", () => {
     const repo = new ACPSessionRepositoryWriter();
     const modelOption = {
@@ -2594,38 +2594,38 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(setConfigOption).not.toHaveBeenCalled();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("does not publish draft conversations before first prompt", () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const listener = vi.fn();
+    repo.emitter.addEventListener(ACP_PENDING_CONVERSATION_AGENT_EVENT, listener);
+
+    const session = repo.createSession("/repo", DEFAULT_AGENT_SERVER);
+    repo.createSession("/repo", "claude-acp", session.conversationId);
+
+    expect(listener).not.toHaveBeenCalled();
+  });
+
+  it("publishes persisted pending conversation agent changes", () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const listener = vi.fn();
+    repo.emitter.addEventListener(ACP_PENDING_CONVERSATION_AGENT_EVENT, listener);
+
+    repo.createSession("/repo", DEFAULT_AGENT_SERVER, "conv-persisted", {
+      isPendingConversationPersisted: true,
+    });
+    repo.createSession("/repo", "claude-acp", "conv-persisted");
+
+    expect(listener).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: expect.objectContaining({
+          conversationId: "conv-persisted",
+          agentServer: "claude-acp",
+          cwd: "/repo",
+        }),
+      }),
+    );
+  });
+
   it("publishes chats under the chat navigation scope", () => {
     const repo = new ACPSessionRepositoryWriter();
     const listener = vi.fn();
@@ -2647,39 +2647,39 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("loads a session record into the collection without selecting it", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection({
+      loadSession: vi.fn(async () => {
+        repo.handleSessionUpdate(DEFAULT_AGENT_SERVER, sessionNotification("replayed"));
+        return {
+          configOptions: [
+            { id: "mode", type: "select" as const, name: "Mode", options: [], currentValue: "ask" },
+          ],
+          modes: { currentModeId: "ask", availableModes: [] },
+        };
+      }),
+    });
+    await connectRepo(repo, conn);
+
+    const load = repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      { title: "Loaded", conversationId: "conv-loaded" },
+      DEFAULT_AGENT_SERVER,
+    );
+    const session = repo.getSessionByConversationId("conv-loaded");
+
+    expect(session).not.toBeNull();
+    expect(repo.getSessionById("s-loaded", DEFAULT_AGENT_SERVER)).toBe(session);
+    expect(isLoading(session!.loadState)).toBe(true);
+    await expect(load).resolves.toBe(session);
+    expect(session!.sessionInfo).toMatchObject({ sessionId: "s-loaded", title: "Loaded" });
+    expect(session!.events).toHaveLength(1);
+    expect(isSuccess(session!.loadState)).toBe(true);
+  });
+
   it("promotes a replayed inline Devin title over the seeded title", async () => {
     const repo = new ACPSessionRepositoryWriter();
     const conn = mockConnection({
@@ -2869,50 +2869,50 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     ]);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("syncs backend mode updates into ACP session plan mode state", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection({
+      loadSession: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "mode",
+            type: "select" as const,
+            name: "Mode",
+            options: [
+              { label: "Default", value: "default" },
+              { label: "Plan", value: "plan" },
+            ],
+            currentValue: "default",
+          },
+        ],
+        modes: null,
+      }),
+    });
+    await connectRepo(repo, conn);
+
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      { conversationId: "conv-loaded" },
+      DEFAULT_AGENT_SERVER,
+    );
+    expect(session?.isPlanModeActive).toBe(false);
+
+    repo.handleSessionUpdate(DEFAULT_AGENT_SERVER, {
+      sessionId: "s-loaded",
+      update: { sessionUpdate: "current_mode_update", currentModeId: "plan" },
+    } as SessionNotification);
+
+    expect(session?.currentModeId).toBe("plan");
+    expect(session?.isPlanModeActive).toBe(true);
     // Plan-as-permission-mode keeps the banner, not the collaboration chip.
     expect(session?.planModeViaCollaboration).toBe(false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(session?.configOptions).toEqual([
+      expect.objectContaining({ id: "mode", currentValue: "plan" }),
+    ]);
+  });
+
   it("reads and toggles plan mode on the collaboration option that owns it", async () => {
     const repo = new ACPSessionRepositoryWriter();
     // Agents that separate the two leave only approval policies on `mode`, so
@@ -3066,79 +3066,79 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(session?.planModeViaCollaboration).toBe(true);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("keeps backend mode updates scoped to their ACP session", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection({
+      loadSession: vi.fn().mockResolvedValue({
+        configOptions: [],
+        modes: { currentModeId: "default", availableModes: [{ id: "plan", name: "Plan" }] },
+      }),
+    });
+    await connectRepo(repo, conn);
+
+    const first = await repo.loadSessionRecord(
+      "s-first",
+      "/repo/a",
+      [],
+      { conversationId: "conv-first" },
+      DEFAULT_AGENT_SERVER,
+    );
+    const second = await repo.loadSessionRecord(
+      "s-second",
+      "/repo/b",
+      [],
+      { conversationId: "conv-second" },
+      DEFAULT_AGENT_SERVER,
+    );
+
+    repo.handleSessionUpdate(DEFAULT_AGENT_SERVER, {
+      sessionId: "s-first",
+      update: { sessionUpdate: "current_mode_update", currentModeId: "plan" },
+    } as SessionNotification);
+
+    expect(first?.isPlanModeActive).toBe(true);
+    expect(second?.currentModeId).toBe("default");
+    expect(second?.isPlanModeActive).toBe(false);
+  });
+
+  it("promotes a session on first send and emits session:new", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection();
+    await connectRepo(repo, conn);
+    const session = repo.createSession("/repo", DEFAULT_AGENT_SERVER, "conv-1");
+    const listener = vi.fn();
+    repo.emitter.addEventListener(ACP_SESSION_NEW_EVENT, listener);
+
+    const created = await session.serialize((gen) => session.sendCore(gen, "hello", undefined));
+
+    expect(created).toBe("s-new");
+    expect(session.sessionId).toBe("s-new");
+    expect(repo.getSessionByConversationId("conv-1")).toBe(session);
+    expect(session.conversationId).toBe("conv-1");
+    expect(conn.newSession).toHaveBeenCalledWith({
+      cwd: "/repo",
+      mcpServers: [],
+      _meta: {
         // Carried so the helper can bind the nav row to the new session id
         // synchronously at session/new.
         "poolside/conversation_id": "conv-1",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        enabled_tools: [],
+      },
+    });
+    expect(conn.prompt).toHaveBeenCalledWith({
+      sessionId: "s-new",
+      prompt: [textBlock("hello")],
+    });
+    expect(listener).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: expect.objectContaining({
+          sessionId: "s-new",
+          conversationId: "conv-1",
+        }),
+      }),
+    );
+  });
+
   it("opts Claude sessions into native prompt suggestions", async () => {
     const repo = new ACPSessionRepositoryWriter();
     const conn = mockConnection();
@@ -3500,71 +3500,71 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("surfaces a config-apply failure as a prompt error and still announces the session", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection({
+      newSession: vi.fn().mockResolvedValue({
+        sessionId: "s-new",
+        configOptions: [
+          {
+            id: "model",
+            type: "select" as const,
+            name: "Model",
+            category: "model",
+            options: [
+              { name: "model-a", value: "model-a" },
+              { name: "model-b", value: "model-b" },
+            ],
+            currentValue: "model-b",
+          },
+        ],
+      }),
+      setSessionConfigOption: vi.fn().mockRejectedValue(new Error("cannot load model model-a")),
+    });
+    await connectRepo(repo, conn);
+    const session = repo.createSession("/repo", "local", "conv-1");
+    // Draft has selected model-a; the agent session comes up on model-b, so
+    // sending applies the selection via setSessionConfigOption (which fails).
+    session.configOptions = [
+      {
+        id: "model",
+        type: "select" as const,
+        name: "Model",
+        category: "model",
+        options: [
+          { name: "model-a", value: "model-a" },
+          { name: "model-b", value: "model-b" },
+        ],
+        currentValue: "model-a",
+      },
+    ];
+    const listener = vi.fn();
+    repo.emitter.addEventListener(ACP_SESSION_NEW_EVENT, listener);
+
+    const created = await session.serialize((gen) => session.sendCore(gen, "hello", undefined));
+
+    expect(created).toBeNull();
+    // The session was created and announced before the failing config step.
+    expect(session.sessionId).toBe("s-new");
+    expect(listener).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: expect.objectContaining({ sessionId: "s-new", conversationId: "conv-1" }),
+      }),
+    );
+    // The failure is visible instead of an unhandled rejection.
+    expect(session.promptError?.prompt).toBe("hello");
+    expect(session.promptError?.error.message).toContain("cannot load model model-a");
+    expect(conn.setSessionConfigOption).toHaveBeenCalledWith({
+      sessionId: "s-new",
+      configId: "model",
+      value: "model-a",
+    });
+    // We bailed before prompting and left the session idle.
+    expect(conn.prompt).not.toHaveBeenCalled();
+    expect(session.isSending).toBe(false);
+    expect(session.setupStatus).toBeNull();
+  });
+
   it("keeps the draft's model selection visible while the first prompt applies it", async () => {
     const repo = new ACPSessionRepositoryWriter();
     const modelOption = (currentValue: string) => ({
@@ -3927,78 +3927,78 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(session.promptError).toBeNull();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("sends host context with project guidelines for agent on the first desktop prompt", async () => {
+    const initialAppState = get(appState);
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection();
+    helperJsonrpcCall.mockImplementation(async (method: string) => {
+      if (method === "poolside/acpNav/getProjectSettings") {
+        return {
+          settings: {
+            path: "/repo",
+            setupScript: "",
+            teardownScript: "",
+            userPrompt: "Always reply like a pirate.",
+          },
+        };
+      }
+      return { entry: null };
+    });
+    await connectRepo(repo, conn, {
+      protocolVersion: 1,
+      authMethods: [],
+      agentCapabilities: {
+        promptCapabilities: { embeddedContext: true },
+      },
+    } as InitializeResponse);
+    const session = repo.createSession("/repo", DEFAULT_AGENT_SERVER, "conv-1");
+
+    try {
+      appState.update((state) => ({
+        ...state,
+        environment: {
+          ...state.environment,
+          assistantHost: "desktop",
+          assistantVersion: "4.3.8",
+        },
+      }));
+
+      await session.serialize((gen) => session.sendCore(gen, "hello", undefined));
+
+      expect(helperJsonrpcCall).toHaveBeenCalledWith("poolside/acpNav/getProjectSettings", {
+        path: "/repo",
+      });
+      expect(conn.prompt).toHaveBeenCalledWith({
+        sessionId: "s-new",
+        prompt: [
+          textBlock("hello"),
+          expect.objectContaining({
+            type: "resource",
+            resource: expect.objectContaining({
+              uri: HOST_CONTEXT_RESOURCE_URI,
+              mimeType: "text/markdown",
+              text: expect.stringContaining("Poolside Assistant version: 4.3.8"),
+            }),
+          }),
+        ],
+      });
+      const prompt = vi.mocked(conn.prompt).mock.calls[0]?.[0].prompt ?? [];
+      const hostContext = prompt[1] as { resource?: { text?: string } };
+      expect(hostContext.resource?.text).toContain("<poolside-system-instructions>");
+      expect(hostContext.resource?.text).toContain(
+        "<project-instructions>\nAlways reply like a pirate.\n</project-instructions>",
+      );
+      expect(session.events).toEqual([
+        expect.objectContaining({
+          eventKind: "user_message",
+          content: [{ type: "text", text: "hello" }],
+        }),
+      ]);
+    } finally {
+      appState.set(initialAppState);
+    }
+  });
+
   it("keeps a first-turn Claude slash command standalone", async () => {
     const initialAppState = get(appState);
     const repo = new ACPSessionRepositoryWriter();
@@ -4071,372 +4071,372 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("hides host context blocks when reconstructing user messages", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const session = repo.createSession("/repo", DEFAULT_AGENT_SERVER, "conv-1");
+
+    session.addUserMessage([
+      { type: "text", text: "hello" },
+      hostContextBlock({
+        assistantVersion: "4.3.8",
+        userPrompt: "Always reply like a pirate.",
+      }),
+    ]);
+
+    expect(session.events).toEqual([
+      expect.objectContaining({
+        eventKind: "user_message",
+        content: [{ type: "text", text: "hello" }],
+      }),
+    ]);
+  });
+
+  it("does not send host context when embedded context is unsupported", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection();
+    await connectRepo(repo, conn, {
+      protocolVersion: 1,
+      authMethods: [],
+      agentCapabilities: {
+        promptCapabilities: { embeddedContext: false },
+      },
+    } as InitializeResponse);
+    const session = repo.createSession("/repo", DEFAULT_AGENT_SERVER, "conv-1");
+
+    await session.serialize((gen) => session.sendCore(gen, "hello", undefined));
+
+    expect(conn.prompt).toHaveBeenCalledWith({
+      sessionId: "s-new",
+      prompt: [textBlock("hello")],
+    });
+    expect(helperJsonrpcCall).not.toHaveBeenCalledWith("poolside/acpNav/getProjectSettings", {
+      path: "/repo",
+    });
+  });
+
+  it("does not resend host context after the first prompt", async () => {
+    const initialAppState = get(appState);
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection();
+    helperJsonrpcCall.mockResolvedValue({
+      settings: { path: "/repo", setupScript: "", teardownScript: "", userPrompt: "" },
+    });
+    await connectRepo(repo, conn, {
+      protocolVersion: 1,
+      authMethods: [],
+      agentCapabilities: {
+        promptCapabilities: { embeddedContext: true },
+      },
+    } as InitializeResponse);
+    const session = repo.createSession("/repo", DEFAULT_AGENT_SERVER, "conv-1");
+
+    try {
+      appState.update((state) => ({
+        ...state,
+        environment: {
+          ...state.environment,
+          assistantHost: "desktop",
+        },
+      }));
+
+      await session.serialize((gen) => session.sendCore(gen, "hello", undefined));
+      await session.prompt("again");
+
+      expect(conn.prompt).toHaveBeenLastCalledWith({
+        sessionId: "s-new",
+        prompt: [textBlock("again")],
+      });
+    } finally {
+      appState.set(initialAppState);
+    }
+  });
+
+  it("shows agent auth when first send fails with a nested 401", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection({
+      newSession: vi.fn().mockRejectedValue(
+        new ACPError({
+          code: -32603,
+          message: "Internal error",
+          data: { error: "starting conversation: API request failed with status 401" },
+        }),
+      ),
+    });
+    await connectRepo(repo, conn);
+    const session = repo.createSession("/repo", "claude-acp", "conv-1");
+
+    const created = await session.serialize((gen) => session.sendCore(gen, "hello", undefined));
+
+    expect(created).toBeNull();
+    expect(repo.agents.authRequiredForAgent("claude-acp")).toBe(true);
+    expect(session.sessionId).toBeNull();
+    expect(session.promptError).toBeNull();
+    expect(conn.prompt).not.toHaveBeenCalled();
+  });
+
+  it("shows agent auth when a prompt fails with a 401 Error", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection({
+      prompt: vi
+        .fn()
+        .mockRejectedValue(
+          new Error(
+            "Internal error: Failed to authenticate. API Error: 401 Invalid authentication credentials",
+          ),
+        ),
+    });
+    await connectRepo(repo, conn);
+    const session = repo.createSession("/repo", "claude-acp", "conv-1");
+    session.sessionId = "s-existing";
+
+    await session.prompt("hello");
+
+    expect(repo.agents.authRequiredForAgent("claude-acp")).toBe(true);
+    expect(session.promptError).toBeNull();
+    expect(conn.prompt).toHaveBeenCalledWith({
+      sessionId: "s-existing",
+      prompt: [textBlock("hello")],
+    });
+  });
+
+  it("restores the ACP session before retrying a failed prompt after restarting the agent", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection();
+    const restart = vi.fn().mockResolvedValue(undefined);
+    repo.agents.setConnectionPool({
+      connect: vi.fn().mockResolvedValue({
+        conn,
+        initializeResponse: {
+          protocolVersion: 1,
+          authMethods: [],
+          agentCapabilities: {
+            loadSession: true,
+            sessionCapabilities: { list: {} },
+          },
+        },
+      }),
+      restart,
+    } as unknown as ACPConnectionPool);
+    await repo.agents.connect();
+    const session = repo.createSession("/repo", "codex-acp", "conv-1");
+    session.sessionId = "s-existing";
+    session.sessionInfo = buildSessionInfo("s-existing", "/repo", "native_session");
+    session.promptError = {
+      prompt: "hello",
+      content: [{ type: "text", text: "hello" }],
+      error: new ACPError({ code: -32603, message: "peer disconnected before response" }),
+    };
+
+    await session.retryLastPrompt();
+
+    expect(restart).toHaveBeenCalledWith("codex-acp");
+    expect(conn.loadSession).toHaveBeenCalledWith({
+      sessionId: "s-existing",
+      cwd: "/repo",
+      mcpServers: [],
+    });
+    expect(conn.prompt).toHaveBeenCalledWith({
+      sessionId: "s-existing",
+      prompt: [textBlock("hello")],
+    });
+  });
+
+  it("reapplies the conversation config after restoring a session on agent restart", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection({
+      loadSession: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "permission_mode",
+            type: "select" as const,
+            name: "Approval Preset",
+            options: [
+              { name: "Default", value: "default" },
+              { name: "Full Access", value: "full_access" },
+            ],
+            currentValue: "default",
+          },
+        ],
+      }),
+      setSessionConfigOption: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "permission_mode",
+            type: "select" as const,
+            name: "Approval Preset",
+            options: [
+              { name: "Default", value: "default" },
+              { name: "Full Access", value: "full_access" },
+            ],
+            currentValue: "full_access",
+          },
+        ],
+      }),
+    });
+    await connectRepo(repo, conn);
+    await repo.agents.connectServer("codex-acp");
+    const session = repo.createSession("/repo", "codex-acp", "conv-1");
+    session.sessionId = "s-existing";
+    session.sessionInfo = buildSessionInfo("s-existing", "/repo", "native_session");
+    session.configOptions = [
+      {
+        id: "permission_mode",
+        type: "select" as const,
+        name: "Approval Preset",
+        options: [
+          { name: "Default", value: "default" },
+          { name: "Full Access", value: "full_access" },
+        ],
+        currentValue: "full_access",
+      },
+    ];
     session.restoreRequired = true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    await session.serialize(async (gen) => {
+      const restored = await session.loader.restoreAfterReconnect(gen, conn);
+      expect(restored).toBe(true);
+    });
+
+    expect(conn.loadSession).toHaveBeenCalledWith({
+      sessionId: "s-existing",
+      cwd: "/repo",
+      mcpServers: [],
+    });
+    expect(conn.setSessionConfigOption).toHaveBeenCalledWith({
+      sessionId: "s-existing",
+      configId: "permission_mode",
+      value: "full_access",
+    });
+    expect(session.configOptions).toEqual([
+      expect.objectContaining({ id: "permission_mode", currentValue: "full_access" }),
+    ]);
+  });
+
+  it("keeps restart config restoration scoped to the restored session", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection({
+      loadSession: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "permission_mode",
+            type: "select" as const,
+            name: "Approval Preset",
+            options: [
+              { name: "Default", value: "default" },
+              { name: "Full Access", value: "full_access" },
+            ],
+            currentValue: "default",
+          },
+        ],
+      }),
+      setSessionConfigOption: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "permission_mode",
+            type: "select" as const,
+            name: "Approval Preset",
+            options: [
+              { name: "Default", value: "default" },
+              { name: "Full Access", value: "full_access" },
+            ],
+            currentValue: "full_access",
+          },
+        ],
+      }),
+    });
+    await connectRepo(repo, conn);
+    await repo.agents.connectServer("codex-acp");
+    const first = repo.createSession("/repo/a", "codex-acp", "conv-1");
+    first.sessionId = "s-first";
+    first.sessionInfo = buildSessionInfo("s-first", "/repo/a", "native_session");
+    first.configOptions = [
+      {
+        id: "permission_mode",
+        type: "select" as const,
+        name: "Approval Preset",
+        options: [
+          { name: "Default", value: "default" },
+          { name: "Full Access", value: "full_access" },
+        ],
+        currentValue: "full_access",
+      },
+    ];
+    const second = repo.createSession("/repo/b", "codex-acp", "conv-2");
+    second.sessionId = "s-second";
+    second.sessionInfo = buildSessionInfo("s-second", "/repo/b", "native_session");
+    second.configOptions = [
+      {
+        id: "permission_mode",
+        type: "select" as const,
+        name: "Approval Preset",
+        options: [
+          { name: "Default", value: "default" },
+          { name: "Full Access", value: "full_access" },
+        ],
+        currentValue: "default",
+      },
+    ];
     first.restoreRequired = true;
     second.restoreRequired = true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    await first.serialize(async (gen) => {
+      await first.loader.restoreAfterReconnect(gen, conn);
+    });
+
+    expect(conn.setSessionConfigOption).toHaveBeenCalledTimes(1);
+    expect(conn.setSessionConfigOption).toHaveBeenCalledWith({
+      sessionId: "s-first",
+      configId: "permission_mode",
+      value: "full_access",
+    });
+    expect(first.configOptions).toEqual([
+      expect.objectContaining({ id: "permission_mode", currentValue: "full_access" }),
+    ]);
+    expect(second.configOptions).toEqual([
+      expect.objectContaining({ id: "permission_mode", currentValue: "default" }),
+    ]);
+  });
+
+  it("reapplies the conversation mode after restoring a session on agent restart", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection({
+      loadSession: vi.fn().mockResolvedValue({
+        configOptions: [],
+        modes: {
+          currentModeId: "default",
+          availableModes: [
+            { id: "default", name: "Default" },
+            { id: "plan", name: "Plan" },
+          ],
+        },
+      }),
+    });
+    await connectRepo(repo, conn);
+    await repo.agents.connectServer("codex-acp");
+    const session = repo.createSession("/repo", "codex-acp", "conv-1");
+    session.sessionId = "s-existing";
+    session.sessionInfo = buildSessionInfo("s-existing", "/repo", "native_session");
+    session.modes = {
+      currentModeId: "plan",
+      availableModes: [
+        { id: "default", name: "Default" },
+        { id: "plan", name: "Plan" },
+      ],
+    };
     session.restoreRequired = true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    await session.serialize(async (gen) => {
+      const restored = await session.loader.restoreAfterReconnect(gen, conn);
+      expect(restored).toBe(true);
+    });
+
+    expect(conn.setSessionMode).toHaveBeenCalledWith({
+      sessionId: "s-existing",
+      modeId: "plan",
+    });
+    expect(session.modes?.currentModeId).toBe("plan");
+  });
+
   it("sends the first prompt of a session created after the agent restarted", async () => {
     const repo = new ACPSessionRepositoryWriter();
     const conn = mockConnection({
@@ -4469,114 +4469,114 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(fresh.loadState.status).not.toBe("failure");
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("restores config and retries once when a prompt hits a stale agent session", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection({
+      prompt: vi
+        .fn()
+        .mockRejectedValueOnce(new ACPError({ code: -32002, message: "Resource not found" }))
+        .mockResolvedValueOnce({ stopReason: "end_turn" } satisfies PromptResponse),
+      loadSession: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "permission_mode",
+            type: "select" as const,
+            name: "Approval Preset",
+            options: [
+              { name: "Default", value: "default" },
+              { name: "Full Access", value: "full_access" },
+            ],
+            currentValue: "default",
+          },
+        ],
+      }),
+      setSessionConfigOption: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "permission_mode",
+            type: "select" as const,
+            name: "Approval Preset",
+            options: [
+              { name: "Default", value: "default" },
+              { name: "Full Access", value: "full_access" },
+            ],
+            currentValue: "full_access",
+          },
+        ],
+      }),
+    });
+    await connectRepo(repo, conn);
+    await repo.agents.connectServer("codex-acp");
+    const session = repo.createSession("/repo", "codex-acp", "conv-1");
+    session.sessionId = "s-existing";
+    session.sessionInfo = buildSessionInfo("s-existing", "/repo", "native_session");
+    session.configOptions = [
+      {
+        id: "permission_mode",
+        type: "select" as const,
+        name: "Approval Preset",
+        options: [
+          { name: "Default", value: "default" },
+          { name: "Full Access", value: "full_access" },
+        ],
+        currentValue: "full_access",
+      },
+    ];
+
+    await session.prompt("hello");
+
+    expect(conn.loadSession).toHaveBeenCalledWith({
+      sessionId: "s-existing",
+      cwd: "/repo",
+      mcpServers: [],
+    });
+    expect(conn.setSessionConfigOption).toHaveBeenCalledWith({
+      sessionId: "s-existing",
+      configId: "permission_mode",
+      value: "full_access",
+    });
+    expect(conn.prompt).toHaveBeenCalledTimes(2);
+    expect(session.promptError).toBeNull();
+    expect(session.configOptions).toEqual([
+      expect.objectContaining({ id: "permission_mode", currentValue: "full_access" }),
+    ]);
+  });
+
+  it("emits session:turn-completed when a prompt completes normally", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection({
+      prompt: vi.fn().mockResolvedValue({ stopReason: "end_turn" } satisfies PromptResponse),
+    });
+    await connectRepo(repo, conn);
+    const session = repo.createSession("/repo", DEFAULT_AGENT_SERVER, "conv-1");
+    const listener = vi.fn();
+    repo.emitter.addEventListener(ACP_SESSION_TURN_COMPLETED_EVENT, listener);
+
+    await session.serialize((gen) => session.sendCore(gen, "hello", undefined));
+
+    expect(listener).toHaveBeenCalledOnce();
+    expect(listener).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: { sessionId: "s-new", agentServer: DEFAULT_AGENT_SERVER },
+      }),
+    );
+  });
+
+  it("does not emit session:turn-completed when the prompt is cancelled", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection({
+      prompt: vi.fn().mockResolvedValue({ stopReason: "cancelled" } satisfies PromptResponse),
+    });
+    await connectRepo(repo, conn);
+    const session = repo.createSession("/repo", DEFAULT_AGENT_SERVER, "conv-1");
+    const listener = vi.fn();
+    repo.emitter.addEventListener(ACP_SESSION_TURN_COMPLETED_EVENT, listener);
+
+    await session.serialize((gen) => session.sendCore(gen, "hello", undefined));
+
+    expect(listener).not.toHaveBeenCalled();
+  });
+
   it("clears compaction state when a prompt fails without a completed update", async () => {
     const repo = new ACPSessionRepositoryWriter();
     let session: ReturnType<typeof repo.createSession>;
@@ -5111,30 +5111,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(request).not.toHaveBeenCalled();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("uses prompt fallback titles for Poolside ACP sessions", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection();
+    await connectRepo(repo, conn);
+    const session = repo.createSession("/repo", DEFAULT_AGENT_SERVER);
+
+    await session.serialize((gen) => session.sendCore(gen, "hello world", undefined));
+
+    await vi.waitFor(() => {
+      expect(session.sessionInfo?.title).toBe("hello world");
+    });
+  });
+
+  it("uses prompt fallback titles for third-party ACP sessions", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection();
+    await connectRepo(repo, conn);
+    const session = repo.createSession("/repo", "third-party");
+
+    await session.serialize((gen) => session.sendCore(gen, "hello world", undefined));
+
+    expect(session.sessionInfo?.title).toBe("hello world");
+  });
+
   it("finalizes a title-only Devin message when the first prompt ends", async () => {
     const repo = new ACPSessionRepositoryWriter();
     const conn = mockConnection({
@@ -5155,83 +5155,83 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("keeps the conversation id stable before the first prompt completes", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    let resolvePrompt!: () => void;
+    const conn = mockConnection({
+      prompt: vi.fn(
+        () =>
+          new Promise<PromptResponse>((resolve) => {
+            resolvePrompt = () => resolve({ stopReason: "end_turn" });
+          }),
+      ),
+    });
+    await connectRepo(repo, conn);
+    const session = repo.createSession("/repo", DEFAULT_AGENT_SERVER, "conv-1");
+
+    const send = session.serialize((gen) =>
+      session.sendCore(gen, "hello", undefined, undefined, "", undefined),
+    );
+
+    await vi.waitFor(() => {
+      expect(session.sessionId).toBe("s-new");
+    });
+    expect(session.isPrompting).toBe(true);
+    expect(repo.getSessionByConversationId("conv-1")).toBe(session);
+
+    resolvePrompt();
+    await send;
+  });
+
+  it("routes live session updates to their target session", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo);
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      undefined,
+      DEFAULT_AGENT_SERVER,
+    );
+    expect(session).not.toBeNull();
+
+    repo.handleSessionUpdate(DEFAULT_AGENT_SERVER, sessionNotification("live"));
+
+    expect(session!.events).toHaveLength(1);
+    expect(session!.events[0]).toMatchObject({ eventKind: "agent_message" });
+  });
+
+  it("retries session/load with fallback cwds when the original directory fails", async () => {
+    const loadSession = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("cwd does not exist"))
+      .mockResolvedValueOnce({});
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo, mockConnection({ loadSession } as Partial<ClientSideConnection>));
+
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/gone-worktree",
+      [],
+      { readOnly: true },
+      DEFAULT_AGENT_SERVER,
+      { fallbackCwds: ["/gone-worktree", "/repo"] },
+    );
+
+    expect(session).not.toBeNull();
+    expect(loadSession).toHaveBeenCalledTimes(2);
+    expect(loadSession).toHaveBeenNthCalledWith(1, {
+      sessionId: "s-loaded",
+      cwd: "/gone-worktree",
+      mcpServers: [],
+    });
+    expect(loadSession).toHaveBeenNthCalledWith(2, {
+      sessionId: "s-loaded",
+      cwd: "/repo",
+      mcpServers: [],
+    });
+    // The read-only seed survives the load so the pane disables prompting.
+    expect(session!.sessionInfo?.readOnly).toBe(true);
   });
 
   it("makes a cached read-only inspection writable when it is reopened after restore", async () => {
@@ -5283,110 +5283,110 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
 
     expect(readOnlySession?.sessionInfo?.readOnly).toBe(true);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  it("never persists sidebar metadata for read-only sessions", async () => {
+    const navConversation = {
+      id: "conv-archived",
+      workspacePath: "/repo",
+      agentServer: DEFAULT_AGENT_SERVER,
+      sessionId: "s-loaded",
+      cwd: "/repo",
+      active: false,
+      archived: true,
+      workingDirectories: ["/repo"],
+    };
+    helperJsonrpcCall.mockImplementation(async (method: unknown) =>
+      String(method).includes("acpNav/list") ? { conversations: [navConversation] } : {},
+    );
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo);
+
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      { readOnly: true },
+      DEFAULT_AGENT_SERVER,
+    );
+    expect(session).not.toBeNull();
+    helperJsonrpcCall.mockClear();
+
+    // Replayed tool activity would normally persist sidebar metadata; the nav
+    // upsert force-reactivates conversations, silently un-archiving this one.
+    repo.handleSessionUpdate(DEFAULT_AGENT_SERVER, toolNotification());
+    session!.metadataManager.refresh();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(session!.metadata.edited).toHaveLength(1);
+    const calledMethods = helperJsonrpcCall.mock.calls.map((call) => String(call[0]));
+    expect(calledMethods.filter((method) => method.includes("upsertConversation"))).toEqual([]);
+  });
+
+  it("fails the load when every cwd candidate is rejected", async () => {
+    const loadSession = vi.fn().mockRejectedValue(new Error("no such directory"));
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo, mockConnection({ loadSession } as Partial<ClientSideConnection>));
+
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/gone-worktree",
+      [],
+      undefined,
+      DEFAULT_AGENT_SERVER,
+      { fallbackCwds: ["/repo", "/other"] },
+    );
+
+    expect(session).toBeNull();
+    expect(loadSession).toHaveBeenCalledTimes(3);
+  });
+
+  it("updates session metadata from live tool events", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo);
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      undefined,
+      DEFAULT_AGENT_SERVER,
+    );
+    expect(session).not.toBeNull();
+
+    repo.handleSessionUpdate(DEFAULT_AGENT_SERVER, toolNotification());
+
+    expect(session!.metadata.edited).toEqual([{ fileName: "app.ts", filePath: "./src/app.ts" }]);
+  });
+
+  it("stores permission requests on the target session and resolves selections", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo);
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      undefined,
+      DEFAULT_AGENT_SERVER,
+    );
+    expect(session).not.toBeNull();
+
+    const response = repo.handleRequestPermission(DEFAULT_AGENT_SERVER, permissionRequest());
+
+    expect(session!.pendingPermissionRequests).toHaveLength(1);
+    repo.selectPermissionOption(session!.pendingPermissionRequests[0]!.id, "allow-once", [
+      "tool:allow",
+    ]);
+
+    await expect(response).resolves.toEqual({
+      outcome: {
+        outcome: "selected",
+        optionId: "allow-once",
+        _meta: { [ACP_PERMISSION_OVERRIDE_RULES_META_KEY]: ["tool:allow"] },
+      },
+    });
+    expect(session!.pendingPermissionRequests).toHaveLength(0);
+  });
+
   it("holds permission requests for unknown sessions instead of cancelling them", async () => {
     const repo = new ACPSessionRepositoryWriter();
     await connectRepo(repo);
@@ -5770,122 +5770,122 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("loads ACP debug dumps as a returned read-only session", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    let loadedDetail: ACPDebugDumpLoadedEventDetail | null = null;
+    repo.emitter.addEventListener(ACP_DEBUG_DUMP_LOADED_EVENT, (event) => {
+      loadedDetail = (event as CustomEvent<ACPDebugDumpLoadedEventDetail>).detail;
+    });
+
+    const session = await repo.loadDebugDump(
+      [
+        {
+          _direction: "incoming",
+          method: "session/update",
+          params: sessionNotification("from dump", "dump-session"),
+        },
+      ],
+      DEFAULT_AGENT_SERVER,
+    );
+
+    expect(session.sessionId).toBe("dump-session");
+    expect(session.sessionInfo?.readOnly).toBe(true);
+    expect(session.events).toHaveLength(1);
+    expect(loadedDetail).toEqual({
+      agentServer: DEFAULT_AGENT_SERVER,
+      conversationId: session.conversationId,
+      sessionId: "dump-session",
+    });
+  });
+
+  it("re-applies persisted session config on load", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    helperJsonrpcCall.mockImplementation(async (method: unknown) => {
+      if (String(method).includes("acpNav/list")) {
+        return {
+          projects: [],
+          conversations: [
+            {
+              id: "conv-1",
+              workspacePath: "/repo",
+              agentServer: DEFAULT_AGENT_SERVER,
+              sessionId: "s-loaded",
+              cwd: "/repo",
+              active: true,
+              archived: false,
+              workingDirectories: ["/repo"],
+              metadata: {
+                processes: [],
+                explored: [],
+                edited: [],
+                sessionConfig: { selections: { model: "model-b" }, modeId: "plan" },
+              },
+            },
+          ],
+        };
+      }
+      return {};
+    });
+    const conn = mockConnection({
+      loadSession: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "model",
+            type: "select" as const,
+            name: "Model",
+            currentValue: "model-a",
+            options: [
+              { value: "model-a", name: "A" },
+              { value: "model-b", name: "B" },
+            ],
+          },
+        ],
+        modes: {
+          currentModeId: "default",
+          availableModes: [
+            { id: "default", name: "Default" },
+            { id: "plan", name: "Plan" },
+          ],
+        },
+      }),
+      setSessionConfigOption: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "model",
+            type: "select" as const,
+            name: "Model",
+            currentValue: "model-b",
+            options: [
+              { value: "model-a", name: "A" },
+              { value: "model-b", name: "B" },
+            ],
+          },
+        ],
+      }),
+    });
+    await connectRepo(repo, conn);
+
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      { conversationId: "conv-1" },
+      DEFAULT_AGENT_SERVER,
+    );
+
+    expect(conn.setSessionConfigOption).toHaveBeenCalledWith({
+      sessionId: "s-loaded",
+      configId: "model",
+      value: "model-b",
+    });
+    expect(conn.setSessionMode).toHaveBeenCalledWith({
+      sessionId: "s-loaded",
+      modeId: "plan",
+    });
+    expect(session?.configOptions[0]?.currentValue).toBe("model-b");
+    expect(session?.modes?.currentModeId).toBe("plan");
+  });
+
   it("cold-loads a discovered local model from cached catalog definitions", async () => {
     const repo = new ACPSessionRepositoryWriter();
     const gemma = "mlx-community/gemma-4-e4b-it-qat-OptiQ-4bit";
@@ -5964,538 +5964,538 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(session?.configOptions).toEqual([modelOption(laguna, [gemma, laguna])]);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("skips persisted selections that no longer exist", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    helperJsonrpcCall.mockImplementation(async (method: unknown) => {
+      if (String(method).includes("acpNav/list")) {
+        return {
+          projects: [],
+          conversations: [
+            {
+              id: "conv-1",
+              workspacePath: "/repo",
+              agentServer: DEFAULT_AGENT_SERVER,
+              sessionId: "s-loaded",
+              cwd: "/repo",
+              active: true,
+              archived: false,
+              workingDirectories: ["/repo"],
+              metadata: {
+                processes: [],
+                explored: [],
+                edited: [],
+                sessionConfig: { selections: { model: "model-gone" }, modeId: "gone-mode" },
+              },
+            },
+          ],
+        };
+      }
+      return {};
+    });
+    const conn = mockConnection({
+      loadSession: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "model",
+            type: "select" as const,
+            name: "Model",
+            currentValue: "model-a",
+            options: [
+              { value: "model-a", name: "A" },
+              { value: "model-b", name: "B" },
+            ],
+          },
+        ],
+        modes: {
+          currentModeId: "default",
+          availableModes: [{ id: "default", name: "Default" }],
+        },
+      }),
+    });
+    await connectRepo(repo, conn);
+
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      { conversationId: "conv-1" },
+      DEFAULT_AGENT_SERVER,
+    );
+
+    expect(conn.setSessionConfigOption).not.toHaveBeenCalled();
+    expect(conn.setSessionMode).not.toHaveBeenCalled();
+    expect(session).not.toBeNull();
+  });
+
+  it("persists session config when an option changes", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    helperJsonrpcCall.mockImplementation(async (method: unknown) => {
+      if (String(method).includes("acpNav/list")) {
+        return {
+          projects: [],
+          conversations: [
+            {
+              id: "conv-1",
+              workspacePath: "/repo",
+              agentServer: DEFAULT_AGENT_SERVER,
+              sessionId: "s-loaded",
+              cwd: "/repo",
+              active: true,
+              archived: false,
+              workingDirectories: ["/repo"],
+              metadata: { processes: [], explored: [], edited: [] },
+            },
+          ],
+        };
+      }
+      return {};
+    });
+    const conn = mockConnection({
+      loadSession: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "model",
+            type: "select" as const,
+            name: "Model",
+            currentValue: "model-a",
+            options: [
+              { value: "model-a", name: "A" },
+              { value: "model-b", name: "B" },
+            ],
+          },
+        ],
+        modes: {
+          currentModeId: "default",
+          availableModes: [{ id: "default", name: "Default" }],
+        },
+      }),
+      setSessionConfigOption: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "model",
+            type: "select" as const,
+            name: "Model",
+            currentValue: "model-b",
+            options: [
+              { value: "model-a", name: "A" },
+              { value: "model-b", name: "B" },
+            ],
+          },
+        ],
+      }),
+    });
+    await connectRepo(repo, conn);
+
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      { conversationId: "conv-1" },
+      DEFAULT_AGENT_SERVER,
+    );
+
+    vi.mocked(helperJsonrpcCall).mockClear();
+    helperJsonrpcCall.mockImplementation(async (method: unknown) => {
+      if (String(method).includes("acpNav/list")) {
+        return {
+          projects: [],
+          conversations: [
+            {
+              id: "conv-1",
+              workspacePath: "/repo",
+              agentServer: DEFAULT_AGENT_SERVER,
+              sessionId: "s-loaded",
+              cwd: "/repo",
+              active: true,
+              archived: false,
+              workingDirectories: ["/repo"],
+              metadata: { processes: [], explored: [], edited: [] },
+            },
+          ],
+        };
+      }
+      return {};
+    });
+
+    await session!.setConfigOption("model", "model-b");
+
+    await vi.waitFor(() => {
+      const upsertCall = vi
+        .mocked(helperJsonrpcCall)
+        .mock.calls.find(([method]) => String(method).includes("acpNav/upsertConversation"));
+      expect(upsertCall).toBeDefined();
+      const params = upsertCall![1] as { conversation: { metadata: { sessionConfig?: unknown } } };
+      expect(params.conversation.metadata.sessionConfig).toEqual({
+        selections: { model: "model-b" },
+        modeId: "default",
+      });
+    });
+  });
+
+  it("sends a typed boolean payload when toggling a boolean config option", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    const conn = mockConnection({
+      loadSession: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "fast",
+            type: "boolean" as const,
+            name: "Fast mode",
+            currentValue: false,
+          },
+        ],
+      }),
+      setSessionConfigOption: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "fast",
+            type: "boolean" as const,
+            name: "Fast mode",
+            currentValue: true,
+          },
+        ],
+      }),
+    });
+    await connectRepo(repo, conn);
+
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      { conversationId: "conv-1" },
+      DEFAULT_AGENT_SERVER,
+    );
+
+    await session!.setBooleanConfigOption("fast", true);
+
+    expect(conn.setSessionConfigOption).toHaveBeenCalledWith({
+      sessionId: "s-loaded",
+      configId: "fast",
+      value: true,
+      type: "boolean",
+    });
+    const fast = session!.configOptions.find((option) => option.id === "fast");
+    expect(fast).toMatchObject({ type: "boolean", currentValue: true });
+  });
+
+  it("re-applies persisted model, thought level, and mode-as-config-option selections on load", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    helperJsonrpcCall.mockImplementation(async (method: unknown) => {
+      if (String(method).includes("acpNav/list")) {
+        return {
+          projects: [],
+          conversations: [
+            {
+              id: "conv-1",
+              workspacePath: "/repo",
+              agentServer: DEFAULT_AGENT_SERVER,
+              sessionId: "s-loaded",
+              cwd: "/repo",
+              active: true,
+              archived: false,
+              workingDirectories: ["/repo"],
+              metadata: {
+                processes: [],
+                explored: [],
+                edited: [],
+                sessionConfig: {
+                  selections: { model: "model-b", thought_level: "high", mode: "plan" },
+                  modeId: "plan",
+                },
+              },
+            },
+          ],
+        };
+      }
+      return {};
+    });
+    const conn = mockConnection({
+      loadSession: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "model",
+            type: "select" as const,
+            category: "model",
+            name: "Model",
+            currentValue: "model-a",
+            options: [
+              { value: "model-a", name: "A" },
+              { value: "model-b", name: "B" },
+            ],
+          },
+          {
+            id: "thought_level",
+            type: "select" as const,
+            category: "thought_level",
+            name: "Thought level",
+            currentValue: "medium",
+            options: [
+              { value: "medium", name: "Medium" },
+              { value: "high", name: "High" },
+            ],
+          },
+          {
+            id: "mode",
+            type: "select" as const,
+            category: "mode",
+            name: "Mode",
+            currentValue: "default",
+            options: [
+              { value: "default", name: "Default" },
+              { value: "plan", name: "Plan" },
+            ],
+          },
+        ],
+        modes: {
+          currentModeId: "default",
+          availableModes: [
+            { id: "default", name: "Default" },
+            { id: "plan", name: "Plan" },
+          ],
+        },
+      }),
+      setSessionConfigOption: vi.fn().mockResolvedValue({}),
+    });
+    await connectRepo(repo, conn);
+
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      { conversationId: "conv-1" },
+      DEFAULT_AGENT_SERVER,
+    );
+
+    expect(conn.setSessionConfigOption).toHaveBeenCalledWith({
+      sessionId: "s-loaded",
+      configId: "model",
+      value: "model-b",
+    });
+    expect(conn.setSessionConfigOption).toHaveBeenCalledWith({
+      sessionId: "s-loaded",
+      configId: "thought_level",
+      value: "high",
+    });
+    expect(conn.setSessionConfigOption).toHaveBeenCalledWith({
+      sessionId: "s-loaded",
+      configId: "mode",
+      value: "plan",
+    });
+    // Mode was restored through its config option, not session/set_mode.
+    expect(conn.setSessionMode).not.toHaveBeenCalled();
+
+    const byId = new Map(session?.configOptions.map((option) => [option.id, option]));
+    expect((byId.get("model") as { currentValue?: string })?.currentValue).toBe("model-b");
+    expect((byId.get("thought_level") as { currentValue?: string })?.currentValue).toBe("high");
+    expect((byId.get("mode") as { currentValue?: string })?.currentValue).toBe("plan");
+    expect(session?.modes?.currentModeId).toBe("plan");
+  });
+
+  it("persists draft session config even when the first prompt fails", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    helperJsonrpcCall.mockImplementation(async (method: unknown) => {
+      if (String(method).includes("acpNav/list")) {
+        return {
+          projects: [],
+          conversations: [
+            {
+              id: "conv-1",
+              workspacePath: "/repo",
+              agentServer: DEFAULT_AGENT_SERVER,
+              sessionId: "s-new",
+              cwd: "/repo",
+              active: true,
+              archived: false,
+              workingDirectories: ["/repo"],
+              metadata: { processes: [], explored: [], edited: [] },
+            },
+          ],
+        };
+      }
+      return {};
+    });
+    const conn = mockConnection({
+      newSession: vi.fn().mockResolvedValue({
+        sessionId: "s-new",
+        configOptions: [
+          {
+            id: "model",
+            type: "select" as const,
+            name: "Model",
+            category: "model",
+            options: [
+              { name: "model-a", value: "model-a" },
+              { name: "model-b", value: "model-b" },
+            ],
+            currentValue: "model-b",
+          },
+        ],
+      }),
+      prompt: vi.fn().mockRejectedValue(new Error("first prompt failed")),
+    });
+    await connectRepo(repo, conn);
+    const session = repo.createSession("/repo", DEFAULT_AGENT_SERVER, "conv-1");
+    // Draft has selected model-a; the agent session comes up on model-b.
+    session.configOptions = [
+      {
+        id: "model",
+        type: "select" as const,
+        name: "Model",
+        category: "model",
+        options: [
+          { name: "model-a", value: "model-a" },
+          { name: "model-b", value: "model-b" },
+        ],
+        currentValue: "model-a",
+      },
+    ];
+
+    await session.serialize((gen) => session.sendCore(gen, "hello", undefined));
+
+    expect(conn.setSessionConfigOption).toHaveBeenCalledWith({
+      sessionId: "s-new",
+      configId: "model",
+      value: "model-a",
+    });
+    // The draft selection reaches storage without waiting for a transcript
+    // flush that the failed prompt never produced.
+    await vi.waitFor(() => {
+      const upsertCall = vi
+        .mocked(helperJsonrpcCall)
+        .mock.calls.find(([method]) => String(method).includes("acpNav/upsertConversation"));
+      expect(upsertCall).toBeDefined();
+      const params = upsertCall![1] as { conversation: { metadata: { sessionConfig?: unknown } } };
+      expect(params.conversation.metadata.sessionConfig).toEqual({
+        selections: { model: "model-a" },
+        modeId: null,
+      });
+    });
+  });
+
+  it("re-persists a normalized snapshot after load drops stale selections", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    helperJsonrpcCall.mockImplementation(async (method: unknown) => {
+      if (String(method).includes("acpNav/list")) {
+        return {
+          projects: [],
+          conversations: [
+            {
+              id: "conv-1",
+              workspacePath: "/repo",
+              agentServer: DEFAULT_AGENT_SERVER,
+              sessionId: "s-loaded",
+              cwd: "/repo",
+              active: true,
+              archived: false,
+              workingDirectories: ["/repo"],
+              metadata: {
+                processes: [],
+                explored: [],
+                edited: [],
+                sessionConfig: { selections: { model: "model-gone" }, modeId: "gone-mode" },
+              },
+            },
+          ],
+        };
+      }
+      return {};
+    });
+    const conn = mockConnection({
+      loadSession: vi.fn().mockResolvedValue({
+        configOptions: [
+          {
+            id: "model",
+            type: "select" as const,
+            name: "Model",
+            currentValue: "model-a",
+            options: [
+              { value: "model-a", name: "A" },
+              { value: "model-b", name: "B" },
+            ],
+          },
+        ],
+        modes: {
+          currentModeId: "default",
+          availableModes: [{ id: "default", name: "Default" }],
+        },
+      }),
+    });
+    await connectRepo(repo, conn);
+
+    await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      { conversationId: "conv-1" },
+      DEFAULT_AGENT_SERVER,
+    );
+
+    await vi.waitFor(() => {
+      const upsertCalls = vi
+        .mocked(helperJsonrpcCall)
+        .mock.calls.filter(([method]) => String(method).includes("acpNav/upsertConversation"));
+      expect(upsertCalls.length).toBeGreaterThan(0);
+      const params = upsertCalls[upsertCalls.length - 1]![1] as {
+        conversation: { metadata: { sessionConfig?: unknown } };
+      };
+      expect(params.conversation.metadata.sessionConfig).toEqual({
+        selections: { model: "model-a" },
+        modeId: "default",
+      });
+    });
+  });
+
+  it("clears the stored session config when the agent reports no config surface on load", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    helperJsonrpcCall.mockImplementation(async (method: unknown) => {
+      if (String(method).includes("acpNav/list")) {
+        return {
+          projects: [],
+          conversations: [
+            {
+              id: "conv-1",
+              workspacePath: "/repo",
+              agentServer: DEFAULT_AGENT_SERVER,
+              sessionId: "s-loaded",
+              cwd: "/repo",
+              active: true,
+              archived: false,
+              workingDirectories: ["/repo"],
+              metadata: {
+                processes: [],
+                explored: [],
+                edited: [],
+                sessionConfig: { selections: { model: "model-b" }, modeId: "plan" },
+              },
+            },
+          ],
+        };
+      }
+      return {};
+    });
+    const conn = mockConnection({
+      loadSession: vi.fn().mockResolvedValue({}),
+    });
+    await connectRepo(repo, conn);
+
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      { conversationId: "conv-1" },
+      DEFAULT_AGENT_SERVER,
+    );
+
+    expect(session?.metadata.sessionConfig).toBeUndefined();
+    await vi.waitFor(() => {
+      const upsertCalls = vi
+        .mocked(helperJsonrpcCall)
+        .mock.calls.filter(([method]) => String(method).includes("acpNav/upsertConversation"));
+      expect(upsertCalls.length).toBeGreaterThan(0);
+      const params = upsertCalls[upsertCalls.length - 1]![1] as {
+        conversation: { metadata: { sessionConfig?: unknown } };
+      };
+      expect(params.conversation.metadata.sessionConfig).toBeUndefined();
+    });
+  });
+});

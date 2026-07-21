@@ -1,147 +1,147 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ACPAgentServers } from "@poolsideai/rpc";
+import { get, writable } from "svelte/store";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { ACPRegistryAgent } from "../agentRegistry";
+import { appState, type AppState, type AppStore } from "../hostAdapter";
+import type { AcpAgentRegistryRepository } from "./AgentRegistryRepository.svelte";
+import { ACPAgentUpdateRepository } from "./AgentUpdateRepository.svelte";
+import type { ACPSessionRepositoryWriter } from "./SessionRepository.svelte";
+
+vi.mock("@poolsideai/helperapi", () => ({
+  poolsideAcpNavInstallAgentServer: vi.fn(async () => ({ installed: true })),
+}));
+
+vi.mock("../hostRpc", () => ({
+  rpc: {
+    setACPAgentServers: vi.fn(async () => undefined),
+  },
+}));
+
+type AppStateInput = Omit<Partial<AppState>, "environment" | "userSettings"> & {
+  environment?: Partial<AppState["environment"]>;
+  userSettings?: Partial<AppState["userSettings"]>;
+};
+
+function createAppStore(state: AppStateInput): AppStore {
+  const initial = get(appState);
+  return writable({
+    ...initial,
+    ...state,
+    environment: {
+      ...initial.environment,
+      ...state.environment,
+    },
+    userSettings: {
+      ...initial.userSettings,
+      ...state.userSettings,
+    },
+  });
+}
+
+function createRepo(
+  agentServers: ACPAgentServers,
+  agents: ACPRegistryAgent[] = [poolsideAgent("1.0.5")],
+) {
+  const appStore = createAppStore({
+    userSettings: { acpAgentServers: agentServers },
+  });
+  const registryRepo = {
+    agents,
+  } as AcpAgentRegistryRepository;
+  const sessionRepo = {
     hasActiveConversationsForAgent: vi.fn(() => false),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    agents: {
       isConnectedTo: vi.fn(() => false),
       getInitializeResponse: vi.fn(() => null),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      restart: vi.fn(async () => undefined),
+      refreshCachedConfig: vi.fn(async () => undefined),
+    },
+  } as unknown as ACPSessionRepositoryWriter;
+
+  return {
+    appStore,
+    registryRepo,
+    sessionRepo,
+    repo: new ACPAgentUpdateRepository({
+      appState: appStore,
+      registryRepo,
+      sessionRepo,
+    }),
+  };
+}
+
+function poolsideAgent(version: string): ACPRegistryAgent {
+  return {
+    id: "poolside",
+    name: "Poolside",
+    version,
+    description: "Poolside ACP agent",
+    distribution: {
+      binary: {
+        "darwin-aarch64": {
+          archive: `https://downloads.poolside.ai/pool/v${version}/pool-darwin-arm64.tar.gz`,
+          cmd: "./pool-darwin-arm64",
+          args: ["acp"],
+        },
+      },
+    },
+  };
+}
+
+function npxAgent(id: string, name: string, pkg: string): ACPRegistryAgent {
+  return {
+    id,
+    name,
+    version: "1.0.0",
+    description: `${name} ACP agent`,
+    distribution: {
+      npx: {
+        package: pkg,
+      },
+    },
+  };
+}
+
+function poolsideConfig(version: string): ACPAgentServers {
+  return {
+    poolside: {
+      type: "registry",
+      command: "",
+      args: [],
+      env: {},
+      binary: {
+        "darwin-aarch64": {
+          archive: `https://downloads.poolside.ai/pool/v${version}/pool-darwin-arm64.tar.gz`,
+          cmd: "./pool-darwin-arm64",
+          args: ["acp"],
+        },
+      },
+      default_config_options: {
+        mode: "always-allow",
+      },
+    },
+  };
+}
+
+describe("ACPAgentUpdateRepository", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it("detects registry updates for the bundled Poolside agent", () => {
+    const { repo } = createRepo(poolsideConfig("1.0.4"));
+
+    repo.refresh();
+
+    expect(repo.updateFor("poolside")?.agent.version).toBe("1.0.5");
+    expect(repo.hasUpdate("poolside")).toBe(true);
+  });
+
   function runningAgent(version = "1.0.4") {
     const context = createRepo(poolsideConfig("1.0.5"));
     vi.mocked(context.sessionRepo.agents.isConnectedTo).mockReturnValue(true);
@@ -261,85 +261,85 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(repo.hasUpdate("poolside")).toBe(false);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("detects registry agents that are enabled but not installed locally", () => {
+    const { repo } = createRepo({
+      poolside: {
+        type: "registry",
+        command: "",
+      },
+    });
+
+    repo.refresh();
+
+    expect(repo.updateFor("poolside")).toEqual(
+      expect.objectContaining({
+        kind: "install",
+        agentServer: "poolside",
+      }),
+    );
+  });
+
+  it("does not flag installed binary registry agents when command is omitted", () => {
+    const { repo } = createRepo({
+      poolside: {
+        type: "registry",
+        binary: {
+          "darwin-aarch64": {
+            archive: "https://downloads.poolside.ai/pool/v1.0.5/pool-darwin-arm64.tar.gz",
+            cmd: "./pool-darwin-arm64",
+            args: ["acp"],
+          },
+        },
+      },
+    });
+
+    repo.refresh();
+
+    expect(repo.hasUpdate("poolside")).toBe(false);
+  });
+
+  it("detects non-default registry agents that are enabled but not installed locally", () => {
+    const { repo } = createRepo(
+      {
+        "claude-acp": {
+          type: "registry",
+        },
+        "codex-acp": {
+          type: "registry",
+        },
+        cursor: {
+          type: "registry",
+        },
+      },
+      [
+        npxAgent("claude-acp", "Claude", "@zed-industries/claude-code-acp@1.0.0"),
+        npxAgent("codex-acp", "Codex", "@zed-industries/codex-acp@1.0.0"),
+        npxAgent("cursor", "Cursor", "@zed-industries/cursor-agent@1.0.0"),
+      ],
+    );
+
+    repo.refresh();
+
+    expect(repo.updateFor("claude-acp")).toEqual(
+      expect.objectContaining({
+        kind: "install",
+        agentServer: "claude-acp",
+      }),
+    );
+    expect(repo.updateFor("codex-acp")).toEqual(
+      expect.objectContaining({
+        kind: "install",
+        agentServer: "codex-acp",
+      }),
+    );
+    expect(repo.updateFor("cursor")).toEqual(
+      expect.objectContaining({
+        kind: "install",
+        agentServer: "cursor",
+      }),
+    );
+  });
+
   it.each(["@zed-industries/codex-acp@0.15.3", "@agentclientprotocol/codex-acp@1.0.0"])(
     "offers a regular update for legacy Codex package %s",
     (packageReference) => {
@@ -485,47 +485,47 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(repo.hasUpdate("codex-acp")).toBe(false);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("updates through helper install and preserves local default config options", async () => {
+    const { poolsideAcpNavInstallAgentServer } = await import("@poolsideai/helperapi");
+    const { rpc } = await import("../hostRpc");
+    const { repo, appStore, sessionRepo } = createRepo(poolsideConfig("1.0.4"));
+
+    repo.refresh();
+    const update = repo.update("poolside");
+    await vi.advanceTimersByTimeAsync(500);
+    await update;
+
+    expect(poolsideAcpNavInstallAgentServer).toHaveBeenCalledWith({
+      agentServer: "poolside",
+      config: expect.objectContaining({
+        binary: expect.objectContaining({
+          "darwin-aarch64": expect.objectContaining({
+            archive: expect.stringContaining("/v1.0.5/"),
+          }),
+        }),
+      }),
+    });
+    expect(rpc.setACPAgentServers).toHaveBeenCalledWith({
+      poolside: expect.objectContaining({
+        type: "registry",
+        binary: expect.objectContaining({
+          "darwin-aarch64": expect.objectContaining({
+            archive: expect.stringContaining("/v1.0.5/"),
+          }),
+        }),
+        default_config_options: {
+          mode: "always-allow",
+        },
+      }),
+    });
+    expect(
+      get(appStore).userSettings.acpAgentServers?.poolside?.binary?.["darwin-aarch64"]?.archive ??
+        "",
+    ).toContain("/v1.0.5/");
+    expect(sessionRepo.agents.restart).toHaveBeenCalledWith("poolside");
+    expect(sessionRepo.agents.refreshCachedConfig).toHaveBeenCalledWith("poolside");
+    expect(repo.hasUpdate("poolside")).toBe(false);
+  });
 
   it("preserves diagnostic messages from serialized helper errors", async () => {
     const { poolsideAcpNavInstallAgentServer } = await import("@poolsideai/helperapi");
@@ -542,4 +542,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     await expect(repo.update("poolside")).rejects.toMatchObject({ message });
     expect(repo.error).toBe(message);
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+});

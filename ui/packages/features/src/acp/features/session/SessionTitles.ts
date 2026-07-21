@@ -5,31 +5,31 @@ import {
   type SessionEvent,
   type TurnMaterializer,
 } from "../../TurnMaterializer";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { titleFromPrompt } from "./content";
 import { stripInjectedContextFromText } from "./hostContext";
 import type { ACPSession } from "./Session.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { ACP_SESSION_TITLE_EVENT } from "./types";
+
 const INLINE_SESSION_TITLE_AGENT_SERVERS = new Set(["cursor", "devin"]);
 type AgentMessageEvent = Extract<SessionEvent, { eventKind: "agent_message" }>;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export class ACPSessionTitles {
   private readonly completedInlineTitleMessages = new WeakSet<AgentMessageEvent>();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  constructor(private readonly session: ACPSession) {}
+
+  set(title: string): void {
+    const s = this.session;
+    if (s.sessionInfo?.title === title) return;
+    if (s.sessionInfo) {
+      s.sessionInfo = { ...s.sessionInfo, title };
+    }
+    this.emit(title);
+  }
+
+  emit(title: string | null | undefined): void {
+    const s = this.session;
+    if (s.sessionId === null) return;
     // Agents that flatten history into plain text on session/load may derive
     // their replayed title from the flattened first message, so injected
     // context (handoff and host-context resources) can leak into an
@@ -37,24 +37,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     // storage; a title that was nothing but injected context is dropped so the
     // stored title survives.
     const trimmedTitle = title ? stripInjectedContextFromText(title).trim() : undefined;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (!trimmedTitle) return;
+    s.env.emitter.dispatchEvent(
+      new CustomEvent(ACP_SESSION_TITLE_EVENT, {
+        detail: {
+          sessionId: s.sessionId,
+          agentServer: s.agentServer,
+          conversationId: s.conversationId,
+          title: trimmedTitle,
+        },
+      }),
+    );
+  }
+
+  emitIfChanged(previousTitle: string | null | undefined, nextTitle: string | null | undefined) {
+    if (nextTitle === previousTitle) return;
+    this.emit(nextTitle);
+  }
+
   extractFromAgentMessage(
     materializer: TurnMaterializer,
     update: SessionUpdate,
@@ -132,14 +132,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async fetch(prompt: string): Promise<void> {
+    if (this.session.sessionId === null) return;
     const fallbackTitle = titleFromPrompt(prompt);
     const currentTitle = this.session.sessionInfo?.title;
     if (currentTitle && currentTitle !== fallbackTitle) return;
     this.set(fallbackTitle);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+}
 
 function findFirstAgentMessage(events: readonly SessionEvent[]): AgentMessageEvent | undefined {
   return events.find((event): event is AgentMessageEvent => event.eventKind === "agent_message");

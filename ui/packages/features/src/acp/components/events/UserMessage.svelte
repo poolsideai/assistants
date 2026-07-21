@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { UserMessage as UserMessageEvent } from "../../types";
   import UserMessageBubble from "../ui/UserMessageBubble.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import UserMessageContext from "./UserMessageContext.svelte";
   import Tooltip from "../ui/Tooltip.svelte";
   import Icon from "@poolsideai/components/icon";
   import ContentRenderer from "../content/ContentRenderer.svelte";
@@ -20,11 +20,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       .join(""),
   );
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let contextBlocks = $derived(
+    event.content.filter((b) => b.type === "resource" || b.type === "resource_link"),
+  );
+  let hasContext = $derived(contextBlocks.length > 0);
+  let contextVisible = $state(false);
 
   const actionClass =
     "border-psx-border bg-psx-panel text-psx-icon hover:bg-psx-chrome-hover active:bg-psx-chrome-active flex size-6 shrink-0 items-center justify-center rounded-full border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-psx-focus";
@@ -39,36 +39,36 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     <ContentRenderer content={event.content} isUser />
   </UserMessageBubble>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {#if textContent || hasContext}
     <div class="flex -translate-y-2 justify-end">
       <div
         class="flex gap-1 opacity-0 transition-[opacity,transform] duration-150 focus-within:pointer-events-auto focus-within:opacity-100 group-hover/message:pointer-events-auto group-hover/message:opacity-100"
       >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {#if hasContext}
+          <Tooltip placement="top" gutter={8}>
+            {#snippet label()}
+              {contextVisible ? "Hide context attachments" : "Show context attachments"}
+            {/snippet}
+            <button
+              type="button"
+              class={actionClass}
+              aria-label="Toggle context attachments"
+              aria-pressed={contextVisible}
+              onclick={() => (contextVisible = !contextVisible)}
+            >
+              <Icon aria-hidden="true" name="email" size={14} />
+            </button>
+          </Tooltip>
+        {/if}
+
+        {#if textContent}
           <CopyToClipboard text={textContent} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {/if}
       </div>
     </div>
   {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  {#if hasContext && contextVisible}
+    <UserMessageContext blocks={contextBlocks} />
+  {/if}
 </div>

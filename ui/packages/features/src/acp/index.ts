@@ -5,10 +5,10 @@ export {
   openAssistantConfigFile,
 } from "./assistantConfig";
 export { createACPChatWorkingDirectory } from "./chatWorkspaces";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { ACPClient } from "./Client";
+export { default as AcpAgentConfigurationView } from "./components/AgentConfigurationView.svelte";
 export { default as AssistantTerminalView } from "./components/AssistantTerminalView.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { default as AcpChatPane } from "./components/chat/ChatPane.svelte";
 export type {
   ChatPaneChrome,
   ChatPaneSidebarChrome,
@@ -76,7 +76,7 @@ export {
   terminalIdsForDesktopSplitsEntry,
   type DesktopSplitsEntry,
 } from "./components/chat/desktopSplitsCache";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { default as AcpDesktopSplitsPane } from "./components/chat/DesktopSplitsPane.svelte";
 export type { DesktopSystemContextMenuRequest } from "./components/chat/desktopSystemContextMenu";
 export { default as ElicitationPrompt } from "./components/chat/elicitation/ElicitationPrompt.svelte";
 export {
@@ -86,8 +86,8 @@ export {
 } from "./components/chat/gitGutterDecorations";
 export { agentIconUrl, agentName, isClaudeAgent } from "./components/chat/menus/config/agentConfig";
 export { resolveNativeMenuTheme } from "./components/chat/nativeMenuTheme";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { default as AcpSidebarChrome } from "./components/chat/SidebarChrome.svelte";
+export { default as AcpConnectorsView } from "./components/ConnectorsView.svelte";
 export { default as DesktopSettingsView } from "./components/DesktopSettingsView.svelte";
 export { default as DesktopSideBar } from "./components/DesktopSideBar.svelte";
 export { default as AcpHandoffConfirmationProvider } from "./components/HandoffConfirmationProvider.svelte";
@@ -112,18 +112,18 @@ export {
   AcpSidebarController,
   type ConversationRowState,
   type SidebarLiveStatus,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./components/sidebar/SidebarController.svelte";
 export { sidebarToasts, type SidebarToast } from "./components/sidebar/sidebarToastsState.svelte";
 export type {
   NativeConfirmationRequest,
   NativeErrorRequest,
 } from "./components/ui/nativeConfirmation";
 export { default as StreamingIndicator } from "./components/ui/StreamingIndicator.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { ACPConnectionPool } from "./ConnectionPool";
+export { getACPConnectionPoolContext, setACPConnectionPoolContext } from "./connectionPoolContext";
 export { createACPConnection } from "./createACPConnection";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { ACP_DEBUG_DUMP_LOADED_EVENT, normalizeDumpEntries } from "./debugDump";
+export type { ACPDebugAPI, ACPDebugDumpLoadedEventDetail, ACPDumpEntry } from "./debugDump";
 export type { DesktopOpenerInfo } from "./desktopOpeners";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 export { extractErrorMessage } from "./errors";
@@ -132,122 +132,122 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/activeAgent.svelte";
 export {
   getACPAgentRegistryContext,
   getACPAgentRegistryRepo,
   setACPAgentRegistryContext,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/AgentRegistryRepository.svelte";
 export {
   getACPAgentServersContext,
   getACPAgentServersRepo,
   setACPAgentServersContext,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/AgentServersRepository.svelte";
 export {
   ACPAgentUpdateRepository,
   getACPAgentUpdateContext,
   getACPAgentUpdateRepo,
   setACPAgentUpdateContext,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/AgentUpdateRepository.svelte";
 export type {
   ACPAgentUpdate,
   ACPAgentUpdateProgress,
   ACPAgentUpdateStage,
+} from "./features/AgentUpdateRepository.svelte";
+export {
+  getAssistantTerminalRepo,
+  getCurrentAssistantTerminalRepo,
+  setAssistantTerminalContext,
+} from "./features/AssistantTerminalRepository.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/ChatSessionScope.svelte";
+export type { ACPChatSessionScope } from "./features/ChatSessionScope.svelte";
 export {
   ACPConversationRepositoryWriter,
   getACPConversationRepo,
   setACPConversationContext,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/ConversationRepository.svelte";
+export type { ACPConversationRepository } from "./features/ConversationRepository.svelte";
+export {
+  ACPConversationStatusRepositoryWriter,
+  getACPConversationStatusContext,
+  setACPConversationStatusContext,
+} from "./features/ConversationStatusRepository.svelte";
+export type { ACPConversationStatusRepository } from "./features/ConversationStatusRepository.svelte";
 export { DESKTOP_GIT_CHANGED_EVENT } from "./features/DesktopGitChangesState.svelte";
 export {
   ACPGithubRepositoryWriter,
   getACPGithubRepo,
   setACPGithubContext,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/GithubRepository.svelte";
+export type { ACPGithubRepository } from "./features/GithubRepository.svelte";
 export { AggregatedSessionListSource } from "./features/HistoryRepository.svelte";
 export {
   ACPLocalHistoryRepositoryWriter,
   getACPLocalHistoryRepo,
   setACPLocalHistoryContext,
+} from "./features/LocalHistoryRepository.svelte";
+export type { ACPLocalHistoryRepository } from "./features/LocalHistoryRepository.svelte";
+export {
+  LocalInferenceAgentSync,
+  type LocalInferenceAgentSyncSessions,
+} from "./features/LocalInferenceAgentSync";
+export {
+  LocalInferenceRepository,
+  getLocalInferenceContext,
+  getLocalInferenceRepo,
+  setLocalInferenceContext,
+} from "./features/LocalInferenceRepository.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/MCPSettingsRepository.context";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/MCPSettingsRepository.svelte";
+export type { ACPMCPSettingsRepository } from "./features/MCPSettingsRepository.svelte";
+export {
+  NotificationRepositoryWriter,
+  getNotificationContext,
+  setNotificationContext,
+} from "./features/NotificationRepository.svelte";
+export type {
+  NotificationRepository,
+  NotificationShowParams,
+  Notifier,
+} from "./features/NotificationRepository.svelte";
 export {
   ACPProjectRepositoryWriter,
   getACPProjectRepo,
   setACPProjectContext,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/ProjectRepository.svelte";
+export type { ACPProjectRepository } from "./features/ProjectRepository.svelte";
+export { refreshACPNavState } from "./features/refreshACPNavState";
+export { ACP_SESSION_NEW_EVENT, ACP_SESSION_TITLE_EVENT } from "./features/Session.svelte";
+export type { ACPSession } from "./features/Session.svelte";
+export { enableAcpTranscriptBatching } from "./features/session/transcriptBatching";
+export { default as AcpProvider } from "./features/SessionProvider.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   getACPContext,
   getACPSessionRepo,
   setACPContext,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/SessionRepository.svelte";
+export type { ACPSessionRepository } from "./features/SessionRepository.svelte";
 export {
   AcpSetupScriptOutputRepositoryWriter,
   getACPSetupScriptOutputRepo,
   setACPSetupScriptOutputContext,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/SetupScriptOutputRepository.svelte";
 export type {
   AcpSetupScriptOutput,
   AcpSetupScriptOutputRepository,
   AcpSetupScriptOutputStatus,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/SetupScriptOutputRepository.svelte";
 export { getUserMCPServersRepo } from "./features/UserMCPServersRepository.svelte";
 export {
   ACPWorktreeRepositoryWriter,
@@ -255,12 +255,12 @@ export {
   createAssistantTerminalCommandRunner,
   getACPWorktreeRepo,
   setACPWorktreeContext,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/WorktreeRepository";
 export type {
   ACPWorktreeCommandRunner,
   ACPWorktreeRepository,
   AssistantTerminalCommandRunnerOptions,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./features/WorktreeRepository";
 export {
   GITHUB_COLOR_MODES,
   githubChecksCountLabel,
@@ -305,25 +305,25 @@ export {
   isACPChatConversation,
   newConversationID,
 } from "./navTypes";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type {
+  ACPConversationSummary,
   ACPConversationsState,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavConversation,
+  ACPNavProject,
+  ACPNavProjectSettings,
+} from "./navTypes";
 export type { ACPTransport } from "./RPCTransport";
 export type { ACPResolvedSessionInfo } from "./sessionInfo";
 export { spoolsideSlotForWorktree, spoolsideSlotMobileUrl } from "./spoolsideMobile";
 export type { MobileSpoolsideInstance, MobileSpoolsideSlot } from "./spoolsideMobile";
 export { wireACPHistorySync } from "./wireACPHistorySync";
 export { wireACPSessionSync } from "./wireACPSessionSync";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export {
   ACP_CHAT_WORKSPACE_PATH,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACP_IDE_WORKSPACE_PATH,
+  acpProtocolCwd,
   acpSessionWorkspacePath,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  acpWorkingDirectories,
+  acpWorkspaceFolders,
+  acpWorkspacePath,
+} from "./workspaceScope";

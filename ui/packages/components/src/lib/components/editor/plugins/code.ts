@@ -1,7 +1,7 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { Fragment, DOMParser as PMDOMParser, Slice, type Schema } from "prosemirror-model";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { EditorState, Plugin, TextSelection, type Transaction } from "prosemirror-state";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { htmlToMarkdown } from "../utils/htmlToMarkdown.js";
@@ -52,56 +52,56 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * Typing the closing ``` fence inside a code block exits it: the fence line is
+ * removed and the cursor moves to a paragraph after the block, mirroring how
+ * the opening fence created it. Returns null when the input is not a closing
+ * fence.
+ */
+export function closeCodeBlockFence(
+  state: EditorState,
+  from: number,
+  text: string,
+): Transaction | null {
+  if (text !== "`") return null;
+
+  const { $from } = state.selection;
+  const { schema } = state;
+  if ($from.parent.type !== schema.nodes.code_block) return null;
+
+  const blockStart = $from.start();
+  const blockEnd = $from.end();
+  const blockTextBefore = state.doc.textBetween(blockStart, from);
+  const lastNewline = blockTextBefore.lastIndexOf("\n");
+  const lineTextBefore = blockTextBefore.slice(lastNewline + 1);
+  // Leading whitespace is allowed, matching the opening rule (/^\s*```$/)
+  if (!/^\s*``$/.test(lineTextBefore)) return null;
+
+  const fenceLineStart = blockStart + lastNewline + 1;
+  const keptText = state.doc.textBetween(
+    blockStart,
+    lastNewline === -1 ? blockStart : fenceLineStart - 1,
+  );
+  let afterText = state.doc.textBetween(from, blockEnd);
+  // A closing fence must be alone on its line
+  if (afterText && !afterText.startsWith("\n")) return null;
+  afterText = afterText.slice(1);
+
+  const paragraphs = afterText
+    .split("\n")
+    .map((line) => schema.nodes.paragraph.create(null, line ? schema.text(line) : null));
+
+  // Closing an otherwise empty block removes it instead of leaving an empty <pre>.
+  const nodes = keptText
+    ? [schema.nodes.code_block.create(null, schema.text(keptText)), ...paragraphs]
+    : paragraphs;
+
+  const tr = state.tr.replaceWith($from.before(), $from.after(), nodes);
+  const cursorPos = keptText ? $from.before() + nodes[0].nodeSize + 1 : $from.before() + 1;
+  tr.setSelection(TextSelection.near(tr.doc.resolve(cursorPos))).scrollIntoView();
+  return tr;
+}
+
 interface PasteSegment {
   text: string;
   isCode: boolean;
@@ -214,14 +214,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (selection.empty) {
+        const closeTr = closeCodeBlockFence(state, from, text);
+        if (closeTr) {
+          dispatch(closeTr);
+          return true;
+        }
+      }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

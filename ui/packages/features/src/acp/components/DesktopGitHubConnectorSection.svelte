@@ -3,7 +3,7 @@
   import { Button } from "@poolsideai/components/button";
   import { Spinner } from "@poolsideai/components/spinner";
   import type { GitHubAuthStatusOutput } from "@poolsideai/helperapi";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPGithubRepo } from "../features/GithubRepository.svelte";
   import { GITHUB_COLOR_MODES, type GitHubColorMode } from "../github/githubStatus";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 

@@ -1,25 +1,25 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type {
+  ClientSideConnection,
+  SessionConfigOption,
+  SessionConfigSelectGroup,
+  SessionConfigSelectOption,
+  SessionId,
+  SessionModeState,
+} from "@agentclientprotocol/sdk";
+import {
   ACP_COLLABORATION_MODE_CATEGORY,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACP_DEFAULT_MODE_ID,
+  ACP_PLAN_MODE_ID,
   type ACPCollaborationModeSurface,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  type StringSelectSessionConfigOption,
+} from "./types";
+
+export function isModeConfigOption(
+  option: SessionConfigOption | undefined,
+): option is StringSelectSessionConfigOption {
+  return isStringSelectConfigOption(option) && option.category === "mode";
+}
+
 export function isCollaborationModeOption(option: SessionConfigOption | undefined): boolean {
   if (!isStringSelectConfigOption(option)) return false;
   if (option.category === ACP_COLLABORATION_MODE_CATEGORY) return true;
@@ -66,65 +66,65 @@ export function collaborationModeSurface(
   return isPlanToggleCollaborationOption(option) ? "plan-toggle" : "picker";
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function isStringSelectConfigOption(
+  option: SessionConfigOption | undefined,
+): option is StringSelectSessionConfigOption {
+  return option?.type === "select" && typeof option.currentValue === "string";
+}
+
+export function findModeConfigOption(
+  configOptions: SessionConfigOption[],
+): StringSelectSessionConfigOption | undefined {
+  return (
+    configOptions.find(isModeConfigOption) ??
+    configOptions.find(
+      (option): option is StringSelectSessionConfigOption =>
+        isStringSelectConfigOption(option) && option.id === "mode",
+    )
+  );
+}
+
+export function updateConfigOptionValue(
+  configOptions: SessionConfigOption[],
+  configId: string,
+  value: string,
+): SessionConfigOption[] {
+  return configOptions.map((option) => {
+    if (option.id !== configId || option.type !== "select") return option;
+    return { ...option, currentValue: value };
+  });
+}
+
+export function updateBooleanConfigOptionValue(
+  configOptions: SessionConfigOption[],
+  configId: string,
+  value: boolean,
+): SessionConfigOption[] {
+  return configOptions.map((option) => {
+    if (option.id !== configId || option.type !== "boolean") return option;
+    return { ...option, currentValue: value };
+  });
+}
+
+export function updateSessionModeValue(
+  modes: SessionModeState | null,
+  modeId: string,
+): SessionModeState | null {
+  if (!modes) return null;
+  return { ...modes, currentModeId: modeId };
+}
+
+export function optionHasValue(option: SessionConfigOption, value: string): boolean {
+  return selectOptionValues(option).some((optionValue) => optionValue.value === value);
+}
+
+export function selectOptionValues(option: SessionConfigOption): SessionConfigSelectOption[] {
+  if (option.type !== "select") return [];
+  return option.options.flatMap((value) =>
+    isSelectGroup(value) ? value.options : [value as SessionConfigSelectOption],
+  );
+}
+
 function normalizeConfigIdentity(value: string | undefined): string {
   return value?.toLowerCase().replace(/[^a-z0-9]/g, "") ?? "";
 }
@@ -147,12 +147,12 @@ export function planValueForConfigOption(option: SessionConfigOption): string | 
   );
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function isSelectGroup(
+  option: SessionConfigSelectOption | SessionConfigSelectGroup,
+): option is SessionConfigSelectGroup {
+  return "options" in option;
+}
+
 // ---- Prompt-surface option classification ----
 //
 // Semantic buckets the prompt UI surfaces with dedicated affordances (icon,
@@ -329,13 +329,13 @@ function matchesLabel(pattern: RegExp, value: SessionConfigSelectOption): boolea
   return pattern.test(value.value.toLowerCase()) || pattern.test(value.name.toLowerCase());
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function applyDefaultConfigOptions(
+  configOptions: SessionConfigOption[],
+  defaults: Record<string, string>,
+): SessionConfigOption[] {
+  if (Object.keys(defaults).length === 0) return configOptions;
+  return configOptions.map((option) => {
+    const value = defaults[option.id];
     if (!value) return option;
     if (option.type === "select") {
       if (!optionHasValue(option, value)) return option;
@@ -348,48 +348,48 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       return { ...option, currentValue: value === "true" };
     }
     return option;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+}
+
+export function syncModeFromConfigOptions(
+  modes: SessionModeState | null,
+  configOptions: SessionConfigOption[],
+): SessionModeState | null {
+  const modeConfig = findModeConfigOption(configOptions);
+  if (!modeConfig) return modes;
+  return updateSessionModeValue(modes, modeConfig.currentValue);
+}
+
+export function exitModeForConfigOption(option: SessionConfigOption): string | null {
+  const values = selectOptionValues(option);
   const planValue = planValueForConfigOption(option);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return (
+    values.find((value) => value.value === ACP_DEFAULT_MODE_ID)?.value ??
     values.find((value) => value.value !== planValue)?.value ??
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    null
+  );
+}
+
+export function exitModeForModes(modes: SessionModeState): string | null {
+  return (
+    modes.availableModes.find((mode) => mode.id === ACP_DEFAULT_MODE_ID)?.id ??
+    modes.availableModes.find((mode) => mode.id !== ACP_PLAN_MODE_ID)?.id ??
+    null
+  );
+}
+
 export function currentConfigSelections(
   configOptions: SessionConfigOption[],
 ): Map<string, string | boolean> {
   const selections = new Map<string, string | boolean>();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  for (const option of configOptions) {
     if (option.type === "select" || option.type === "boolean") {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      selections.set(option.id, option.currentValue);
+    }
+  }
+  return selections;
+}
+
 // A captured selection is only re-applicable when the option still has the
 // same shape and, for selects, still offers the captured value. Sending a
 // vanished value would make the agent reject the whole restore.
@@ -423,62 +423,62 @@ export function mergeConfigSelections(
   });
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type ACPSessionConfigSnapshot = {
   selections: Record<string, string | boolean>; // select/boolean config option id → currentValue
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  modeId: string | null; // modes.currentModeId at capture time
+};
+
+export function sessionConfigSnapshot(
+  configOptions: SessionConfigOption[],
+  modes: SessionModeState | null,
+): ACPSessionConfigSnapshot | undefined {
+  if (configOptions.length === 0 && modes === null) return undefined;
+  return {
+    selections: Object.fromEntries(currentConfigSelections(configOptions)),
+    modeId: modes?.currentModeId ?? null,
+  };
+}
+
+export function normalizeSessionConfigSnapshot(
+  value: unknown,
+): ACPSessionConfigSnapshot | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const candidate = value as Record<string, unknown>;
+  if (!candidate.selections || typeof candidate.selections !== "object") return undefined;
+  const rawSelections = candidate.selections as Record<string, unknown>;
   const selections: Record<string, string | boolean> = {};
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  for (const [k, v] of Object.entries(rawSelections)) {
     if (typeof v === "string" || typeof v === "boolean") selections[k] = v;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+  const modeId = typeof candidate.modeId === "string" ? candidate.modeId : null;
+  return { selections, modeId };
+}
+
+export async function applySessionConfigSelections({
+  conn,
+  sessionId,
+  configOptions,
   reportedConfigOptions = configOptions,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  selections,
+  isCurrent,
   reconcileConfigOptions,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  onApplied,
+}: {
+  conn: Pick<ClientSideConnection, "setSessionConfigOption">;
+  sessionId: SessionId;
+  configOptions: SessionConfigOption[];
   reportedConfigOptions?: SessionConfigOption[];
   selections: Map<string, string | boolean>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  isCurrent: () => boolean;
   reconcileConfigOptions?: (
     reported: SessionConfigOption[],
     fallback: SessionConfigOption[],
   ) => SessionConfigOption[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  onApplied?: (configOptions: SessionConfigOption[]) => void;
+}): Promise<SessionConfigOption[] | null> {
+  let nextConfigOptions = configOptions;
   let nextReportedConfigOptions = reportedConfigOptions;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  for (const [configId, value] of selections) {
     const option = nextConfigOptions.find((candidate) => candidate.id === configId);
     const reported = nextReportedConfigOptions.find((candidate) => candidate.id === configId);
     if (!option || reported?.currentValue === value || !selectionApplies(option, value)) continue;
@@ -486,7 +486,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       typeof value === "boolean"
         ? await conn.setSessionConfigOption({ sessionId, configId, value, type: "boolean" })
         : await conn.setSessionConfigOption({ sessionId, configId, value });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (!isCurrent()) return null;
     const fallback =
       typeof value === "boolean"
         ? updateBooleanConfigOptionValue(nextConfigOptions, configId, value)
@@ -495,7 +495,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     nextConfigOptions = res?.configOptions
       ? (reconcileConfigOptions?.(res.configOptions, fallback) ?? res.configOptions)
       : fallback;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onApplied?.(nextConfigOptions);
+  }
+  return nextConfigOptions;
+}

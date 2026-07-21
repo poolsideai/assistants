@@ -4,13 +4,13 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"runtime"
 	"strings"
 	"testing"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -205,34 +205,34 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestStopFiresOnStop(t *testing.T) {
+	t.Run("running process fires onStop", func(t *testing.T) {
+		var calls int
+		proc := &process{
+			cmd:    &exec.Cmd{},
+			conn:   &acpsdk.ClientSideConnection{},
+			stdin:  nopWriteCloser{},
+			state:  processState{kind: processStateRunning},
+			onStop: func() { calls++ },
+		}
+
+		require.NoError(t, proc.stop())
+		assert.Equal(t, 1, calls)
+		assert.Nil(t, proc.onStop)
+	})
+
+	t.Run("stopped process does not fire onStop", func(t *testing.T) {
+		var calls int
+		proc := &process{
+			state:  processState{kind: processStateExited, exitedAt: time.Now()},
+			onStop: func() { calls++ },
+		}
+
+		require.NoError(t, proc.stop())
+		assert.Equal(t, 0, calls)
+	})
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1040,171 +1040,171 @@ func TestPoolsideNPMCacheDir(t *testing.T) {
 	})
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestNpxInstallDirName(t *testing.T) {
+	// Known value: the dir npx@11 created for this exact spec on disk.
+	assert.Equal(t, "18dd321ac7067500", npxInstallDirName("@agentclientprotocol/codex-acp@1.1.4"))
+}
+
+func TestNpxPackageSpecs(t *testing.T) {
+	assert.Equal(t, []string{"@agentclientprotocol/claude-agent-acp@0.59.0"}, npxPackageSpecs([]string{"-y", "@agentclientprotocol/claude-agent-acp@0.59.0"}))
+	assert.Equal(t, []string{"pkg"}, npxPackageSpecs([]string{"--yes", "--loglevel=silly", "pkg", "extra"}))
+	assert.Equal(t, []string{"@scope/agent"}, npxPackageSpecs([]string{"--package=@scope/agent", "agent-bin"}))
+	assert.Equal(t, []string{"@scope/agent"}, npxPackageSpecs([]string{"--package", "@scope/agent", "agent-bin"}))
+	assert.Equal(t, []string{"@scope/agent"}, npxPackageSpecs([]string{"-p", "@scope/agent", "agent-bin"}))
+	assert.Equal(t, []string{"a", "b"}, npxPackageSpecs([]string{"-p", "a", "--package=b", "bin"}))
+	assert.Empty(t, npxPackageSpecs([]string{"-y"}))
+	assert.Empty(t, npxPackageSpecs(nil))
+
+	assert.Empty(t, npxPackageSpecs([]string{"--loglevel", "silly", "pkg"}))
+	assert.Equal(t, []string{"@scope/agent"}, npxPackageSpecs([]string{"--loglevel", "silly", "--package=@scope/agent", "bin"}))
+}
+
+func TestClearNpxCacheEntry(t *testing.T) {
+	setupCacheEntry := func(t *testing.T, pkg string) string {
+		t.Setenv("HOME", t.TempDir())
+		t.Setenv("XDG_CACHE_HOME", "")
+		cacheDir, err := poolsideNPMCacheDir()
+		require.NoError(t, err)
+		installDir := filepath.Join(cacheDir, "_npx", npxInstallDirName(pkg))
+		require.NoError(t, os.MkdirAll(filepath.Join(installDir, "node_modules"), 0o755))
+		return installDir
+	}
+
+	t.Run("removes the agent's cache entry", func(t *testing.T) {
+		installDir := setupCacheEntry(t, "@agentclientprotocol/codex-acp@1.1.4")
+
+		err := clearNpxCacheEntry(startConfig{
+			binary:    "npx",
+			extraArgs: []string{"-y", "@agentclientprotocol/codex-acp@1.1.4"},
+		})
+
+		require.NoError(t, err)
+		assert.NoDirExists(t, installDir)
+	})
+
+	t.Run("does not touch a custom npm cache", func(t *testing.T) {
+		installDir := setupCacheEntry(t, "@agentclientprotocol/codex-acp@1.1.4")
+
+		err := clearNpxCacheEntry(startConfig{
+			binary:    "npx",
+			extraArgs: []string{"-y", "@agentclientprotocol/codex-acp@1.1.4"},
+			env:       map[string]string{npmConfigCacheEnvKey: "/custom-cache"},
+		})
+
+		assert.Error(t, err)
+		assert.DirExists(t, installDir)
+	})
+
+	t.Run("ignores non-npx binaries", func(t *testing.T) {
+		assert.Error(t, clearNpxCacheEntry(startConfig{binary: "node", extraArgs: []string{"pkg"}}))
+	})
+
+	t.Run("errors when no entry exists", func(t *testing.T) {
+		t.Setenv("HOME", t.TempDir())
+		t.Setenv("XDG_CACHE_HOME", "")
+
+		assert.ErrorIs(t, clearNpxCacheEntry(startConfig{
+			binary:    "npx",
+			extraArgs: []string{"-y", "@agentclientprotocol/codex-acp@1.1.4"},
+		}), os.ErrNotExist)
+	})
+
+	t.Run("errors on multiple package specs", func(t *testing.T) {
+		assert.Error(t, clearNpxCacheEntry(startConfig{
+			binary:    "npx",
+			extraArgs: []string{"-p", "a", "--package=b", "bin"},
+		}))
+	})
+}
+
+func TestStartLockedSelfHeal(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses a shell script as fake npx")
+	}
+
+	setup := func(t *testing.T) (cfg startConfig, installDir, markerFile string) {
+		home := t.TempDir()
+		t.Setenv("HOME", home)
+		t.Setenv("XDG_CACHE_HOME", "")
+		withUserShellEnvProvider(t, func() []string { return nil })
+
+		pkg := "@agentclientprotocol/codex-acp@1.1.4"
+		cacheDir, err := poolsideNPMCacheDir()
+		require.NoError(t, err)
+		installDir = filepath.Join(cacheDir, "_npx", npxInstallDirName(pkg))
+		require.NoError(t, os.MkdirAll(installDir, 0o755))
+		require.NoError(t, os.WriteFile(filepath.Join(installDir, "package.json"), []byte("{}"), 0o644))
+
+		binDir := t.TempDir()
+		markerFile = filepath.Join(binDir, "runs")
+		script := "#!/bin/sh\necho run >> " + markerFile + "\necho boom >&2\nexit 1\n"
+		require.NoError(t, os.WriteFile(filepath.Join(binDir, "npx"), []byte(script), 0o755))
+
+		cfg = startConfig{
+			serverName: "codex-acp",
+			binary:     "npx",
+			extraArgs:  []string{"-y", pkg},
+			env:        map[string]string{"PATH": binDir},
+		}
+		return cfg, installDir, markerFile
+	}
+
+	countRuns := func(t *testing.T, markerFile string) int {
+		data, err := os.ReadFile(markerFile)
+		require.NoError(t, err)
+		return strings.Count(string(data), "run")
+	}
+
+	t.Run("clears cache entry and retries once on handshake failure", func(t *testing.T) {
+		cfg, installDir, markerFile := setup(t)
+		proc := &process{}
+
+		err := proc.startLocked(context.Background(), cfg, &acpClient{}, defaultInitializeRequest())
+
+		require.Error(t, err)
+		var handshakeErr *initializeHandshakeError
+		assert.ErrorAs(t, err, &handshakeErr)
+		assert.NoDirExists(t, installDir)
+		assert.Equal(t, 2, countRuns(t, markerFile))
+	})
+
+	t.Run("does not retry when there is no cache entry to clear", func(t *testing.T) {
+		cfg, installDir, markerFile := setup(t)
+		require.NoError(t, os.RemoveAll(installDir))
+		proc := &process{}
+
+		err := proc.startLocked(context.Background(), cfg, &acpClient{}, defaultInitializeRequest())
+
+		require.Error(t, err)
+		assert.Equal(t, 1, countRuns(t, markerFile))
+	})
+
+	t.Run("does not retry on spawn failure", func(t *testing.T) {
+		cfg, installDir, _ := setup(t)
+		cfg.binary = "/nonexistent-binary"
+		proc := &process{}
+
+		err := proc.startLocked(context.Background(), cfg, &acpClient{}, defaultInitializeRequest())
+
+		require.Error(t, err)
+		var handshakeErr *initializeHandshakeError
+		assert.False(t, errors.As(err, &handshakeErr))
+		assert.DirExists(t, installDir)
+	})
+
+	t.Run("does not clear cache or retry when the caller context is canceled", func(t *testing.T) {
+		cfg, installDir, _ := setup(t)
+		proc := &process{}
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		err := proc.startLocked(ctx, cfg, &acpClient{}, defaultInitializeRequest())
+
+		require.Error(t, err)
+		assert.DirExists(t, installDir)
+	})
+}
+
 func TestPruneBrokenNpxCache(t *testing.T) {
 	cacheDir := t.TempDir()
 	brokenDir := filepath.Join(cacheDir, "_npx", "broken")

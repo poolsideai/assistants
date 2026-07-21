@@ -3,7 +3,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./navTypes";
 
 interface ACPSessionSyncTarget {
   sessionId: string | null;
@@ -14,7 +14,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 interface ACPSessionSyncOptions {
   emitter: EventTarget;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  session?: ACPSessionSyncTarget;
   capture?: Pick<ACPDebugCaptureAPI, "resetConversationCollecting" | "resetSessionCollecting">;
   // The session repository, when the host has one: a closed session's warm
   // record must be dropped, or reopening it hands out a record whose next
@@ -34,7 +34,7 @@ export function wireACPSessionSync({
     const deletedSessionId = typeof detail === "string" ? detail : detail.sessionId;
     const deletedAgentServer = typeof detail === "string" ? undefined : detail.agentServer;
     if (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      session &&
       session.sessionId === deletedSessionId &&
       (!deletedAgentServer ||
         !session.sessionAgentServer ||
@@ -58,7 +58,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (detail) {
       sessions?.releaseClosedSession(detail);
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (session && closedSessionMatches(session, detail)) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

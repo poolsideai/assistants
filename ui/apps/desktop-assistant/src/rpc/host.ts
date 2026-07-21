@@ -35,7 +35,7 @@ import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
 import { Menu, type MenuOptions } from "@tauri-apps/api/menu";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ask, message, open, save } from "@tauri-apps/plugin-dialog";
 import { relaunch } from "@tauri-apps/plugin-process";
 
@@ -798,21 +798,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   async openAcpChat(opts?: OpenAcpChatOptions): Promise<void> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const win = getCurrentWindow();
+    await win.unminimize();
+    await win.setFocus();
     // Desktop is a single window, so "open" means selecting the conversation
     // in place (e.g. a clicked notification), not revealing a per-session panel.
     if (opts?.conversationId) {
       void this.callWebview("setCurrentConversation", [opts.conversationId]);
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
 
   async closeAcpChat(): Promise<void> {}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  setWebviewFocus(focused: boolean): void {
+    void this.callWebview("setEditorFocused", [focused]);
+  }
 
   async upsertSecret(params: UpsertSecretParams): Promise<unknown> {
     return await helperJsonRpc("poolside/upsertSecret", params);
@@ -849,8 +849,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   async getContext() {
     return {
       workspaces: [],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      recentFile: undefined,
+      activeFiles: [],
     };
   }
 

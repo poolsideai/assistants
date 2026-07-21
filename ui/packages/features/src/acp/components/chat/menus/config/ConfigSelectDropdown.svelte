@@ -53,8 +53,8 @@
   import MobileSelectSheet, { type MobileSelectOption } from "../../../ui/MobileSelectSheet.svelte";
   import { presentNativeMenu } from "../../../ui/menuSpec";
   import { appState } from "../../../../hostAdapter";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getACPSessionRepo } from "../../../../features/SessionRepository.svelte";
+  import { getACPChatSessionScope } from "../../../../features/ChatSessionScope.svelte";
   import { supportsNativeMenus } from "../../desktopContextMenu";
   import {
     configValueAppearance,

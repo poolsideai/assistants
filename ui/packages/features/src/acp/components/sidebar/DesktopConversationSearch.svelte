@@ -26,7 +26,7 @@
   import DotsLoader from "../ui/DotsLoader.svelte";
   import DesktopConversationRow from "./DesktopConversationRow.svelte";
   import { conversationProjectLabel } from "./conversationProjectLabel";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getAcpSidebarController } from "./SidebarController.svelte";
   import {
     CONVERSATION_SHORTCUT_LIMIT,
     conversationShortcutIndexFromKeyboardEvent,
