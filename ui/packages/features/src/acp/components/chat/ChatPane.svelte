@@ -1556,7 +1556,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                         emptyStateDesktop
                         onAddProject={() => onAddProject()}
                       />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                    </div>
                   {/if}
                   <span class="text-psx-foreground-secondary shrink-0 text-xl leading-tight">
                     using

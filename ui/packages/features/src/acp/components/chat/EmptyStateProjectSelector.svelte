@@ -11,16 +11,16 @@
   import { presentNativeMenu, type MenuSpecItem } from "../ui/menuSpec";
   import { supportsNativeMenus } from "./desktopContextMenu";
   import { fileIconDataUri } from "./fileIconDataUri";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import "./desktopEmptyStateControl.css";
 
   interface Props {
     onAddProject?: () => void;
     underlineLabel?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /** Larger label sizing for the desktop centered new-conversation empty state. */
+    emptyStateDesktop?: boolean;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let { onAddProject, underlineLabel = false, emptyStateDesktop = false }: Props = $props();
 
   // Lets a not-yet-started (draft) conversation pick which project / worktree it
   // will run in, mirroring the agent selector. Switching re-creates the pending
@@ -111,12 +111,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
     $open = false;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const triggerButtonClass = $derived(
+    emptyStateDesktop
+      ? "desktop-empty-state-control focus:outline-psx-focus focus-visible:outline-2 active:outline-0"
+      : "text-psx-foreground-primary hover:bg-psx-chrome-hover focus:outline-psx-focus flex h-7 min-w-0 max-w-full items-center gap-1 rounded-md px-1.5 text-sm transition-colors focus-visible:outline-2 active:outline-0",
+  );
 
   // Native menu path, built from the same rows/affordances the DOM dropdown
   // below renders: the "Chat" row, one row per project/worktree, and (when
@@ -225,7 +225,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   <span
     class={[
       "min-w-0 truncate text-left",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      underlineLabel && !emptyStateDesktop && "underline decoration-dotted underline-offset-2",
     ]}
   >
     {currentLabel}
@@ -234,7 +234,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 {/snippet}
 
 {#if shouldRender}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div class={["min-w-0 max-w-[260px]", emptyStateDesktop && "desktop-empty-state-control-wrap"]}>
     {#if isMobile}
       <button
         type="button"
@@ -275,10 +275,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         type="button"
         use:melt={$trigger}
         aria-label={`Change chat, project, or worktree — current: ${currentLabel}`}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        class={[
+          triggerButtonClass,
+          $open && !emptyStateDesktop ? "bg-psx-chrome-hover text-psx-foreground-primary" : "",
+        ]}
       >
         {@render triggerContent()}
       </button>

@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { Badge } from "@poolsideai/components/badge";
   import Icon from "@poolsideai/components/icon";
   import { Spinner } from "@poolsideai/components/spinner";
   import {
@@ -146,14 +146,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let ownsActiveChat = $derived(
     projectSessions.some((session) => sidebar.rowState(session).selected),
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // the project owning the open chat, directly or through one of its worktrees
+  let containsActiveChat = $derived(
     ownsActiveChat ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      worktrees.some((worktree) =>
+        sessionsFor(worktree.path).some((session) => sidebar.rowState(session).selected),
+      ),
+  );
+
   function handleWorktreeReorder(from: number, to: number) {
     return onReorderWorktrees(project.path, from, to);
   }
@@ -178,10 +178,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   >
     {#snippet projectIcon()}
       <span
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        class={[
+          "inline-flex size-4 shrink-0 items-center justify-center transition-colors duration-200",
+          containsActiveChat ? "text-(--psx-brand)" : "text-psx-foreground-secondary",
+        ]}
         aria-hidden="true"
       >
         {#if projectCollapsed}
@@ -239,7 +239,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           Open
         </Badge>
       {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
       <button
         type="button"
         class={[
@@ -305,64 +305,64 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         {/if}
 
         <div
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          class={projectSessions.length !== 0 || worktrees.length !== 0
+            ? "ml-[11.5px] pl-[14px]"
+            : ""}
         >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          {#if projectSessions.length !== 0}
+            <div
+              class={[
+                "desktop-conversation-connector before:border-psx-border relative before:pointer-events-none before:absolute before:-left-[14px] before:top-0 before:content-['']",
+                worktrees.length !== 0
+                  ? "before:bottom-0 before:border-l"
+                  : "before:bottom-[14px] before:w-[10px] before:rounded-bl-[5px] before:border-b before:border-l",
+                worktrees.length !== 0 &&
+                searchQuery.trim() === "" &&
+                projectSessions.length > sessionVisibleLimit
+                  ? "pb-1"
+                  : "",
+              ]}
+            >
+              <ConversationGroup
+                sessions={projectSessions}
+                workspacePath={project.path}
+                {searchQuery}
+                expanded={projectSessionsExpanded}
+                visibleLimit={sessionVisibleLimit}
+                rowIconSlotSize={16}
+                rowLeadingPaddingClass="pl-1"
+                desktop
+                onToggleExpanded={onToggleSessionsExpanded}
+                {onArchiveSession}
+                {onArchiveSessionNow}
+                {onSessionContextMenu}
                 {isSessionExiting}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                {sessionShortcutHint}
+              />
+            </div>
+          {/if}
+
+          <div
+            use:reorderable={{
+              handleSelector: "[data-reorderable-handle]",
+              onReorder: handleWorktreeReorder,
+              onDragStart: (index) => {
+                worktreeReorderMotion.handleDragStart(index);
+                onWorktreeDragActiveChange(true);
+              },
+              onDragMove: (detail) => worktreeReorderMotion.handleDragMove(detail),
+              onDragEnd: () => {
+                worktreeReorderMotion.handleDragEnd();
+                onWorktreeDragActiveChange(false);
+              },
+              onTargetChange: (target) => worktreeReorderMotion.handleTargetChange(target),
+            }}
+          >
+            {#each worktrees as worktree, worktreeIndex (worktree.path)}
+              {@const worktreeCurrent = isCurrentWorkspace(worktree.path)}
+              {@const worktreeName = displayName(worktree)}
+              {@const worktreeBusy = worktree.busy}
+              {@const worktreeDeleteRequested = worktree.deleteRequested === true}
               <!-- Setup/teardown surface as a tooltip on the spinner and name; the
                    other busy states keep the inline label next to the name. -->
               {@const worktreeBusyTooltip =
@@ -371,72 +371,72 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                   : worktreeBusy === "tearing_down"
                     ? "Tearing down…"
                     : undefined}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              {@const worktreeBusyLabelText =
                 worktreeBusy && worktreeBusyTooltip === undefined
                   ? worktreeBusyLabel(worktreeBusy)
                   : ""}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              {@const worktreeBlocked =
+                worktreeDeleteRequested ||
+                (worktreeBusy !== undefined && worktreeBlocksUI(worktreeBusy))}
+              {@const canDelete =
+                !worktreeDeleteRequested &&
+                (worktreeBusy === undefined ||
+                  worktreeBusy === "creating" ||
+                  worktreeBusy === "running_setup")}
+              {@const worktreeSessions = sessionsFor(worktree.path)}
+              {@const hasWorktreeSessions = worktreeSessions.length > 0}
               {@const worktreeOwnsActiveChat = worktreeSessions.some(
                 (session) => sidebar.rowState(session).selected,
               )}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              {@const worktreeContentVisible =
+                searchQuery.trim() !== "" || worktree.collapsed !== true}
+              {@const worktreeSessionsExpanded =
+                searchQuery.trim() !== "" || isSessionGroupExpanded(worktree.path)}
+              {@const githubWorktreeStatus = github.worktreeStatusFor(worktree.path)}
+              {@const githubStatus = githubWorktreeStatus?.status}
+              {@const githubHasPR = Boolean(githubStatus && githubStatus.state !== "none")}
+              {@const githubDot =
+                worktreeBusy === undefined
+                  ? githubDotColorClass(github.categoryFor(worktree.path))
                   : ""}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              {@const githubTooltipId = githubTooltipAnchorId(worktree.path)}
+              <div
+                data-reorderable-item
                 out:fly={{ x: -32, opacity: 0, duration: exitDuration(), easing: cubicIn }}
                 onoutrostart={handleWorktreeOutroStart}
                 onoutroend={handleWorktreeOutroEnd}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                class={[
+                  "desktop-conversation-connector before:border-psx-border relative before:pointer-events-none before:absolute before:-left-[14px] before:top-0 before:content-['']",
+                  worktreeIndex === worktrees.length - 1
+                    ? "before:h-[14px] before:w-[10px] before:rounded-bl-[5px] before:border-b before:border-l"
+                    : "before:bottom-0 before:border-l",
+                ]}
               >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                <ReorderMotionItem
+                  active={worktreeReorderMotion.active}
+                  source={worktreeReorderMotion.isSource(worktree)}
+                  style={worktreeReorderMotion.contentStyle(worktree)}
                 >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                  <div
                     class={[
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                      "group/wthead flex items-center gap-0.5 px-1",
+                      worktreeDeleteRequested ? "opacity-60" : "",
                     ]}
                   >
                     {#if sidebar.isRenamingWorkspace("worktree", worktree.path)}
                       <!-- py compensates for the input's border box so the row keeps its height. -->
                       <div class="flex min-w-0 flex-1 items-center gap-2 px-0 py-[5px] text-left">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                        <span
+                          class={[
                             "relative inline-flex size-4 shrink-0 items-center justify-center",
                             worktreeOwnsActiveChat
                               ? "text-(--psx-brand)"
                               : "text-psx-foreground-secondary",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                          ]}
+                          aria-hidden="true"
+                        >
                           <Icon name="git-branch" size={13} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                        </span>
                         <RenamableLabel
                           value={worktreeName}
                           ariaLabel={`Rename ${worktreeName}`}
@@ -446,18 +446,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                         />
                       </div>
                     {:else}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                      <button
                         id={githubTooltipId}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                        type="button"
                         data-reorderable-handle
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                        class={[
                           "outline-hidden focus-visible:outline-psx-focus flex min-w-0 cursor-grab select-none items-center gap-2 rounded-[6px] px-0 py-1.5 text-left focus-visible:outline-2 active:cursor-grabbing disabled:cursor-not-allowed",
                           worktreeBlocked
                             ? "text-psx-foreground-secondary"
                             : worktreeCurrent || !canOpenWorkspace
                               ? "text-psx-foreground-primary"
                               : "text-psx-foreground-secondary hover:text-psx-foreground-primary",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                        ]}
                         disabled={worktreeBlocked}
                         onclick={() => {
                           // Where the host supports it (e.g. VS), clicking a worktree opens its
@@ -467,11 +467,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                             onOpenWorkspace(worktree.path);
                           } else if (hasWorktreeSessions) {
                             onToggleProjectCollapsed(worktree);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                          }
+                        }}
                         oncontextmenu={(event) => onWorktreeContextMenu(worktree, event)}
                         title={worktreeBusyTooltip ?? (githubHasPR ? undefined : worktree.path)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                      >
                         <span
                           id={`${githubTooltipId}-trigger`}
                           class={[
@@ -506,7 +506,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                             {/if}
                           </span>
                         </span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                      </button>
                       {#if hasWorktreeSessions}
                         <button
                           type="button"
@@ -579,15 +579,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                     {/if}
                   </div>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                  <div
+                    class={[
+                      "grid transition-[grid-template-rows] duration-200 ease-out",
+                      worktreeContentVisible ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+                    ]}
+                    inert={!worktreeContentVisible}
+                    aria-hidden={!worktreeContentVisible}
+                  >
+                    <div class="min-h-0 overflow-hidden">
                       {#if worktreeSessions.length === 0 && !rowExitAnimating && searchQuery.trim() === "" && worktreeBusy === undefined && !worktreeDeleteRequested}
                         <div
                           class="desktop-conversation-connector before:border-psx-border relative ml-[11.5px] pl-[14px] before:pointer-events-none before:absolute before:bottom-[14px] before:left-0 before:top-0 before:w-[10px] before:rounded-bl-[5px] before:border-b before:border-l before:content-['']"
@@ -599,27 +599,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                           </div>
                         </div>
                       {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                      <ConversationGroup
+                        sessions={worktreeSessions}
+                        workspacePath={worktree.path}
+                        {searchQuery}
+                        expanded={worktreeSessionsExpanded}
+                        visibleLimit={sessionVisibleLimit}
+                        indent
+                        desktop
+                        onToggleExpanded={onToggleSessionsExpanded}
+                        {onArchiveSession}
+                        {onArchiveSessionNow}
+                        {onSessionContextMenu}
                         {isSessionExiting}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                        {sessionShortcutHint}
+                      />
+                    </div>
                   </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                </ReorderMotionItem>
+              </div>
+            {/each}
+          </div>
         </div>
 
         {#if worktreeReorderMotion.preview}

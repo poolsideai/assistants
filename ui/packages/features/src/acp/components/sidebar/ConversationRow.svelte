@@ -63,7 +63,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   // rather than the working spinner: the agent is blocked on the user, not busy.
   const showTimeColumnIndicator = $derived(working && !waitingForUser);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "text-psx-foreground-secondary hover:text-psx-foreground-primary outline-hidden focus-visible:outline-psx-focus flex size-6 shrink-0 items-center justify-center rounded-[5px] focus-visible:outline-2 transition-colors duration-200 ease-out";
 </script>
 
 <div

@@ -703,29 +703,29 @@ select:not([multiple]) {
   border-color: rgb(255 255 255 / 16%);
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/*
+ * sidebar dividers under the search button and above the settings button (the
+ * scroll frame's overflow hairlines): match the tree connector color above,
+ * fading out to the right. the component draws them with a washed-out 64% mix
+ * of --psx-border; use the full token here, and the same per-theme scrims as
+ * the connector when vibrancy is on. `:root body` outranks the component's
+ * scoped rules.
+ */
+:root body .desktop-sidebar-scroll-frame::before,
+:root body .desktop-sidebar-scroll-frame::after {
+  background: linear-gradient(to right, var(--psx-border), transparent);
+}
+
+:root.desktop-vibrancy.vscode-light .desktop-sidebar-scroll-frame::before,
+:root.desktop-vibrancy.vscode-light .desktop-sidebar-scroll-frame::after {
+  background: linear-gradient(to right, rgb(0 0 0 / 14%), transparent);
+}
+
+:root.desktop-vibrancy.vscode-dark .desktop-sidebar-scroll-frame::before,
+:root.desktop-vibrancy.vscode-dark .desktop-sidebar-scroll-frame::after {
+  background: linear-gradient(to right, rgb(255 255 255 / 16%), transparent);
+}
+
 /*
  * Secondary text reads too dim over the dark frosted surfaces, so lift
  * `--psx-foreground-secondary` a step in dark mode on macOS. Overriding the psx
@@ -752,19 +752,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 body.vscode-dark .highlightedCode {
   border-color: #30363d;
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 /* Expanded thoughts use the roomier desktop treatment. Keep collapsed thoughts
  * at the shared component's compact 24px height so they occupy the same row as
  * collapsed tool calls while the transcript streams. */
 :root body [data-chat-progress].expanded {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  width: 100%;
+  margin-bottom: 16px;
+}
+
 [data-chat-progress].expanded .thinking-header {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  padding-bottom: 8px;
+}
+
 /* Wavy rule for the end-of-turn tool fold: the svg squiggle masks the fill.
    ToolCallGroup owns the box and the pinning; while the fold is open this line
    is also where the contents are cut, and the fill doing the cutting repeats the
@@ -774,9 +774,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
    gradient cannot be transitioned to another gradient. Both are clipped to the
    squiggle by the mask here, so only their paint differs. */
 [data-tool-group-rule] {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' viewBox='0 0 12 6'%3E%3Cpath d='M0 3q3-3 6 0t6 0' fill='none' stroke='%23000' stroke-width='1'/%3E%3C/svg%3E");
+  mask-repeat: repeat-x;
+  mask-size: 12px 6px;
   mask-position: left top;
 }
 
@@ -816,8 +816,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 [data-tool-group-rule][data-stuck]::after {
   opacity: 1;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 /* The cut's shadow: a tight contact edge with a short diffuse tail, falling from
    the wave itself. Two mask layers INTERSECTED — the same squiggle again, this
    time closed downwards so it fills below the curve and the shadow follows the
@@ -855,9 +855,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
 
 :root.vscode-dark [data-tool-group-rule]::before {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  background: linear-gradient(to right, rgb(255 255 255 / 12%), transparent);
+}
+
 :root.vscode-dark [data-tool-group-rule]::after {
   background: linear-gradient(
     to right,
@@ -868,12 +868,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   );
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+[data-chat-progress] .thinking-container {
+  padding-left: 0;
+}
+
+[data-chat-progress] .thinking-container > div {
+  padding-top: 16px;
+  color: var(--psx-foreground-primary);
+  opacity: 1;
+}

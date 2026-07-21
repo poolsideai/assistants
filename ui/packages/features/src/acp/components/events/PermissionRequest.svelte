@@ -262,7 +262,7 @@
 
 <div
   data-testid="acp-permission-request"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  class="bg-psx-editor-background outline-psx-border text-auto shadow-high dark:shadow-high-dark border-psx-border isolate flex max-w-full shrink-0 flex-col overflow-hidden rounded-xl outline outline-1"
 >
   <div
     class="group/header text-auto relative isolate flex items-center justify-between gap-1.5 truncate px-3 py-2.5"

@@ -26,7 +26,7 @@
   import { presentNativeMenu, type MenuSpecItem } from "../../../ui/menuSpec";
   import MobileSelectSheet, { type MobileSelectOption } from "../../../ui/MobileSelectSheet.svelte";
   import RegistryAgentIcon from "../../../RegistryAgentIcon.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import "../../desktopEmptyStateControl.css";
   import { isAgentPickerOptionId } from "../menus";
   import Tooltip from "../../../ui/Tooltip.svelte";
   import { resolveCssColorToHex } from "../../nativeMenuTheme";
@@ -64,16 +64,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     hiddenCount?: number;
     underlineLabel?: boolean;
     placement?: "top" | "bottom";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /** Larger label sizing for the desktop centered new-conversation empty state. */
+    emptyStateDesktop?: boolean;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let {
+    hiddenCount = 0,
+    underlineLabel = false,
+    placement = "top",
+    emptyStateDesktop = false,
+  }: Props = $props();
 
   const chatSession = getACPChatSessionScope();
   const registry = getACPAgentRegistryRepo();
@@ -338,11 +338,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   // The phone footer shares one row with the mode control, mic, and submit:
   // there is room for the trigger's bolt but not for a word or two of effort.
   const showEffortLabel = $derived(Boolean(effortLabel) && !isMobile);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const triggerButtonClass = $derived(
+    emptyStateDesktop
+      ? "desktop-empty-state-control focus:outline-psx-focus focus-visible:outline-2 active:outline-0"
+      : "text-psx-foreground-primary hover:bg-psx-chrome-hover focus:outline-psx-focus flex h-7 min-w-0 items-center gap-1 rounded-md px-1.5 text-sm transition-colors focus-visible:outline-2 active:outline-0",
+  );
   let mobileSheet = $state<"main" | SubmenuKey | null>(null);
 
   const mobileMainOptions = $derived.by<MobileSelectOption[]>(() => {
@@ -1548,10 +1548,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 {/snippet}
 
 {#if hiddenCount === 0 && hasOptions}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div class={emptyStateDesktop ? "desktop-empty-state-control-wrap" : "contents"}>
+    <button
+      type="button"
+      bind:this={triggerEl}
       onclick={() => {
         if (isMobile) {
           mobileSheet = "main";
@@ -1561,22 +1561,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           toggleOpen();
         }
       }}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      aria-label="Agent, model and options"
+      aria-haspopup="menu"
       aria-expanded={open || nativeOpen || mobileSheet !== null}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      class={[
+        triggerButtonClass,
         (open || nativeOpen || mobileSheet !== null) &&
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          !emptyStateDesktop &&
+          "bg-psx-chrome-hover text-psx-foreground-primary",
+      ]}
+    >
+      <RegistryAgentIcon
+        iconUrl={agentPickerIconUrl(registry, currentAgent)}
+        fallback="sparkles"
+        size={14}
+        {...agentPickerIconProps(registry, currentAgent)}
+      />
       <!-- Model name and effort text sit at different sizes; grouping them in
            their own baseline-aligned box, separate from the icon/chevron
            around it, aligns the two without disturbing that icon/chevron —
@@ -1634,9 +1634,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       {#if configLoading}
         <Spinner size={12} class="opacity-60" aria-label="Loading agent options" />
       {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <Icon name="chevron" size={12} class="shrink-0 opacity-60" aria-hidden="true" />
+    </button>
+  </div>
 {/if}
 
 {#if isMobile && mobileSheet === "main"}
