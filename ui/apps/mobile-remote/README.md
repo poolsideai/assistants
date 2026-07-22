@@ -17,19 +17,19 @@ The app is deliberately thin. It renders no chat UI of its own:
 
 ## Storage
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+The mobile app uses phone-local `localStorage` for device-local credentials,
+settings, and caches. These entries include:
 
 - the **device token** (`deviceSession.ts` in remote-client) — the credential
   that mints session cookies; it cannot live behind the auth wall it unlocks;
 - the **theme preference** (`settings.ts`) — per-device by design (phone can
   run light while the desktop runs dark), and needed before the socket is up
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  to avoid a wrong-theme first paint;
+- the **ACP agent registry cache** (`AgentRegistryRepository.svelte.ts` in
+  features) — a fallback when the registry cannot be fetched.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+User state that needs to be shared with the desktop belongs helper-side in the
+acpNav sidebar DB via `poolside/acpNav/*` methods. Do not add new mobile-app
 `localStorage` keys.
 
 ## Running

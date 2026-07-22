@@ -20,7 +20,7 @@ Poolside Assistant is a client for agents speaking the
 protocol and schema documentation live there. Poolside's `_poolside/*`
 extension methods are defined in `pkg/acp/README.md`.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+## Repository map
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 | Area | Where |
 | --- | --- |
@@ -42,7 +42,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 | UI automation | `ui/packages/spoolside/README.md` |
 | Working with coding agents (spoolside, worktrees) | `docs/coding-with-agents.md` |
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+## Build and test
 
 Use scoped README files for target-specific commands. Prefer focused tests for
 the area touched.
@@ -65,7 +65,7 @@ before/after screenshots as PR evidence — see
   [`docs/license-checks.md`](docs/license-checks.md).
 - Run `pnpm fix:format` before pushing UI changes; `gofmt` is enforced for Go.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+## TypeScript and Svelte
 
 For code under `ui/`, use `ui/README.md` as the canonical walkthrough of the
 workspace, Svelte patterns, and apps.
@@ -76,7 +76,7 @@ workspace, Svelte patterns, and apps.
 - Prefer scoped installs such as `pnpm install --filter @poolsideai/<app>...`
   (note the trailing `...`) over a top-level install when working on one app or
   package.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+- Read the relevant README under `ui/` before working there.
 - Check type errors with editor diagnostics if available; otherwise use
   `pnpm check:types`.
 - Fix formatting issues with `pnpm fix:format`.
@@ -103,7 +103,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 - Prefer `assert` for independent post-conditions so one test run reports every
   failure, not just the first one.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+## Editing docs
 
 Before adding to this file, ask whether the detail belongs
 in a scoped `AGENTS.md`, a package README, or an app README.

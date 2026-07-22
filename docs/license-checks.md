@@ -12,11 +12,11 @@ scripts/license-check.sh
 
 The script writes generated artifacts to `license-check-output/`:
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+- `sbom.syft.enriched.json`: Syft SBOM generated with `--enrich all`.
+- `sbom.syft.enriched.patched.json`: SBOM patched with known license evidence
   gaps and local first-party artifacts removed.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+- `grant.check.json`: Grant check output for the patched SBOM.
+- `summary.md`: Short human-readable summary.
 
 `license-check-output/` is generated and should not be committed.
 

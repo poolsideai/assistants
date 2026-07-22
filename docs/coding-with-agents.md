@@ -1,20 +1,20 @@
 # Working on Poolside Assistant with coding agents
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Poolside Assistant is largely built _with_ coding agents such as Claude, Codex,
+and pool. This guide walks through the tooling we rely on so your agents can
+use the same workflow.
 
 The headline tool is **spoolside**: a Playwright-driven CLI that lets an
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+agent drive a real Poolside webview, click buttons, fill inputs, send
 chat messages, snapshot the accessibility tree, take screenshots, and
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+verify behavior end-to-end. Combined with git worktrees, it lets you run
 **multiple agents in parallel** against multiple instances of the
 assistant on the same machine.
 
 ## Why spoolside
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Coding agents have limited visibility into UI work unless they can run the app
+and inspect the result. Spoolside gives agents that feedback loop:
 
 - A snapshot of the accessibility tree, with stable `@e1`, `@e2`
   identifiers an agent can click on.
@@ -25,9 +25,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 - A process manager that lets the agent restart a crashed dev server
   without bothering you.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+If your agent is working on a UI bug, **make screenshots mandatory evidence**:
+a "before" screenshot before the fix and an "after" screenshot after the fix.
+This catches plausible-looking fixes that code review alone can miss.
 
 ## Install spoolside
 
@@ -44,8 +44,8 @@ That script:
   you use Claude Code) and `~/.codex/skills/spoolside` (if you use
   Codex).
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Make sure `~/.local/bin` is on your `PATH`; the installer reminds you if it is
+not:
 
 ```sh
 export PATH="$HOME/.local/bin:$PATH"
@@ -60,8 +60,8 @@ spoolside --help
 ## Start a target
 
 Spoolside drives either a **VS Code** window or the **desktop app**.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Pick one, or both. See [parallel worktrees](#parallel-worktrees-and-the-desktop-app)
+below.
 
 ```sh
 # VS Code with the extension loaded
@@ -82,37 +82,37 @@ spoolside status
 spoolside manage list
 ```
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-## Snapshots and screenshots
-
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+When you're done, stop each target you started:
 
 ```sh
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# VS Code
+spoolside vscode down
+
+# Desktop app
+spoolside desktop down
+```
+
+## Snapshots and screenshots
+
+When a target is running:
+
+```sh
+# Accessibility tree of the webview, with @e1, @e2, ... refs
 spoolside snapshot
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Visible UI subtree of the chat shell
 spoolside snapshot --compact --depth 4
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Screenshot
 spoolside screenshot -o /tmp/before.png
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Webview region
 spoolside screenshot --webview -o /tmp/webview.png
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Screenshot a single element
 spoolside screenshotElement @e3 -p 8 -o /tmp/button.png
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Diff a new snapshot against the previous one
 spoolside snapshot --diff
 ```
 
@@ -162,7 +162,7 @@ spoolside js "document.title"         # evaluate JS in the webview
 spoolside component @e3               # find the Svelte component owning an element
 ```
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Use `--` to chain commands so an agent can execute a small script in one shot:
 
 ```sh
 spoolside sendMessage "/help" -- waitForMessageCount 1 30000 -- getLastResponse
@@ -170,48 +170,48 @@ spoolside sendMessage "/help" -- waitForMessageCount 1 30000 -- getLastResponse
 
 ## Parallel worktrees and the desktop app
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Create worktrees from inside the desktop app, and Poolside Assistant spawns a
+dedicated instance of itself for each one. Each instance claims a slot, gets a
+distinct title-bar color, and gets its own dev port and spoolside port. You do
+not pick colors by hand, manage slots, or keep a terminal open for each
 worktree.
 
 That means you can run **N coding agents on N branches in N worktrees
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+against N desktop apps**. They all run on one machine, can all be driven from
+one spoolside CLI, and remain visually distinguishable on your screen.
 
 To make this work end-to-end, configure the worktree setup and teardown
 scripts in the app to:
 
 ```sh
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Setup: runs when a worktree is created
 pnpm install && spoolside desktop up
 ```
 
 ```sh
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Teardown: runs when a worktree is removed
+spoolside desktop down
 ```
 
 That's it. The app handles the rest: each new worktree comes up with its
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+own colored Poolside Assistant window, ready for an agent to drive with
+commands such as `spoolside snapshot` and `spoolside sendMessage`. When the
+worktree is torn down, its desktop instance and spoolside server are cleaned up.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Use the same target namespace to show the current slot/ports:
 
 ```sh
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+spoolside desktop status
+spoolside desktop env
 ```
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+If you run the VS Code target instead, use `spoolside vscode status` and
+`spoolside vscode env`.
+
 ## Managing background services
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Long-running development services, such as Storybook, can run under spoolside's
+process manager so an agent can restart them when they crash:
 
 ```sh
 spoolside manage run pnpm storybook

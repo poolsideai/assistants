@@ -10,10 +10,10 @@ extensions.
 1. Node and pnpm versions are specified in `.tool-versions`. Make sure you have the correct versions
    installed.
 2. Ensure that you're in the repository root.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+3. Run `pnpm install`.
+4. In a new shell, run `code .`.
+5. When VS Code loads, press **F5** with the **Launch Extension** configuration
+   selected to open a development window with the extension loaded.
 
 ## Tests
 
