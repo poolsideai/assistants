@@ -1,11 +1,11 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Orval JSON-RPC generator
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+The custom Orval generator in `jsonrpcGenerator.ts` creates type-safe wrappers
+that convert OpenAPI paths to JSON-RPC method names and call the runtime defined
+in `clientHelpers.ts`.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Regenerate the bindings from the repository root:
+
+```sh
+pnpm -F @poolsideai/helperapi codegen
+```

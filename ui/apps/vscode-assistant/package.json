@@ -1,9 +1,9 @@
 {
   "name": "poolside-assistant",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "displayName": "Poolside Assistant",
   "version": "0.0.0",
   "private": true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "description": "The power of Poolside, right in your editor",
   "categories": [
     "Machine Learning"
   ],
@@ -14,7 +14,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   "license": "SEE LICENSE IN LICENSE",
   "qna": "mailto:feedback@poolside.ai",
   "author": {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "name": "Poolside",
     "email": "hello@poolside.ai",
     "url": "https://poolside.ai"
   },
@@ -47,24 +47,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   "contributes": {
     "commands": [
       {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "category": "Poolside",
         "command": "poolside.focusInput",
         "icon": "$(poolside-roundel)",
         "title": "Focus on Prompt Input"
       },
       {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "category": "Poolside",
         "command": "poolside.togglePlanMode",
         "title": "Toggle Plan Mode"
       },
       {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "category": "Poolside",
         "command": "poolside.newConversation",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       },
       {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "category": "Poolside",
         "command": "poolside.resetConfiguration",
         "title": "Reset Configuration"
       },
@@ -74,12 +74,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "title": "Show Sidebar"
       },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        "category": "Poolside",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "category": "Poolside",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         "title": "Extension Settings",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -90,7 +90,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       "properties": {
         "poolside.showKeybindings": {
           "default": true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          "description": "Show keybinding hints in the Poolside UI",
           "type": "boolean"
         },
         "poolside.wrapLines": {
@@ -242,7 +242,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       "poolside": [
         {
           "id": "poolside-webview",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          "name": "Poolside",
           "type": "webview",
           "webview": "poolside-webview",
           "visibility": "visible"
@@ -253,7 +253,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       "activitybar": [
         {
           "id": "poolside",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          "title": "Poolside",
           "icon": "./dist/resources/icon-light.svg"
         }
       ]

@@ -14,7 +14,7 @@ LSP itself.
 # Build the binary
 bazelisk build //cmd/poolside-helper
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# See available CLI subcommands
 poolside-helper --help
 ```
 

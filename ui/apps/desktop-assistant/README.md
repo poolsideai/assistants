@@ -1,10 +1,10 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Desktop assistant
 
 Tauri v2 shell for the Poolside desktop assistant.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+To install the prebuilt desktop app, see
+[Install the desktop app on macOS Apple Silicon](../../../INSTALL.md#desktop-app-on-macos-apple-silicon).
+
 The app uses Tauri's isolation IPC pattern. The main webview is built from
 `src/`, while the isolation application is intentionally tiny and built from
 `isolation/` into `dist-isolation/`.

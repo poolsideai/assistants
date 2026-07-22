@@ -1,23 +1,23 @@
 <img src="https://www.poolside.ai/assets/vscode-readme.png" alt="Screenshot of Poolside Assistant" width="100%">
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Poolside Assistant for Visual Studio Code
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Poolside Assistant for Visual Studio Code is an ACP client for coding agents in
+your editor.
 
+## Get started
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Once Poolside Assistant is installed, run **Poolside: Show Sidebar** from the
+Command Palette. If the Poolside icon appears in the Activity Bar, you can open
+it from there too.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+For setting up agents, adding connectors, and starting your first conversation,
 see [Getting started with Poolside Assistant](https://docs.poolside.ai/tools/poolside-assistant).
 
 ## Feedback
 
 To report bugs or request features, join our [Discord](https://discord.com/invite/poolsideai). You
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+can also email feedback to [feedback@poolside.ai](mailto:feedback@poolside.ai).
 
 ## Release build diagnostics
 

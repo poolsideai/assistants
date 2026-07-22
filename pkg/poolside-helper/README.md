@@ -1,16 +1,16 @@
 # Poolside Helper
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Poolside Helper is a daemon process which can be started by an editor assistant
+to provide common functionality to Poolside Assistant clients. This directory
 holds packages either implementing or relating to Helper. Helper client
 implementors should use this README, `methods/`, and the generated helper API
 bindings in `../../ui/packages/helperapi`.
 
 Communication between the editor and the poolside-helper happens over
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+[JSON-RPC](https://www.jsonrpc.org) and implements the [base
+protocol](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#base-protocol)
 defined by LSP. While some LSP features may be implemented, the methods supported by
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+poolside-helper are a superset of the LSP base protocol. We namespace our
 methods with `poolside/` to avoid collisions.
 
 e.g.
@@ -21,16 +21,16 @@ e.g.
   "id": 1,
   "method": "poolside/exampleMethod",
   "params": {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "uri": "file:///Users/poolie/scratch"
   }
 }
 ```
 
 Some important details about LSP:
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+- As per spec, LSP clients and servers have a 1:1 correspondence, and the client manages the server's lifecycle (see the [LSP lifecycle spec](https://github.com/microsoft/language-server-protocol/blob/7755eb18f1d57141e60ae7fe4a68beb860f18bf6/_specifications/lsp/3.17/specification.md#L414)). This is [apparently unlikely to change](https://github.com/microsoft/language-server-protocol/issues/1160#issuecomment-737998922).
+- Therefore, we currently assume a server has a singleton relationship with a client. If this changes, look at the stateful fields of the server to determine what needs to be updated.
+- `Call(ctx)` doesn't check for context cancellation: it will always be sent. Don't rely on context cancellation for JSON-RPC; use the abort mechanism.
 
 ## Startup readiness diagnostics
 
@@ -76,35 +76,35 @@ API, huma was a convenient library which we already use).
 
 Then:
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+1. Register the methods in `internal/handler/handler.go`.
+2. Find an existing sub-handler, such as `internal/handler/git/` for Git
+   methods, or create a new one for a new subsystem. See below for registration.
+3. Define the methods in a file named for the snake case of the method name, or method-name prefix if you have many (small) related methods.
+4. You can either unit-test in the package or define an integration test in `internal/test/`.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+The generated TypeScript bindings live in the `@poolsideai/helperapi` package.
+Regenerate them with `pnpm -F @poolsideai/helperapi codegen` (or `codegen:up` to
+also start the helper's OpenAPI server). See the
+[helperapi README](../../ui/packages/helperapi/README.md).
 
 ### RPC standards
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+1. Use `poolside/` as the namespace for any non-standard JSON-RPC method: do not use the LSP namespaces, as this is confusing and may create conflicts with future methods.
+2. Try to match LSP naming style, e.g. using LSP suffixes for events (`...DidChange`) and keeping consistent prefixes between related methods.
+3. Use `camelCase` for JSON keys where possible. We have some cases where we've reused deeply nested API types that use `snake_case`, and it was low ROI to duplicate them.
+4. Use `huma` tags to declaratively validate the input.
+5. Remember that we have multiple extensions, so be considerate about communicating breaking changes early and widely.
 
 ### Sub-handlers
 
 To avoid all methods living in a single package, we define sub-handlers. These
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+reside in `internal/handler/$yourpkg`, e.g. `internal/handler/foo`. By convention put your constructors in `internal/handler/$yourpkg/handler.go`. Then construct your handler and register methods in the main `handler` package.
 
 New sets of handlers should go in a sub-package like this rather than the main
 `handler` package; keep `handler.go` itself to core JSON-RPC and server state.
 
 If your handler cannot be constructed before `initialize` - for example
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+requiring workspace folders - you can allocate an address for it in `internal/handler/handler.go` in `newHandlerBaseState`, and assign into the value in `initialize`:
 
 ```go
 package handler
@@ -136,7 +136,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 func (h *PoolsideHandler) setInitializeState(params *protocol.InitializeParams) error {
   // ...
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // assign the server value to our pre-allocated address, pointed
   // to by the various method handlers
   *h.FooHandler = *foo.NewHandler()
 }
@@ -150,9 +150,9 @@ These are internal standards and conventions for the helper codebase.
 
 We handle runtime errors as follows:
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+1. use `pkgerrors.Wrap / Errorf / WithStack` to wrap errors from non-helper code, or error constants, with stack traces
 1. don't use `fmt.Errorf` etc for defining non-constant errors, use `pkgerrors.Errorf` which includes the stack
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+1. don't add messages in (1) unless you're adding information that cannot be got from the stack trace
 1. don't log errors you return. Rely on our logging of errors higher up the stack
 1. conversely, if you handle an error and it adds important information, do log it
 
@@ -181,7 +181,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 Never use `==` or `err.(SomeType)` to compare or cast errors, [use](https://go.dev/blog/go1.13-errors) `errors.Is` and `errors.As`.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Use `panic` only for API misuse stemming from programming decisions, not runtime input or behavior. i.e. in the same way as the
 go stdlib: `context.WithTimeout(nil, time.Second)` will panic, but we do not panic for validation errors or a failure to read a file.
 
 Ensure you _do not_ use `pkgerrors.New` and friends for defining constant errors, use the standard `errors` library.
@@ -191,14 +191,14 @@ Name errors `ErrBadThing`. Return such errors
 // good example. When _returning_ this err constant, use pkgerrors.WithStack to capture the runtime stack
 var ErrGoodExample = errors.New("the bad thing")
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// don't do this - adds a useless/confusing stack trace at process init
 var ErrBadExample = pkgerrors.New("the bad thing")
 ```
 
 Together this will ensure that:
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+1. all errors have informative stack traces
+2. we don't have to write boilerplate error messages at each level of the stack
 3. we aim to have a single log for each error, rather than noisy re-logging of the same error throughout the stack
 
 ### Paths
@@ -214,24 +214,24 @@ If your code does not support non-`file:` URIs, return an error.
 
 ### File locations
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+LSPs specify locations in files in UTF-16. Go strings are UTF-8. Generally, pass around
 file location as _byte_ positions for complete clarity. When we modify files,
 we can then be certain we're applying them in the right place, independent of
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+encoding (which may be neither of UTF-8 or UTF-16).
 
 ### Handler
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+JSON-RPC handlers dispatched through `internal/handler/` receive a non-nil
+request context in `(*glsp.Context).Context`.
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
+### VS Code
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+   - if you don't have Delve installed: `go install github.com/go-delve/delve/cmd/dlv@latest`
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+   - this will start the extension and launch headless Delve debugger listening on port `21370`
    - output in `poolside` tab should show:
 __POOL_SYNTHETIC_IMPORT_BASELINE__
    ```json
@@ -253,9 +253,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 ## Profiling
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+For debugging memory and CPU issues, pprof profiles are exposed on a `127.0.0.1`
+port. Check the Poolside Helper output for the exact port — because multiple
+helpers can run at once, it varies.
 
 ## DB forward-version compatibility
 
@@ -265,9 +265,9 @@ migrations through `internal/dbmigrate`, which wraps `golang-migrate` with a
 ahead of what this binary embeds (i.e. the user downgraded), the helper
 logs and proceeds instead of hard-failing at startup.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Forward-version tolerance assumes that an older binary can still use a schema
+created by a newer binary. The repository does not currently enforce that
+compatibility automatically, so review downgrade compatibility before adding
+a migration. For a breaking schema change, bump the DB filename instead —
+users get a fresh DB on upgrade and the old file stays on disk for manual
+downgrade.
