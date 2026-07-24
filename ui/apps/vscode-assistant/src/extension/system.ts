@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { DecorationProvider } from "./DecorationProvider";
 import { TelemetryLogger } from "./telemetry/TelemetryLogger";
 import { AcpChatPanels } from "./views/acpChatPanels";
 import { Assistant } from "./views/assistant";
@@ -11,7 +11,7 @@ export enum ApiProposalStatus {
   pendingRestart,
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export class System {
   assistant: Assistant;
   acpChatPanels: AcpChatPanels;
   apiProposalStatus: ApiProposalStatus;

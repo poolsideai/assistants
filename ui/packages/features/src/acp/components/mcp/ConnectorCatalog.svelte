@@ -1,5 +1,5 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import { Badge } from "@poolsideai/components/badge";
   import { Button } from "@poolsideai/components/button";
   import Icon from "@poolsideai/components/icon";
   import { Switch } from "@poolsideai/components/switch";
@@ -10,7 +10,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   } from "../../features/UserMCPServersRepository.svelte";
   import { catalogCardClass } from "../settings/catalogCardStyles";
   import type { MenuSpecItem } from "../ui/menuSpec";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { McpFormState } from "./McpServerForm.svelte";
   import SearchField from "../sidebar/SearchField.svelte";
   import ConnectorServiceIcon from "./ConnectorServiceIcon.svelte";
   import McpRowMenu from "./McpRowMenu.svelte";
@@ -20,15 +20,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     type ConnectorCatalogEntry,
     findConnectorCatalogEntry,
   } from "./connectorCatalog";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  interface Props {
     servers: MCPServerEntry[];
     testResults: Record<string, MCPServersTestConnectionOutput>;
     needsOAuthSignIn: (server: MCPServerEntry) => boolean;
     onAddCustom: () => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onPick: (form: Partial<McpFormState>) => void;
+  }
+
   type CatalogStatus = {
     tone: "connected" | "not-connected" | "needs-attention" | "disabled";
     label: "Connected" | "Not connected" | "Needs attention" | "Disabled";
@@ -170,7 +170,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (status.tone === "needs-attention") return "warning";
     return "neutral";
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   function statusIcon(status: CatalogStatus): "checked" | "alert" | "block" {
     if (status.tone === "connected") return "checked";
     if (status.tone === "needs-attention") return "alert";
@@ -201,8 +201,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     else if (id === "sign-out") void repo.signOut(server.name);
     else if (id === "delete") void repo.delete(server.name);
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
 {#snippet cardContent(entry: ConnectorCard)}
   <div class="flex min-w-0 flex-1 items-center gap-3 text-left">
     <ConnectorServiceIcon connectorID={entry.connectorID} />
@@ -215,7 +215,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         title={entry.blurb}
       >
         {entry.blurb}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </div>
       {#if entry.note}
         <div
           class="text-psx-warning-foreground mt-0.5 flex items-start gap-1 text-[12px]/[16px]"
@@ -225,8 +225,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           <span>{entry.note}</span>
         </div>
       {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </div>
+  </div>
 {/snippet}
 
 {#snippet statusBadge(status: CatalogStatus)}

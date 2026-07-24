@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Poolside Helper
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -15,19 +15,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 e.g.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+```json
 {
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "poolside/exampleMethod",
+  "params": {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
 }
 ```
 
 Some important details about LSP:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -49,23 +49,23 @@ launch, host transport and the client's subsequent navigation reads.
 
 ## Release
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Every VS Code or Desktop release allocates or reuses an independent
+`helper/vM.m.p` patch version. A new helper version is built and signed from
+the exact product source SHA and published as a permanent GitHub release before
+the product may publish. Retries reuse the published assets without rebuilding,
+and every live product package consumes those immutable assets. Coordinated
+product releases build that runtime once and share it.
+
+The product manifests do not pin helper versions. Fresh local binary installs
+and Visual Studio resolve the highest published `helper/v*` version; set
+`POOLSIDE_HELPER_VERSION=helper/vM.m.p` to reproduce an exact one. Cached
+Desktop binary installs remain offline-safe and can be explicitly refreshed.
+VS Code debug sessions run the helper from local Go source. Desktop development
+can opt into a local helper build with `POOLSIDE_DESKTOP_LOCAL_HELPER=1`.
+
+Use the manual **Release · Helper** workflow only when a helper-only release is
+needed. Release workflows own `helper/v*` creation; do not push these tags by
+hand.
 
 ## Adding methods
 
@@ -75,7 +75,7 @@ command will allow clients to auto-generate types for their language (although H
 API, huma was a convenient library which we already use).
 
 Then:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -151,10 +151,10 @@ These are internal standards and conventions for the helper codebase.
 We handle runtime errors as follows:
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+1. don't use `fmt.Errorf` etc for defining non-constant errors, use `pkgerrors.Errorf` which includes the stack
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+1. don't log errors you return. Rely on our logging of errors higher up the stack
+1. conversely, if you handle an error and it adds important information, do log it
 
 This example indicates how to handle errors:
 
@@ -196,7 +196,7 @@ var ErrBadExample = pkgerrors.New("the bad thing")
 ```
 
 Together this will ensure that:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 3. we aim to have a single log for each error, rather than noisy re-logging of the same error throughout the stack
@@ -225,24 +225,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+   - output in `poolside` tab should show:
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+   ```json
+   { "port": 21370, "message": "debugging poolside Helper via delve, connect debugger on port" }
+   ```
+
+   - there should be no output from helper yet - it has started (give it a sec or two), but delve is waiting for a client to connect
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+   - this will attach debugging client to the running dlv/helper process
+   - once successful, you should start seeing logs from helper in `poolside Helper` tab
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

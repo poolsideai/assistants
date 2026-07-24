@@ -1,56 +1,56 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+name: Setup pinned CrabNebula CLI
 description: Download CrabNebula CLI 0.13.4 and verify the platform binary before exposing credentials
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+outputs:
+  path:
+    description: Absolute path to the verified cn binary
+    value: ${{ steps.install.outputs.path }}
+
+runs:
+  using: composite
+  steps:
     - name: Download and verify CrabNebula CLI 0.13.4
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      id: install
+      shell: bash
+      run: |
+        set -euo pipefail
         version=0.13.4
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        case "${RUNNER_OS}/${RUNNER_ARCH}" in
+          Linux/X64)
             asset=01M1229RYJSPRCMQNZD37HBBN9
             expected=86aa7dacf14b6346075873a1f6e0107daca7dabb453537fa68c395975f9f724e
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            ;;
+          macOS/X64|macOS/ARM64)
             asset=01M1229YJGC3TXFKYSENB16M5B
             expected=7774a649a3d6688bec56b237b0dd526daea2ddf75e993db7a2c07577a6ea8d22
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            ;;
+          *)
+            echo "Unsupported CrabNebula CLI runner: ${RUNNER_OS}/${RUNNER_ARCH}" >&2
+            exit 1
+            ;;
+        esac
+
         path="${RUNNER_TEMP}/cn-${version}-${RUNNER_OS}-${RUNNER_ARCH}"
         # Pin the asset IDs behind CrabNebula's official CLI downloads as well
         # as their checksums. The /latest/platform URLs move on each release.
         # Review and update version, asset IDs, and checksums together.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        curl --fail --silent --show-error --location \
+          --proto '=https' --tlsv1.2 --retry 3 --retry-all-errors \
           "https://cdn.crabnebula.app/asset/${asset}" \
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          --output "${path}"
+        actual=$(shasum -a 256 "${path}" | awk '{print $1}')
+        [[ "${actual}" == "${expected}" ]] || {
+          echo "CrabNebula CLI checksum mismatch: expected ${expected}, got ${actual}." >&2
           echo "The pinned CDN asset changed; review it before updating this action." >&2
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          exit 1
+        }
+        chmod +x "${path}"
         # --version also checks for updates and can append notices to stdout.
         # Verify the installed version on the first line, preserving the exit status.
         version_output=$("${path}" --version)
         printf '%s\n' "${version_output}"
         [[ "${version_output%%$'\n'*}" == "cn ${version}" ]] || {
           echo "Verified binary did not report cn ${version}." >&2
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          exit 1
+        }
+        echo "path=${path}" >> "$GITHUB_OUTPUT"

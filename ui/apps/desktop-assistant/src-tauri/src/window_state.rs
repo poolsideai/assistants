@@ -85,7 +85,7 @@ fn save_bounds<R: Runtime>(app_handle: &tauri::AppHandle<R>) {
 }
 
 fn filename_from_env() -> String {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    filename_for_slot(std::env::var("POOLSIDE_WORKTREE_SLOT").ok().as_deref())
 }
 
 fn filename_for_slot(slot: Option<&str>) -> String {

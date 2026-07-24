@@ -1,9 +1,9 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import {
+  defaultMarkdownParser,
+  defaultMarkdownSerializer,
+  MarkdownParser,
+  MarkdownSerializer,
+} from "prosemirror-markdown";
 import type { Node, SchemaSpec } from "prosemirror-model";
 import { Schema } from "prosemirror-model";
 import { chipNode } from "./chip/chipNode.js";
@@ -50,16 +50,16 @@ const spec = {
 export const schema = new Schema(spec);
 
 const baseMarkdownParser = new MarkdownParser(schema, defaultMarkdownParser.tokenizer, {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  paragraph: { block: "paragraph" },
+  code_block: { block: "code_block", noCloseToken: true },
+  fence: {
+    block: "code_block",
+    getAttrs: (tok) => ({ params: tok.info || "" }),
+    noCloseToken: true,
+  },
+  code_inline: { mark: "code", noCloseToken: true },
+});
+
 const baseMarkdownSerializer = new MarkdownSerializer(
   {
     ...defaultMarkdownSerializer.nodes,

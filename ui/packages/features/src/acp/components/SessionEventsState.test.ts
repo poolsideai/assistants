@@ -7,6 +7,7 @@ import {
 } from "./SessionEventsState.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("keeps a completed turn summarized while a later turn streams live", () => {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -30,15 +31,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(groups).toHaveLength(1);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const liveReads = state.grouped.filter(
+      (item) => item.kind === "event" && item.event.eventKind === "tool_call",
+    );
+    expect(liveReads).toHaveLength(2);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   it("keeps pre-reply finished tools summarized while the reply streams without turn metadata", () => {
@@ -58,11 +58,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     const groups = state.grouped.filter((item) => item.kind === "event_group");
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(groups).toHaveLength(1);
+    const liveReads = state.grouped.filter(
+      (item) => item.kind === "event" && item.event.eventKind === "tool_call",
+    );
+    expect(liveReads).toHaveLength(2);
   });
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -408,8 +408,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       turns: [interruptedTurn(0, 2)],
     });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(state.grouped).toHaveLength(3);
+    expect(state.grouped.every((item) => item.kind === "event")).toBe(true);
   });
 
   it("keeps an interrupted turn's live group while a subsequent turn is prompting", () => {
@@ -475,40 +475,40 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
     expect(groups[1]).not.toMatchObject({ live: true });
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   it("shows every thought while prompting, marking only the latest live", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const state = new SessionEventsState({
+      events: [thought("Planning the files"), blankAgentMessage(), thought("Creating index.html")],
+      isPrompting: true,
+    });
+
     expect(state.grouped).toHaveLength(2);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(state.grouped[0]).toMatchObject({
       kind: "event",
       liveThought: false,
       event: { eventKind: "agent_thought", content: [{ text: "Planning the files" }] },
     });
     expect(state.grouped[1]).toMatchObject({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      kind: "event",
+      liveThought: true,
+      event: { eventKind: "agent_thought", content: [{ text: "Creating index.html" }] },
+    });
+  });
+
   it("keeps earlier thoughts once a later tool call appears", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const state = new SessionEventsState({
+      events: [
+        thought("Planning the files"),
+        blankAgentMessage(),
+        thought("Creating index.html"),
+        blankAgentMessage(),
+        tool("write-index", "edit", "in_progress"),
+      ],
+      isPrompting: true,
+    });
+
     expect(state.grouped).toHaveLength(3);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(state.grouped[0]).toMatchObject({
       kind: "event",
       event: { eventKind: "agent_thought", content: [{ text: "Planning the files" }] },
     });
@@ -517,249 +517,249 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       event: { eventKind: "agent_thought", content: [{ text: "Creating index.html" }] },
     });
     expect(state.grouped[2]).toMatchObject({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      kind: "event",
+      event: { eventKind: "tool_call", toolCallId: "write-index" },
+    });
+  });
+
   it("shows thinking on a completed turn", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const state = new SessionEventsState({
+      events: [thought("Checking the result"), blankAgentMessage(), agentMessage("Done")],
+      isPrompting: false,
+    });
+
     expect(state.grouped).toHaveLength(2);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(state.grouped[0]).toMatchObject({
       kind: "event",
       liveThought: false,
       event: { eventKind: "agent_thought", content: [{ text: "Checking the result" }] },
     });
     expect(state.grouped[1]).toMatchObject({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      kind: "event",
+      event: { eventKind: "agent_message", content: [{ text: "Done" }] },
+    });
+  });
+
   it("shows a trailing thought on an idle transcript", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const state = new SessionEventsState({
+      events: [tool("read-1", "read", "completed"), thought("Interrupted mid-thought")],
+      isPrompting: false,
+    });
+
     expect(state.grouped).toHaveLength(2);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(state.grouped[0]).toMatchObject({
+      kind: "event",
+      event: { eventKind: "tool_call", toolCallId: "read-1" },
+    });
     expect(state.grouped[1]).toMatchObject({
       kind: "event",
       liveThought: false,
       event: { eventKind: "agent_thought", content: [{ text: "Interrupted mid-thought" }] },
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  it("renders the live thought standalone after live reads", () => {
+    const state = new SessionEventsState({
+      events: [
+        tool("read-1", "read", "completed"),
+        tool("read-2", "read", "completed"),
+        thought("Now editing"),
+      ],
+      isPrompting: true,
+    });
+
+    expect(state.grouped).toHaveLength(3);
+    expect(state.grouped[0]).toMatchObject({
+      kind: "event",
+      event: { eventKind: "tool_call", toolCallId: "read-1" },
+    });
+    expect(state.grouped[2]).toMatchObject({
+      kind: "event",
+      liveThought: true,
+      event: { eventKind: "agent_thought" },
+    });
+  });
+
   it("keeps a thought between live reads, marking only the latest live", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const state = new SessionEventsState({
+      events: [
+        tool("read-1", "read", "completed"),
+        thought("peeking"),
+        tool("read-2", "read", "completed"),
+        thought("Now editing"),
+      ],
+      isPrompting: true,
+    });
+
     expect(state.grouped).toHaveLength(4);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(state.grouped[0]).toMatchObject({
+      kind: "event",
+      event: { eventKind: "tool_call", toolCallId: "read-1" },
+    });
+    expect(state.grouped[1]).toMatchObject({
       kind: "event",
       liveThought: false,
       event: { eventKind: "agent_thought", content: [{ text: "peeking" }] },
     });
     expect(state.grouped[2]).toMatchObject({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      kind: "event",
+      event: { eventKind: "tool_call", toolCallId: "read-2" },
+    });
     expect(state.grouped[3]).toMatchObject({ kind: "event", liveThought: true });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
   it("shows a thought before later content", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const state = new SessionEventsState({
+      events: [thought("Reasoning"), blankAgentMessage(), tool("edit-1", "edit", "in_progress")],
+      isPrompting: true,
+    });
+
+    expect(state.grouped).toHaveLength(2);
+    expect(state.grouped[0]).toMatchObject({
+      kind: "event",
+      liveThought: false,
+      event: { eventKind: "agent_thought", content: [{ text: "Reasoning" }] },
+    });
+    expect(state.grouped[1]).toMatchObject({
+      kind: "event",
+      event: { eventKind: "tool_call", toolCallId: "edit-1" },
+    });
+  });
+
+  describe("streaming grouped collapse", () => {
+    it("folds completed tools behind the tail while the running tool stays live", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("read-2", "read", "completed"),
+          tool("read-3", "read", "completed"),
+          tool("run-1", "execute", "in_progress"),
+        ],
+        isPrompting: true,
+        toolActivity: "grouped",
+      });
+
+      // read-3 and run-1 are the two-slot tail; only read-1 and read-2 fold.
+      expect(state.grouped).toHaveLength(4);
+      expect(state.grouped[1]).toMatchObject({
+        kind: "event_group",
+        live: true,
+        events: [{ index: 1 }, { index: 2 }],
+      });
+      expect(state.grouped[2]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "tool_call", toolCallId: "read-3" },
+      });
+      expect(state.grouped[3]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "tool_call", toolCallId: "run-1" },
+      });
+    });
+
+    it("keeps one group across a change of kind", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("read-2", "read", "completed"),
+          tool("run-1", "execute", "completed"),
+          tool("run-2", "execute", "completed"),
+          tool("search-1", "search", "completed"),
+          tool("run-3", "execute", "in_progress"),
+        ],
+        isPrompting: true,
+        toolActivity: "grouped",
+      });
+
+      // Reads and shells fold into the same group; search-1 and run-3 are the tail.
+      const groups = state.grouped.filter((item) => item.kind === "event_group");
+      expect(groups).toHaveLength(1);
+      expect(groups[0]).toMatchObject({
+        events: [{ index: 1 }, { index: 2 }, { index: 3 }, { index: 4 }],
+      });
+    });
+
+    it("folds every kind of completed tool into one run", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          // A shell call the agent tagged "other" (Skill / Terminal / MCP shell),
+          // recognized MCP and skill calls, an opaque "other" tool, and a "think"
+          // pseudo-step: the kind never splits the run.
+          execCommandOther("other-1"),
+          mcpTool("mcp-1"),
+          skillTool("skill-1"),
+          opaqueOther("opaque-1"),
+          tool("think-1", "think", "completed"),
+          tool("read-2", "read", "completed"),
+          tool("run-1", "execute", "in_progress"),
+        ],
+        isPrompting: true,
+        toolActivity: "grouped",
+      });
+
+      // Everything behind the tail (read-2, run-1) folds — "think" included,
+      // since visible activity follows it.
+      expect(state.grouped).toHaveLength(4);
+      expect(state.grouped[1]).toMatchObject({
+        kind: "event_group",
+        live: true,
+        events: [
+          { index: 1 },
+          { index: 2 },
+          { index: 3 },
+          { index: 4 },
+          { index: 5 },
+          { index: 6 },
+        ],
+      });
+      expect(state.grouped[2]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "tool_call", toolCallId: "read-2" },
+      });
+      expect(state.grouped[3]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "tool_call", toolCallId: "run-1", status: "in_progress" },
+      });
+    });
+
+    it("keeps agent messages visible and splits tool runs around them", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("run-1", "execute", "completed"),
+          tool("read-2", "read", "completed"),
+          agentMessage("Found the bug"),
+          tool("read-3", "read", "completed"),
+          tool("edit-1", "edit", "completed"),
+          tool("run-2", "execute", "completed"),
+          tool("read-4", "read", "in_progress"),
+        ],
+        isPrompting: true,
+        toolActivity: "grouped",
+      });
+
+      // A group each side of the message; run-2 and read-4 hold the tail.
+      expect(state.grouped).toHaveLength(6);
+      expect(state.grouped[1]).toMatchObject({
+        kind: "event_group",
+        events: [{ index: 1 }, { index: 2 }, { index: 3 }],
+      });
+      expect(state.grouped[2]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "agent_message", content: [{ text: "Found the bug" }] },
+      });
+      expect(state.grouped[3]).toMatchObject({
+        kind: "event_group",
+        events: [{ index: 5 }, { index: 6 }],
+      });
+      expect(state.grouped[4]).toMatchObject({ event: { toolCallId: "run-2" } });
+      expect(state.grouped[5]).toMatchObject({ event: { toolCallId: "read-4" } });
+    });
+
     it("keeps a steer prompt visible between live grouped tool runs", () => {
       const state = new SessionEventsState({
         events: [
@@ -948,207 +948,207 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       });
     });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    it("keeps a constant two-slot tail through the think cycle", () => {
+      const base = [
+        { eventKind: "user_message", messageId: "u1", content: [] },
+        tool("read-1", "read", "completed"),
+        tool("read-2", "read", "completed"),
+        tool("read-3", "read", "completed"),
+        tool("run-1", "execute", "completed"),
+      ] satisfies SessionEvent[];
+      const grouping = (events: SessionEvent[]) =>
+        new SessionEventsState({ events, isPrompting: true, toolActivity: "grouped" }).grouped;
+
+      // [last-1, last] — nothing trails the newest call, so two stay out.
+      const settled = grouping(base);
+      expect(settled).toHaveLength(4);
+      expect(settled[1]).toMatchObject({
+        kind: "event_group",
+        events: [{ index: 1 }, { index: 2 }],
+      });
+      expect(settled[2]).toMatchObject({ event: { toolCallId: "read-3" } });
+      expect(settled[3]).toMatchObject({ event: { toolCallId: "run-1" } });
+
+      // [last, thinking…] — the thought takes the second slot and read-3 folds
+      // in, so the tail is still exactly two rows.
+      const thinking = grouping([...base, thought("Deciding what to check next")]);
+      expect(thinking).toHaveLength(4);
+      expect(thinking[1]).toMatchObject({
+        kind: "event_group",
+        events: [{ index: 1 }, { index: 2 }, { index: 3 }],
+      });
+      expect(thinking[2]).toMatchObject({ event: { toolCallId: "run-1" } });
+      expect(thinking[3]).toMatchObject({
+        liveThought: true,
+        event: { eventKind: "agent_thought" },
+      });
+
+      // The next call replaces the thought and read-3 does NOT pop back out:
+      // the fold boundary only ever advances.
+      const nextTool = grouping([...base, tool("read-4", "read", "in_progress")]);
+      expect(nextTool).toHaveLength(4);
+      expect(nextTool[1]).toMatchObject({
+        kind: "event_group",
+        events: [{ index: 1 }, { index: 2 }, { index: 3 }],
+      });
+      expect(nextTool[2]).toMatchObject({ event: { toolCallId: "run-1" } });
+      expect(nextTool[3]).toMatchObject({ event: { toolCallId: "read-4" } });
+    });
+
+    it("holds completed tools in the tail rather than folding them instantly", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("read-2", "read", "completed"),
+        ],
+        isPrompting: true,
+        toolActivity: "grouped",
+      });
+
+      // Both calls are the tail, so nothing folds and no group forms yet.
+      expect(state.grouped).toHaveLength(3);
+      expect(state.grouped.every((item) => item.kind === "event")).toBe(true);
+    });
+
+    it("lets a streaming reply take the second tail slot", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("read-2", "read", "completed"),
+          tool("read-3", "read", "completed"),
+          agentMessage("Here is what I found"),
+        ],
+        isPrompting: true,
+        toolActivity: "grouped",
+      });
+
+      // The message is visible activity, so only read-3 stays out of the fold.
+      expect(state.grouped).toHaveLength(4);
+      expect(state.grouped[1]).toMatchObject({
+        kind: "event_group",
+        events: [{ index: 1 }, { index: 2 }],
+      });
+      expect(state.grouped[2]).toMatchObject({ event: { toolCallId: "read-3" } });
+      expect(state.grouped[3]).toMatchObject({ event: { eventKind: "agent_message" } });
+    });
+
+    it("folds failed and cancelled tools like completed ones", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("read-2", "read", "completed"),
+          tool("run-1", "execute", "failed"),
+          tool("read-3", "read", "cancelled"),
+          tool("read-4", "read", "completed"),
+          tool("run-2", "execute", "in_progress"),
+        ],
+        isPrompting: true,
+        toolActivity: "grouped",
+      });
+
+      // The outcome never keeps a finished tool out of the fold; only the tail
+      // (read-4, run-2) stays visible.
+      expect(state.grouped).toHaveLength(4);
+      expect(state.grouped[1]).toMatchObject({
+        kind: "event_group",
+        events: [{ index: 1 }, { index: 2 }, { index: 3 }, { index: 4 }],
+      });
+      expect(state.grouped[2]).toMatchObject({ event: { toolCallId: "read-4" } });
+      expect(state.grouped[3]).toMatchObject({ event: { toolCallId: "run-2" } });
+    });
+
+    it("keeps an unfinished tool out of the fold, whatever precedes it", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("run-1", "execute", "failed"),
+          tool("read-2", "read", "completed"),
+          tool("read-3", "read", "pending"),
+          tool("run-2", "execute", "in_progress"),
+        ],
+        isPrompting: true,
+        toolActivity: "grouped",
+      });
+
+      // read-3 is pending and run-2 is running: both render live and hold the
+      // two tail slots, so everything finished behind them folds.
+      expect(state.grouped).toHaveLength(4);
+      expect(state.grouped[1]).toMatchObject({
+        kind: "event_group",
+        events: [{ index: 1 }, { index: 2 }, { index: 3 }],
+      });
+      expect(state.grouped[2]).toMatchObject({
+        kind: "event",
+        event: { toolCallId: "read-3", status: "pending" },
+      });
+      expect(state.grouped[3]).toMatchObject({ event: { toolCallId: "run-2" } });
+    });
+
+    it("leaves a single completed tool standalone", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("run-1", "execute", "in_progress"),
+        ],
+        isPrompting: true,
+        toolActivity: "grouped",
+      });
+
+      expect(state.grouped).toHaveLength(3);
+      expect(state.grouped.every((item) => item.kind === "event")).toBe(true);
+    });
+
+    it("does not fold the live turn when the mode is off", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("read-2", "read", "completed"),
+        ],
+        isPrompting: true,
+      });
+
+      expect(state.grouped).toHaveLength(3);
+      expect(state.grouped.every((item) => item.kind === "event")).toBe(true);
+    });
+
+    it("summarizes the finished turn into a plain group without a kind", () => {
+      const events = [
+        tool("read-1", "read", "completed"),
+        tool("read-2", "read", "completed"),
+        agentMessage("Found the bug"),
+        tool("run-1", "execute", "completed"),
+        agentMessage("Done"),
+      ] satisfies SessionEvent[];
+
+      const state = new SessionEventsState({
+        events,
+        isPrompting: false,
+        toolActivity: "grouped",
+        turns: [
+          {
+            startedAt: "2026-06-02T10:00:00.000Z",
+            endedAt: "2026-06-02T10:01:00.000Z",
+            startIndex: 0,
+            endIndex: 4,
+          },
+        ],
+      });
+
+      expect(state.grouped).toHaveLength(2);
+      // A settled turn summarizes through `turn`, not as a live streaming group.
+      expect(state.grouped[0]).toMatchObject({ kind: "event_group", turn: { startIndex: 0 } });
+      expect(state.grouped[0]).not.toMatchObject({ live: true });
+      expect(state.grouped[1]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "agent_message", content: [{ text: "Done" }] },
+      });
+    });
 
     it("keeps completed compact reasoning inside one turn summary", () => {
       const events = [
@@ -1221,40 +1221,40 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         event: { eventKind: "agent_message", content: [{ text: "Done" }] },
       });
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  describe("streaming compact collapse", () => {
+    it("folds finished tools and interim messages into a single line", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("run-1", "execute", "completed"),
+          agentMessage("Found the bug"),
+          tool("edit-1", "edit", "completed"),
+          tool("edit-2", "edit", "completed"),
+          tool("run-2", "execute", "in_progress"),
+        ],
+        isPrompting: true,
+        toolActivity: "compact",
+      });
+
+      expect(state.grouped).toHaveLength(4);
+      expect(state.grouped[1]).toMatchObject({
+        kind: "event_group",
+        live: true,
+        events: [{ index: 1 }, { index: 2 }, { index: 3 }, { index: 4 }],
+      });
+      expect(state.grouped[2]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "tool_call", toolCallId: "edit-2" },
+      });
+      expect(state.grouped[3]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "tool_call", toolCallId: "run-2" },
+      });
+    });
+
     it("keeps a steer prompt visible between live compact tool spans", () => {
       const state = new SessionEventsState({
         events: [
@@ -1353,281 +1353,281 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       expect(state.grouped[3]).toMatchObject({ kind: "event", index: 7 });
     });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    it("keeps the last two tool calls visible and folds the message between them", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("read-2", "read", "completed"),
+          tool("read-3", "read", "completed"),
+          agentMessage("Now the tests"),
+          tool("run-1", "execute", "completed"),
+        ],
+        isPrompting: true,
+        toolActivity: "compact",
+      });
+
+      expect(state.grouped).toHaveLength(4);
+      expect(state.grouped[1]).toMatchObject({
+        id: "group-1",
+        kind: "event_group",
+        live: true,
+        events: [{ index: 1 }, { index: 2 }, { index: 4 }],
+      });
+      expect(state.grouped[2]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "tool_call", toolCallId: "read-3" },
+      });
+      expect(state.grouped[3]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "tool_call", toolCallId: "run-1", status: "completed" },
+      });
+    });
+
+    it("lets a trailing thought take the second slot", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("read-2", "read", "completed"),
+          tool("read-3", "read", "completed"),
+          thought("Deciding what to check next"),
+        ],
+        isPrompting: true,
+        toolActivity: "compact",
+      });
+
+      expect(state.grouped).toHaveLength(4);
+      expect(state.grouped[1]).toMatchObject({
+        kind: "event_group",
+        live: true,
+        events: [{ index: 1 }, { index: 2 }],
+      });
+      expect(state.grouped[2]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "tool_call", toolCallId: "read-3" },
+      });
+      expect(state.grouped[3]).toMatchObject({
+        kind: "event",
+        liveThought: true,
+        event: { eventKind: "agent_thought" },
+      });
+    });
+
+    it("folds even a single tool once activity trails the newest call", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("read-2", "read", "completed"),
+          thought("Deciding what to check next"),
+        ],
+        isPrompting: true,
+        toolActivity: "compact",
+      });
+
+      expect(state.grouped).toHaveLength(4);
+      expect(state.grouped[1]).toMatchObject({
+        kind: "event_group",
+        live: true,
+        events: [{ index: 1 }],
+      });
+      expect(state.grouped[2]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "tool_call", toolCallId: "read-2" },
+      });
+      expect(state.grouped[3]).toMatchObject({
+        kind: "event",
+        liveThought: true,
+        event: { eventKind: "agent_thought" },
+      });
+    });
+
+    it("folds leading narration once tools follow, anchoring the id on the first tool", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          agentMessage("Let me explore the key directories"),
+          tool("read-1", "read", "completed"),
+          tool("read-2", "read", "completed"),
+          tool("read-3", "read", "completed"),
+          tool("run-1", "execute", "completed"),
+        ],
+        isPrompting: true,
+        toolActivity: "compact",
+      });
+
+      expect(state.grouped).toHaveLength(4);
+      expect(state.grouped[1]).toMatchObject({
+        id: "group-2",
+        kind: "event_group",
+        live: true,
+        events: [{ index: 1 }, { index: 2 }, { index: 3 }],
+      });
+      expect(state.grouped[2]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "tool_call", toolCallId: "read-3" },
+      });
+      expect(state.grouped[3]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "tool_call", toolCallId: "run-1" },
+      });
+    });
+
+    it("keeps the trailing message visible until a later tool folds it", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("read-2", "read", "completed"),
+          tool("read-3", "read", "completed"),
+          agentMessage("Here is what I found so far"),
+        ],
+        isPrompting: true,
+        toolActivity: "compact",
+      });
+
+      expect(state.grouped).toHaveLength(4);
+      expect(state.grouped[1]).toMatchObject({
+        kind: "event_group",
+        live: true,
+        events: [{ index: 1 }, { index: 2 }],
+      });
+      expect(state.grouped[2]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "tool_call", toolCallId: "read-3" },
+      });
+      expect(state.grouped[3]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "agent_message", content: [{ text: "Here is what I found so far" }] },
+      });
+    });
+
+    it("leaves a single finished tool standalone", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("run-1", "execute", "in_progress"),
+        ],
+        isPrompting: true,
+        toolActivity: "compact",
+      });
+
+      expect(state.grouped).toHaveLength(3);
+      expect(state.grouped.every((item) => item.kind === "event")).toBe(true);
+    });
+
+    it("folds errored tools like completed ones", () => {
+      const state = new SessionEventsState({
+        events: [
+          { eventKind: "user_message", messageId: "u1", content: [] },
+          tool("read-1", "read", "completed"),
+          tool("run-1", "execute", "failed"),
+          tool("read-2", "read", "completed"),
+          tool("run-2", "execute", "in_progress"),
+        ],
+        isPrompting: true,
+        toolActivity: "compact",
+      });
+
+      expect(state.grouped).toHaveLength(4);
+      expect(state.grouped[1]).toMatchObject({
+        kind: "event_group",
+        live: true,
+        events: [{ index: 1 }, { index: 2 }],
+      });
+      expect(state.grouped[2]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "tool_call", toolCallId: "read-2" },
+      });
+      expect(state.grouped[3]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "tool_call", toolCallId: "run-2" },
+      });
+    });
+
+    it("keeps a constant two-slot tail through the think cycle", () => {
+      const base = [
+        { eventKind: "user_message", messageId: "u1", content: [] },
+        tool("read-1", "read", "completed"),
+        tool("read-2", "read", "completed"),
+        tool("read-3", "read", "completed"),
+      ] satisfies SessionEvent[];
+      const grouping = (events: SessionEvent[]) =>
+        new SessionEventsState({ events, isPrompting: true, toolActivity: "compact" }).grouped;
+
+      // [last tool, think…]
+      const thinking = grouping([...base, tool("think-1", "think", "in_progress")]);
+      expect(thinking).toHaveLength(4);
+      expect(thinking[1]).toMatchObject({
+        kind: "event_group",
+        events: [{ index: 1 }, { index: 2 }],
+      });
+      expect(thinking[2]).toMatchObject({ event: { toolCallId: "read-3" } });
+      expect(thinking[3]).toMatchObject({ event: { toolCallId: "think-1" } });
+
+      // [last-1, last] — the finished think folds, the older read stays put.
+      const nextTool = grouping([
+        ...base,
+        tool("think-1", "think", "completed"),
+        tool("run-1", "execute", "pending"),
+      ]);
+      expect(nextTool).toHaveLength(4);
+      expect(nextTool[1]).toMatchObject({
+        kind: "event_group",
+        events: [{ index: 1 }, { index: 2 }, { index: 4 }],
+      });
+      expect(nextTool[2]).toMatchObject({ event: { toolCallId: "read-3" } });
+      expect(nextTool[3]).toMatchObject({ event: { toolCallId: "run-1" } });
+
+      // [last tool, think…] again — read-3 folds, run-1 takes the first slot.
+      const thinkingAgain = grouping([
+        ...base,
+        tool("think-1", "think", "completed"),
+        tool("run-1", "execute", "completed"),
+        tool("think-2", "think", "in_progress"),
+      ]);
+      expect(thinkingAgain).toHaveLength(4);
+      expect(thinkingAgain[1]).toMatchObject({
+        kind: "event_group",
+        events: [{ index: 1 }, { index: 2 }, { index: 3 }, { index: 4 }],
+      });
+      expect(thinkingAgain[2]).toMatchObject({ event: { toolCallId: "run-1" } });
+      expect(thinkingAgain[3]).toMatchObject({ event: { toolCallId: "think-2" } });
+    });
+
+    it("summarizes the finished turn into a plain group", () => {
+      const state = new SessionEventsState({
+        events: [
+          tool("read-1", "read", "completed"),
+          tool("run-1", "execute", "completed"),
+          agentMessage("Found the bug"),
+          tool("edit-1", "edit", "completed"),
+          agentMessage("Done"),
+        ],
+        isPrompting: false,
+        toolActivity: "compact",
+        turns: [
+          {
+            startedAt: "2026-06-02T10:00:00.000Z",
+            endedAt: "2026-06-02T10:01:00.000Z",
+            startIndex: 0,
+            endIndex: 4,
+          },
+        ],
+      });
+
+      expect(state.grouped).toHaveLength(2);
+      expect(state.grouped[0]).toMatchObject({ kind: "event_group" });
+      expect(state.grouped[0]).not.toMatchObject({ live: true });
+      expect(state.grouped[1]).toMatchObject({
+        kind: "event",
+        event: { eventKind: "agent_message", content: [{ text: "Done" }] },
+      });
+    });
+  });
+
   it("routes tool events to the correct turn using the memoized index lookup", () => {
     // Two turns covering distinct index ranges; events span both.
     const events = [
@@ -1729,26 +1729,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 
   it("folds a thought into the summary group with the reads around it", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const state = new SessionEventsState({
+      events: [
+        tool("read-1", "read", "completed"),
         thought("interjection"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        tool("read-2", "read", "completed"),
+        agentMessage("Done"),
+      ],
+      isPrompting: false,
+    });
+
     expect(state.grouped).toHaveLength(2);
     expect(state.grouped[0]).toMatchObject({
       kind: "event_group",
       events: [{ index: 0 }, { index: 1 }, { index: 2 }],
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(state.grouped[1]).toMatchObject({
+      kind: "event",
       event: { eventKind: "agent_message", content: [{ text: "Done" }] },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+  });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 describe("pinned expanded tools (PE-2402)", () => {
@@ -1901,49 +1901,49 @@ describe("pinned expanded tools (PE-2402)", () => {
   });
 });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+describe("toolActivityFrom", () => {
+  it("reads the VS Code configuration value", () => {
+    expect(toolActivityFrom({ userSettings: { toolActivity: "grouped" }, environment: {} })).toBe(
+      "grouped",
+    );
+  });
+
+  it("reads the desktop environment value", () => {
+    expect(
+      toolActivityFrom({
+        userSettings: {},
+        environment: { desktopToolActivity: "grouped" },
+      }),
+    ).toBe("grouped");
+  });
+
+  it("accepts the compact mode", () => {
+    expect(toolActivityFrom({ userSettings: { toolActivity: "compact" }, environment: {} })).toBe(
+      "compact",
+    );
+  });
+
+  it("respects an explicit detailed", () => {
+    expect(toolActivityFrom({ userSettings: { toolActivity: "detailed" }, environment: {} })).toBe(
+      "detailed",
+    );
+    expect(
+      toolActivityFrom({ userSettings: {}, environment: { desktopToolActivity: "detailed" } }),
+    ).toBe("detailed");
+  });
+
+  it("falls back to grouped for missing or unknown values", () => {
+    expect(toolActivityFrom({ userSettings: {}, environment: {} })).toBe("grouped");
+    expect(
+      toolActivityFrom({ userSettings: { toolActivity: "everything" }, environment: {} }),
+    ).toBe("grouped");
+    // Retired mode values must degrade gracefully, not crash or half-apply.
+    expect(toolActivityFrom({ userSettings: { toolActivity: "on-text" }, environment: {} })).toBe(
+      "grouped",
+    );
+  });
+});
+
 function interruptedTurn(startIndex: number, endIndex: number) {
   return {
     startedAt: "2026-06-02T10:00:00.000Z",
@@ -1965,84 +1965,84 @@ function steerMessage(text: string): SessionEvent {
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  kind: "edit" | "execute" | "read" | "search" | "think",
+  status: "completed" | "in_progress" | "pending" | "cancelled" | "failed",
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+function execCommandOther(toolCallId: string): SessionEvent {
+  // kind "other" plus a title that is not "Run"/"exec_command" makes
+  // isExecCommandToolCall treat it as a shell command (getExecCommand falls
+  // back to the title) — the shape agents emit for Skill / Terminal calls.
+  return {
+    eventKind: "tool_call",
+    toolCallId,
+    title: "Skill",
+    kind: "other",
+    status: "completed",
+  };
+}
+
+function opaqueOther(toolCallId: string): SessionEvent {
+  // An "other" tool nothing can claim: no MCP/skill _meta, and title "Run" with
+  // no rawInput yields no exec command, so isExecCommandToolCall rejects it too.
+  // Before grouping ignored kind, this splintered into its own row.
+  return {
+    eventKind: "tool_call",
+    toolCallId,
+    title: "Run",
+    kind: "other",
+    status: "completed",
+  };
+}
+
+function mcpTool(toolCallId: string): SessionEvent {
+  // Pool MCP tool: kind "execute", <server>__<tool> name (no mcp__ prefix).
+  return {
+    eventKind: "tool_call",
+    toolCallId,
+    title: "poolside-github__get_me",
+    kind: "execute",
+    status: "completed",
+    _meta: { tool_name: "poolside-github__get_me" },
+  };
+}
+
+function skillTool(toolCallId: string): SessionEvent {
+  // Pool skill: kind "execute", tool_name "skill", title "Skill: `<name>`".
+  return {
+    eventKind: "tool_call",
+    toolCallId,
+    title: "Skill: `pool-product-reference`",
+    kind: "execute",
+    status: "completed",
+    _meta: { tool_name: "skill" },
+  };
+}
+
+function thought(text: string): SessionEvent {
+  return {
+    eventKind: "agent_thought",
+    messageId: null,
+    content: [{ type: "text", text }],
+  };
+}
+
+function agentMessage(text: string): SessionEvent {
+  return {
+    eventKind: "agent_message",
+    messageId: null,
+    content: [{ type: "text", text }],
+  };
+}
+
+function blankAgentMessage(): SessionEvent {
+  return agentMessage("\n\n");
+}

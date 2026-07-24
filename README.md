@@ -40,10 +40,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+| Surface                             | Status    | Download                                                                                                      |
+| ----------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------- |
+| **Desktop** — macOS (Apple Silicon) | Available | [Newest `desktop/v*` release](https://github.com/poolsideai/assistant/releases?q=desktop%2Fv)                  |
+| **VS Code** extension               | Available | [Newest `vscode-assistant/v*` release](https://github.com/poolsideai/assistant/releases?q=vscode-assistant%2Fv) |
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

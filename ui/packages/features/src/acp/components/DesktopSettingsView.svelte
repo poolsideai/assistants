@@ -10,7 +10,7 @@
   import DesktopRemoteAccessSection from "./DesktopRemoteAccessSection.svelte";
   import LocalInferenceSettingsSection from "./LocalInferenceSettingsSection.svelte";
   import VoiceRecognitionSettingsSection from "./VoiceRecognitionSettingsSection.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import UserMCPServersSection from "./UserMCPServersSection.svelte";
   import DesktopSettingsPanelFrame from "./settings/DesktopSettingsPanelFrame.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import {
@@ -20,7 +20,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     type DesktopSettingsSection,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   } from "./settings/settingsSections";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   // "all" stacks every section on one page. The section prop renders one
   // settings section while the page-level left nav controls switching sections.
   // sectionNav=false suppresses that left nav for hosts too narrow to fit it
@@ -55,7 +55,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     desktopFrame = false,
   }: Props = $props();
   let isDesktop = $derived($appState.environment.assistantHost === "desktop");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   let heading = $derived(SETTINGS_HEADINGS[section]);
   let showSectionNav = $derived(
     sectionNav && !desktopFrame && section !== "all" && availableSections.length > 1,
@@ -257,8 +257,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             {/each}
           </nav>
         </aside>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {/if}
+
       <div class="min-h-0 min-w-0 flex-1 overflow-y-auto">
         <div
           class={[

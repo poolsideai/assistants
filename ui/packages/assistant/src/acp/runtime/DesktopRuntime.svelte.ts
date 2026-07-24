@@ -33,10 +33,10 @@ import {
 import { findNextUnreadConversation } from "./desktop/unreadConversation";
 import {
   defaultDesktopConversationCwd,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  readStoredLastConversationCwd,
   resolveConversationWorkspaceScope,
   resolveDesktopWorkspaceRoot,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  writeStoredLastConversationCwd,
 } from "./desktop/workspacePaths";
 import { PendingSessionBootstrap } from "./shared/PendingSessionBootstrap.svelte";
 import type { Runtime } from "./shared/types";
@@ -85,7 +85,7 @@ export class DesktopRuntime {
   #hasLoadedProjectsOnce = $state(false);
   #worktreeRepo?: ACPWorktreeRepository;
   #githubRepo?: ACPGithubRepository;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  #lastFocusedConversationId: string | null = null;
   #onNavigationChange?: () => void;
   #newConversationGeneration = 0;
 
@@ -378,27 +378,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         this.#hasLoadedProjectsOnce = true;
       }
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    // Remember the project/worktree of the active conversation so the next "New
+    // conversation" reopens there, even across app restarts.
+    $effect(() => {
+      const cwd = this.#currentConversationCwd;
+      if (!this.#isDesktop || !cwd) return;
+      if (this.#core.acpProjectRepo.projects.some((project) => project.path === cwd)) {
+        writeStoredLastConversationCwd(cwd);
+      }
+    });
+
     // Focus on selection, without waiting for history. A late history result
     // must never steal focus from the search box, another pane or settings.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    $effect(() => {
+      const conversationId = this.#core.activeConversationId;
       if (!conversationId || this.#lastFocusedConversationId === conversationId) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.#lastFocusedConversationId = conversationId;
       return focusPromptIfUnchanged(
         () => this.#viewState.view === "chat" && this.#core.activeConversationId === conversationId,
       );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
   }
 
   get view() {
@@ -549,7 +549,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.#core.activeConversationId = entry.conversationId;
   };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  handleNewConversation = async (cwd = this.#newConversationDefaultCwd()) => {
     return await this.#createNewConversation(cwd);
   };
 
@@ -604,7 +604,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (!isCurrent()) return null;
     }
     const agentServer = this.#core.acpRepo.agents.defaultAgentServer;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const { cwd: protocolCwd } = resolveConversationWorkspaceScope(this.#appStateSnapshot, cwd);
     cwd = protocolCwd;
 
     const activeSession = this.#activeSession;
@@ -619,18 +619,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
 
     this.#bootstrap.markPrepared(agentServer, cwd);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Surface the draft in the sidebar immediately — don't wait for the first
+    // keystroke. "New conversation" (and worktree creation, which routes here)
+    // then gives instant visible feedback, and the draft is a real conversation
+    // its terminal / setup-script output can attach to.
     const session = options.isChat
       ? this.#core.acpRepo.createSession(cwd, agentServer, options.conversationId ?? null, {
           isChat: true,
         })
       : this.#core.acpRepo.createSession(cwd, agentServer, options.conversationId ?? null);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    session.persistPendingConversation();
+    session.requestPromptFocus();
+    this.#core.activeConversationId = session.conversationId;
     this.#onNavigationChange?.();
     return session.conversationId;
   }
@@ -690,8 +690,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         name: project.name || project.path,
       });
       await this.#core.acpConversationRepo.refresh();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      // Land in a ready-to-type draft conversation for the new project.
+      await this.handleNewConversation(project.path);
     } finally {
       this.#addingProject = false;
     }
@@ -811,23 +811,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.#onNavigationChange?.();
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Where a user-initiated "New conversation" opens: on desktop, the
+  // project/worktree of the conversation the user is currently in, or (across
+  // restarts) the last one they used, so it lands where they left off.
+  // Auto-seeded landing drafts (e.g. after archiving) use
+  // #defaultConversationCwd instead, which always resolves to a stable default.
+  #newConversationDefaultCwd(): string {
+    if (this.#isDesktop) {
+      const isKnownWorkspace = (path: string | null | undefined): path is string =>
+        !!path && this.#core.acpProjectRepo.projects.some((project) => project.path === path);
+      const activeCwd = this.#activeSession?.cwd;
+      if (isKnownWorkspace(activeCwd)) return activeCwd;
+      const storedCwd = readStoredLastConversationCwd();
+      if (isKnownWorkspace(storedCwd)) return storedCwd;
+    }
+    return this.#defaultConversationCwd();
+  }
+
   #defaultConversationCwd(): string {
     return defaultDesktopConversationCwd({
       appState: this.#appStateSnapshot,

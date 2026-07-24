@@ -9,12 +9,12 @@
     title: "Components/Markdown Chip Copy",
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // A host that enables file-path linking (desktop) and resolves the example
   // files, so the real Markdown rendering pipeline turns the backticked paths into
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // FileChips — the same DOM a model response produces.
   const host: MarkdownHostAdapter = {
     state: readable({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      userSettings: {},
       environment: { assistantHost: "desktop" },
       workspaces: [{ path: "/repo" }],
     }),
@@ -25,7 +25,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 </script>
 
 <!--
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  Real-pipeline reproduction of the chip-copy behaviour: a model response sentence containing
   file chips. Used to verify that selecting and copying the sentence keeps the
   chip label on a single line (no line breaks injected around the chip).
 -->

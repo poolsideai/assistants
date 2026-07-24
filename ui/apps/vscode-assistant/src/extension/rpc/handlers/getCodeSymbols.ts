@@ -22,7 +22,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function getCodeSymbols(path?: string): Promise<CodeSymbolResponse> {
   let uri: vscode.Uri;
   let currentLine = 0;
 __POOL_SYNTHETIC_IMPORT_BASELINE__

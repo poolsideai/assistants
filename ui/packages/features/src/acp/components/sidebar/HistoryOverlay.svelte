@@ -34,12 +34,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     reconciling?: boolean;
     // Agent servers whose session list could not be fetched. Non-fatal.
     listFailures?: SessionListFailure[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Desktop archive: projects to filter by, the current selection, and a
+    // callback to switch. Omitted on IDE hosts (single workspace, no filter).
+    projects?: ACPNavProject[];
+    selectedProjectPath?: string | null;
     hasArchivedChats?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onSelectProject?: (path: string) => void | Promise<void>;
     visibleNavSessionForHistorySession: (
       session: ACPConversationSummary,
     ) => ACPConversationSummary | undefined;
@@ -79,10 +79,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     showCollapseButton = false,
     reconciling = false,
     listFailures = [],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    projects = [],
+    selectedProjectPath = null,
     hasArchivedChats = false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onSelectProject,
     visibleNavSessionForHistorySession,
     onBack,
     onCollapse,
@@ -152,7 +152,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const collapsedBucketKeys = new SvelteSet<string>();
   const searchCollapsedBucketKeys = new SvelteSet<string>();
   const expandedSessionBucketKeys = new SvelteSet<string>();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   $effect(() => {
     if (!hasActiveSearch) {
       searchCollapsedBucketKeys.clear();
@@ -303,12 +303,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     [...projects.filter((project) => !project.isWorktree)].sort((a, b) =>
       a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }),
     ),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
   const showProjectFilter = $derived(Boolean(onSelectProject) && projectFilterOptions.length > 0);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  function selectProjectFilter(path: string): void {
+    void onSelectProject?.(path);
+  }
 
   function bucketCwdTooltip(bucket: SessionPickerBucket): string | null {
     const keyedPath = bucket.key.startsWith("project:") ? bucket.key.slice("project:".length) : "";
@@ -355,11 +355,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       data-tauri-drag-region={desktop ? "deep" : undefined}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       <SidebarNavButton icon="arrow-left" label={backLabel} onclick={onBack} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {#if showProjectFilter}
         <div class="px-1 pt-0.5">
           {@render projectFilter()}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        </div>
+      {/if}
     </nav>
   {:else if !embedded}
     <div
@@ -630,7 +630,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                   </button>
                 {/if}
               </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            </div>
           </div>
         </section>
       {/each}

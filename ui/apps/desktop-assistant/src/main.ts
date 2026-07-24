@@ -39,7 +39,7 @@ import {
   acknowledgeHelperNotificationBatch,
   createWebviewResponseSender,
   DESKTOP_BUNDLE_REPLACED_EVENT,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  DESKTOP_CHECK_FOR_UPDATES_EVENT,
   DESKTOP_CLOSE_TAB_EVENT,
   DESKTOP_CLOSE_WINDOW_EVENT,
   DESKTOP_DEEP_LINK_EVENT,
@@ -65,7 +65,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   DESKTOP_TOGGLE_LEFT_SIDEBAR_EVENT,
   DESKTOP_TOGGLE_RIGHT_SIDEBAR_EVENT,
   DESKTOP_UPDATE_PROGRESS_EVENT,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  DESKTOP_UPDATE_STAGED_EVENT,
   DesktopHost,
   getDesktopSettings,
   markHelperNotificationBridgeReady,
@@ -89,13 +89,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { startSpoolsideBridge } from "./spoolsideBridge";
 import { logStartupDiagnostic } from "./startupDiagnostics";
 import { tauriDragDropSubscriber } from "./tauriDragDropSubscriber";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import {
+  applyDownloadedUpdate,
   refreshBundleReplacedStatus,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  runManualUpdateCheck,
+  startAutoUpdateLoop,
+  updaterStatus,
+} from "./updater";
 import { getVSCodeFileIconDefinition, VSCODE_FILE_ICON_THEME } from "./vscodeFileIconTheme";
 import { currentZoomLevel, installDesktopZoom } from "./zoom";
 
@@ -118,28 +118,28 @@ const CODE_FONT_FALLBACK = 'Menlo, Monaco, Consolas, "Ubuntu Mono", "Liberation 
 // Tauri's fallback notification id is signed 32-bit, so keep generated ids in range.
 const NOTIFICATION_ID_MAX = 2_147_483_647;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Tag the document as macOS, and — when the "Translucent window" setting is on —
+// as vibrancy-enabled, so app.css can clear the opaque top-level panel
+// backgrounds and let the native window vibrancy (see src-tauri/src/navigation.rs)
+// show through the grayish sidebar band. Non-macOS windows stay opaque, so the
+// classes are only added on macOS. Done at module scope (before the async
+// bootstrap) to avoid a flash of the wrong background before the first paint;
+// the vibrancy class seeds from a localStorage mirror because the settings read
+// below can wait seconds on helper startup, and is reconciled against the real
+// setting in applyDesktopWindowVibrancy once settings load.
+const isMacosPlatform = navigator.userAgent.includes("Macintosh");
+const DESKTOP_WINDOW_VIBRANCY_CLASS = "desktop-vibrancy";
+const DESKTOP_WINDOW_VIBRANCY_STORAGE_KEY = "poolside-desktop-window-vibrancy";
+if (isMacosPlatform) {
+  document.documentElement.classList.add("platform-macos");
+  if (localStorage.getItem(DESKTOP_WINDOW_VIBRANCY_STORAGE_KEY) !== "false") {
+    document.documentElement.classList.add(DESKTOP_WINDOW_VIBRANCY_CLASS);
+  }
   // Same reasoning as the vibrancy class above: seed from the cached accent so
   // the window does not flash the built-in blue before the bridge read lands.
   seedDesktopAccentFromCache();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 interface TerminalWritePayload {
   terminalId: string;
   data: string;
@@ -184,12 +184,12 @@ function setDesktopWindowFullscreenClass(fullscreen: boolean): void {
   document.body.classList.toggle(DESKTOP_WINDOW_FULLSCREEN_CLASS, fullscreen);
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function applyDesktopWindowVibrancy(settings: DesktopSettings): void {
+  if (!isMacosPlatform) return;
+  localStorage.setItem(DESKTOP_WINDOW_VIBRANCY_STORAGE_KEY, String(settings.windowVibrancy));
+  document.documentElement.classList.toggle(DESKTOP_WINDOW_VIBRANCY_CLASS, settings.windowVibrancy);
+}
+
 function applyDesktopFontPreferences(settings: DesktopSettings): void {
   lastFontSettings = settings;
   // The chat font variables are in px, so the rem-based root zoom does not
@@ -335,11 +335,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   const initialState = {
     userSettings: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      // Frozen persistence-scope key, NOT a real endpoint. The webview scopes
+      // localStorage by this value (see ScopedPersistence); it must stay equal
+      // to the historical default so existing users' persisted state stays
+      // reachable. The desktop is ACP-only and has no configurable API URL.
+      uri: "https://api.poolsi.de",
       themeOverride: null,
       wrapLines: false,
       showMermaidDiagrams: true,
@@ -370,7 +370,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       desktopTerminalFontFamily: desktopSettings.terminalFontFamily,
       desktopTerminalFontSize: desktopSettings.terminalFontSize,
       desktopTerminalCursorStyle: desktopSettings.terminalCursorStyle,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      desktopToolActivity: desktopSettings.toolActivity,
       desktopSteerWithEnter: desktopSettings.steerWithEnter,
       desktopFullscreen: isWindowFullscreen,
       desktopOpeners: desktopSettings.desktopOpeners,
@@ -441,11 +441,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     initialState.environment.desktopTerminalFontFamily = event.payload.terminalFontFamily;
     initialState.environment.desktopTerminalFontSize = event.payload.terminalFontSize;
     initialState.environment.desktopTerminalCursorStyle = event.payload.terminalCursorStyle;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    initialState.environment.desktopToolActivity = event.payload.toolActivity;
     initialState.environment.desktopSteerWithEnter = event.payload.steerWithEnter;
     initialState.environment.desktopOpeners = event.payload.desktopOpeners;
     applyDesktopFontPreferences(event.payload);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    applyDesktopWindowVibrancy(event.payload);
     appState.update((state) => ({
       ...state,
       environment: {
@@ -456,7 +456,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         desktopTerminalFontFamily: event.payload.terminalFontFamily,
         desktopTerminalFontSize: event.payload.terminalFontSize,
         desktopTerminalCursorStyle: event.payload.terminalCursorStyle,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        desktopToolActivity: event.payload.toolActivity,
         desktopSteerWithEnter: event.payload.steerWithEnter,
         desktopOpeners: event.payload.desktopOpeners,
       },
@@ -547,9 +547,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 
   void listen(DESKTOP_CHECK_FOR_UPDATES_EVENT, () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    void runManualUpdateCheck(desktopHost);
+  });
+
   window.addEventListener(DESKTOP_CLOSE_WINDOW_EVENT, () => {
     void currentWindow.close();
   });
@@ -749,13 +749,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     console.debug("Unable to refresh desktop openers cache", error);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Background self-update (mirrors Studio): check shortly after launch, then
   // daily and download silently. The shared `desktopUpdate` store keeps
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // release-channel controls locked during an operation and, once staged,
+  // renders the sidebar "Update" pill. Manual checks come through the "Check
+  // for Updates…" app-menu item (DESKTOP_CHECK_FOR_UPDATES_EVENT above). The
+  // loop is a no-op in dev — the real updater only runs in production builds
+  // (see updater.ts).
   // Applying installs the staged update before restarting, so unlike the old
   // bare relaunch it can genuinely fail — a cancelled privilege prompt, a full
   // disk, a pulled release. The pill only re-enables itself, so report why.
@@ -794,7 +794,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       throw error;
     }
   };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  updaterStatus.subscribe((status) => {
     switch (status.kind) {
       case "downloaded":
         desktopUpdate.set({
@@ -821,11 +821,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           progress: status.kind === "downloading" ? status.progress : undefined,
         });
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+  window.addEventListener(DESKTOP_UPDATE_STAGED_EVENT, (event) => {
+    const version = (event as CustomEvent<{ version: string }>).detail.version;
+    updaterStatus.set({ kind: "downloaded", version });
+  });
   void listen<{ downloaded: number; contentLength?: number }>(
     DESKTOP_UPDATE_PROGRESS_EVENT,
     (event) => {
@@ -845,7 +845,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     void refreshBundleReplacedStatus();
   });
   startAutoUpdateLoop();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   // Post-update toast: announce the freshly installed version once, linking to
   // the Changelog window. The host persists the announced version before
   // returning it, so a missed or dismissed toast never repeats.
@@ -860,12 +860,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     })
     .catch((error) => console.debug("post-update announcement failed", error));
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  if (import.meta.env.DEV) {
+    // Dev-only helpers (tree-shaken from production) to preview the sidebar
+    // "Update" pill without cutting a real release — handy for iterating on the
+    // UI. Nothing shows by default; trigger it with either:
+    //   - ⌘⌥U to toggle the pill on/off, or
+    //   - `window.__mockDesktopUpdate("1.2.3")` from the devtools console.
     // Clicking the pill relaunches without installing anything (dev builds
     // never stage an update — see applyDownloadedUpdate).
     const mockNotes = [
@@ -879,7 +879,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       "",
       "- Fix diff viewer cache collisions (#550)",
     ].join("\n");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    (
       window as unknown as {
         __mockDesktopUpdate?: (version?: string, notes?: string) => void;
         __mockDesktopUpdateProgress?: (progress?: number) => void;
@@ -895,18 +895,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       window as unknown as { __mockDesktopUpdateWaiting?: (version?: string) => void }
     ).__mockDesktopUpdateWaiting = (version = "0.0.0-mock") =>
       updaterStatus.set({ kind: "downloaded", version, waitingForIdle: true });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    window.addEventListener("keydown", (event) => {
+      if (event.metaKey && event.altKey && event.code === "KeyU") {
+        event.preventDefault();
+        updaterStatus.update((status) =>
+          status.kind === "downloaded"
+            ? { kind: "idle" }
             : { kind: "downloaded", version: "0.0.0-mock", notes: mockNotes },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        );
+      }
+    });
+  }
+
   watchDesktopTheme(
     () => currentThemePreference,
     (theme) => {

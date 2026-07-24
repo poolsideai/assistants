@@ -952,12 +952,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     --desktop-conversation-search-top: max(1rem, min(130px, calc(50vh - 16rem)));
     --desktop-conversation-search-shadow-high: color-mix(
       in srgb,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      var(--psx-foreground-primary) 46%,
       transparent
     );
     --desktop-conversation-search-shadow-low: color-mix(
       in srgb,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      var(--psx-foreground-primary) 32%,
       transparent
     );
 
@@ -976,20 +976,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     border-radius: 12px;
     background: rgb(255 255 255 / 78%);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /* Elevation only — the single `border` above draws the outline. A
+       `0 0 0 1px` ring here would stack a second hairline just outside it,
+       reading as a doubled border/shadow. */
     box-shadow:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      0 28px 80px -30px var(--desktop-conversation-search-shadow-high),
+      0 14px 34px -22px var(--desktop-conversation-search-shadow-low);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   :global(.vscode-dark) .desktop-conversation-search-dialog,
   :global(.psx-dark) .desktop-conversation-search-dialog {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --desktop-conversation-search-shadow-high: rgb(0 0 0 / 56%);
+    --desktop-conversation-search-shadow-low: rgb(0 0 0 / 42%);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     background: rgb(27 31 35 / 75%);

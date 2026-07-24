@@ -137,7 +137,7 @@
           <div
             class={[
               "pointer-events-none flex items-start gap-2 leading-tight",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              entry.status === "completed" && "opacity-50",
             ]}
           >
             <div class="mt-0.5">

@@ -19,22 +19,22 @@ describe("SessionPlan", () => {
     );
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("dims completed entries instead of pending entries", () => {
+    const plan = {
+      entries: [
+        { content: "alpha", priority: "medium", status: "completed" },
+        { content: "beta", priority: "medium", status: "in_progress" },
+        { content: "gamma", priority: "medium", status: "pending" },
+      ],
+    } satisfies Plan;
+
+    render(Harness, { props: { plan, isPrompting: false } });
+
+    expect(screen.getByText("alpha").closest("div")?.className).toContain("opacity-50");
+    expect(screen.getByText("beta").closest("div")?.className).not.toContain("opacity-50");
+    expect(screen.getByText("gamma").closest("div")?.className).not.toContain("opacity-50");
+  });
+
   it("shows the running-segment gradient only while an incomplete plan is running", () => {
     const incompletePlan = {
       entries: [

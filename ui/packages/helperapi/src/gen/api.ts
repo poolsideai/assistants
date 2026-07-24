@@ -676,7 +676,7 @@ export const poolsideSearchFiles = async (
 ): Promise<SearchFilesOutput> => {
   return await runtime.jsonrpcCall(toJsonrpcMethod("/poolside/searchFiles"), searchFilesParams);
 };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
  * Add or update a poolside secret
  */
 export const poolsideUpsertSecret = async (

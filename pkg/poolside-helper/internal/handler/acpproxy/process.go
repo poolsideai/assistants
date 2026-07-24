@@ -13,7 +13,7 @@ import (
 	"log/slog"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	"os/exec"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"slices"
@@ -214,8 +214,8 @@ type AgentServerBinaryDistribution struct {
 // or session/resume to get the set of user MCP servers to inject. It returns the
 // servers to add and a list of unavailable entries with their reasons. Nil return
 // means no injection.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type MCPServerInjector func(ctx context.Context, agentServer string, caps acpsdk.McpCapabilities) (servers []acpsdk.McpServer, unavailable []methods.MCPServerStatus)
+
 // AgentServerReadinessProvider is called before session boundaries for agent
 // servers with helper-owned runtime dependencies. Returning false tells the
 // proxy to restart the ACP subprocess so fresh runtime environment can be
@@ -230,7 +230,7 @@ type HandlerConfig struct {
 	// MCPServerInjector is optional. When set, it is called for every session/new,
 	// session/load, and session/resume (except config-probe sessions) to inject
 	// user MCP servers.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	MCPServerInjector MCPServerInjector
 }
 
 func DefaultAgentServers() map[string]AgentServerConfig {
@@ -880,51 +880,51 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		env = append(env, key+"="+cfg.env[key])
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// Guarantee a usable HOME. Some launch contexts (and shell-env extraction)
+	// can leave HOME empty, which makes agents resolve ~/.poolside to "/.poolside"
+	// and fail on the read-only root filesystem.
+	env = ensureHomeEnv(env)
+
 	return env, nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// ensureHomeEnv guarantees the spawned process gets a usable HOME. Some launch
+// contexts (and shell-env extraction) leave HOME blank or "/", which makes agents
+// resolve ~/.poolside to "/.poolside" and fail on the read-only root filesystem.
+// We only substitute when the inherited HOME is unusable, so a deliberately set
+// custom HOME is preserved.
+func ensureHomeEnv(env []string) []string {
+	inherited := envValue(env, "HOME")
+	if isUsableHomeDir(inherited) {
+		return env
+	}
+	real := resolveRealHomeDir()
+	if !isUsableHomeDir(real) {
+		return env
+	}
+	env = filterEnvKeys(env, "HOME")
+	env = append(env, "HOME="+real)
+	slog.Info("acpproxy: pinned agent HOME", "from", inherited, "to", real)
+	return env
+}
+
+func isUsableHomeDir(home string) bool {
+	return home != "" && home != "/"
+}
+
+// resolveRealHomeDir returns the user's home directory, preferring the OS
+// password database (which survives a broken $HOME) over $HOME itself.
+func resolveRealHomeDir() string {
+	// user.Current reads the password database, so it survives a broken $HOME.
+	if u, err := user.Current(); err == nil && isUsableHomeDir(u.HomeDir) {
+		return u.HomeDir
+	}
+	if h, err := os.UserHomeDir(); err == nil && isUsableHomeDir(h) {
+		return h
+	}
+	return ""
+}
+
 func resolveExecutablePath(binary string, env []string) (string, error) {
 	if binary == "" || hasPathSeparator(binary) {
 		return binary, nil

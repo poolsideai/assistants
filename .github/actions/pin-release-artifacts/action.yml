@@ -1,102 +1,102 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+name: Pin release artifacts
+description: Store or restore the immutable artifact set associated with a draft release
+
+inputs:
+  tag:
+    description: GitHub release tag
+    required: true
+  product:
+    description: Stable asset-name component
+    required: true
+  paths:
+    description: Newline-separated workspace-relative paths in the artifact set
+    required: true
+  allow-create:
+    description: Create the pinned bundle when the draft does not have one yet
+    required: true
+
+outputs:
+  asset-name:
+    description: Name of the pinned GitHub release asset
+    value: ${{ steps.pin.outputs.asset-name }}
+
+runs:
+  using: composite
+  steps:
+    - name: Pin or restore artifact set
+      id: pin
+      shell: bash
+      env:
+        RELEASE_TAG: ${{ inputs.tag }}
+        PRODUCT: ${{ inputs.product }}
+        ARTIFACT_PATHS: ${{ inputs.paths }}
+        ALLOW_CREATE: ${{ inputs.allow-create }}
+      run: |
+        set -euo pipefail
+        prefix="release-input-${PRODUCT}-sha256-"
+        assets=$(gh release view "${RELEASE_TAG}" --json assets)
+        matches=$(jq -r --arg prefix "${prefix}" \
+          '.assets[]?.name | select(startswith($prefix) and endswith(".tar.gz"))' <<<"${assets}")
+        count=$(grep -c . <<<"${matches}" || true)
+        [[ "${count}" -le 1 ]] || {
+          echo "Release ${RELEASE_TAG} has multiple pinned ${PRODUCT} artifact sets." >&2
+          exit 1
+        }
+
+        archive=""
+        asset_name=""
+        if [[ "${count}" -eq 1 ]]; then
+          asset_name="${matches}"
+          archive="${RUNNER_TEMP}/${asset_name}"
+          rm -f "${archive}"
+          gh release download "${RELEASE_TAG}" --pattern "${asset_name}" \
+            --dir "${RUNNER_TEMP}" --clobber
+          expected=${asset_name#"${prefix}"}
+          expected=${expected%.tar.gz}
+          actual=$(shasum -a 256 "${archive}" | awk '{print $1}')
+          [[ "${actual}" == "${expected}" ]] || {
+            echo "Pinned artifact set ${asset_name} has SHA-256 ${actual}, expected ${expected}." >&2
+            exit 1
+          }
+        else
+          [[ "${ALLOW_CREATE}" == "true" ]] || {
+            echo "Release ${RELEASE_TAG} has no pinned ${PRODUCT} artifact set to resume." >&2
+            exit 1
+          }
+          paths=()
+          while IFS= read -r path; do
+            [[ -n "${path}" ]] || continue
+            [[ "${path}" != /* && "${path}" != *".."* && -e "${path}" ]] || {
+              echo "Invalid or missing release artifact path: ${path}" >&2
+              exit 1
+            }
+            paths+=("${path}")
+          done <<<"${ARTIFACT_PATHS}"
+          [[ "${#paths[@]}" -gt 0 ]] || { echo "No release artifact paths were supplied." >&2; exit 1; }
+
+          candidate="${RUNNER_TEMP}/release-input-${PRODUCT}.tar.gz"
+          rm -f "${candidate}"
+          COPYFILE_DISABLE=1 tar -czf "${candidate}" "${paths[@]}"
+          digest=$(shasum -a 256 "${candidate}" | awk '{print $1}')
+          asset_name="${prefix}${digest}.tar.gz"
+          archive="${RUNNER_TEMP}/${asset_name}"
+          mv "${candidate}" "${archive}"
+          gh release upload "${RELEASE_TAG}" "${archive}"
+        fi
+
+        if tar -tzf "${archive}" | grep -Eq '(^/|(^|/)\.\.(/|$))'; then
+          echo "Pinned release artifact set contains an unsafe path." >&2
+          exit 1
+        fi
+        while IFS= read -r path; do
+          [[ -n "${path}" ]] || continue
+          rm -rf -- "${path}"
+        done <<<"${ARTIFACT_PATHS}"
+        COPYFILE_DISABLE=1 tar -xzf "${archive}" -C "${GITHUB_WORKSPACE}"
+        while IFS= read -r path; do
+          [[ -z "${path}" || -e "${path}" ]] || {
+            echo "Pinned artifact set did not restore ${path}." >&2
+            exit 1
+          }
+        done <<<"${ARTIFACT_PATHS}"
+        echo "asset-name=${asset_name}" >> "${GITHUB_OUTPUT}"

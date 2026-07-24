@@ -21,6 +21,6 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      # GitHub supports queued concurrency groups; actionlint does not yet know
+      # the `queue` key (https://docs.github.com/actions/using-jobs/using-concurrency).
+      - 'unexpected key "queue" for "concurrency" section'

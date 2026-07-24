@@ -17,15 +17,15 @@ use crate::desktop_openers::{
     refresh_detected_openers, DesktopFileOpener, DetectedOpeners,
 };
 use base64::{engine::general_purpose::STANDARD, Engine as _};
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+use semver::Version;
 use serde::{Deserialize, Serialize};
 use tauri::{
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    AppHandle, Emitter, Manager, Runtime, State, Url,
 };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+use crate::updater::DesktopUpdaterState;
+
 const ASSISTANT_CONFIG_FILE_NAME: &str = "assistant.json";
 const ASSISTANT_CONFIG_SCHEMA_URL: &str = "https://poolside.ai/assets/schemas/assistant/v1.json";
 pub const SETTINGS_CHANGED_EVENT: &str = "poolside:desktop-settings-changed";
@@ -46,11 +46,11 @@ pub const TOGGLE_LEFT_SIDEBAR_EVENT: &str = "poolside:desktop-toggle-left-sideba
 pub const TOGGLE_RIGHT_SIDEBAR_EVENT: &str = "poolside:desktop-toggle-right-sidebar";
 pub const TOGGLE_BOTTOM_PANEL_EVENT: &str = "poolside:desktop-toggle-bottom-panel";
 pub const SAVE_LAYOUT_AS_DEFAULT_EVENT: &str = "poolside:desktop-save-layout-as-default";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+pub const CHECK_FOR_UPDATES_EVENT: &str = "poolside:desktop-check-for-updates";
 pub const NAVIGATE_BACK_EVENT: &str = "poolside:desktop-navigate-back";
 pub const NAVIGATE_FORWARD_EVENT: &str = "poolside:desktop-navigate-forward";
 pub const OPEN_SETTINGS_MENU_ID: &str = "poolside-open-settings";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+pub const CHECK_FOR_UPDATES_MENU_ID: &str = "poolside-check-for-updates";
 pub const CHANGELOG_MENU_ID: &str = "poolside-changelog";
 pub const OPEN_HELPER_LOGS_MENU_ID: &str = "poolside-open-helper-logs";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -120,43 +120,43 @@ pub struct DesktopSettings {
     terminal_font_size: u16,
     #[serde(default)]
     terminal_cursor_style: DesktopTerminalCursorStyle,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    #[serde(default)]
+    tool_activity: DesktopToolActivity,
     #[serde(default)]
     steer_with_enter: bool,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    #[serde(default = "default_window_vibrancy")]
+    window_vibrancy: bool,
+    #[serde(default)]
     app_icon_tint: AppIconTint,
     #[serde(default)]
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    update_channel: DesktopUpdateChannel,
     #[serde(default = "default_auto_install_updates", alias = "autoUpdateOnLoad")]
     auto_install_updates: bool,
     /// Last installed version announced by the post-update toast; None until
     /// the first launch records a baseline.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     last_seen_changelog_version: Option<String>,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+impl DesktopSettings {
     /// The colour the app icon is tinted with. Read at launch so the Dock shows
     /// the user's choice from the first draw (see app_icon.rs).
     pub fn app_icon_tint(&self) -> AppIconTint {
         self.app_icon_tint
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /// Whether the macOS window renders the frosted vibrancy material behind
+    /// the webview (see navigation.rs). Read at window creation, before any
+    /// commands run.
+    pub fn window_vibrancy(&self) -> bool {
+        self.window_vibrancy
+    }
+
+    /// Which releases the self-updater follows. Read at update-check time to
+    /// pick the eligible endpoints (see updater.rs / lib.rs).
+    pub fn update_channel(&self) -> DesktopUpdateChannel {
+        self.update_channel
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -171,11 +171,11 @@ pub struct DesktopSettingsResponse {
     terminal_font_families: Vec<String>,
     terminal_font_size: u16,
     terminal_cursor_style: DesktopTerminalCursorStyle,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    tool_activity: DesktopToolActivity,
     steer_with_enter: bool,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    window_vibrancy: bool,
     app_icon_tint: AppIconTint,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    update_channel: DesktopUpdateChannel,
     auto_install_updates: bool,
     file_opener_id: String,
     file_openers: Vec<DesktopFileOpener>,
@@ -266,28 +266,28 @@ pub enum DesktopTerminalCursorStyle {
     Underline,
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/// Mirrors the shared `ToolActivityMode` mode strings
+/// ("detailed" | "grouped" | "compact") so the persisted value is the mode
+/// itself and future modes are new variants, not a settings migration.
+#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum DesktopToolActivity {
+    Detailed,
+    #[default]
+    Grouped,
+    Compact,
+}
+
+/// Which releases the self-updater follows. Stable is the default for everyone;
+/// nightly opts into both stable and pre-release updates (see updater.rs).
+#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum DesktopUpdateChannel {
+    #[default]
+    Stable,
+    Nightly,
+}
+
 impl Default for DesktopSettings {
     fn default() -> Self {
         Self {
@@ -298,11 +298,11 @@ impl Default for DesktopSettings {
             terminal_font_family: default_terminal_font_family(),
             terminal_font_size: DEFAULT_TERMINAL_FONT_SIZE,
             terminal_cursor_style: DesktopTerminalCursorStyle::Block,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            tool_activity: DesktopToolActivity::Grouped,
             steer_with_enter: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            window_vibrancy: true,
             app_icon_tint: AppIconTint::Default,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            update_channel: DesktopUpdateChannel::Stable,
             auto_install_updates: true,
             last_seen_changelog_version: None,
         }
@@ -330,7 +330,7 @@ pub async fn get_desktop_settings(
     boot: Option<bool>,
 ) -> Result<DesktopSettingsResponse, String> {
     crate::startup_timing::mark("native.settingsCmdBegin");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let settings = read_settings(&app_handle)?;
     crate::startup_timing::mark("native.settingsRead");
     let file_opener_id = resolve_file_opener_id_cached(&app_handle).await;
     crate::startup_timing::mark("native.openerResolved");
@@ -434,15 +434,15 @@ pub async fn set_desktop_terminal_preferences(
     write_and_emit_settings(&app_handle, settings).await
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#[tauri::command]
+pub async fn set_desktop_tool_activity(
+    app_handle: AppHandle,
+    tool_activity: DesktopToolActivity,
+) -> Result<DesktopSettingsResponse, String> {
+    let settings = set_tool_activity(read_settings(&app_handle)?, tool_activity);
+    write_and_emit_settings(&app_handle, settings).await
+}
+
 #[tauri::command]
 pub async fn set_desktop_steer_with_enter(
     app_handle: AppHandle,
@@ -452,17 +452,17 @@ pub async fn set_desktop_steer_with_enter(
     write_and_emit_settings(&app_handle, settings).await
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#[tauri::command]
+pub async fn set_desktop_window_vibrancy(
+    app_handle: AppHandle,
+    window_vibrancy: bool,
+) -> Result<DesktopSettingsResponse, String> {
+    let settings = set_window_vibrancy(read_settings(&app_handle)?, window_vibrancy);
+    let response = write_and_emit_settings(&app_handle, settings).await?;
+    crate::navigation::apply_window_vibrancy(&app_handle, window_vibrancy);
+    Ok(response)
+}
+
 #[tauri::command]
 pub async fn set_desktop_app_icon_tint(
     app_handle: AppHandle,
@@ -474,21 +474,21 @@ pub async fn set_desktop_app_icon_tint(
     Ok(response)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#[tauri::command]
+pub async fn set_desktop_update_channel(
+    app_handle: AppHandle,
+    updater_state: State<'_, DesktopUpdaterState>,
+    update_channel: DesktopUpdateChannel,
+) -> Result<DesktopSettingsResponse, String> {
+    // Serialize the preference write with checks/downloads. If an operation
+    // stages an update first, changing the feed would make the persisted
+    // channel disagree with the build that will launch after restart.
+    let _operation = updater_state.operation.lock().await;
+    updater_state.ensure_no_pending_update()?;
+    let settings = set_update_channel(read_settings(&app_handle)?, update_channel);
+    write_and_emit_settings(&app_handle, settings).await
+}
+
 #[tauri::command]
 pub async fn set_desktop_auto_install_updates(
     app_handle: AppHandle,
@@ -774,18 +774,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             .next()
             .and_then(|item| item.as_submenu().cloned())
         {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            // Standard macOS placement: "Check for Updates…" directly under the
             // native "About" item (index 0), then "Changelog", then
             // "Preferences…". Indices below build the app menu top-down:
             // About(0), Check for Updates(1), Changelog(2), sep(3),
             // Preferences(4), sep(5), then the platform's Services/Hide/Quit.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            let check_for_updates = MenuItem::with_id(
+                app_handle,
+                CHECK_FOR_UPDATES_MENU_ID,
+                "Check for Updates…",
+                true,
+                None::<&str>,
+            )?;
             let changelog = MenuItem::with_id(
                 app_handle,
                 CHANGELOG_MENU_ID,
@@ -800,7 +800,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 true,
                 Some("Cmd+,"),
             )?;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            app_menu.insert(&check_for_updates, 1)?;
             app_menu.insert(&changelog, 2)?;
             app_menu.insert(&PredefinedMenuItem::separator(app_handle)?, 3)?;
             app_menu.insert(&preferences, 4)?;
@@ -1221,7 +1221,7 @@ fn submenu_by_text<R: Runtime>(menu: &Menu<R>, text: &str) -> tauri::Result<Opti
     Ok(None)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+fn settings_path<R: Runtime>(app_handle: &AppHandle<R>) -> Result<PathBuf, String> {
     Ok(app_handle
         .path()
         .app_config_dir()
@@ -1229,59 +1229,59 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         .join(SETTINGS_FILE_NAME))
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+pub fn read_settings<R: Runtime>(app_handle: &AppHandle<R>) -> Result<DesktopSettings, String> {
     let path = settings_path(app_handle)?;
     match fs::read_to_string(path) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        Ok(contents) => Ok(settings_with_inferred_update_channel(
+            &contents,
+            &app_handle.package_info().version.to_string(),
+        )),
+        Err(err) if err.kind() == ErrorKind::NotFound => Ok(default_settings_for_version(
+            &app_handle.package_info().version.to_string(),
+        )),
         Err(err) => Err(err.to_string()),
     }
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+fn settings_with_inferred_update_channel(
+    contents: &str,
+    installed_version: &str,
+) -> DesktopSettings {
+    let has_persisted_channel = serde_json::from_str::<serde_json::Value>(contents)
+        .ok()
+        .and_then(|value| {
+            value
+                .as_object()
+                .map(|object| object.contains_key("updateChannel"))
+        })
+        .unwrap_or(false);
+    let mut settings: DesktopSettings = serde_json::from_str(contents).unwrap_or_default();
+    if !has_persisted_channel {
+        settings.update_channel = update_channel_for_version(installed_version);
+    }
+    normalize_persisted_font_families(settings)
+}
+
+fn default_settings_for_version(installed_version: &str) -> DesktopSettings {
+    DesktopSettings {
+        update_channel: update_channel_for_version(installed_version),
+        ..DesktopSettings::default()
+    }
+}
+
+fn update_channel_for_version(installed_version: &str) -> DesktopUpdateChannel {
+    Version::parse(installed_version)
+        .ok()
+        .filter(|version| version.pre.is_empty() && version.build.is_empty())
+        .map_or(DesktopUpdateChannel::Stable, |version| {
+            if version.minor % 2 == 0 {
+                DesktopUpdateChannel::Stable
+            } else {
+                DesktopUpdateChannel::Nightly
+            }
+        })
+}
+
 fn normalize_persisted_font_families(mut settings: DesktopSettings) -> DesktopSettings {
     settings.code_font_family = normalize_font_family_setting(&settings.code_font_family);
     settings.terminal_font_family = normalize_font_family_setting(&settings.terminal_font_family);
@@ -1360,14 +1360,14 @@ fn take_pending_update_announcement_from(
     (previous.map(|_| current_version.to_string()), Some(updated))
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+pub(crate) fn persist_update_channel(
+    app_handle: &AppHandle,
+    update_channel: DesktopUpdateChannel,
+) -> Result<(), String> {
+    let settings = set_update_channel(read_settings(app_handle)?, update_channel);
+    write_settings(app_handle, &settings)
+}
+
 async fn write_and_emit_settings(
     app_handle: &AppHandle,
     settings: DesktopSettings,
@@ -1669,37 +1669,37 @@ fn set_chat_preferences(
     Ok(settings)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+fn set_tool_activity(
+    mut settings: DesktopSettings,
+    tool_activity: DesktopToolActivity,
+) -> DesktopSettings {
+    settings.tool_activity = tool_activity;
+    settings
+}
+
 fn set_steer_with_enter(mut settings: DesktopSettings, steer_with_enter: bool) -> DesktopSettings {
     settings.steer_with_enter = steer_with_enter;
     settings
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+fn set_window_vibrancy(mut settings: DesktopSettings, window_vibrancy: bool) -> DesktopSettings {
+    settings.window_vibrancy = window_vibrancy;
+    settings
+}
+
 fn set_app_icon_tint(mut settings: DesktopSettings, app_icon_tint: AppIconTint) -> DesktopSettings {
     settings.app_icon_tint = app_icon_tint;
     settings
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+fn set_update_channel(
+    mut settings: DesktopSettings,
+    update_channel: DesktopUpdateChannel,
+) -> DesktopSettings {
+    settings.update_channel = update_channel;
+    settings
+}
+
 fn set_code_preferences(
     mut settings: DesktopSettings,
     code_font_family: &str,
@@ -1773,11 +1773,11 @@ fn settings_response_with_openers(
         terminal_font_family: settings.terminal_font_family,
         terminal_font_size: settings.terminal_font_size,
         terminal_cursor_style: settings.terminal_cursor_style,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        tool_activity: settings.tool_activity,
         steer_with_enter: settings.steer_with_enter,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        window_vibrancy: settings.window_vibrancy,
         app_icon_tint: settings.app_icon_tint,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        update_channel: settings.update_channel,
         auto_install_updates: settings.auto_install_updates,
         file_opener_id,
         file_openers,
@@ -1854,10 +1854,10 @@ fn default_terminal_font_size() -> u16 {
     DEFAULT_TERMINAL_FONT_SIZE
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+fn default_window_vibrancy() -> bool {
+    true
+}
+
 fn code_font_families_for_setting(code_font_family: &str) -> Vec<String> {
     let mut families: BTreeMap<String, String> = BTreeMap::new();
     for family in CODE_FONT_FAMILIES
@@ -2925,7 +2925,7 @@ mod tests {
 
     #[test]
     fn defaults_missing_theme_preference_to_system() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        let settings: DesktopSettings = serde_json::from_str(r#"{}"#).unwrap();
 
         assert_eq!(settings.theme_preference, DesktopThemePreference::System);
     }
@@ -2960,7 +2960,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     #[test]
     fn defaults_missing_code_preferences() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        let settings: DesktopSettings = serde_json::from_str(r#"{}"#).unwrap();
 
         assert_eq!(settings.code_font_family, DEFAULT_CODE_FONT_FAMILY);
         assert_eq!(settings.code_font_size, DEFAULT_CODE_FONT_SIZE);
@@ -2968,7 +2968,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     #[test]
     fn defaults_missing_terminal_preferences() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        let settings: DesktopSettings = serde_json::from_str(r#"{}"#).unwrap();
 
         assert_eq!(settings.terminal_font_family, DEFAULT_TERMINAL_FONT_FAMILY);
         assert_eq!(settings.terminal_font_family, settings.code_font_family);
@@ -2979,13 +2979,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         );
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    #[test]
+    fn defaults_missing_window_vibrancy_to_enabled() {
+        let settings: DesktopSettings = serde_json::from_str(r#"{}"#).unwrap();
+
+        assert!(settings.window_vibrancy);
+    }
+
     #[test]
     fn defaults_missing_steer_with_enter_to_disabled() {
         let settings: DesktopSettings = serde_json::from_str(r#"{}"#).unwrap();
@@ -2993,66 +2993,66 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         assert!(!settings.steer_with_enter);
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    #[test]
+    fn infers_preview_for_legacy_settings_on_an_odd_minor_build() {
+        let settings =
+            settings_with_inferred_update_channel(r#"{"themePreference":"dark"}"#, "0.7.0");
+
+        assert_eq!(settings.update_channel, DesktopUpdateChannel::Nightly);
+        assert_eq!(settings.theme_preference, DesktopThemePreference::Dark);
+    }
+
+    #[test]
+    fn preserves_an_explicit_update_channel_across_version_parity() {
+        let settings =
+            settings_with_inferred_update_channel(r#"{"updateChannel":"stable"}"#, "0.7.0");
+
+        assert_eq!(settings.update_channel, DesktopUpdateChannel::Stable);
+    }
+
+    #[test]
+    fn persisted_inferred_preview_survives_installing_a_stable_version() {
+        let inferred =
+            settings_with_inferred_update_channel(r#"{"themePreference":"dark"}"#, "0.9.1");
+        let persisted = set_update_channel(inferred.clone(), inferred.update_channel);
+        let contents = serde_json::to_string(&persisted).unwrap();
+        let after_stable_update = settings_with_inferred_update_channel(&contents, "0.10.0");
+
+        assert_eq!(
+            after_stable_update.update_channel,
+            DesktopUpdateChannel::Nightly
+        );
+    }
+
+    #[test]
+    fn new_installs_follow_the_channel_encoded_by_version() {
+        assert_eq!(
+            default_settings_for_version("1.2.0").update_channel,
+            DesktopUpdateChannel::Stable
+        );
+        assert_eq!(
+            default_settings_for_version("1.3.0").update_channel,
+            DesktopUpdateChannel::Nightly
+        );
+        assert_eq!(
+            default_settings_for_version("invalid").update_channel,
+            DesktopUpdateChannel::Stable
+        );
+    }
+
+    #[test]
+    fn window_vibrancy_update_preserves_other_settings() {
+        let settings = DesktopSettings {
+            theme_preference: DesktopThemePreference::Dark,
+            ..DesktopSettings::default()
+        };
+
+        let updated = set_window_vibrancy(settings, false);
+
+        assert!(!updated.window_vibrancy);
+        assert_eq!(updated.theme_preference, DesktopThemePreference::Dark);
+    }
+
     #[test]
     fn steer_with_enter_update_preserves_other_settings() {
         let settings = DesktopSettings {
@@ -3081,16 +3081,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
 
     #[test]
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    fn theme_preference_update_preserves_code_preferences() {
         let settings = DesktopSettings {
             theme_preference: DesktopThemePreference::System,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            code_font_family: "JetBrains Mono".to_string(),
             ..DesktopSettings::default()
         };
 
         let updated = set_theme_preference(settings, DesktopThemePreference::Light);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        assert_eq!(updated.code_font_family, "JetBrains Mono");
         assert_eq!(updated.theme_preference, DesktopThemePreference::Light);
     }
 

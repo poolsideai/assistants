@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { System } from "../../system";
 import { AssistantState } from "../../views/assistant";
 
 export function ready(system: System) {

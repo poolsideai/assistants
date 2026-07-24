@@ -1,553 +1,553 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+name: Publish · Desktop
+
+# Product-only workflow; callers prepare the shared helper runtime first.
+on:
+  workflow_call:
+    inputs:
+      release:
+        description: "Release type"
+        required: false
+        default: preview
+        type: string
+      sync_versions:
+        description: "Align with the highest VS Code/Desktop version"
+        required: false
+        default: true
+        type: boolean
+      dry_run:
+        description: "Build and validate without creating or publishing a release"
+        required: false
+        default: false
+        type: boolean
+      signed_dry_run:
+        description: "Sign/notarize and create updater artifacts during a mainline dry-run"
+        required: false
+        default: false
+        type: boolean
+      version:
+        description: "Exact version selected by the product release coordinator"
+        required: false
+        type: string
       create_lineage:
         description: "Explicitly bootstrap the managed lineage at the supplied exact version"
         required: false
         default: false
         type: boolean
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      helper_version:
+        description: "Exact helper version built by the product release coordinator"
+        required: false
+        type: string
+      helper_tag:
+        description: "Permanent helper release consumed by product packaging"
+        required: false
+        type: string
+      scheduled:
+        description: "Apply scheduled Preview gates and no-change detection"
+        required: false
+        default: false
+        type: boolean
+      trigger:
+        description: "Original Actions event for release notifications"
+        required: false
+        type: string
+    secrets:
+      ASC_KEY_P8_B64:
+        required: false
+      CN_API_KEY:
+        required: false
+      MACOS_DEVID_P12_B64:
+        required: false
+      MACOS_DEVID_P12_PASSWORD:
+        required: false
+      RELEASE_GIT_TOKEN:
+        required: false
+      SLACK_BOT_TOKEN:
+        required: false
+      TAURI_SIGNING_PRIVATE_KEY:
+        required: false
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD:
+        required: false
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  # TAURI_CONFIG is reserved by Tauri for an inline JSON override.
+  TAURI_CONFIG_PATH: ui/apps/desktop-assistant/src-tauri/tauri.conf.json
+  BUNDLE_DIR: ui/apps/desktop-assistant/src-tauri/target/aarch64-apple-darwin/release/bundle
+
+jobs:
+  plan:
+    name: Plan
     if: github.repository == 'poolsideai/assistant'
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    runs-on: ubuntu-latest
+    outputs:
+      needs_release: ${{ steps.plan.outputs.needs_release || 'false' }}
+      action: ${{ steps.plan.outputs.action }}
+      dry_run: ${{ steps.gate.outputs.dry_run }}
+      can_sign: ${{ steps.gate.outputs.can_sign }}
+      channel: ${{ steps.gate.outputs.channel }}
+      release_sha: ${{ steps.plan.outputs.release_sha }}
+      version: ${{ steps.plan.outputs.version }}
+      tag: ${{ steps.plan.outputs.tag }}
+      changelog_tag: ${{ steps.plan.outputs.changelog_tag }}
+      artifact_name: ${{ steps.plan.outputs.artifact_name }}
+      destination: ${{ steps.plan.outputs.destination }}
+      tag_annotation_base64: ${{ steps.plan.outputs.tag_annotation_base64 }}
+    steps:
+      - name: Check release gates
+        id: gate
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PRODUCT_ENABLED: ${{ vars.DESKTOP_RELEASES_ENABLED }}
+          NIGHTLY_ENABLED: ${{ vars.NIGHTLY_RELEASES_ENABLED }}
+          REQUESTED_RELEASE: ${{ inputs.release || 'preview' }}
+          REQUESTED_SYNC_VERSIONS: ${{ inputs.sync_versions }}
+          REQUESTED_DRY_RUN: ${{ inputs.dry_run || false }}
+          REQUESTED_SIGNED_DRY_RUN: ${{ inputs.signed_dry_run || false }}
+          REQUESTED_SCHEDULED: ${{ inputs.scheduled || false }}
+        run: |
+          set -euo pipefail
+          release="${REQUESTED_RELEASE}"
+          sync_versions="${REQUESTED_SYNC_VERSIONS:-false}"
+          dry_run="${REQUESTED_DRY_RUN}"
+          can_sign="true"
+          scheduled="${REQUESTED_SCHEDULED}"
+
+          if [[ "${EVENT_NAME}" == "schedule" || "${scheduled}" == "true" ]]; then
+            release="preview"
+            sync_versions="false"
+            scheduled=true
+          fi
+
+          case "${release}" in
+            preview)
+              channel="nightly"
+              bump="patch"
+              ;;
+            stable-patch)
+              channel="stable"
+              bump="patch"
+              ;;
+            stable-minor)
+              channel="stable"
+              bump="minor"
+              ;;
+            stable-major)
+              channel="stable"
+              bump="major"
+              ;;
+            *)
+              echo "Unknown Desktop release type: ${release}" >&2
+              exit 1
+              ;;
+          esac
+
+          if [[ "${dry_run}" == "true" && "${REQUESTED_SIGNED_DRY_RUN}" != "true" ]]; then
+            can_sign="false"
+          fi
+          {
+            echo "channel=${channel}"
+            echo "bump=${bump}"
+            echo "sync_versions=${sync_versions}"
+            echo "dry_run=${dry_run}"
+            echo "can_sign=${can_sign}"
+            echo "scheduled=${scheduled}"
+          } >> "$GITHUB_OUTPUT"
+
+          if [[ "${dry_run}" == "true" ]]; then
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "${PRODUCT_ENABLED}" != "true" ]]; then
+            if [[ "${scheduled}" == "true" ]]; then
+              echo "proceed=false" >> "$GITHUB_OUTPUT"
+              echo "### Desktop schedule skipped: DESKTOP_RELEASES_ENABLED is not true" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "DESKTOP_RELEASES_ENABLED must be exactly true for publication." >&2
+            exit 1
+          fi
+          if [[ "${channel}" == "nightly" && "${NIGHTLY_ENABLED}" != "true" ]]; then
+            if [[ "${scheduled}" == "true" ]]; then
+              echo "proceed=false" >> "$GITHUB_OUTPUT"
+              echo "### Desktop schedule skipped: NIGHTLY_RELEASES_ENABLED is not true" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "NIGHTLY_RELEASES_ENABLED must be exactly true for Preview publication." >&2
+            exit 1
+          fi
+          echo "proceed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Validate privileged workflow ref
+        if: >-
+          steps.gate.outputs.proceed == 'true' &&
+          steps.gate.outputs.can_sign == 'true'
+        shell: bash
+        env:
+          WORKFLOW_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          [[ "${WORKFLOW_REF}" == "refs/heads/main" ]] || {
+            echo "Signed or live publication must be dispatched from the main workflow ref." >&2
+            exit 1
+          }
+
+      - name: Checkout release source
+        if: steps.gate.outputs.proceed == 'true'
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Validate publication source
+        if: >-
+          steps.gate.outputs.proceed == 'true' &&
+          steps.gate.outputs.can_sign == 'true'
+        shell: bash
+        run: git merge-base --is-ancestor HEAD origin/main
+
+      - name: Validate CrabNebula destination
+        if: steps.gate.outputs.proceed == 'true' && steps.gate.outputs.can_sign == 'true'
+        shell: bash
+        env:
+          CN_APP_SLUG: ${{ vars.CN_APP_SLUG }}
+        run: |
+          set -euo pipefail
+          [[ "${CN_APP_SLUG}" =~ ^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$ ]] || {
+            echo "CN_APP_SLUG must be a lowercase org/app slug." >&2
+            exit 1
+          }
+          stable_endpoint=$(node -p "require('./${TAURI_CONFIG_PATH}').plugins.updater.endpoints[0]")
+          [[ "${stable_endpoint}" == *"/update/${CN_APP_SLUG}/"* ]] || {
+            echo "CN_APP_SLUG does not match the updater endpoint in ${TAURI_CONFIG_PATH}" >&2
+            exit 1
+          }
+
+      - name: Setup UI
+        if: steps.gate.outputs.proceed == 'true'
+        uses: ./.github/actions/ui-setup
+
+      - name: Create release plan
+        if: steps.gate.outputs.proceed == 'true'
+        shell: bash
+        env:
+          CHANNEL: ${{ steps.gate.outputs.channel }}
+          BUMP: ${{ steps.gate.outputs.bump }}
+          SYNC_VERSIONS: ${{ steps.gate.outputs.sync_versions }}
+          DRY_RUN: ${{ steps.gate.outputs.dry_run }}
+          VERSION: ${{ inputs.version }}
           CREATE_LINEAGE: ${{ inputs.create_lineage }}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          SCHEDULED: ${{ steps.gate.outputs.scheduled }}
+          CN_APP_SLUG: ${{ vars.CN_APP_SLUG }}
+        run: |
+          set -euo pipefail
+          args=(
+            plan desktop
+            --channel "${CHANNEL}"
+            --ref HEAD
+            --bump "${BUMP}"
+            --main-ref origin/main
+            --tag-prefix desktop
+            --destination "${CN_APP_SLUG:-unconfigured}"
+          )
+          [[ -n "${VERSION}" ]] && args+=(--version "${VERSION}")
           [[ "${CREATE_LINEAGE}" == "true" ]] && args+=(--create-lineage)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          [[ "${SYNC_VERSIONS}" == "true" ]] && args+=(--sync-versions)
+          [[ "${DRY_RUN}" == "true" ]] && args+=(--dry-run --allow-divergent-ref)
+          if [[ "${SCHEDULED}" == "true" ]]; then
+            args+=(--scheduled --skip-if-no-changes)
+          fi
+          pnpm -s -F @poolsideai/release-helper find-version "${args[@]}" > "$RUNNER_TEMP/release-plan.json"
+
+      - name: Refuse to overtake an incomplete release
+        if: steps.gate.outputs.proceed == 'true' && steps.gate.outputs.dry_run != 'true'
+        uses: ./.github/actions/validate-release-reservation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          plan-file: ${{ runner.temp }}/release-plan.json
+          scheduled: ${{ steps.gate.outputs.scheduled }}
+
+      - name: Export release plan
+        if: steps.gate.outputs.proceed == 'true'
+        id: plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          action=$(jq -r '.action' "$RUNNER_TEMP/release-plan.json")
+          version=$(jq -r '.version // ""' "$RUNNER_TEMP/release-plan.json")
+          needs_release=false
+          [[ "${action}" == "release" || "${action}" == "resume" ]] && needs_release=true
+          {
+            echo "action=${action}"
+            echo "needs_release=${needs_release}"
+            echo "release_sha=$(jq -r '.sourceSha' "$RUNNER_TEMP/release-plan.json")"
+            echo "version=${version}"
+            echo "tag=$(jq -r '.tag // ""' "$RUNNER_TEMP/release-plan.json")"
+            echo "changelog_tag=$(jq -r '.changelogTag // ""' "$RUNNER_TEMP/release-plan.json")"
+            echo "destination=$(jq -r '.destination // ""' "$RUNNER_TEMP/release-plan.json")"
+            echo "tag_annotation_base64=$(jq -r '(.tagAnnotation // "") | @base64' "$RUNNER_TEMP/release-plan.json")"
+            echo "artifact_name=desktop-release-${version}-macos-arm64"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Desktop release plan"
+            echo '```json'
+            jq . "$RUNNER_TEMP/release-plan.json"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Validate prepared runtime inputs
+        if: steps.plan.outputs.needs_release == 'true'
+        shell: bash
+        env:
+          DRY_RUN: ${{ steps.gate.outputs.dry_run }}
+          HELPER_TAG: ${{ inputs.helper_tag }}
+          HELPER_VERSION: ${{ inputs.helper_version }}
+        run: |
+          set -euo pipefail
+          [[ -n "${HELPER_VERSION}" ]] || {
+            echo "The caller must provide helper_version from its prepared runtime." >&2
+            exit 1
+          }
+          if [[ "${DRY_RUN}" != "true" && -z "${HELPER_TAG}" ]]; then
+            echo "Live publication requires the caller's immutable helper_tag." >&2
+            exit 1
+          fi
+
+      - name: Require the dispatch-time main tip for a new live release
+        if: >-
+          steps.gate.outputs.proceed == 'true' &&
+          steps.gate.outputs.dry_run != 'true' &&
+          steps.plan.outputs.action == 'release'
+        shell: bash
+        env:
+          RELEASE_SHA: ${{ steps.plan.outputs.release_sha }}
+          DISPATCH_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          [[ "${RELEASE_SHA}" == "${DISPATCH_SHA}" ]] || {
+            echo "A new live release must use the main commit that started this workflow (${DISPATCH_SHA})." >&2
+            exit 1
+          }
+
+  build:
+    name: Build and validate macOS arm64
+    needs: plan
+    if: needs.plan.outputs.needs_release == 'true'
+    runs-on: macos-15-xlarge
+    environment:
+      name: ${{ needs.plan.outputs.can_sign == 'true' && format('desktop-{0}-release', needs.plan.outputs.channel) || 'desktop-dry-run' }}
+    outputs:
+      cn_existing: ${{ steps.cn_preflight.outputs.existing || 'false' }}
+    env:
+      CI: true
+      GH_TOKEN: ${{ github.token }}
+      NODE_OPTIONS: --max-old-space-size=4096
+      VERSION: ${{ needs.plan.outputs.version }}
+      RELEASE_SHA: ${{ needs.plan.outputs.release_sha }}
+      CHANGELOG_TAG: ${{ needs.plan.outputs.changelog_tag }}
+      CAN_SIGN: ${{ needs.plan.outputs.can_sign }}
+      DESTINATION: ${{ needs.plan.outputs.destination }}
+      TAG: ${{ needs.plan.outputs.tag }}
+      TAG_ANNOTATION_BASE64: ${{ needs.plan.outputs.tag_annotation_base64 }}
+    steps:
+      - name: Checkout planned source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ needs.plan.outputs.release_sha }}
+          fetch-depth: 0
+
+      - name: Download temporary Actions runtime
+        if: needs.plan.outputs.dry_run == 'true'
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          pattern: artifact-poolside-*
+          path: ${{ runner.temp }}/release-runtime
+          merge-multiple: true
+
+      - name: Download canonical release runtime
+        if: needs.plan.outputs.dry_run != 'true'
+        shell: bash
+        env:
+          HELPER_TAG: ${{ inputs.helper_tag }}
+        run: bash scripts/download-helper-runtime.sh "${HELPER_TAG}" "$RUNNER_TEMP/release-runtime"
+
+      - name: Validate CrabNebula credential
+        if: needs.plan.outputs.dry_run != 'true'
+        shell: bash
+        env:
+          CN_API_KEY: ${{ secrets.CN_API_KEY }}
+        run: |
+          set -euo pipefail
+          [[ -n "${CN_API_KEY}" ]] || { echo "CN_API_KEY is required" >&2; exit 1; }
+
+      - name: Setup pinned CrabNebula CLI
+        if: needs.plan.outputs.dry_run != 'true'
+        id: cn
+        uses: ./.github/actions/setup-crabnebula-cli
+
+      - name: Read CrabNebula release inventory before reserving the tag
+        if: needs.plan.outputs.dry_run != 'true'
+        shell: bash
+        env:
+          CN: ${{ steps.cn.outputs.path }}
+          CN_API_KEY: ${{ secrets.CN_API_KEY }}
+        run: >-
+          "${CN}" release list "${DESTINATION}"
+          --format json --limit 10000
+          --status draft --status published --status purged
+          > "$RUNNER_TEMP/cn-inventory.json"
+
+      - name: Validate CrabNebula collision provenance
+        if: needs.plan.outputs.dry_run != 'true'
+        id: cn_preflight
+        shell: bash
+        env:
+          ACTION: ${{ needs.plan.outputs.action }}
+          VERSION: ${{ needs.plan.outputs.version }}
+          CHANNEL: ${{ needs.plan.outputs.channel }}
+        run: |
+          set -euo pipefail
+          expected_channel=""
+          [[ "${CHANNEL}" == "nightly" ]] && expected_channel=nightly
+          releases=$(jq -c '
+            if type == "array" then .
+            elif (.releases? | type) == "array" then .releases
+            elif (.items? | type) == "array" then .items
+            elif (.data? | type) == "array" then .data
+            else error("Unexpected CrabNebula release-list JSON shape")
+            end
+          ' "$RUNNER_TEMP/cn-inventory.json")
+          matches=$(jq -c \
+            --arg version "${VERSION}" \
+            --arg channel "${expected_channel}" \
+            '[.[] | select(.version == $version and ((.channel // "") == $channel))]' \
+            <<<"${releases}")
+          match_count=$(jq 'length' <<<"${matches}")
+          [[ "${match_count}" -le 1 ]] || {
+            echo "CrabNebula returned duplicate ${VERSION}/${expected_channel:-default} releases." >&2
+            exit 1
+          }
+          highest=$(jq -r '
+            [
+              .[]
+              | .version
+              | select(type == "string" and test("^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"))
+              | split(".")
+              | map(tonumber)
+            ]
+            | max // empty
+            | if type == "array" then join(".") else empty end
+          ' <<<"${releases}")
+
+          if [[ "${match_count}" -eq 1 ]]; then
+            match_status=$(jq -r '.[0].status | ascii_downcase' <<<"${matches}")
+            [[ "${match_status}" != "purged" ]] || {
+              echo "CrabNebula version ${VERSION} was purged and cannot be resumed or reused." >&2
+              exit 1
+            }
+            [[ "${ACTION}" == "resume" ]] || {
+              echo "CrabNebula already contains ${VERSION} on the requested channel, but the Git tag is not resumable." >&2
+              exit 1
+            }
+            if [[ "${match_status}" != "published" && -n "${highest}" ]] && ! jq -en \
+              --arg candidate "${VERSION}" \
+              --arg highest "${highest}" \
+              'def parts: split(".") | map(tonumber); ($candidate | parts) >= ($highest | parts)' \
+              >/dev/null; then
+              echo "Draft Desktop ${VERSION} cannot resume after newer CrabNebula version ${highest}." >&2
+              exit 1
+            fi
+            echo "existing=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ "${ACTION}" == "release" ]]; then
+            if [[ -n "${highest}" ]] && ! jq -en \
+              --arg candidate "${VERSION}" \
+              --arg highest "${highest}" \
+              'def parts: split(".") | map(tonumber); ($candidate | parts) > ($highest | parts)' \
+              >/dev/null; then
+              echo "Planned Desktop version ${VERSION} must be newer than CrabNebula's existing maximum ${highest}." >&2
+              echo "Git tag removal does not reset versions in a reused CrabNebula application." >&2
+              exit 1
+            fi
+          fi
+          echo "existing=false" >> "$GITHUB_OUTPUT"
+
+      - name: Read existing CrabNebula release provenance
+        if: needs.plan.outputs.dry_run != 'true' && steps.cn_preflight.outputs.existing == 'true'
+        shell: bash
+        env:
+          CN: ${{ steps.cn.outputs.path }}
+          CN_API_KEY: ${{ secrets.CN_API_KEY }}
+        working-directory: ui/apps/desktop-assistant
+        run: >-
+          "${CN}" release show "${DESTINATION}" "${VERSION}"
+          ${{ needs.plan.outputs.channel == 'nightly' && '--channel nightly' || '' }}
+          > "$RUNNER_TEMP/cn-existing.json"
+
+      - name: Validate existing CrabNebula release provenance
+        if: needs.plan.outputs.dry_run != 'true' && steps.cn_preflight.outputs.existing == 'true'
+        shell: bash
+        env:
+          VERSION: ${{ needs.plan.outputs.version }}
+          CHANNEL: ${{ needs.plan.outputs.channel }}
+          PROVENANCE: "Release source: ${{ needs.plan.outputs.tag }}@${{ needs.plan.outputs.release_sha }}"
+        run: |
+          set -euo pipefail
+          expected_channel=""
+          [[ "${CHANNEL}" == "nightly" ]] && expected_channel=nightly
+          jq -e \
+            --arg version "${VERSION}" \
+            --arg channel "${expected_channel}" \
+            --arg provenance "${PROVENANCE}" \
+            '
+              (.id | type == "string" and length > 0) and
+              .version == $version and
+              ((.channel // "") == $channel) and
+              ((.notes // "") | contains($provenance))
+            ' "$RUNNER_TEMP/cn-existing.json" >/dev/null || {
+              echo "Existing CrabNebula release does not carry this tag's source provenance." >&2
+              exit 1
+            }
+
+      - name: Validate signing configuration
+        if: needs.plan.outputs.can_sign == 'true'
+        shell: bash
+        env:
+          APPLE_API_ISSUER: ${{ vars.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ vars.APPLE_API_KEY }}
+          MACOS_DEVID_P12_B64: ${{ secrets.MACOS_DEVID_P12_B64 }}
+          MACOS_DEVID_P12_PASSWORD: ${{ secrets.MACOS_DEVID_P12_PASSWORD }}
+          ASC_KEY_P8_B64: ${{ secrets.ASC_KEY_P8_B64 }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for value in APPLE_API_ISSUER APPLE_API_KEY MACOS_DEVID_P12_B64 MACOS_DEVID_P12_PASSWORD ASC_KEY_P8_B64 TAURI_SIGNING_PRIVATE_KEY TAURI_SIGNING_PRIVATE_KEY_PASSWORD; do
+            [[ -n "${!value}" ]] || { echo "Missing Desktop signing configuration: ${value}" >&2; exit 1; }
+          done
+
+      - name: Setup UI
+        uses: ./.github/actions/ui-setup
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+        with:
+          targets: aarch64-apple-darwin
+
+      - name: Stamp numeric app version
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e "const fs=require('fs');const p=process.env.TAURI_CONFIG_PATH;const c=JSON.parse(fs.readFileSync(p,'utf8'));c.version=process.env.VERSION;fs.writeFileSync(p,JSON.stringify(c,null,2)+'\n')"
+          [[ "$(node -p "require('./'+process.env.TAURI_CONFIG_PATH).version")" == "${VERSION}" ]]
+
       # Before the web build: the app bundles CHANGELOG.md via a ?raw import.
       - name: Stamp changelog
         shell: bash
@@ -556,654 +556,654 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           pnpm -s -F @poolsideai/release-helper find-version render-changelog desktop \
             --head "${RELEASE_SHA}" --version "${VERSION}"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      - name: Download bundled binaries
+        env:
+          POOLSIDE_RUNTIME_ARTIFACT_DIR: ${{ runner.temp }}/release-runtime
+          POOLSIDE_RUNTIME_VERSION: ${{ inputs.helper_version }}
+        run: pnpm -F @poolsideai/desktop-assistant download:binaries aarch64-apple-darwin
+
+      - name: Build workspace dependencies
+        run: pnpm turbo build:web -F @poolsideai/desktop-assistant
+
+      - name: Test release source
+        run: |
+          pnpm -F @poolsideai/desktop-assistant check:types
+          cargo test --manifest-path ui/apps/desktop-assistant/src-tauri/Cargo.toml
+
+      - name: Import Developer ID certificate
+        if: needs.plan.outputs.can_sign == 'true'
+        uses: apple-actions/import-codesign-certs@5142e029c445c10ffc7149d172e540235a065466 # v7.0.0
+        with:
+          p12-file-base64: ${{ secrets.MACOS_DEVID_P12_B64 }}
+          p12-password: ${{ secrets.MACOS_DEVID_P12_PASSWORD }}
+
+      - name: Write App Store Connect API key
+        if: needs.plan.outputs.can_sign == 'true'
+        shell: bash
+        env:
+          APPLE_API_KEY: ${{ vars.APPLE_API_KEY }}
+          ASC_KEY_P8_B64: ${{ secrets.ASC_KEY_P8_B64 }}
+        run: |
+          set -euo pipefail
+          key_path="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY}.p8"
+          echo "${ASC_KEY_P8_B64}" | base64 --decode > "${key_path}"
+          echo "APPLE_API_KEY_PATH=${key_path}" >> "$GITHUB_ENV"
+
       # `--runner cargo` overrides the mbx runner from tauri.conf.json: mbx is
       # not installed here on purpose. Per https://mr-boxington.jdx.dev/github-action,
       # release artifacts must not be built from a shared build cache, and
       # without one mbx buys nothing on an ephemeral runner.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      - name: Build signed and notarized app
+        if: needs.plan.outputs.can_sign == 'true'
+        env:
+          APPLE_API_ISSUER: ${{ vars.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ vars.APPLE_API_KEY }}
+          APPLE_SIGNING_IDENTITY: Developer ID Application
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: pnpm -F @poolsideai/desktop-assistant tauri build --runner cargo --target aarch64-apple-darwin
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+      - name: Verify notarized app and notarize disk image
+        if: needs.plan.outputs.can_sign == 'true'
+        shell: bash
+        env:
+          APPLE_API_ISSUER: ${{ vars.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ vars.APPLE_API_KEY }}
+        run: |
+          set -euo pipefail
+          app=$(find "${BUNDLE_DIR}/macos" -maxdepth 1 -name '*.app' -print -quit)
+          dmg=$(find "${BUNDLE_DIR}/dmg" -maxdepth 1 -name '*.dmg' -print -quit)
+          [[ -n "${app}" && -n "${dmg}" ]]
+
+          codesign --verify --deep --strict --verbose=2 "${app}"
+          xcrun stapler validate "${app}"
+          spctl --assess --verbose=4 --type execute "${app}"
+
+          xcrun notarytool submit "${dmg}" \
+            --key "${APPLE_API_KEY_PATH}" \
+            --key-id "${APPLE_API_KEY}" \
+            --issuer "${APPLE_API_ISSUER}" \
+            --wait
+          xcrun stapler staple "${dmg}"
+          xcrun stapler validate "${dmg}"
+          codesign --verify --strict --verbose=2 "${dmg}"
+          spctl --assess --verbose=4 --type open \
+            --context context:primary-signature "${dmg}"
+
+      - name: Build unsigned dry-run app
+        if: needs.plan.outputs.can_sign != 'true'
+        run: >-
+          pnpm -F @poolsideai/desktop-assistant tauri build
           --runner cargo
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          --target aarch64-apple-darwin
+          --config '{"bundle":{"createUpdaterArtifacts":false}}'
+
+      - name: Verify packaged numeric version
+        shell: bash
+        run: |
+          set -euo pipefail
+          app=$(find "${BUNDLE_DIR}/macos" -maxdepth 1 -name '*.app' -print -quit)
+          bundled_version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "${app}/Contents/Info.plist")
+          [[ "${bundled_version}" == "${VERSION}" ]] || {
+            echo "Packaged version ${bundled_version} does not match ${VERSION}" >&2
+            exit 1
+          }
+
+      - name: Generate release metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${TAG_ANNOTATION_BASE64}" ]] || {
+            echo "Managed Desktop releases require tag annotation metadata." >&2
+            exit 1
+          }
+          mkdir -p release-artifacts
+          args=(changelog desktop --head "${RELEASE_SHA}")
+          [[ -n "${CHANGELOG_TAG}" ]] && args+=(--prev "${CHANGELOG_TAG}")
+          pnpm -s -F @poolsideai/release-helper find-version "${args[@]}" > release-artifacts/notes.md
+          {
             command cat release-artifacts/notes.md
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            echo
+            echo "Release source: ${TAG}@${RELEASE_SHA}"
+          } > release-artifacts/crabnebula-notes.txt
+          pnpm -s -F @poolsideai/release-helper find-version "${args[@]}" --slack > release-artifacts/slack.txt
+          find "${BUNDLE_DIR}" -type f \( -name '*.dmg' -o -name '*.tar.gz' \) -print0 \
+            | xargs -0 shasum -a 256 > release-artifacts/checksums.txt
+
+      - name: Upload build-only artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ needs.plan.outputs.artifact_name }}
+          path: |
+            release-artifacts
+            ${{ env.BUNDLE_DIR }}
+          retention-days: 14
+
+      - name: Cleanup App Store Connect key
+        if: always() && needs.plan.outputs.can_sign == 'true'
+        shell: bash
+        run: rm -f "${APPLE_API_KEY_PATH:-}"
+
+  publish:
+    name: Publish CrabNebula release
+    needs: [plan, build]
+    # Orchestrated runs intentionally skip the nested runtime jobs. Override
+    # GitHub's implicit success() so those transitive skips do not block publish.
+    if: >-
+      always() &&
+      needs.plan.result == 'success' &&
+      needs.plan.outputs.dry_run != 'true' &&
+      needs.build.result == 'success'
+    runs-on: macos-15-xlarge
+    environment: desktop-${{ needs.plan.outputs.channel }}-release
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - name: Checkout planned source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ needs.plan.outputs.release_sha }}
+          fetch-depth: 0
+          token: ${{ github.token }}
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: ${{ needs.plan.outputs.artifact_name }}
+          path: .
+
+      - name: Stamp exact version for CrabNebula framework discovery
+        shell: bash
+        env:
+          VERSION: ${{ needs.plan.outputs.version }}
+        run: |
+          node -e "const fs=require('fs');const p=process.env.TAURI_CONFIG_PATH;const c=JSON.parse(fs.readFileSync(p,'utf8'));c.version=process.env.VERSION;fs.writeFileSync(p,JSON.stringify(c,null,2)+'\n')"
+
+      - name: Setup pinned CrabNebula CLI
+        id: cn
+        uses: ./.github/actions/setup-crabnebula-cli
+
+      - name: Read CrabNebula release inventory before publishing
+        shell: bash
+        env:
+          CN: ${{ steps.cn.outputs.path }}
+          CN_API_KEY: ${{ secrets.CN_API_KEY }}
+          DESTINATION: ${{ needs.plan.outputs.destination }}
+        run: >-
+          "${CN}" release list "${DESTINATION}"
+          --format json --limit 10000
+          --status draft --status published --status purged
+          > "$RUNNER_TEMP/cn-inventory.json"
+
+      - name: Revalidate CrabNebula collision provenance
+        id: cn_publish_preflight
+        shell: bash
+        env:
+          PRECHECK_EXISTING: ${{ needs.build.outputs.cn_existing }}
+          ACTION: ${{ needs.plan.outputs.action }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          VERSION: ${{ needs.plan.outputs.version }}
+          CHANNEL: ${{ needs.plan.outputs.channel }}
+        run: |
+          set -euo pipefail
+          effective_action="${ACTION}"
+          (( RUN_ATTEMPT > 1 )) && effective_action=resume
+          expected_channel=""
+          [[ "${CHANNEL}" == "nightly" ]] && expected_channel=nightly
+          releases=$(jq -c '
+            if type == "array" then .
+            elif (.releases? | type) == "array" then .releases
+            elif (.items? | type) == "array" then .items
+            elif (.data? | type) == "array" then .data
+            else error("Unexpected CrabNebula release-list JSON shape")
+            end
+          ' "$RUNNER_TEMP/cn-inventory.json")
+          matches=$(jq -c \
+            --arg version "${VERSION}" \
+            --arg channel "${expected_channel}" \
+            '[.[] | select(.version == $version and ((.channel // "") == $channel))]' \
+            <<<"${releases}")
+          match_count=$(jq 'length' <<<"${matches}")
+          [[ "${match_count}" -le 1 ]] || {
+            echo "CrabNebula returned duplicate ${VERSION}/${expected_channel:-default} releases." >&2
+            exit 1
+          }
+          highest=$(jq -r '
+            [
+              .[]
+              | .version
+              | select(type == "string" and test("^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"))
+              | split(".")
+              | map(tonumber)
+            ]
+            | max // empty
+            | if type == "array" then join(".") else empty end
+          ' <<<"${releases}")
+
+          if [[ "${match_count}" -eq 1 ]]; then
+            match_status=$(jq -r '.[0].status | ascii_downcase' <<<"${matches}")
+            [[ "${match_status}" != "purged" ]] || {
+              echo "CrabNebula version ${VERSION} was purged and cannot be resumed or reused." >&2
+              exit 1
+            }
+            [[ "${PRECHECK_EXISTING}" == "true" || "${effective_action}" == "resume" ]] || {
+              echo "A CrabNebula version/channel collision appeared after preflight; refusing to adopt it." >&2
+              exit 1
+            }
+            [[ "${effective_action}" == "resume" ]] || {
+              echo "An existing CrabNebula release may only be reused by a resumable Git tag." >&2
+              exit 1
+            }
+            if [[ "${match_status}" != "published" && -n "${highest}" ]] && ! jq -en \
+              --arg candidate "${VERSION}" \
+              --arg highest "${highest}" \
+              'def parts: split(".") | map(tonumber); ($candidate | parts) >= ($highest | parts)' \
+              >/dev/null; then
+              echo "Draft Desktop ${VERSION} cannot resume after newer CrabNebula version ${highest}." >&2
+              exit 1
+            fi
+            echo "existing=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          [[ "${PRECHECK_EXISTING}" != "true" ]] || {
+            echo "The resumable CrabNebula release disappeared after preflight." >&2
+            exit 1
+          }
+          if [[ -n "${highest}" ]] && ! jq -en \
+            --arg candidate "${VERSION}" \
+            --arg highest "${highest}" \
+            'def parts: split(".") | map(tonumber); ($candidate | parts) > ($highest | parts)' \
+            >/dev/null; then
+            echo "Planned Desktop version ${VERSION} is no longer newer than CrabNebula's maximum ${highest}." >&2
+            exit 1
+          fi
+          echo "existing=false" >> "$GITHUB_OUTPUT"
+
+      - name: Read resumable CrabNebula provenance before tagging
+        if: steps.cn_publish_preflight.outputs.existing == 'true'
+        shell: bash
+        env:
+          CN: ${{ steps.cn.outputs.path }}
+          CN_API_KEY: ${{ secrets.CN_API_KEY }}
+          DESTINATION: ${{ needs.plan.outputs.destination }}
+          VERSION: ${{ needs.plan.outputs.version }}
+          CHANNEL: ${{ needs.plan.outputs.channel }}
+        working-directory: ui/apps/desktop-assistant
+        run: |
+          set -euo pipefail
+          args=(release show "${DESTINATION}" "${VERSION}")
+          [[ "${CHANNEL}" == "nightly" ]] && args+=(--channel nightly)
+          "${CN}" "${args[@]}" > "$RUNNER_TEMP/cn-existing-publish.json"
+
+      - name: Validate resumable CrabNebula provenance before tagging
+        if: steps.cn_publish_preflight.outputs.existing == 'true'
+        shell: bash
+        env:
+          VERSION: ${{ needs.plan.outputs.version }}
+          CHANNEL: ${{ needs.plan.outputs.channel }}
+          PROVENANCE: "Release source: ${{ needs.plan.outputs.tag }}@${{ needs.plan.outputs.release_sha }}"
+        run: |
+          set -euo pipefail
+          expected_channel=""
+          [[ "${CHANNEL}" == "nightly" ]] && expected_channel=nightly
+          jq -e \
+            --arg version "${VERSION}" \
+            --arg channel "${expected_channel}" \
+            --arg provenance "${PROVENANCE}" \
+            '
+              (.id | type == "string" and length > 0) and
+              .version == $version and
+              ((.channel // "") == $channel) and
+              ((.notes // "") | contains($provenance))
+            ' "$RUNNER_TEMP/cn-existing-publish.json" >/dev/null || {
+              echo "Existing CrabNebula release does not carry this tag's source provenance." >&2
+              exit 1
+            }
+
+      - name: Create or verify immutable tag
+        shell: bash
+        env:
+          TAG: ${{ needs.plan.outputs.tag }}
+          RELEASE_SHA: ${{ needs.plan.outputs.release_sha }}
+          TAG_ANNOTATION_BASE64: ${{ needs.plan.outputs.tag_annotation_base64 }}
+          RELEASE_GIT_TOKEN: ${{ secrets.RELEASE_GIT_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ -n "${TAG_ANNOTATION_BASE64}" ]] || {
+            echo "Managed Desktop releases require tag annotation metadata." >&2
+            exit 1
+          }
+          expected_annotation=$(printf '%s' "${TAG_ANNOTATION_BASE64}" | base64 --decode | jq -S -c .)
+
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            git fetch --force origin "refs/tags/${TAG}:refs/tags/${TAG}"
+            existing=$(git rev-list -n 1 "${TAG}")
+            [[ "${existing}" == "${RELEASE_SHA}" ]] || {
+              echo "${TAG} points to ${existing}, expected ${RELEASE_SHA}" >&2
+              exit 1
+            }
+            object_type=$(git cat-file -t "refs/tags/${TAG}")
+            [[ "${object_type}" == "tag" ]] || {
+              echo "${TAG} is a lightweight tag and has no immutable Desktop app association." >&2
+              exit 1
+            }
+            actual_annotation=$(git for-each-ref --format='%(contents:subject)' "refs/tags/${TAG}" | jq -S -c .)
+            [[ "${actual_annotation}" == "${expected_annotation}" ]] || {
+              echo "${TAG} annotation does not match the planned Desktop app/source association." >&2
+              exit 1
+            }
+          else
+            [[ -n "${RELEASE_GIT_TOKEN}" ]] || {
+              echo "Creating ${TAG} requires the RELEASE_GIT_TOKEN repository secret with Contents and Workflows read/write access." >&2
+              exit 1
+            }
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local --unset-all http.https://github.com/.extraheader || true
+            git remote set-url origin "https://x-access-token:${RELEASE_GIT_TOKEN}@github.com/${{ github.repository }}"
+            git tag --annotate --message "${expected_annotation}" "${TAG}" "${RELEASE_SHA}"
+            git push origin "refs/tags/${TAG}"
+          fi
+
+      - name: Create or reuse GitHub draft
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.plan.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "Reusing GitHub release ${TAG}."
+          else
+            gh release create "${TAG}" \
+              --verify-tag \
+              --draft \
+              --title "${TAG}" \
+              --notes-file release-artifacts/notes.md
+          fi
+
+      - name: Pin immutable release artifacts
+        uses: ./.github/actions/pin-release-artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          tag: ${{ needs.plan.outputs.tag }}
+          product: desktop
+          paths: |
+            release-artifacts
+            ${{ env.BUNDLE_DIR }}
+          allow-create: true
+
+      - name: Create CrabNebula draft
+        if: steps.cn_publish_preflight.outputs.existing != 'true'
+        shell: bash
+        env:
+          CN: ${{ steps.cn.outputs.path }}
+          CN_API_KEY: ${{ secrets.CN_API_KEY }}
+          DESTINATION: ${{ needs.plan.outputs.destination }}
+          VERSION: ${{ needs.plan.outputs.version }}
+          CHANNEL: ${{ needs.plan.outputs.channel }}
+        working-directory: ui/apps/desktop-assistant
+        run: |
+          set -euo pipefail
+          args=(release draft "${DESTINATION}" "${VERSION}" --notes-file "${GITHUB_WORKSPACE}/release-artifacts/crabnebula-notes.txt")
+          [[ "${CHANNEL}" == "nightly" ]] && args+=(--channel nightly)
+          "${CN}" "${args[@]}"
+
+      - name: Read resumable CrabNebula state
+        shell: bash
+        env:
+          CN: ${{ steps.cn.outputs.path }}
+          CN_API_KEY: ${{ secrets.CN_API_KEY }}
+          DESTINATION: ${{ needs.plan.outputs.destination }}
+          VERSION: ${{ needs.plan.outputs.version }}
+          CHANNEL: ${{ needs.plan.outputs.channel }}
+        working-directory: ui/apps/desktop-assistant
+        run: |
+          set -euo pipefail
+          args=(release show "${DESTINATION}" "${VERSION}")
+          [[ "${CHANNEL}" == "nightly" ]] && args+=(--channel nightly)
+          "${CN}" "${args[@]}" > "$RUNNER_TEMP/cn-state.json"
+
+      - name: Inspect CrabNebula state
+        id: inspect
+        shell: bash
+        env:
+          VERSION: ${{ needs.plan.outputs.version }}
+          CHANNEL: ${{ needs.plan.outputs.channel }}
+          PROVENANCE: "Release source: ${{ needs.plan.outputs.tag }}@${{ needs.plan.outputs.release_sha }}"
+        run: |
+          set -euo pipefail
+          expected_channel=""
+          [[ "${CHANNEL}" == "nightly" ]] && expected_channel=nightly
+          jq -e \
+            --arg version "${VERSION}" \
+            --arg channel "${expected_channel}" \
+            --arg provenance "${PROVENANCE}" \
+            '
+              (.id | type == "string" and length > 0) and
+              .version == $version and
+              ((.channel // "") == $channel) and
+              ((.notes // "") | contains($provenance))
+            ' "$RUNNER_TEMP/cn-state.json" >/dev/null
+          status=$(jq -r '.status' "$RUNNER_TEMP/cn-state.json")
+          has_updater=$(jq -r 'any(.assets[]?; .updatePlatform == "darwin-aarch64")' "$RUNNER_TEMP/cn-state.json")
+          has_dmg=$(jq -r 'any(.assets[]?; .publicPlatform == "dmg-aarch64")' "$RUNNER_TEMP/cn-state.json")
+          {
+            echo "status=${status}"
+            echo "has_updater=${has_updater}"
+            echo "has_dmg=${has_dmg}"
+          } >> "$GITHUB_OUTPUT"
+          if [[ "${status}" == "Published" && ( "${has_updater}" != "true" || "${has_dmg}" != "true" ) ]]; then
+            echo "Published CrabNebula release is missing required assets; refusing to mutate it." >&2
+            exit 1
+          fi
+
+      - name: Upload missing updater asset
+        if: steps.inspect.outputs.status != 'Published' && steps.inspect.outputs.has_updater != 'true'
+        shell: bash
+        env:
+          CN: ${{ steps.cn.outputs.path }}
+          CN_API_KEY: ${{ secrets.CN_API_KEY }}
+          DESTINATION: ${{ needs.plan.outputs.destination }}
+          VERSION: ${{ needs.plan.outputs.version }}
+          CHANNEL: ${{ needs.plan.outputs.channel }}
+        working-directory: ui/apps/desktop-assistant
+        run: |
+          set -euo pipefail
+          args=(release upload "${DESTINATION}" "${VERSION}" --update-platform darwin-aarch64 \
+            --file src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz \
+            --signature src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig)
+          [[ "${CHANNEL}" == "nightly" ]] && args+=(--channel nightly)
+          "${CN}" "${args[@]}"
+
+      - name: Upload missing DMG
+        if: steps.inspect.outputs.status != 'Published' && steps.inspect.outputs.has_dmg != 'true'
+        shell: bash
+        env:
+          CN: ${{ steps.cn.outputs.path }}
+          CN_API_KEY: ${{ secrets.CN_API_KEY }}
+          DESTINATION: ${{ needs.plan.outputs.destination }}
+          VERSION: ${{ needs.plan.outputs.version }}
+          CHANNEL: ${{ needs.plan.outputs.channel }}
+        working-directory: ui/apps/desktop-assistant
+        run: |
+          set -euo pipefail
+          args=(release upload "${DESTINATION}" "${VERSION}" --public-platform dmg-aarch64 \
+            --file src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg)
+          [[ "${CHANNEL}" == "nightly" ]] && args+=(--channel nightly)
+          "${CN}" "${args[@]}"
+
+      - name: Publish CrabNebula draft
+        if: steps.inspect.outputs.status != 'Published'
+        shell: bash
+        env:
+          CN: ${{ steps.cn.outputs.path }}
+          CN_API_KEY: ${{ secrets.CN_API_KEY }}
+          DESTINATION: ${{ needs.plan.outputs.destination }}
+          VERSION: ${{ needs.plan.outputs.version }}
+          CHANNEL: ${{ needs.plan.outputs.channel }}
+        working-directory: ui/apps/desktop-assistant
+        run: |
+          set -euo pipefail
+          args=(release publish "${DESTINATION}" "${VERSION}")
+          [[ "${CHANNEL}" == "nightly" ]] && args+=(--channel nightly)
+          "${CN}" "${args[@]}"
+
+      - name: Verify published CrabNebula release
+        shell: bash
+        env:
+          CN: ${{ steps.cn.outputs.path }}
+          CN_API_KEY: ${{ secrets.CN_API_KEY }}
+          DESTINATION: ${{ needs.plan.outputs.destination }}
+          VERSION: ${{ needs.plan.outputs.version }}
+          CHANNEL: ${{ needs.plan.outputs.channel }}
+        working-directory: ui/apps/desktop-assistant
+        run: |
+          set -euo pipefail
+          args=(release show "${DESTINATION}" "${VERSION}")
+          [[ "${CHANNEL}" == "nightly" ]] && args+=(--channel nightly)
+          "${CN}" "${args[@]}" > "$RUNNER_TEMP/cn-final.json"
+
+      - name: Validate final CrabNebula state
+        shell: bash
+        env:
+          VERSION: ${{ needs.plan.outputs.version }}
+          CHANNEL: ${{ needs.plan.outputs.channel }}
+          PROVENANCE: "Release source: ${{ needs.plan.outputs.tag }}@${{ needs.plan.outputs.release_sha }}"
+        run: |
+          set -euo pipefail
+          expected_channel=""
+          [[ "${CHANNEL}" == "nightly" ]] && expected_channel=nightly
+          jq -e \
+            --arg version "${VERSION}" \
+            --arg channel "${expected_channel}" \
+            --arg provenance "${PROVENANCE}" \
+            '
+            (.id | type == "string" and length > 0) and
+            .version == $version and
+            ((.channel // "") == $channel) and
+            ((.notes // "") | contains($provenance)) and
+            .status == "Published" and
+            any(.assets[]?; .updatePlatform == "darwin-aarch64") and
+            any(.assets[]?; .publicPlatform == "dmg-aarch64")
+          ' "$RUNNER_TEMP/cn-final.json" >/dev/null
+
+  finalize:
+    name: Finalize GitHub release
+    needs: [plan, build, publish]
+    if: >-
+      always() &&
+      needs.plan.result == 'success' &&
+      needs.build.result == 'success' &&
+      needs.publish.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout planned source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ needs.plan.outputs.release_sha }}
+
+      - name: Restore immutable release artifacts
+        id: pinned
+        uses: ./.github/actions/pin-release-artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          tag: ${{ needs.plan.outputs.tag }}
+          product: desktop
+          paths: |
+            release-artifacts
+            ${{ env.BUNDLE_DIR }}
+          allow-create: false
+
+      - name: Attach assets and publish draft
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # No checkout in this job, so gh needs the repo spelled out.
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.plan.outputs.tag }}
+          CHANNEL: ${{ needs.plan.outputs.channel }}
+          PINNED_ASSET: ${{ steps.pinned.outputs.asset-name }}
+        run: |
+          set -euo pipefail
+          assets=(
+            "${BUNDLE_DIR}"/dmg/*.dmg
+            "${BUNDLE_DIR}"/macos/*.app.tar.gz
+            "${BUNDLE_DIR}"/macos/*.app.tar.gz.sig
+            release-artifacts/checksums.txt
+          )
+          gh release upload "${TAG}" "${assets[@]}" --clobber
+          if [[ "${CHANNEL}" == "nightly" ]]; then
+            gh release edit "${TAG}" --draft=false --prerelease --latest=false
+          else
+            gh release edit "${TAG}" --draft=false --prerelease=false --latest=false
+          fi
+          gh release delete-asset "${TAG}" "${PINNED_ASSET}" --yes || \
+            echo "Warning: published release still contains internal pinned artifact ${PINNED_ASSET}."
+
+  notify:
+    name: Notify
+    needs: [plan, build, publish, finalize]
+    if: >-
+      always() &&
       github.repository == 'poolsideai/assistant'
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine terminal outcome
+        id: outcome
+        shell: bash
+        env:
+          PLAN: ${{ needs.plan.result }}
+          BUILD: ${{ needs.build.result }}
+          PUBLISH: ${{ needs.publish.result }}
+          FINALIZE: ${{ needs.finalize.result }}
+          NEEDS_RELEASE: ${{ needs.plan.outputs.needs_release }}
+        run: |
+          set -euo pipefail
+          if [[ "${PLAN}" == "failure" || "${BUILD}" == "failure" || "${PUBLISH}" == "failure" || "${FINALIZE}" == "failure" ]]; then
+            status=failure
+            notify=true
+          elif [[ "${PLAN}" == "cancelled" || "${BUILD}" == "cancelled" || "${PUBLISH}" == "cancelled" || "${FINALIZE}" == "cancelled" ]]; then
+            status=cancelled
+            notify=true
+          elif [[ "${NEEDS_RELEASE}" == "true" && "${FINALIZE}" == "success" ]]; then
+            status=success
+            notify=true
+          else
+            status=success
+            notify=false
+          fi
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+          echo "notify=${notify}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout notification action
+        if: steps.outcome.outputs.notify == 'true'
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Download changelog
+        if: steps.outcome.outputs.notify == 'true' && needs.build.result == 'success'
+        continue-on-error: true
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: ${{ needs.plan.outputs.artifact_name }}
+          path: .
+
+      - name: Post terminal outcome
+        if: steps.outcome.outputs.notify == 'true'
+        uses: ./.github/actions/notify-release-slack
+        with:
+          bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: ${{ vars.SLACK_RELEASE_CHANNEL_ID }}
+          status: ${{ steps.outcome.outputs.status }}
+          app: Desktop
+          tag: ${{ needs.plan.outputs.tag }}
+          changelog-file: release-artifacts/slack.txt
+          channel: ${{ needs.plan.outputs.channel }}
+          run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          trigger: ${{ inputs.trigger || github.event_name }}

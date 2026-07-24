@@ -1,6 +1,6 @@
 import type { ErrorObject } from "serialize-error";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { System } from "../../system";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function reportError(system: System, error: ErrorObject) {
   system.telemetry.reportErrorFromUI(error);
 }

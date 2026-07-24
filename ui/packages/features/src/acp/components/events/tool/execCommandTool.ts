@@ -1,12 +1,12 @@
 import type { ToolCall } from "../../../types";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { isMcpToolCall, isSkillToolCall } from "./toolCategory";
 
 export function isExecCommandToolCall(tool: ToolCall): boolean {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // MCP tools and skills arrive as kind "other" and would be misclaimed by the
+  // title fallback below, rendering as "Run Shell Command". They are not shell
+  // commands — exclude them so they render with their own icon and label.
+  if (isMcpToolCall(tool) || isSkillToolCall(tool)) return false;
+
   const title = tool.title?.toLowerCase();
   if (title === "exec_command") return true;
 

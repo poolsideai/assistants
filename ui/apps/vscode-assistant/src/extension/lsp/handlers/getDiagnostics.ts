@@ -9,7 +9,7 @@ import { createConverter } from "vscode-languageclient/lib/common/codeConverter"
 // an edit has recently happend it can optionally pass a waitMs param and getDiagnostics will wait
 // for either new diagnostics to be published for the given URI, or the waitMs timeout (whichever
 // is sooner) before reading and retuning diagnostics.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function getDiagnostics(params: GetDiagnosticsParams): Promise<GetDiagnosticsOutput> {
   const uri = vscode.Uri.parse(params.uri);
 
   if (params.waitMs) {

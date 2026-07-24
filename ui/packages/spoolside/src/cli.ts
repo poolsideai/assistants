@@ -410,8 +410,8 @@ async function main() {
 Usage: spoolside <command> [args...] [-- <command2> [args...] ...]
 
 Target lifecycle:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  vscode up [--light|--dark] [--fast] [--acp|--lsp]
+  desktop up [--color HEX] [--worktree-name NAME] [--fast]
   vscode|desktop down [--all] | status | env
 
 Interaction:

@@ -23,7 +23,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         "local_inference.go",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "mcp_servers.go",
         "remote_access.go",
         "remote_terminal.go",
 __POOL_SYNTHETIC_IMPORT_BASELINE__

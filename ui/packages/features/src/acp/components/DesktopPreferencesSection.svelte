@@ -1,8 +1,8 @@
 <script lang="ts">
   import { isAppleUser } from "@poolsideai/components";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { Switch } from "@poolsideai/components/switch";
   import { onMount } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { desktopUpdate } from "../desktopUpdate";
   import { rpc, type RPCClient } from "../hostRpc";
   import DesktopAppIconTintSelect, {
     APP_ICON_TINTS,
@@ -13,19 +13,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     type DesktopFileOpener,
   } from "./DesktopFileOpenerSelect.svelte";
   import DesktopThemeToggle, { type DesktopThemePreference } from "./DesktopThemeToggle.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import DesktopToolActivitySelect from "./DesktopToolActivitySelect.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   type SaveStatus = "loading" | "saved" | "saving" | "error";
   type TerminalCursorStyle = "block" | "bar" | "underline";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  type ToolActivity = "detailed" | "grouped" | "compact";
+  type UpdateChannel = "stable" | "nightly";
+
+  interface DesktopStableSwitchResult {
     status: "alreadyStable" | "noUpdate" | "cancelled" | "staged";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    currentVersion: string;
+    version?: string;
+  }
 
   interface DesktopSettings {
     themePreference: DesktopThemePreference;
@@ -37,11 +37,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     terminalFontFamilies?: string[];
     terminalFontSize: number;
     terminalCursorStyle: TerminalCursorStyle;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    toolActivity: ToolActivity;
     steerWithEnter: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    windowVibrancy: boolean;
     appIconTint?: AppIconTint;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    updateChannel?: UpdateChannel;
     autoInstallUpdates?: boolean;
     fileOpenerId: string;
     fileOpeners: DesktopFileOpener[];
@@ -60,13 +60,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       terminalFontSize: number,
       terminalCursorStyle: TerminalCursorStyle,
     ): Promise<DesktopSettings>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    setDesktopToolActivity(toolActivity: ToolActivity): Promise<DesktopSettings>;
     setDesktopSteerWithEnter(steerWithEnter: boolean): Promise<DesktopSettings>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    setDesktopWindowVibrancy(windowVibrancy: boolean): Promise<DesktopSettings>;
     setDesktopAppIconTint(appIconTint: AppIconTint): Promise<DesktopSettings>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    setDesktopUpdateChannel(updateChannel: UpdateChannel): Promise<DesktopSettings>;
     setDesktopAutoInstallUpdates(autoInstallUpdates: boolean): Promise<DesktopSettings>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    switchDesktopToStable(): Promise<DesktopStableSwitchResult>;
     setDesktopFileOpener(fileOpenerId: string): Promise<DesktopSettings>;
     getDesktopAppVersion(): Promise<string>;
     openDesktopChangelog(): Promise<void>;
@@ -113,18 +113,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let fileOpenerId = $state("default");
   let persistedFileOpenerId = $state("default");
   let fileOpeners = $state<DesktopFileOpener[]>([]);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let toolActivity = $state<ToolActivity>("grouped");
+  let persistedToolActivity = $state<ToolActivity>("grouped");
   let steerWithEnter = $state(false);
   let persistedSteerWithEnter = $state(false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let windowVibrancy = $state(true);
+  let persistedWindowVibrancy = $state(true);
   let appIconTint = $state<AppIconTint>("default");
   let persistedAppIconTint = $state<AppIconTint>("default");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let updateChannel = $state<UpdateChannel>("stable");
   let autoInstallUpdates = $state(true);
   let persistedAutoInstallUpdates = $state(true);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let persistedUpdateChannel = $state<UpdateChannel>("stable");
   let appVersion = $state("");
   let appChannelLabel = $derived(persistedUpdateChannel === "nightly" ? "Preview" : "Stable");
   let themeStatus = $state<SaveStatus>("loading");
@@ -132,12 +132,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let codeStatus = $state<SaveStatus>("loading");
   let terminalStatus = $state<SaveStatus>("loading");
   let fileOpenerStatus = $state<SaveStatus>("loading");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let toolActivityStatus = $state<SaveStatus>("loading");
   let steerWithEnterStatus = $state<SaveStatus>("loading");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let windowVibrancyStatus = $state<SaveStatus>("loading");
   let appIconTintStatus = $state<SaveStatus>("loading");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let updateChannelStatus = $state<SaveStatus>("loading");
+  let stableSwitchInFlight = $state(false);
   let error = $state("");
   let hasLoaded = $state(false);
   let chatSaveToken = 0;
@@ -166,24 +166,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       chatStatus === "loading" ||
       codeStatus === "loading" ||
       terminalStatus === "loading" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      fileOpenerStatus === "loading" ||
+      toolActivityStatus === "loading" ||
       steerWithEnterStatus === "loading" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      windowVibrancyStatus === "loading" ||
       appIconTintStatus === "loading" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      updateChannelStatus === "loading",
   );
   let hasError = $derived(
     themeStatus === "error" ||
       chatStatus === "error" ||
       codeStatus === "error" ||
       terminalStatus === "error" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      fileOpenerStatus === "error" ||
+      toolActivityStatus === "error" ||
       steerWithEnterStatus === "error" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      windowVibrancyStatus === "error" ||
       appIconTintStatus === "error" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      updateChannelStatus === "error",
   );
 
   onMount(() => {
@@ -210,11 +210,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (!preserveCodePreferences) codeStatus = "saved";
       if (!preserveTerminalPreferences) terminalStatus = "saved";
       fileOpenerStatus = "saved";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      toolActivityStatus = "saved";
       steerWithEnterStatus = "saved";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      windowVibrancyStatus = "saved";
       appIconTintStatus = "saved";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      updateChannelStatus = "saved";
       error = "";
     };
     window.addEventListener(DESKTOP_SETTINGS_CHANGED_EVENT, onSettingsChanged);
@@ -249,22 +249,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       codeStatus = "saved";
       terminalStatus = "saved";
       fileOpenerStatus = "saved";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      toolActivityStatus = "saved";
       steerWithEnterStatus = "saved";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      windowVibrancyStatus = "saved";
       appIconTintStatus = "saved";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      updateChannelStatus = "saved";
     } catch (err) {
       themeStatus = "error";
       chatStatus = "error";
       codeStatus = "error";
       terminalStatus = "error";
       fileOpenerStatus = "error";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      toolActivityStatus = "error";
       steerWithEnterStatus = "error";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      windowVibrancyStatus = "error";
       appIconTintStatus = "error";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      updateChannelStatus = "error";
       error = toErrorMessage(err);
     } finally {
       hasLoaded = true;
@@ -550,60 +550,60 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function persistToolActivity() {
+    if (!hasLoaded || toolActivity === persistedToolActivity) {
+      toolActivityStatus = "saved";
+      return;
+    }
+
+    toolActivityStatus = "saving";
+    error = "";
+    try {
+      const settings = await desktopRpc.setDesktopToolActivity(toolActivity);
+      applyLoadedSettings(settings, {
+        preserveCodePreferences: shouldPreserveLocalCodePreferences(settings),
+        preserveTerminalPreferences: shouldPreserveLocalTerminalPreferences(settings),
+      });
+      toolActivityStatus = "saved";
+      error = "";
+    } catch (err) {
+      toolActivityStatus = "error";
+      error = toErrorMessage(err);
+    }
+  }
+
+  async function persistUpdateChannel() {
+    if (!hasLoaded || stableSwitchInFlight || updateChannel === persistedUpdateChannel) {
+      updateChannelStatus = "saved";
+      return;
+    }
+
+    updateChannelStatus = "saving";
+    error = "";
+    const previousChannel = persistedUpdateChannel;
+    const switchingToStable = previousChannel === "nightly" && updateChannel === "stable";
+    stableSwitchInFlight = switchingToStable;
+    try {
+      const settings = await desktopRpc.setDesktopUpdateChannel(updateChannel);
+      applyLoadedSettings(settings, {
+        preserveChatPreferences: shouldPreserveLocalChatPreferences(settings),
+        preserveCodePreferences: shouldPreserveLocalCodePreferences(settings),
+        preserveTerminalPreferences: shouldPreserveLocalTerminalPreferences(settings),
+      });
+      error = "";
+      if (switchingToStable) {
+        await offerStableSwitch();
+      }
+      updateChannelStatus = "saved";
+    } catch (err) {
+      updateChannel = persistedUpdateChannel;
+      updateChannelStatus = "error";
+      error = toErrorMessage(err);
+    } finally {
+      stableSwitchInFlight = false;
+    }
+  }
+
   async function persistAutoInstallUpdates(value: boolean) {
     const token = ++autoInstallUpdatesSaveToken;
     autoInstallUpdatesSavesPending += 1;
@@ -623,50 +623,50 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function offerStableSwitch() {
+    let restorePreviewMessage =
+      "The Stable switch did not complete, so Preview remains selected. Select Stable to try again.";
+    try {
+      const result = await desktopRpc.switchDesktopToStable();
+      switch (result.status) {
         case "staged":
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          desktopRpc.showInfoMessage(
+            result.version
+              ? `Stable ${result.version} is ready — use the Update button to restart.`
+              : "A Stable update is ready — use the Update button to restart.",
+          );
+          return;
+        case "alreadyStable":
+          return;
+        case "cancelled":
+          restorePreviewMessage =
+            "The Stable switch was cancelled, so Preview remains selected. Select Stable to try again.";
+          break;
+        case "noUpdate":
+          restorePreviewMessage =
+            "No Stable build is currently available, so Preview remains selected. Select Stable later to try again.";
+          break;
+      }
+    } catch (err) {
+      restorePreviewMessage = `Couldn't switch to Stable: ${toErrorMessage(err)}. Preview remains selected; select Stable to try again.`;
+    }
+
+    try {
+      const settings = await desktopRpc.setDesktopUpdateChannel("nightly");
+      applyLoadedSettings(settings, {
+        preserveChatPreferences: shouldPreserveLocalChatPreferences(settings),
+        preserveCodePreferences: shouldPreserveLocalCodePreferences(settings),
+        preserveTerminalPreferences: shouldPreserveLocalTerminalPreferences(settings),
+      });
+      error = "";
+      desktopRpc.showInfoMessage(restorePreviewMessage);
+    } catch (restoreError) {
+      throw new Error(
+        `${restorePreviewMessage} Preview could not be restored as the selected channel: ${toErrorMessage(restoreError)}`,
+      );
+    }
+  }
+
   async function persistAppIconTint() {
     if (!hasLoaded || appIconTint === persistedAppIconTint) {
       appIconTintStatus = "saved";
@@ -692,33 +692,33 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   async function persistWindowVibrancy(value: boolean) {
     if (!hasLoaded || (value === persistedWindowVibrancy && windowVibrancySavesPending === 0)) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      windowVibrancyStatus = "saved";
+      return;
+    }
+
     const token = ++windowVibrancySaveToken;
     windowVibrancySavesPending += 1;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    error = "";
     const operation = windowVibrancySaveQueue.then(async () => {
       await desktopRpc.setDesktopWindowVibrancy(value);
     });
     windowVibrancySaveQueue = operation.catch(() => undefined);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    try {
       await operation;
       persistedWindowVibrancy = value;
       if (token !== windowVibrancySaveToken) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      windowVibrancyStatus = "saved";
+      error = "";
+    } catch (err) {
       if (token !== windowVibrancySaveToken) return;
       windowVibrancy = persistedWindowVibrancy;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      windowVibrancyStatus = "error";
+      error = toErrorMessage(err);
     } finally {
       windowVibrancySavesPending = Math.max(0, windowVibrancySavesPending - 1);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  }
+
   function applyLoadedSettings(
     settings: DesktopSettings,
     options: ApplyLoadedSettingsOptions = {},
@@ -765,8 +765,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     fileOpenerId = settings.fileOpenerId;
     persistedFileOpenerId = settings.fileOpenerId;
     fileOpeners = settings.fileOpeners;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    toolActivity = normalizeToolActivity(settings.toolActivity);
+    persistedToolActivity = normalizeToolActivity(settings.toolActivity);
     if (steerWithEnterSavesPending === 0) {
       steerWithEnter = settings.steerWithEnter === true;
       persistedSteerWithEnter = settings.steerWithEnter === true;
@@ -777,8 +777,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
     appIconTint = normalizeAppIconTint(settings.appIconTint);
     persistedAppIconTint = normalizeAppIconTint(settings.appIconTint);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    updateChannel = normalizeUpdateChannel(settings.updateChannel);
+    persistedUpdateChannel = normalizeUpdateChannel(settings.updateChannel);
     if (autoInstallUpdatesSavesPending === 0) {
       autoInstallUpdates = settings.autoInstallUpdates ?? true;
       persistedAutoInstallUpdates = settings.autoInstallUpdates ?? true;
@@ -955,44 +955,44 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (value === "bar" || value === "underline") return value;
     return "block";
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  function normalizeToolActivity(value: string | undefined): ToolActivity {
+    return value === "detailed" || value === "compact" ? value : "grouped";
+  }
+
+  function normalizeWindowVibrancy(value: boolean | undefined): boolean {
+    return value !== false;
+  }
+
   function normalizeAppIconTint(value: string | undefined): AppIconTint {
     return APP_ICON_TINTS.includes(value as AppIconTint) ? (value as AppIconTint) : "default";
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function normalizeUpdateChannel(value: string | undefined): UpdateChannel {
+    return value === "nightly" ? "nightly" : "stable";
+  }
 </script>
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {#if isAppleUser()}
+      <div class="border-psx-border mt-1 w-full border-t pt-3">
+        <div class="flex items-center gap-2">
+          <Switch
+            id="desktop-window-vibrancy-switch"
+            checked={windowVibrancy}
+            disabled={windowVibrancyStatus === "loading"}
+            onCheckedChange={(value) => {
+              windowVibrancy = value;
               void persistWindowVibrancy(value);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            }}
+          />
+          <label class="cursor-pointer text-[13px]/[18px]" for="desktop-window-vibrancy-switch">
+            Translucent window
+          </label>
+        </div>
+      </div>
       <div class="border-psx-border mt-1 flex w-full flex-col gap-2 border-t pt-3">
         <span class="text-psx-foreground-primary text-[13px]/[18px]">App icon</span>
         <DesktopAppIconTintSelect
@@ -1004,7 +1004,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           Tints the icon in the Dock and app switcher. Finder keeps the original.
         </span>
       </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {/if}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 </SettingsSection>
 
@@ -1156,11 +1156,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+<DesktopDefaultLayoutSection />
+
+<SettingsSection title="Updates channel">
+  <div class="flex flex-col items-start gap-2 px-3 pb-3 pt-3">
     <div class="flex items-center gap-2">
       <Switch
         id="desktop-auto-install-updates-switch"
@@ -1177,48 +1177,48 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     <p class="text-psx-foreground-secondary text-[12px]/[16px]">
       Poolside waits for all conversations to finish, then installs and restarts automatically.
     </p>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div class="flex w-full max-w-[360px] items-center justify-between gap-3">
+      <select
+        class="border-psx-border bg-psx-input-background text-psx-foreground-primary focus:border-psx-focus h-8 w-full min-w-0 rounded-[5px] border px-2 text-[13px]/[18px] outline-none"
+        aria-label="Updates channel"
+        bind:value={updateChannel}
+        disabled={updateChannelStatus === "loading" ||
+          updateChannelStatus === "saving" ||
+          stableSwitchInFlight ||
+          $desktopUpdate.busy ||
+          $desktopUpdate.available}
+        onchange={() => void persistUpdateChannel()}
+      >
+        <option value="stable">Stable (recommended)</option>
+        <option value="nightly">Preview</option>
+      </select>
+      {#if stableSwitchInFlight}
+        <span class="text-psx-foreground-secondary shrink-0 text-[13px]/[18px]">Switching</span>
+      {:else if updateChannelStatus === "saving"}
+        <span class="text-psx-foreground-secondary shrink-0 text-[13px]/[18px]">Saving</span>
+      {/if}
+    </div>
+    {#if $desktopUpdate.available}
+      <p class="text-psx-foreground-secondary text-[12px]/[16px]">
         {$desktopUpdate.version
           ? `Update ${$desktopUpdate.version} is ready.`
           : "An update is ready."}
         Use the Update button to restart before changing release channels.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </p>
+    {:else if $desktopUpdate.busy}
+      <p class="text-psx-foreground-secondary text-[12px]/[16px]">
+        Checking for updates. Release channels are temporarily unavailable.
+      </p>
+    {:else if updateChannel === "nightly"}
+      <p class="text-psx-foreground-secondary text-[12px]/[16px]">
+        Preview builds ship the latest changes and may be unstable. Switching back to Stable offers
+        the latest Stable build, even when its version is lower. Background checks never downgrade
+        the app automatically.
+      </p>
+    {/if}
+  </div>
+</SettingsSection>
+
 <SettingsSection title="About">
   <div class="flex items-center gap-1.5 px-3 pb-3 pt-3 text-[13px]/[18px]">
     <span class="text-psx-foreground-primary">

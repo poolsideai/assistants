@@ -1,15 +1,15 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { writable } from "svelte/store";
+
+/**
+ * Desktop self-update affordance state. The desktop host sets this once an app
+ * update has been downloaded (see the desktop-assistant `src/updater.ts`); the
+ * sidebar chrome renders the "Update" pill from it, mirroring Poolside Studio.
  *
  * `version` is absent when the host detected that the installed bundle was
  * replaced by something other than our own updater — the restart is still the
  * fix, but the incoming version is not ours to know.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ */
+export type DesktopUpdateState =
   | { available: false; busy: boolean; downloading: boolean; progress?: number }
   | {
       available: true;
@@ -20,7 +20,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       notes?: string;
       apply: () => Promise<void>;
     };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 export const desktopUpdate = writable<DesktopUpdateState>({
   available: false,
   busy: false,

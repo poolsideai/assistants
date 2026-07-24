@@ -1,75 +1,75 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package mcpservers
+
+import (
+	"context"
+	"testing"
 	"time"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/mcp"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
+)
+
+// fakeSecrets is an in-memory mcp.SecretsServerStore keyed like the keychain.
+type fakeSecrets struct {
+	data map[mcp.ServerKey]*mcp.ServerSecrets
+}
+
+func (f *fakeSecrets) Load(_ context.Context, key mcp.ServerKey) (*mcp.ServerSecrets, error) {
+	return f.data[key], nil
+}
+
+func (f *fakeSecrets) Save(_ context.Context, key mcp.ServerKey, data *mcp.ServerSecrets) error {
+	f.data[key] = data
+	return nil
+}
+
+func (f *fakeSecrets) Delete(_ context.Context, key mcp.ServerKey) error {
+	delete(f.data, key)
+	return nil
+}
+
+func TestServerList_AnnotatesOAuthTokenPresence(t *testing.T) {
+	store := newTestStore(t)
+	require.NoError(t, store.Upsert(methods.MCPServerEntry{
+		Name: "signed-in", Enabled: true,
+		URL: "https://signed-in.example.com/mcp", AuthMode: methods.MCPServerAuthModeOAuth,
+	}))
+	require.NoError(t, store.Upsert(methods.MCPServerEntry{
+		Name: "signed-out", Enabled: true,
+		URL: "https://signed-out.example.com/mcp", AuthMode: methods.MCPServerAuthModeOAuth,
+	}))
+	require.NoError(t, store.Upsert(methods.MCPServerEntry{
+		Name: "bearer", Enabled: true,
 		URL: "https://bearer.example.com/mcp", AuthMode: methods.MCPServerAuthMode("bearer"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}))
+	require.NoError(t, store.Upsert(methods.MCPServerEntry{
+		Name: "local", Enabled: true, Command: "npx",
+	}))
+
+	secrets := &fakeSecrets{data: map[mcp.ServerKey]*mcp.ServerSecrets{
+		"https://signed-in.example.com/mcp": {OAuth: &mcp.OAuthData{AccessToken: "tok"}},
+	}}
+	server := &Server{store: store, secrets: secrets}
+
+	out, err := server.List(context.Background(), &methods.MCPServersListParams{}, nil)
+	require.NoError(t, err)
+
+	byName := map[string]methods.MCPServerEntry{}
+	for _, entry := range out.Servers {
+		byName[entry.Name] = entry
+	}
+	require.Len(t, byName, 4)
+
+	require.NotNil(t, byName["signed-in"].OAuthAuthenticated)
+	assert.True(t, *byName["signed-in"].OAuthAuthenticated)
+	require.NotNil(t, byName["signed-out"].OAuthAuthenticated)
+	assert.False(t, *byName["signed-out"].OAuthAuthenticated)
+	assert.Nil(t, byName["bearer"].OAuthAuthenticated, "non-OAuth servers stay unannotated")
+	assert.Nil(t, byName["local"].OAuthAuthenticated, "stdio servers stay unannotated")
+}
 
 func TestValidateEntry_PreRegisteredOAuthClient(t *testing.T) {
 	valid := methods.MCPServerEntry{

@@ -542,58 +542,58 @@ body {
   padding: 0;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/*
+ * Native <select> elements (the settings font/layout pickers). WebKit's default
+ * appearance paints a glossy bezel gradient that clashes with the flat inputs
+ * next to it, so strip it and draw a flat field with our own chevron. Longhand
+ * background-* properties only: background-color must stay with the components'
+ * `bg-psx-input-background` utility. Unlayered on purpose so the padding-right
+ * beats the components' `px-2` and keeps the text clear of the chevron.
+ */
+select:not([multiple]) {
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%2357606a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 26px;
+}
+
+:root.vscode-dark select:not([multiple]) {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23959da5' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+}
+
+/*
+ * macOS native window vibrancy. The Tauri window is transparent and renders an
+ * NSVisualEffectView "popover" material behind the webview (see
+ * src-tauri/src/navigation.rs). Clear the opaque top-level backgrounds so the
+ * frosted material shows through the grayish panel areas — the sidebar band and
+ * the insets/gaps around the main content card. The main content card keeps its
+ * opaque `--psx-panel` background (AcpDesktopSplitsPane.svelte `.desktop-splits-frame`),
+ * so only the panel gaps become translucent.
+ *
+ * Gated on `.desktop-vibrancy` (managed in main.ts): present only on macOS with
+ * the "Translucent window" setting enabled, and toggled live when the setting
+ * changes. Non-macOS windows and opted-out users keep their solid panel
+ * backgrounds. These rules are intentionally unlayered so they win over the
+ * Tailwind `bg-psx-panel` utility.
+ */
+:root.desktop-vibrancy,
+:root.desktop-vibrancy body,
+:root.desktop-vibrancy #app {
+  background: transparent;
+}
+
+:root.desktop-vibrancy .desktop-app-surface {
+  background-color: transparent;
+}
+
+/*
+ * Per-theme tint over the whole frosted surround — the sidebar band and the gaps
+ * around the content card (the transparent splits frame/gutter show this through).
+ * Bare vibrancy reads as a nondescript gray in light mode and picks up too much
+ * desktop in dark mode, so each theme lays its own translucent wash over the
+ * window backdrop. The opaque content card paints over it and is unaffected.
+ *
  * Both themes fold a trace of the accent into the wash so the frost picks up the
  * user's color rather than reading as a neutral gray/white — the same thing the
  * system's own sidebars do. Falls back to a true blue where there is no accent
@@ -602,61 +602,61 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
  * stays a hint, not a color cast: at these strengths the tint shifts the wash by
  * roughly two channel percent, so even a saturated accent stays a suggestion.
  *
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ * Light: a bright white wash so the sidebar reads as white glass against the
  * solid white content card (Tower-style), with a trace of the accent mixed in.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ *
+ * Dark: wash with the content color (--psx-editor-background, #1b1f23) rather
+ * than the lighter panel token, opaque enough that the frosted band settles
+ * close to the flat chat container and the sidebar↔content seam stays subtle,
+ * while some vibrancy still bleeds through to read as glass.
+ */
+:root.desktop-vibrancy.vscode-light .desktop-app-surface {
   background-color: color-mix(in srgb, var(--psx-accent, #3b82f6) 1.5%, rgb(255 255 255 / 78%));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+:root.desktop-vibrancy.vscode-dark .desktop-app-surface {
   background-color: color-mix(
     in srgb,
     var(--psx-accent, #3b82f6) 2%,
     color-mix(in srgb, var(--psx-editor-background) 75%, transparent)
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+/*
+ * Extend the frost into the main content area. The chat frame
+ * (.desktop-splits-frame) and the settings/connectors/project-settings frame
+ * (.desktop-settings-frame) each paint a panel-colored backdrop around an inner
+ * content card; leaving them opaque produces a hard seam against the frosted
+ * sidebar. Clear those backdrops — and the splits gutter/gap fill — so the frost
+ * wraps continuously around the floating cards. The inner cards keep their
+ * opaque `--psx-editor-background`, so content stays readable.
+ *
+ * These target class names authored in shared feature components; Svelte keeps
+ * the plain class on the element, so these unlayered, higher-specificity rules
+ * match and win over the components' own scoped `background: var(--psx-panel)`.
+ */
+:root.desktop-vibrancy .desktop-splits-frame,
+:root.desktop-vibrancy .desktop-settings-frame {
+  background: transparent;
+}
+
+:root.desktop-vibrancy .desktop-splits-frame .splits-root {
+  background: transparent;
+  --splits-split-gap-background: transparent;
+}
+
+/*
+ * Content-card shadows over the light frost. The cards' soft lift was tuned
+ * against the opaque gray panel; on the bright white macOS frost the same
  * shadow reads a step too heavy, so pull the radius and opacity in. Desktop
  * panes define their animation fallback beside the matching SVG filter.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ */
+:root.desktop-vibrancy.vscode-light .desktop-settings-panel {
+  --desktop-splits-pane-shadow:
     0 2px 8px rgb(0 0 0 / 4%), 0 1px 4px rgb(0 0 0 / 2%), 0 0.5px 2px rgb(0 0 0 / 4%);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+/*
  * Source-list selection. The selected row had been painting the same fill as
  * hover, which left the open conversation indistinguishable from whichever row
  * the pointer happened to be over; it now takes the same blue pair the menus and
@@ -678,14 +678,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
  * Sidebar row hover fills. `--psx-menu-hover-background` drives the pointer
  * hover for sidebar rows and nav buttons (all inside .desktop-sidebar-panel).
  * Over the frosted sidebar, the theme's solid hover
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ * color reads as a near-opaque fill that hides the blur — so instead use a
+ * low-opacity neutral scrim. `--psx-foreground-primary` is dark in light mode and
+ * light in dark mode, so this is a subtle dark tint on light and a subtle light
+ * tint on dark, letting the blur read through while the highlight stays visible.
+ * Scoping to the sidebar leaves portalled menus/popovers fully opaque.
+ */
+:root.desktop-vibrancy .desktop-sidebar-panel {
   --psx-menu-hover-background: color-mix(in srgb, var(--psx-foreground-primary) 6%, transparent);
+}
+
+/*
+ * Nested-conversation tree connector (ConversationGroup, `indent` rows). Its
+ * hairline is drawn with the faint `--psx-border`, which washes out over the
+ * frosted sidebar. Use a neutral black/white scrim (not the slightly-blue theme
+ * colors) so it stays legible without a color cast — a subtle dark line on light
+ * and a subtle light line on dark. Set explicitly per theme.
+ */
+:root.desktop-vibrancy.vscode-light .desktop-conversation-connector::before {
+  border-color: rgb(0 0 0 / 14%);
+}
+
+:root.desktop-vibrancy.vscode-dark .desktop-conversation-connector::before {
+  border-color: rgb(255 255 255 / 16%);
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -709,49 +726,32 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/*
+ * Secondary text reads too dim over the dark frosted surfaces, so lift
+ * `--psx-foreground-secondary` a step in dark mode on macOS. Overriding the psx
+ * token affects `text-psx-foreground-secondary` consumers (sidebar timestamps,
+ * section labels, tab titles, …) without touching raw `--vscode-*` usages, and
  * stays comfortably below `--psx-foreground-primary` (85% white) so the
  * hierarchy holds. Base dark value is #959da5.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ */
+:root.desktop-vibrancy.vscode-dark {
+  --psx-foreground-secondary: #adb4bc;
+}
+
+/*
+ * Code-block hairline. A code block is filled with `--psx-editor-background`
+ * and outlined with `--psx-border` (`editorGroup.border`), and this theme gives
+ * both the same #1b1f23 — so in dark mode the outline is drawn in exactly the
+ * color behind it and disappears. Light mode is fine: #e1e4e8 on #ffffff.
+ * Upstream GitHub Dark avoids the collision by keeping `editor.background` at
+ * #24292e; we deliberately use the darker #1b1f23 as the chat surface, so lift
+ * the hairline instead, to GitHub's own dark border gray. Scoped to the code
+ * block rather than moving `--psx-border`, which ~150 other call sites share.
+ */
+:root.vscode-dark .highlightedCode,
+body.vscode-dark .highlightedCode {
+  border-color: #30363d;
+}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 /* Expanded thoughts use the roomier desktop treatment. Keep collapsed thoughts
  * at the shared component's compact 24px height so they occupy the same row as

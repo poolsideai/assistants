@@ -1,16 +1,16 @@
 use std::path::{Path, PathBuf};
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use base64::Engine;
 use minisign_verify::{PublicKey, Signature};
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+use semver::Version;
+use serde::Serialize;
 use tauri::{async_runtime, AppHandle, Emitter, Manager, State, Url};
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
+use tauri_plugin_updater::{Update, Updater, UpdaterExt};
+
+use crate::settings::{persist_update_channel, read_settings, DesktopUpdateChannel};
+
 /// A downloaded update waiting for the user to restart.
 ///
 /// The archive lives at a fixed path under the app data directory so it
@@ -24,25 +24,25 @@ struct StagedUpdate {
     archive_path: PathBuf,
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#[derive(Default)]
+pub struct DesktopUpdaterState {
+    pub(crate) operation: async_runtime::Mutex<()>,
     staged: async_runtime::Mutex<Option<StagedUpdate>>,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    pending_update: AtomicBool,
+}
+
+impl DesktopUpdaterState {
+    pub(crate) fn ensure_no_pending_update(&self) -> Result<(), String> {
+        if self.pending_update.load(Ordering::Acquire) {
+            Err(
+                "An update is ready to install. Restart the app before checking again or changing release channels."
+                    .to_string(),
+            )
+        } else {
+            Ok(())
+        }
+    }
+
     async fn stage(&self, update: Update, archive_path: PathBuf) {
         *self.staged.lock().await = Some(StagedUpdate {
             update,
@@ -51,9 +51,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         self.mark_update_pending();
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    fn mark_update_pending(&self) {
+        self.pending_update.store(true, Ordering::Release);
+    }
 
     /// Lets checks resume after a staged update was lost without being
     /// installed, so the updater recovers instead of staying blocked until the
@@ -61,155 +61,155 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     fn clear_pending_update(&self) {
         self.pending_update.store(false, Ordering::Release);
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DesktopUpdateInfo {
+    version: String,
     /// Release notes from the update feed (the CrabNebula release notes).
     notes: Option<String>,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DesktopStableSwitchResult {
+    status: DesktopStableSwitchStatus,
+    current_version: String,
+    version: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+enum DesktopStableSwitchStatus {
+    AlreadyStable,
+    NoUpdate,
+    Cancelled,
     /// Downloaded and waiting for the restart that installs it.
     Staged,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+fn resolve_channel(app: &AppHandle) -> DesktopUpdateChannel {
+    read_settings(app)
+        .map(|settings| settings.update_channel())
+        .unwrap_or_default()
+}
+
+fn build_updater(
+    app: &AppHandle,
+    channel: DesktopUpdateChannel,
+    allow_downgrade: bool,
+) -> Result<Updater, String> {
+    let mut builder = app.updater_builder();
+    if channel == DesktopUpdateChannel::Nightly {
+        let url = nightly_update_endpoint(app)?;
+        builder = builder
+            .endpoints(vec![url])
+            .map_err(|err| err.to_string())?;
+    }
+    if allow_downgrade {
+        builder = builder.version_comparator(|current, release| release.version != current);
+    }
+    builder.build().map_err(|err| err.to_string())
+}
+
+fn nightly_update_endpoint(app: &AppHandle) -> Result<Url, String> {
+    let endpoint = app
+        .config()
+        .plugins
+        .0
+        .get("updater")
+        .and_then(|config| config.get("endpoints"))
+        .and_then(|endpoints| endpoints.as_array())
+        .and_then(|endpoints| endpoints.first())
+        .and_then(|endpoint| endpoint.as_str())
+        .ok_or_else(|| "No stable updater endpoint is configured".to_string())?;
+    add_nightly_channel(endpoint)
+}
+
+fn add_nightly_channel(endpoint: &str) -> Result<Url, String> {
+    let mut url = Url::parse(endpoint).map_err(|err| err.to_string())?;
+    if url.query_pairs().any(|(key, _)| key == "channel") {
+        return Err("The stable updater endpoint must not include a channel query".to_string());
+    }
+    url.query_pairs_mut().append_pair("channel", "nightly");
+    Ok(url)
+}
+
+fn parse_numeric_version(version: &str) -> Result<Version, String> {
+    let parsed = Version::parse(version).map_err(|err| format!("Invalid update version: {err}"))?;
+    if !parsed.pre.is_empty() || !parsed.build.is_empty() {
+        return Err(format!(
+            "Update version {version} must not contain prerelease or build metadata"
+        ));
+    }
+    Ok(parsed)
+}
+
+fn is_unstamped_local_build(version: &Version) -> bool {
+    version == &Version::new(0, 0, 0)
+}
+
+fn validate_channel_version(
+    version: &str,
+    channel: DesktopUpdateChannel,
+) -> Result<Version, String> {
+    let parsed = parse_numeric_version(version)?;
+    let matches = match channel {
+        DesktopUpdateChannel::Stable => parsed.minor % 2 == 0,
+        DesktopUpdateChannel::Nightly => parsed.minor % 2 == 1,
+    };
+    if !matches {
+        return Err(format!(
+            "Update version {version} does not belong to the {channel:?} channel"
+        ));
+    }
+    Ok(parsed)
+}
+
+async fn check_channel_update(
+    app: &AppHandle,
+    channel: DesktopUpdateChannel,
+) -> Result<Option<(Version, Update)>, String> {
+    let updater = build_updater(app, channel, false)?;
+    let Some(update) = updater.check().await.map_err(|err| err.to_string())? else {
+        return Ok(None);
+    };
+    let version = validate_channel_version(&update.version, channel)?;
+    Ok(Some((version, update)))
+}
+
+fn select_newest_update<T>(
+    stable: Option<(Version, T)>,
+    nightly: Option<(Version, T)>,
+) -> Option<(Version, T)> {
+    match (stable, nightly) {
+        (Some(stable), Some(nightly)) => {
+            if nightly.0 > stable.0 {
+                Some(nightly)
+            } else {
+                Some(stable)
+            }
+        }
+        (Some(stable), None) => Some(stable),
+        (None, Some(nightly)) => Some(nightly),
+        (None, None) => None,
+    }
+}
+
+async fn check_selected_update(
+    app: &AppHandle,
+    selected_channel: DesktopUpdateChannel,
+) -> Result<Option<Update>, String> {
+    let stable = check_channel_update(app, DesktopUpdateChannel::Stable).await?;
+    if selected_channel == DesktopUpdateChannel::Stable {
+        return Ok(stable.map(|(_, update)| update));
+    }
+
+    let nightly = check_channel_update(app, DesktopUpdateChannel::Nightly).await?;
+    Ok(select_newest_update(stable, nightly).map(|(_, update)| update))
+}
+
 /// Check the feeds eligible for the selected channel and download the highest
 /// signed update. The selected `Update` cannot change between check and
 /// download.
@@ -220,27 +220,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 /// AppKit services (`NSOpenPanel`, `NSSavePanel`) refuse to launch and take the
 /// app down with them. `install_staged_desktop_update` does the swap immediately
 /// before relaunching instead.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#[tauri::command]
+pub async fn check_and_stage_desktop_update(
+    app_handle: AppHandle,
+    state: State<'_, DesktopUpdaterState>,
+) -> Result<Option<DesktopUpdateInfo>, String> {
+    let _operation = state.operation.lock().await;
+    state.ensure_no_pending_update()?;
+    if is_unstamped_local_build(&app_handle.package_info().version) {
+        return Ok(None);
+    }
+    let channel = resolve_channel(&app_handle);
+    let Some(update) = check_selected_update(&app_handle, channel).await? else {
         // Nothing newer than the running version, so any cached archive is
         // stale — including the one this version was just installed from.
         discard_pending_archive(&app_handle);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        return Ok(None);
+    };
+    if channel == DesktopUpdateChannel::Nightly {
+        persist_update_channel(&app_handle, channel)?;
+    }
+    let version = update.version.clone();
     let notes = update.body.clone();
     stage_update_on_disk(&app_handle, &state, update).await?;
     Ok(Some(DesktopUpdateInfo { version, notes }))
@@ -258,7 +258,7 @@ struct DesktopUpdateProgress {
 async fn download_update(app: &AppHandle, update: &Update) -> Result<Vec<u8>, String> {
     let app = app.clone();
     let mut downloaded = 0usize;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    update
         .download(
             move |chunk, content_length| {
                 downloaded += chunk;
@@ -272,7 +272,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             },
             || {},
         )
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        .await
         .map_err(|err| err.to_string())
 }
 
@@ -458,137 +458,137 @@ pub async fn install_staged_desktop_update(
     discard_pending_archive(&app_handle);
     drop(slot);
     app_handle.restart();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 /// Explicitly leave Preview for Stable, including a lower Stable version.
 /// Background checks never use the downgrade comparator. Like the background
 /// path this only stages the download; the restart installs it.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#[tauri::command]
+pub async fn switch_desktop_to_stable(
+    app_handle: AppHandle,
+    state: State<'_, DesktopUpdaterState>,
+) -> Result<DesktopStableSwitchResult, String> {
+    let _operation = state.operation.lock().await;
+    state.ensure_no_pending_update()?;
+    let current_version = app_handle.package_info().version.to_string();
+    let current = parse_numeric_version(&current_version)?;
+    if current.minor % 2 == 0 {
+        return Ok(DesktopStableSwitchResult {
+            status: DesktopStableSwitchStatus::AlreadyStable,
+            current_version,
+            version: None,
+        });
+    }
+
+    let updater = build_updater(&app_handle, DesktopUpdateChannel::Stable, true)?;
+    let Some(update) = updater.check().await.map_err(|err| err.to_string())? else {
+        return Ok(DesktopStableSwitchResult {
+            status: DesktopStableSwitchStatus::NoUpdate,
+            current_version,
+            version: None,
+        });
+    };
+    let stable = validate_channel_version(&update.version, DesktopUpdateChannel::Stable)?;
+    let version = update.version.clone();
+
+    if stable < current {
+        let (tx, mut rx) = async_runtime::channel(1);
+        app_handle
+            .dialog()
+            .message(format!(
+                "Install Stable {version} over Preview {current_version}?\n\nYour settings and local data stay in place, but an older Stable build may not understand data written by Preview."
+            ))
+            .title("Switch to Stable")
+            .kind(MessageDialogKind::Warning)
+            .buttons(MessageDialogButtons::OkCancelCustom(
+                "Install Stable".to_string(),
+                "Cancel".to_string(),
+            ))
+            .show(move |confirmed| {
+                let _ = tx.blocking_send(confirmed);
+            });
+        if !rx.recv().await.unwrap_or(false) {
+            return Ok(DesktopStableSwitchResult {
+                status: DesktopStableSwitchStatus::Cancelled,
+                current_version,
+                version: Some(version),
+            });
+        }
+    }
+
     stage_update_on_disk(&app_handle, &state, update).await?;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    Ok(DesktopStableSwitchResult {
         status: DesktopStableSwitchStatus::Staged,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        current_version,
+        version: Some(version),
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn channel_versions_use_numeric_minor_parity() {
+        assert!(validate_channel_version("1.2.3", DesktopUpdateChannel::Stable).is_ok());
+        assert!(validate_channel_version("1.3.4", DesktopUpdateChannel::Nightly).is_ok());
+        assert!(validate_channel_version("1.3.4", DesktopUpdateChannel::Stable).is_err());
+        assert!(validate_channel_version("1.2.3", DesktopUpdateChannel::Nightly).is_err());
+    }
+
+    #[test]
+    fn channel_versions_reject_semver_suffixes() {
+        assert!(
+            validate_channel_version("1.3.4-nightly.5", DesktopUpdateChannel::Nightly).is_err()
+        );
+        assert!(validate_channel_version("1.2.3+build.5", DesktopUpdateChannel::Stable).is_err());
+    }
+
+    #[test]
+    fn preview_selects_newer_stable_when_nightly_has_no_update() {
+        let stable = Some((Version::new(0, 10, 0), "stable"));
+
+        assert_eq!(select_newest_update(stable.clone(), None), stable);
+    }
+
+    #[test]
+    fn preview_selects_highest_update_across_stable_and_nightly() {
+        let stable = Some((Version::new(0, 10, 0), "stable"));
+        let nightly = Some((Version::new(0, 11, 0), "nightly"));
+        assert_eq!(
+            select_newest_update(stable.clone(), nightly.clone()),
+            nightly
+        );
+
+        let newer_stable = Some((Version::new(0, 12, 0), "stable"));
+        assert_eq!(
+            select_newest_update(newer_stable.clone(), nightly),
+            newer_stable
+        );
+    }
+
+    #[test]
+    fn preview_has_no_update_when_neither_feed_has_a_newer_version() {
+        assert_eq!(select_newest_update::<()>(None, None), None);
+    }
+
+    #[test]
+    fn unstamped_local_builds_do_not_use_the_public_updater() {
+        assert!(is_unstamped_local_build(&Version::new(0, 0, 0)));
+        assert!(!is_unstamped_local_build(&Version::new(0, 0, 1)));
+        assert!(!is_unstamped_local_build(&Version::new(0, 1, 0)));
+    }
+
+    #[test]
+    fn derives_nightly_from_the_stable_endpoint() {
+        let url = add_nightly_channel(
+            "https://cdn.crabnebula.app/update/org/app/{{target}}-{{arch}}/{{current_version}}",
+        )
+        .unwrap();
+        assert_eq!(url.query(), Some("channel=nightly"));
+        assert!(add_nightly_channel("https://example.com/update?channel=stable").is_err());
+    }
+
     #[test]
     fn the_production_public_key_decodes_for_archive_verification() {
         // The pubkey shipped in tauri.conf.json must decode through the same
@@ -676,23 +676,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         ));
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    #[test]
+    fn pending_updates_require_a_restart_before_another_operation() {
+        let state = DesktopUpdaterState::default();
+        assert!(state.ensure_no_pending_update().is_ok());
+
+        state.mark_update_pending();
+        assert_eq!(
+            state.ensure_no_pending_update(),
+            Err(
+                "An update is ready to install. Restart the app before checking again or changing release channels."
+                    .to_string()
+            )
+        );
 
         // Recovery path for a staged update lost without being installed:
         // checks must resume rather than staying blocked until the app quits.
         state.clear_pending_update();
         assert!(state.ensure_no_pending_update().is_ok());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+}

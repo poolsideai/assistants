@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+load("@rules_go//go:def.bzl", "go_binary", "go_cross_binary", "go_library")
 
 go_library(
     name = "poolside-helper_lib",
@@ -13,7 +13,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     deps = [
         "//pkg/common/version",
         "//pkg/poolside-helper/helpercli",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/poolside-helper/logging",
         "//pkg/poolside-helper/server",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         "@com_github_dustin_go_humanize//:go-humanize",
@@ -24,40 +24,40 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 go_binary(
     name = "poolside-helper",
     embed = [":poolside-helper_lib"],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    gc_linkopts = [
+        "-s",
+        "-w",
+    ],
     visibility = ["//visibility:public"],
 )
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+# Cross-compilation targets for release builds.
+# Linux and Windows use the Zig toolchain (hermetic_cc_toolchain).
+# Darwin is built natively on macOS runners.
+go_cross_binary(
+    name = "poolside-helper_linux_amd64",
+    platform = "//bazel/platforms:linux_amd64_musl",
+    tags = ["manual"],
+    target = ":poolside-helper",
+)
+
+go_cross_binary(
+    name = "poolside-helper_linux_arm64",
+    platform = "//bazel/platforms:linux_arm64_musl",
+    tags = ["manual"],
+    target = ":poolside-helper",
+)
+
+go_cross_binary(
+    name = "poolside-helper_windows_amd64",
+    platform = "//bazel/platforms:windows_amd64",
+    tags = ["manual"],
+    target = ":poolside-helper",
+)
+
+go_cross_binary(
+    name = "poolside-helper_windows_arm64",
+    platform = "//bazel/platforms:windows_arm64",
+    tags = ["manual"],
+    target = ":poolside-helper",
+)

@@ -27,7 +27,7 @@ import {
   type Page,
 } from "playwright";
 import { sleep } from "../utils.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { slotColor } from "../worktree/shared.js";
 import type { PanelInfo, WebIssue, WindowBounds, WindowInfo } from "./types.js";
 
 export interface LaunchOptions {
@@ -85,12 +85,12 @@ export class VscodeTarget {
   private webIssues: WebIssue[] = [];
 
   async launch(opts: LaunchOptions = {}): Promise<void> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const repoRoot = await this.findRepoRoot();
+    if (!repoRoot) {
+      throw new Error("Cannot find repo root.");
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const extensionDir = opts.extensionDir || path.join(repoRoot, "ui/apps/vscode-assistant");
     if (!fs.existsSync(path.join(extensionDir, "package.json"))) {
       throw new Error(`Extension directory not found: ${extensionDir}`);
     }
@@ -102,7 +102,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          cwd: repoRoot,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         if (!fs.existsSync(distDir)) {
@@ -172,8 +172,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       fs.writeFileSync(settingsDst, JSON.stringify(settings, null, "\t"));
       console.log("[spoolside] Wrote user settings.json (with popups suppressed)");
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      // Copy globalStorage (extensions state, etc.) but skip the workspace
+      // state DB so each spoolside run starts from a clean per-workspace state.
       const globalStorageSrc = path.join(vscodeUserDir, "globalStorage");
       const globalStorageDst = path.join(userSubdir, "globalStorage");
       if (fs.existsSync(globalStorageSrc)) {
@@ -182,7 +182,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           force: true,
           filter: (src) => !src.endsWith("state.vscdb") && !src.endsWith("state.vscdb-journal"),
         });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        console.log("[spoolside] Copied user globalStorage");
       }
     }
 
@@ -211,11 +211,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (opts.project) {
       workspaceFolders.push({ path: path.resolve(opts.project) });
     } else if (opts.useProfile) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const demoDir = path.resolve(repoRoot, "..", "poolside-books-api-demo");
       if (fs.existsSync(demoDir)) {
         workspaceFolders.push({ path: demoDir });
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      workspaceFolders.push({ path: repoRoot });
     }
 
     if (workspaceFolders.length > 0) {
@@ -668,7 +668,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return null;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private async findRepoRoot(): Promise<string | null> {
     // Derive from this package's location: ui/packages/spoolside/src/targets/ → repo root
     const packageDir = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
     const fromPackage = path.resolve(packageDir, "../../..");

@@ -1,9 +1,9 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { McpFormState } from "./McpServerForm.svelte";
+
+export interface ConnectorCatalogEntry {
+  id: string;
+  label: string;
+  blurb: string;
   category: ConnectorCatalogCategory;
   /**
    * Hidden from the browsed catalog; revealed only when the search query
@@ -12,10 +12,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   searchOnly?: boolean;
   /** Caveat rendered on the catalog card, e.g. limited-availability notes. */
   note?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /** Prefilled add-form values. */
+  form: Partial<McpFormState>;
+}
+
 export type ConnectorCatalogCategory = "productivity" | "development";
 
 export const CONNECTOR_CATALOG_CATEGORIES: ReadonlyArray<{
@@ -70,7 +70,7 @@ function remoteConnector(options: {
 // Curated catalog of hosted MCP endpoints that Poolside can connect to
 // directly, plus a small set of useful local stdio servers. OAuth entries use
 // either Dynamic Client Registration or a pre-registered public PKCE client.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export const CONNECTOR_CATALOG: ConnectorCatalogEntry[] = [
   remoteConnector({
     id: "parallel-search",
     label: "Parallel Search",
@@ -145,20 +145,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     url: "https://docs.superhuman.com/apis/mcp",
     oauthScopes: "mcp:all",
   }),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {
+    id: "github",
+    label: "GitHub",
+    blurb: "Repositories, issues, and pull requests",
     category: "development",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    form: {
       builtinID: "github",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      name: "github",
+      transport: "stdio",
+      command: "npx",
+      args: "-y @modelcontextprotocol/server-github",
+      envLines: "GITHUB_PERSONAL_ACCESS_TOKEN=your_token_here",
+    },
+  },
   remoteConnector({
     id: "huggingface",
     label: "Hugging Face",
@@ -213,19 +213,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     category: "development",
     url: "https://mcp.prisma.io/mcp",
   }),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {
+    id: "postgres",
+    label: "PostgreSQL",
+    blurb: "Query and inspect your database",
     category: "development",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    form: {
       builtinID: "postgres",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      name: "postgres",
+      transport: "stdio",
+      command: "npx",
+      args: "-y @modelcontextprotocol/server-postgres postgresql://localhost/mydb",
+    },
+  },
   remoteConnector({
     id: "cloudflare",
     label: "Cloudflare",
@@ -233,7 +233,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     category: "development",
     url: "https://mcp.cloudflare.com/mcp",
   }),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+];
 
 export function findConnectorCatalogEntry(server: {
   builtinID?: string;

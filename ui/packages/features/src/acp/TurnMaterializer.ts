@@ -253,18 +253,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   private applyToolCallUpdate(update: SessionUpdate & { sessionUpdate: "tool_call_update" }): void {
     const idx = this.toolCallIndex.get(update.toolCallId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (idx === undefined) return;
+    const existing = this._events[idx] as ToolCall;
+    const { sessionUpdate: _, toolCallId: __, ...fields } = update;
+    for (const [k, v] of Object.entries(fields)) {
+      if (v == null) continue;
+      // Status updates can carry partial metadata, so preserve keys set on the
+      // initial frame, including nested agent metadata such as
+      // `claudeCode.toolName`.
+      if (k === "_meta" && isRecord(existing._meta) && isRecord(v)) {
+        existing._meta = mergeRecordFields(existing._meta, v);
+      } else {
+        (existing as Record<string, unknown>)[k] = v;
       }
     }
   }
@@ -380,7 +380,7 @@ export function isStreamingChunk(update: SessionUpdate): boolean {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 // Agents may reorder plan entries between updates (e.g. moving completed items
 // around). Keep entries at their first-seen position so the rendered todo list
 // stays stable; a zero-overlap update means a new plan, taken as-is.
@@ -398,17 +398,17 @@ function reconcilePlan(previous: Plan | null, next: Plan): Plan {
   return { ...next, entries };
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value != null && typeof value === "object" && !Array.isArray(value);
+}
+
+function mergeRecordFields(
+  existing: Record<string, unknown>,
+  update: Record<string, unknown>,
+): Record<string, unknown> {
+  const merged = { ...existing };
+  for (const [key, value] of Object.entries(update)) {
+    merged[key] = isRecord(merged[key]) && isRecord(value) ? { ...merged[key], ...value } : value;
+  }
+  return merged;
+}

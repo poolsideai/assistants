@@ -18,39 +18,39 @@ const appDir = join(scriptDir, "..");
 const repoRoot = join(appDir, "..", "..", "..");
 const binaryDir = join(appDir, "src-tauri", "binaries");
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const runtimeArtifactDir = process.env.POOLSIDE_RUNTIME_ARTIFACT_DIR;
+if (runtimeArtifactDir && !existsSync(runtimeArtifactDir)) {
+  throw new Error(`Release runtime artifact directory does not exist: ${runtimeArtifactDir}`);
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const { refresh, targetInput } = parseArguments(process.argv.slice(2));
+const targetTriple = targetTripleFromInput(targetInput);
 const target = helperTarget(targetTriple);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const needsPublishedRuntime =
+  process.env.POOLSIDE_DESKTOP_LOCAL_HELPER !== "1" ||
+  supportsMLXSidecar(targetTriple) ||
+  supportsWhisperServer(targetTriple);
+const explicitHelperVersion = process.env.POOLSIDE_HELPER_VERSION;
+const cachedHelperVersion =
+  runtimeArtifactDir || explicitHelperVersion || refresh || !needsPublishedRuntime
+    ? undefined
+    : findCachedHelperVersion();
+const helperVersion = runtimeArtifactDir
+  ? undefined
+  : (cachedHelperVersion ?? (needsPublishedRuntime ? resolveHelperVersion() : undefined));
+const runtimeVersion = process.env.POOLSIDE_RUNTIME_VERSION ?? helperVersion ?? "source/unknown";
+const downloadRuntimeAsset = runtimeArtifactDir
+  ? copyReleaseRuntimeArtifact
+  : downloadGitHubReleaseAsset;
 
 mkdirSync(binaryDir, { recursive: true });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+if (cachedHelperVersion) {
+  console.log(
+    `Using cached release runtime ${cachedHelperVersion}; pass --refresh to check GitHub`,
+  );
+}
+
 if (process.env.POOLSIDE_DESKTOP_LOCAL_HELPER === "1") {
   installLocalBazelBinary({
     binary: "poolside-helper",
@@ -60,8 +60,8 @@ if (process.env.POOLSIDE_DESKTOP_LOCAL_HELPER === "1") {
 } else {
   await installBinary({
     binary: "poolside-helper",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    version: runtimeVersion,
+    download: downloadRuntimeAsset,
     archiveName: `poolside-helper-${target.platform}-${target.arch}.tar.gz`,
     extractedName: `poolside-helper-${target.platform}-${target.arch}${target.extension}`,
     installedName: `poolside-helper-${targetTriple}${target.extension}`,
@@ -74,9 +74,9 @@ if (process.env.POOLSIDE_DESKTOP_LOCAL_MLX_SIDECAR === "1") {
 } else {
   await installReleaseMLXSidecar({ target, targetTriple });
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// whisper.cpp is not built from this repo. Local development takes it from the
+// cached or highest permanent helper release; product releases use the
+// canonical assets published for the current release SHA.
 await installReleaseWhisperServer({ target, targetTriple });
 
 async function installBinary({
@@ -94,7 +94,7 @@ async function installBinary({
   if (
     existsSync(installedPath) &&
     existsSync(versionPath) &&
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    helperVersionsMatch(readFileSync(versionPath, "utf8").trim(), version) &&
     requiredSiblings.every((name) => fileExistsAndIsNonEmpty(join(binaryDir, name)))
   ) {
     console.log(`${installedName} is already present for ${version}`);
@@ -212,20 +212,20 @@ async function installReleaseMLXSidecar({ target, targetTriple }) {
   try {
     await installBinary({
       binary: "poolside-mlx-sidecar",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      version: runtimeVersion,
+      download: downloadRuntimeAsset,
       archiveName: `poolside-mlx-sidecar-${target.platform}-${target.arch}.tar.gz`,
       extractedName: `poolside-mlx-sidecar-${target.platform}-${target.arch}${target.extension}`,
       installedName,
       requiredSiblings: ["default.metallib", "mlx.metallib"],
     });
   } catch (error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (runtimeArtifactDir) throw error;
+    console.warn(`Unable to install poolside-mlx-sidecar from ${runtimeVersion}: ${error.message}`);
     installPlaceholderBinary({
       installedName,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      version: `missing:${runtimeVersion}`,
+      reason: `poolside-mlx-sidecar is not present in ${runtimeVersion}`,
     });
   }
 }
@@ -280,21 +280,21 @@ async function installReleaseWhisperServer({ target, targetTriple }) {
   try {
     await installBinary({
       binary: "poolside-whisper-server",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      version: runtimeVersion,
+      download: downloadRuntimeAsset,
       archiveName: `poolside-whisper-server-${target.platform}-${target.arch}.tar.gz`,
       extractedName: `poolside-whisper-server-${target.platform}-${target.arch}${target.extension}`,
       installedName,
     });
   } catch (error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (runtimeArtifactDir) throw error;
     console.warn(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      `Unable to install poolside-whisper-server from ${runtimeVersion}: ${error.message}`,
     );
     installPlaceholderBinary({
       installedName,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      version: `missing:${runtimeVersion}`,
+      reason: `poolside-whisper-server is not present in ${runtimeVersion}`,
     });
   }
 }
@@ -330,78 +330,78 @@ function downloadGitHubReleaseAsset({ version, archiveName }) {
   );
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function resolveHelperVersion() {
+  return execFileSync("bash", [join(repoRoot, "scripts", "resolve-helper-release.sh")], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "inherit"],
+  }).trim();
+}
+
+function findCachedHelperVersion() {
+  const installedNames = [
+    `poolside-helper-${targetTriple}${target.extension}`,
+    ...(supportsMLXSidecar(targetTriple)
+      ? [`poolside-mlx-sidecar-${targetTriple}${target.extension}`]
+      : []),
+    ...(supportsWhisperServer(targetTriple)
+      ? [`poolside-whisper-server-${targetTriple}${target.extension}`]
+      : []),
+  ];
+  if (process.env.POOLSIDE_DESKTOP_LOCAL_HELPER === "1") {
+    installedNames.shift();
+  }
+
+  const versions = installedNames.flatMap((installedName) => {
+    const installedPath = join(binaryDir, installedName);
+    const versionPath = `${installedPath}.version`;
+    if (!fileExistsAndIsNonEmpty(installedPath) || !existsSync(versionPath)) return [];
+    const version = normalizeHelperVersion(readFileSync(versionPath, "utf8").trim());
+    return version ? [version] : [];
+  });
+
+  if (versions.length !== installedNames.length || new Set(versions).size !== 1) {
+    return undefined;
+  }
+  if (
+    supportsMLXSidecar(targetTriple) &&
+    (!fileExistsAndIsNonEmpty(join(binaryDir, "default.metallib")) ||
+      !fileExistsAndIsNonEmpty(join(binaryDir, "mlx.metallib")))
+  ) {
+    return undefined;
+  }
+  return versions[0];
+}
+
+function helperVersionsMatch(left, right) {
+  if (left === right) return true;
+  const normalizedLeft = normalizeHelperVersion(left);
+  return normalizedLeft !== undefined && normalizedLeft === normalizeHelperVersion(right);
+}
+
+function normalizeHelperVersion(version) {
+  if (/^helper\/v\d+\.\d+\.\d+$/u.test(version)) return version;
+  if (/^\d+\.\d+\.\d+$/u.test(version)) return `helper/v${version}`;
+  return undefined;
+}
+
+function copyReleaseRuntimeArtifact({ archiveName, archivePath }) {
+  const sourcePath = join(runtimeArtifactDir, archiveName);
+  if (!fileExistsAndIsNonEmpty(sourcePath)) {
+    throw new Error(`Required release runtime artifact not found: ${sourcePath}`);
+  }
+  copyFileSync(sourcePath, archivePath);
+}
+
+function parseArguments(args) {
+  const refresh = args.includes("--refresh") || process.env.POOLSIDE_HELPER_REFRESH === "1";
+  const positional = args.filter((arg) => arg !== "--refresh");
+  if (positional.length > 1) {
+    throw new Error(`Unexpected arguments: ${positional.slice(1).join(" ")}`);
+  }
+  return { refresh, targetInput: positional[0] };
+}
+
 function targetTripleFromInput(input) {
   if (input) return normalizeTargetTriple(input);
   if (process.env.TARGET_TRIPLE) return normalizeTargetTriple(process.env.TARGET_TRIPLE);

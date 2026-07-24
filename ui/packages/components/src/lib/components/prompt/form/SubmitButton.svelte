@@ -33,7 +33,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     : 'size-[22px]'} shrink-0 items-center justify-center rounded-full bg-transparent focus:outline-hidden focus-visible:border disabled:pointer-events-none disabled:opacity-25"
   aria-label={label}
   {title}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  data-testid="prompt-submit-button"
   bind:this={ref}
   {disabled}
   {onclick}

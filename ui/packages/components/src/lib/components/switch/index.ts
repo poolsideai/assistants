@@ -1,2 +1,2 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { default as Switch } from "./Switch.svelte";
+export type { SwitchProps } from "./Switch.svelte";

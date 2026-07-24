@@ -12,9 +12,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   interface Props {
     title: string;
     subtitle?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Leading label rendered before the breadcrumbs (defaults to "Settings").
+    // Standalone panels such as Connectors pass their own root label.
+    rootLabel?: string;
     breadcrumbs?: readonly DesktopSettingsBreadcrumb[];
     // Only standalone panels (Connectors) can collapse the sidebar; settings
     // sections pin it open and leave this undefined. When defined, the header

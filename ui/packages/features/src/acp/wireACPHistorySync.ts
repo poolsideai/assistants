@@ -154,9 +154,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         cwd,
         workingDirectories: cloneWorkingDirectories(workingDirectories, cwd),
         title: "New conversation",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Stamp "now" so a just-created draft sorts to the top of the list
+        // instead of falling to the bottom as an untimestamped entry.
+        updatedAt: new Date().toISOString(),
         source: "native_session",
         readOnly: false,
         errorMessage: null,

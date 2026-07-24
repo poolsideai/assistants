@@ -53,7 +53,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "//pkg/poolside-helper/internal/handler/git",
         "//pkg/poolside-helper/internal/handler/github",
         "//pkg/poolside-helper/internal/handler/localinference",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/poolside-helper/internal/handler/mcpservers",
         "//pkg/poolside-helper/internal/handler/remoteaccess",
         "//pkg/poolside-helper/internal/handler/remoteterminal",
         "//pkg/poolside-helper/internal/handler/secrets",
@@ -63,7 +63,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "//pkg/poolside-helper/logging",
         "//pkg/poolside-helper/methods",
         "//pkg/workspace/ignore",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "@com_github_coder_acp_go_sdk//:acp-go-sdk",
         "@com_github_danielgtaylor_huma_v2//:huma",
         "@com_github_danielgtaylor_huma_v2//adapters/humachi",
         "@com_github_go_chi_chi_v5//:chi",

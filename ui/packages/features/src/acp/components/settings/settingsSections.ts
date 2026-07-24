@@ -13,8 +13,8 @@ export type DesktopSettingsSection =
 export type DesktopSettingsNavSection = DesktopSettingsSection | "project-settings";
 export type SettingsSection = "all" | DesktopSettingsSection;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// "connectors" is deliberately omitted from the settings sections: connectors is
+// its own top-level destination (opened from the sidebar), not a settings tab.
 export const DESKTOP_SETTINGS_SECTIONS = [
   "preferences",
   "agents",

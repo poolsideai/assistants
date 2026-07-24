@@ -41,7 +41,7 @@ export interface Environment {
   desktopTerminalFontSize?: number;
   desktopTerminalCursorStyle?: string;
   desktopFullscreen?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  desktopToolActivity?: "detailed" | "grouped" | "compact";
   desktopSteerWithEnter?: boolean;
   desktopOpeners?: DesktopOpenerInfo[];
   capabilities: Capabilities;

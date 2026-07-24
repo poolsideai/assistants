@@ -18,7 +18,7 @@ interface DocHistoryState {
   isDirty: boolean;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type DocHistoryMeta = "save" | "restorePrevious" | "restoreNext" | { type: "load"; docs: Node[] };
 
 interface DocHistoryOptions {
   maxSize?: number;
@@ -55,18 +55,18 @@ export function docHistory(options?: DocHistoryOptions) {
             : pluginState;
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (typeof meta === "object" && meta.type === "load") {
+          if (areDocsEqual(pluginState.docs, meta.docs)) {
+            return pluginState;
+          }
+
+          return {
+            ...pluginState,
+            docs: meta.docs.slice(-maxSize),
+            currentIndex: -1,
+          };
+        }
+
         switch (meta) {
           case "save": {
             const docs = pluginState.docs.slice();
@@ -136,10 +136,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function loadDocsMeta(tr: Transaction, docs: Node[]) {
+  return tr.setMeta(KEY, { type: "load", docs } satisfies DocHistoryMeta);
+}
+
 export function saveDocMeta(tr: Transaction) {
   return tr.setMeta(KEY, "save" satisfies DocHistoryMeta);
 }
@@ -209,7 +209,7 @@ function isSelectionOnBoundary(view: EditorView, boundary: "start" | "end") {
   const isOnBoundaryBlock = isStart ? pos === 1 : $head.node($head.depth) === doc.lastChild;
   return isOnBoundaryBlock;
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+function areDocsEqual(docsA: Node[], docsB: Node[]) {
+  return docsA.length === docsB.length && docsA.every((doc, index) => doc.eq(docsB[index]));
+}

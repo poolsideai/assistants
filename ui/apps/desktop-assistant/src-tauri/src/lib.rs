@@ -17,7 +17,7 @@ mod terminal;
 #[cfg(unix)]
 mod terminal_locale;
 mod terminal_shell_integration;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+mod updater;
 #[cfg(target_os = "macos")]
 mod window_chrome;
 mod window_state;
@@ -128,10 +128,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                     if let Err(err) = app.emit(settings::NAVIGATE_FORWARD_EVENT, ()) {
                         eprintln!("failed to emit navigate forward command: {err}");
                     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                } else if event.id() == settings::CHECK_FOR_UPDATES_MENU_ID {
+                    if let Err(err) = app.emit(settings::CHECK_FOR_UPDATES_EVENT, ()) {
+                        eprintln!("failed to emit check for updates command: {err}");
+                    }
                 } else if event.id() == settings::CHANGELOG_MENU_ID {
                     if let Err(err) = navigation::open_changelog_window(app) {
                         eprintln!("failed to open Changelog window: {err}");
@@ -143,13 +143,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     let app = builder
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_screenshots::init())
         .plugin(tauri_plugin_shell::init())
         .manage(file_watcher::FileWatcherState::default())
         .manage(helper::HelperState::default())
         .manage(terminal::TerminalState::default())
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        .manage(updater::DesktopUpdaterState::default())
         .invoke_handler(tauri::generate_handler![
             desktop_notification::cancel_clickable_notification,
             desktop_notification::send_clickable_notification,
@@ -176,17 +176,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             settings::set_desktop_chat_preferences,
             settings::set_desktop_code_preferences,
             settings::set_desktop_terminal_preferences,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            settings::set_desktop_tool_activity,
             settings::set_desktop_steer_with_enter,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            settings::set_desktop_window_vibrancy,
             settings::set_desktop_app_icon_tint,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            settings::set_desktop_update_channel,
             settings::set_desktop_auto_install_updates,
             system_accent::get_system_accent_colors,
             bundle_guard::desktop_bundle_replaced,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            updater::check_and_stage_desktop_update,
             updater::install_staged_desktop_update,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            updater::switch_desktop_to_stable,
             settings::set_desktop_file_opener,
             settings::set_navigation_menu_enabled,
             settings::open_external_url,
@@ -223,13 +223,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             // panels in rpc/host.ts consult it (see bundle_guard.rs).
             bundle_guard::record_launch_identity();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            // Self-updater (CrabNebula Cloud feed). Desktop-only; the JS side in
             // src/updater.ts drives the check/download, then the Update button
             // installs the staged download and relaunches.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            #[cfg(desktop)]
+            app.handle()
+                .plugin(tauri_plugin_updater::Builder::new().build())?;
+
             navigation::create_main_window(app)?;
             startup_timing::mark("native.windowCreated");
             settings::warm_boot_caches(app.handle());

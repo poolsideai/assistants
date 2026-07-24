@@ -1,33 +1,33 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { describe, expect, it } from "vitest";
+
+import {
   filterUserFacing,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  groupCommits,
+  parseGitLog,
   renderChangelogFile,
   renderUserBody,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  SLACK_CHANGELOG_COMMIT_LIMIT,
+} from "./changelog.js";
+
+const US = "\x1f";
 const RS = "\x1e";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const REPO = "poolsideai/assistant";
+const HEAD = "abcdef0123456789abcdef0123456789abcdef01";
+
 function record(sha: string, author: string, subject: string, files: string[] = ["src/a.ts"]) {
   return `${RS}${sha}${US}${author}${US}${subject}\n\n${files.join("\n")}\n`;
 }
 
 function log(...records: string[]): string {
   return records.join("");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+describe("parseGitLog", () => {
+  it("returns an empty array for empty input", () => {
+    expect(parseGitLog("")).toEqual([]);
+    expect(parseGitLog("   \n  ")).toEqual([]);
+  });
+
   it("parses records with changed files and classifies conventional commits", () => {
     const raw = log(
       record("1".repeat(40), "Ada", "feat(ui): add channel switcher", ["ui/a.ts", "ui/b.svelte"]),
@@ -35,32 +35,32 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       record("3".repeat(40), "", "chore: bump deps"),
       record("4".repeat(40), "Cy", "random subject without type"),
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    const commits = parseGitLog(raw);
+    expect(commits).toHaveLength(4);
+
+    expect(commits[0]).toMatchObject({
+      shortSha: "1".repeat(12),
+      authorName: "Ada",
+      type: "feat",
+      scope: "ui",
+      breaking: false,
+      description: "add channel switcher",
       files: ["ui/a.ts", "ui/b.svelte"],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+    expect(commits[1]).toMatchObject({
+      type: "fix",
+      scope: null,
+      description: "correct nightly ordering",
+    });
+    expect(commits[2]).toMatchObject({ type: "chore", authorName: "Unknown author" });
+    expect(commits[3]).toMatchObject({ type: null, description: "random subject without type" });
+  });
+
   it("flags breaking changes via !", () => {
     const commits = parseGitLog(record("a".repeat(40), "Ada", "feat!: drop legacy api"));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(commits[0].breaking).toBe(true);
+  });
 
   it("strips pull-request numbers and ticket keys from descriptions", () => {
     const raw = log(
@@ -113,8 +113,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     ]);
     expect(commits[0].subject).toBe("Handle invalid input (UTF-8 fallback) (#123)");
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+});
+
 describe("filterUserFacing", () => {
   it("drops excluded conventional types", () => {
     const commits = parseGitLog(
@@ -196,22 +196,22 @@ describe("renderUserBody", () => {
   });
 });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+describe("groupCommits", () => {
+  const commits = parseGitLog(
     log(
       record("1".repeat(40), "Ada", "Add switcher (#101)"),
       record("2".repeat(40), "Bob", "fix: nightly ordering (#102)"),
       record("3".repeat(40), "Di", "chore: tidy up (#103)"),
     ),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
+
   it("renders user-facing markdown without hashes, authors, links, or tickets", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const { release } = groupCommits(commits, {
+      repository: REPO,
+      prevTag: "desktop/v0.3.21",
+      headSha: HEAD,
+    });
+
     expect(release).toContain("## Changes since 0.3.21");
     expect(release).toContain("- Add switcher");
     expect(release).toContain("- nightly ordering");
@@ -220,68 +220,68 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(release).not.toContain("https://");
     expect(release).not.toContain("Ada");
     expect(release).not.toContain("111111111111");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  it("handles the first release (no previous tag)", () => {
     const { release, slack } = groupCommits(commits, {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      repository: REPO,
+      prevTag: null,
+      headSha: HEAD,
+    });
     expect(release).toBe("_Initial release._\n");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(slack).toBe("• Initial release");
+  });
+
+  it("reports when there are no commits", () => {
     const { release, slack } = groupCommits([], {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      repository: REPO,
+      prevTag: "vscode-assistant/v4.2.0",
+      headSha: HEAD,
+    });
     expect(release).toContain("## Changes since 4.2.0");
     expect(release).toContain("_No user-facing changes");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(slack).toContain("Full diff");
+  });
+
+  it("truncates the Slack variant and appends a diff link", () => {
+    const many = parseGitLog(
       log(
         ...Array.from({ length: 10 }, (_, i) =>
           record(String(i).repeat(40).slice(0, 40), "Ada", `feat: commit ${i}`),
         ),
       ),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    );
+    const { slack } = groupCommits(many, {
+      repository: REPO,
+      prevTag: "desktop/v0.3.21",
+      headSha: HEAD,
+    });
     const bulletCount = slack.split("\n").filter((line) => line.startsWith("•")).length;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(bulletCount).toBe(SLACK_CHANGELOG_COMMIT_LIMIT);
+    expect(slack).toContain(`${10 - SLACK_CHANGELOG_COMMIT_LIMIT} more · `);
+    expect(slack).not.toContain("commit 0");
+    expect(slack).toContain("commit 9");
+    expect(slack).toContain("Full diff");
+  });
+
   it("links pull requests, shows authors, and escapes mrkdwn in Slack", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const tricky = parseGitLog(
       record("6".repeat(40), "Ada & Bob", "fix: guard <Suspense> & <slot> fallbacks (#471)"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    );
+    const { slack } = groupCommits(tricky, {
+      repository: REPO,
+      prevTag: "desktop/v0.3.21",
+      headSha: HEAD,
+    });
+
+    expect(slack).toContain("• fix: guard &lt;Suspense&gt; &amp; &lt;slot&gt; fallbacks");
+    expect(slack).toContain(`(<https://github.com/${REPO}/pull/471|#471>)`);
+    expect(slack).toContain("— Ada &amp; Bob");
+    expect(slack).not.toContain("/commit/");
+    // Trusted pull-request and diff links keep raw <url|label> syntax.
+    expect(slack).toContain(`<https://github.com/${REPO}/compare/desktop/v0.3.21...${HEAD}|`);
+  });
+});
 
 describe("renderChangelogFile", () => {
   it("assembles versioned sections newest first with a Preview label", () => {

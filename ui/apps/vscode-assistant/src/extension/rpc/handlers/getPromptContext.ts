@@ -3,7 +3,7 @@ import {
   getGitBranchCommitMessagesContext,
   getGitBranchNamesContext,
 } from "../../contextproviders/git";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { System } from "../../system";
 
 type Generator = (system: System) => Promise<PromptContextFacet | undefined>;
 __POOL_SYNTHETIC_IMPORT_BASELINE__

@@ -15,10 +15,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       fail-fast: false
       matrix:
         os:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          - windows-2022
+          - ubuntu-24.04
           - macos-14-large
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    # Forks don't have the org's larger runners; fall back to a public macOS runner.
     runs-on: ${{ (github.repository != 'poolsideai/assistant' && matrix.os == 'macos-14-large') && 'macos-latest' || matrix.os }}
 
     defaults:
@@ -47,7 +47,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           ext=""
           if [[ "${RUNNER_OS:-}" == "Windows" ]]; then ext=".exe"; fi
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          go build -tags=fts5 -o "poolside-helper${ext}" ./cmd/poolside-helper
           echo "HELPER_BIN=$PWD/poolside-helper${ext}" >> "$GITHUB_ENV"
 
       # the simplest of smoke tests fow now: does it start without crashing
@@ -68,4 +68,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           name: history-${{ matrix.os }}
           path: |
             *-run.log
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          retention-days: 7

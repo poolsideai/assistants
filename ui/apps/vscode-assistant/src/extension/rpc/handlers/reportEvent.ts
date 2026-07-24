@@ -1,7 +1,7 @@
 import type { TelemetryEventInputEventType, TelemetryEventInputMetadata } from "@poolsideai/rpc";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { System } from "../../system";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function reportEvent(
   system: System,
   event: TelemetryEventInputEventType,
   data: TelemetryEventInputMetadata = {},

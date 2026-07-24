@@ -1,6 +1,6 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { summarizeLiveToolGroup, summarizeToolGroup } from "./toolGroupSummary";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -116,179 +116,179 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+describe("summarizeLiveToolGroup", () => {
+  it("joins per-kind counts in a stable order", () => {
+    const events: SessionEventGroupItem[] = [
+      kindTool("run-1", "execute", { cmd: "pnpm test" }),
+      kindTool("read-1", "read", { path: "/repo/a.ts" }),
+      kindTool("read-2", "read", { path: "/repo/b.ts" }),
+      kindTool("search-1", "search"),
+    ];
+
+    expect(summarizeLiveToolGroup(events)).toBe("Read 2 files, searched once, ran 1 command");
+  });
+
+  it("reads as a single phrase when only one kind is present", () => {
+    const events: SessionEventGroupItem[] = [
+      kindTool("read-1", "read", { path: "/repo/a.ts" }),
+      kindTool("read-2", "read", { path: "/repo/b.ts" }),
+    ];
+
+    expect(summarizeLiveToolGroup(events)).toBe("Read 2 files");
+  });
+
+  it("counts distinct files for reads and ignores re-reads of the same path", () => {
+    const events: SessionEventGroupItem[] = [
+      kindTool("read-1", "read", { path: "/repo/src/app.ts" }),
+      kindTool("read-2", "read", { path: "/repo/src/app.ts" }),
+      kindTool("read-3", "read", { path: "/repo/src/other.ts" }),
+    ];
+
+    expect(summarizeLiveToolGroup(events)).toBe("Read 2 files");
+  });
+
+  it("counts pathless reads individually", () => {
+    const events: SessionEventGroupItem[] = [
+      kindTool("read-1", "read"),
+      kindTool("read-2", "read"),
+    ];
+
+    expect(summarizeLiveToolGroup(events)).toBe("Read 2 files");
+  });
+
+  it("counts command invocations across batched executes", () => {
+    const events: SessionEventGroupItem[] = [
+      kindTool("run-1", "execute", { commands: ["pnpm lint", "pnpm test"] }),
+      kindTool("run-2", "execute", { cmd: "pnpm build" }),
+    ];
+
+    expect(summarizeLiveToolGroup(events)).toBe("Ran 3 commands");
+  });
+
+  it("labels search runs by occurrence", () => {
+    const events: SessionEventGroupItem[] = [
+      kindTool("search-1", "search"),
+      kindTool("search-2", "search"),
+      kindTool("search-3", "search"),
+    ];
+
+    expect(summarizeLiveToolGroup(events)).toBe("Searched 3 times");
+  });
+
+  it("labels edits with distinct file counts", () => {
+    const events: SessionEventGroupItem[] = [
+      kindTool("edit-1", "edit", { path: "/repo/a.ts" }),
+      kindTool("edit-2", "edit", { path: "/repo/b.ts" }),
+    ];
+
+    expect(summarizeLiveToolGroup(events)).toBe("Edited 2 files");
+  });
+
+  it("counts unknown kinds as other steps and ignores think steps", () => {
+    const events: SessionEventGroupItem[] = [
+      kindTool("read-1", "read", { path: "/repo/a.ts" }),
+      kindTool("read-2", "read", { path: "/repo/b.ts" }),
+      kindTool("mcp-1", "other"),
+      kindTool("mcp-2", "other"),
+      kindTool("think-1", "think"),
+    ];
+
+    expect(summarizeLiveToolGroup(events)).toBe("Read 2 files, 2 other steps");
+  });
+
+  it("falls back to a plain step count for think-only groups", () => {
+    const events: SessionEventGroupItem[] = [
+      kindTool("think-1", "think"),
+      kindTool("think-2", "think"),
+    ];
+
+    expect(summarizeLiveToolGroup(events)).toBe("2 steps");
+  });
+});
+
+describe("MCP and skill breakdown", () => {
+  it("labels an MCP group and a skill group", () => {
+    expect(
+      summarizeLiveToolGroup([
+        metaTool("m1", "poolside-github__get_me"),
+        metaTool("m2", "poolside-github__list_issues"),
+      ]),
+    ).toBe("Used 2 MCP tools");
+    expect(summarizeLiveToolGroup([metaTool("s1", "skill")])).toBe("Used 1 skill");
+  });
+
+  it("breaks MCP and skill out of the settled summary instead of counting them as commands", () => {
+    const events: SessionEventGroupItem[] = [
+      metaTool("m1", "poolside-github__get_me"),
+      metaTool("s1", "skill"),
+      kindTool("run-1", "execute", { cmd: "pnpm test" }),
+    ];
     expect(summarizeToolGroup(events)).toBe("Ran 1 command, used 1 MCP tool, used 1 skill");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  it("breaks MCP tools out of the compact live summary", () => {
+    const events: SessionEventGroupItem[] = [
+      kindTool("read-1", "read", { path: "/repo/a.ts" }),
+      metaTool("m1", "poolside-github__get_me"),
+      metaTool("m2", "poolside-github__list_issues"),
+    ];
+    expect(summarizeLiveToolGroup(events)).toBe("Read 1 file, used 2 MCP tools");
+  });
+
+  it("counts an edit-kind MCP tool once, as an edit rather than also an MCP tool", () => {
+    const events: SessionEventGroupItem[] = [
+      {
+        index: 0,
+        event: {
+          eventKind: "tool_call",
+          toolCallId: "mcp-edit",
+          title: "filesystem__edit_file",
+          // Some agents (e.g. Claude Code MCP file tools) tag an MCP call with
+          // an edit-family kind; it must land in exactly one summary category.
+          kind: "edit",
+          status: "completed",
+          _meta: { tool_name: "filesystem__edit_file" }, // "__" => isMcpToolCall true
+          rawInput: { path: "/repo/a.ts" },
+        },
+      },
+    ];
     expect(summarizeToolGroup(events)).toBe("Edited 1 file");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+});
+
+function kindTool(
+  toolCallId: string,
+  kind: "read" | "edit" | "search" | "execute" | "other" | "think",
+  rawInput?: Record<string, unknown>,
+): SessionEventGroupItem {
+  return {
+    index: 0,
+    event: {
+      eventKind: "tool_call",
+      toolCallId,
+      title: toolCallId,
+      kind,
+      status: "completed",
+      rawInput,
+    },
+  };
+}
+
+function metaTool(toolCallId: string, toolName: string): SessionEventGroupItem {
+  // Pool skills/MCP tools arrive as kind "execute", categorized via _meta.tool_name.
+  return {
+    index: 0,
+    event: {
+      eventKind: "tool_call",
+      toolCallId,
+      title: toolCallId,
+      kind: "execute",
+      status: "completed",
+      _meta: { tool_name: toolName },
+    },
+  };
+}
+
 function cancelledCommand(): SessionEventGroupItem[] {
   return [
     {

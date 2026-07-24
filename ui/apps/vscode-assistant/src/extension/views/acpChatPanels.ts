@@ -55,8 +55,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   sessionId?: string;
   agentName?: string;
   agentIconUrl?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  supportsMcp?: boolean | null;
+  allowCustomMcp?: boolean | null;
   sessionTitle?: string;
   lastTouchedAt: number;
   iconRequestId: number;
@@ -241,10 +241,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const entry = this.panels.get(conversationId);
     if (!entry) return;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let activeAgentChanged = false;
     if (metadata.agentServer !== undefined) {
       entry.agentServer = normalizeAgentServer(metadata.agentServer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      activeAgentChanged = true;
     }
     if (metadata.agentName !== undefined) {
       entry.agentName = metadata.agentName;
@@ -252,18 +252,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     if ("agentIconUrl" in metadata) {
       entry.agentIconUrl = metadata.agentIconUrl;
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if ("supportsMcp" in metadata) {
+      entry.supportsMcp = metadata.supportsMcp ?? null;
+      activeAgentChanged = true;
+    }
+    if ("allowCustomMcp" in metadata) {
+      entry.allowCustomMcp = metadata.allowCustomMcp ?? null;
+      activeAgentChanged = true;
+    }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (activeAgentChanged) {
+      this.broadcastActiveAgent();
+    }
     this.applyPanelDecorations(entry);
   }
 
@@ -416,12 +416,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       this.syncPanelViewState(entry);
+      this.broadcastActiveAgent();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.broadcastActiveAgent();
 
     panel.onDidDispose(() => {
       for (const d of entry.disposables) d.dispose();
@@ -429,7 +429,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         this.pendingAgentExits.delete(entry.conversationId);
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.broadcastActiveAgent();
       if (entry.sessionId) {
         void this.setConversationViewState(
           entry.agentServer ?? DEFAULT_AGENT_SERVER,
@@ -557,26 +557,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return Array.from(this.panels.values()).find((entry) => entry.panel.active);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Tell the sidebar webview which ACP agent the user is currently working with.
+  // The sidebar is a separate webview and can't see the focused chat editor, so
+  // it relies on this to decide e.g. whether to show Poolside-specific UI.
+  private broadcastActiveAgent(): void {
+    // runWhenReady covers the sidebar opening after the last focus event; it
+    // also fires immediately once the sidebar is ready, so live updates work.
+    this.system.assistant.runWhenReady(() => {
+      // Prefer the focused editor panel (authoritative) over "most recently
+      // touched" (a heuristic that can lag when switching agents/chats). Falls
+      // back to most-recent when no chat editor is focused (e.g. the user is on
+      // the sidebar), which preserves the last active chat's agent.
+      const panel = this.activePanel() ?? this.mostRecentPanel();
+      void this.system.assistant.rpc.acpActiveAgentDidChange({
+        agentServer: panel?.agentServer ?? null,
+        supportsMcp: panel?.supportsMcp ?? null,
+        allowCustomMcp: panel?.allowCustomMcp ?? null,
+      });
+    });
+  }
+
   private async focusEntryInput(entry: PanelEntry): Promise<void> {
     entry.panel.reveal();
     entry.lastTouchedAt = Date.now();

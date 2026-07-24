@@ -21,7 +21,7 @@ interface Messenger {
   onDidReceiveMessage: Event<AssistantResponse | AssistantError>;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export const createRpcClient = function (system: WebviewHolder) {
   /**
    * An RPC client used to communicate from the VSCode extension context down to the VSCode webview
    * context.

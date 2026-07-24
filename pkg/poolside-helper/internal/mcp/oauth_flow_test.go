@@ -1,46 +1,46 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package mcp
+
+import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"encoding/json"
 	"fmt"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"net/http"
+	"net/http/httptest"
 	"net/url"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"testing"
 	"time"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/oauth2"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
+
+// newAuthMetaServer serves RFC 8414 authorization-server metadata for itself,
+// with or without a Dynamic Client Registration endpoint.
+func newAuthMetaServer(t *testing.T, withDCR bool) *httptest.Server {
+	t.Helper()
+	mux := http.NewServeMux()
+	server := httptest.NewServer(mux)
+	t.Cleanup(server.Close)
+	mux.HandleFunc("/.well-known/oauth-authorization-server", func(w http.ResponseWriter, _ *http.Request) {
+		meta := map[string]any{
+			"issuer":                           server.URL,
+			"authorization_endpoint":           server.URL + "/authorize",
+			"token_endpoint":                   server.URL + "/token",
+			"response_types_supported":         []string{"code"},
+			"code_challenge_methods_supported": []string{"S256"},
+		}
+		if withDCR {
+			meta["registration_endpoint"] = server.URL + "/register"
+		}
+		w.Header().Set("Content-Type", "application/json")
+		require.NoError(t, json.NewEncoder(w).Encode(meta))
+	})
+	return server
+}
+
 // TestResolveAuthServerMetaFollowsProtectedResourceMetadata reproduces the Coda
 // / Superhuman Docs case: the MCP endpoint and its authorization server sit on
 // different origins, and the resource origin itself serves authorization-server
@@ -212,35 +212,35 @@ func TestRunMCPOAuthFlowReportsNetworkHint(t *testing.T) {
 	assert.Contains(t, err.Error(), "untrusted TLS certificate")
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestRunMCPOAuthFlowWithoutDCR(t *testing.T) {
+	server := newAuthMetaServer(t, false)
+
+	var authURLs []string
+	err := RunMCPOAuthFlow(context.Background(), OAuthFlowParams{
+		ServerURL: server.URL + "/mcp",
+		ServerID:  "test",
+		OnAuthURL: func(authURL string) { authURLs = append(authURLs, authURL) },
+	})
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Dynamic Client Registration")
+	assert.Contains(t, err.Error(), "bearer token")
+	assert.Empty(t, authURLs, "browser sign-in must not start when the flow cannot complete")
+}
+
+func TestRunMCPOAuthFlowWithDCRProceedsToRegistration(t *testing.T) {
+	server := newAuthMetaServer(t, true)
+
+	err := RunMCPOAuthFlow(context.Background(), OAuthFlowParams{
+		ServerURL: server.URL + "/mcp",
+		ServerID:  "test",
+	})
+
+	// The fake /register endpoint 404s, so the flow still fails — the point is
+	// it got past the DCR-support check and failed at registration instead.
+	require.Error(t, err)
+	assert.NotContains(t, err.Error(), "does not support Dynamic Client Registration")
+	assert.Contains(t, err.Error(), "register OAuth client")
 }
 
 func TestRunMCPOAuthFlowWithDeepLinkRedirect(t *testing.T) {
@@ -295,7 +295,7 @@ func TestRunMCPOAuthFlowWithDeepLinkRedirect(t *testing.T) {
 	require.NotNil(t, stored)
 	require.NotNil(t, stored.OAuth)
 	assert.Equal(t, "xoxp-deeplink", stored.OAuth.AccessToken)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
 
 func TestRunMCPOAuthFlowWithPreRegisteredPublicClient(t *testing.T) {
 	var server *httptest.Server

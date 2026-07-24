@@ -5,19 +5,19 @@ import * as vscode from "vscode";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { affectsConfiguration, getPoolsideConfigurationSection } from "./api/configuration";
 import * as apiProposals from "./apiProposals";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { openPermissionSettings } from "./commands/openPermissionSettings";
 import { getPoolsideConfig } from "./configuration";
 import { sendActiveFileContext } from "./context";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { DecorationProvider } from "./DecorationProvider";
+import { ExtensionEnv, mapContextToExtensionMode } from "./env";
 import { configureExtensionIdentity, POOLSIDE } from "./extensionIdentity";
 import { getHelperSingleton, initializeHelperClient, updateHelperConfig } from "./helper";
 import { getLanguages, serializeLanguages } from "./languages";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { openSettings } from "./rpc/handlers/openSettings";
 import { getInitialKeybindings } from "./state";
 import { createStatusBarItem } from "./statusBar";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { System } from "./system";
 import { TelemetryLogger } from "./telemetry/TelemetryLogger";
 import { getActiveTheme, getParsedFileIconTheme } from "./theme";
 import { AcpChatPanelSerializer, POOLSIDE_ACP_CHAT_VIEW_TYPE } from "./views/acpChatPanels";
@@ -63,15 +63,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  vscode.window.onDidChangeWindowState((state) => {
+    system.assistant.rpc.setEditorFocused(state.focused);
     system.acpChatPanels.setEditorFocused(state.focused);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
 
   vscode.workspace.onDidChangeConfiguration((e) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    handleConfigurationChange(e).catch((err) => {
+      console.error("[poolside] handleConfigurationChange error:", err);
+    });
   });
 
   // Commands
@@ -111,20 +111,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Proposed APIs (e.g. terminal data capture) require the `enable-proposed-api`
+  // flag in argv.json. Skip in E2E as the test runner will fail if we do this.
+  if (mapContextToExtensionMode(system.context) !== ExtensionEnv.test) {
+    apiProposals.ensureEnabled(system).catch((err) => {
+      system.telemetry.reportError(new Error("failed to enable proposed apis", { cause: err }));
+
+      vscode.window.showErrorMessage(
+        `poolside: There was an error enabling proposed VSCode APIs in your ~/.vscode/argv.json: ${err.message}`,
+      );
+    });
   }
 
   // start poolside Helper
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  getHelperSingleton(system).catch((err) => {
     telemetry.reportError(new Error("failed to start poolside Helper", { cause: err }));
 
     vscode.window.showErrorMessage(
@@ -181,17 +181,17 @@ async function setColorTheme() {
  * Handle the configuration change event which is fired when the user changes their settings
  * @param e
  */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+async function handleConfigurationChange(e: vscode.ConfigurationChangeEvent) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   if (e.affectsConfiguration(POOLSIDE)) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     system.acpChatPanels.setConfiguration(poolsideConfig);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await updateHelperConfig(system);
   }
 
   if (affectsConfiguration(e, "poolside.showKeybindings")) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await sendKeybindings();
   }
 
   if (e.affectsConfiguration("workbench.colorTheme")) {
@@ -209,7 +209,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await updateEditorConfig(system, system.assistant.webviewView.webview);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
 
@@ -223,7 +223,7 @@ async function sendKeybindings() {
  * Deactivate the extension on close
  */
 export async function deactivate() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const helper = await getHelperSingleton(system);
   await helper.sendNotification("shutdown");
   await helper.sendNotification("exit");
   await system.deactivate();

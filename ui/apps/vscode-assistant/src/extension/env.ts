@@ -17,6 +17,6 @@ const mapping = {
  * @param ctx {vscode.ExtensionContext}
  * @returns {ExtensionEnv}
  */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function mapContextToExtensionMode(ctx: vscode.ExtensionContext) {
   return mapping[ctx.extensionMode];
 }

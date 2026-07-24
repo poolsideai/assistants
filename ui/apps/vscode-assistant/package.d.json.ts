@@ -5,7 +5,7 @@
 declare const packageJson: {
   name: "poolside-assistant";
   displayName: "Poolside Assistant";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  version: "0.0.0";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   description: "The power of Poolside, right in your editor";
   categories: ["Machine Learning"];
@@ -22,7 +22,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   main: "./dist/extension/main.cjs";
   scripts: {
     build: "vite build";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "build-debug-vsix": "bash scripts/build-vsix-for-debug.sh";
     "check:format": "prettier . --check --cache --ignore-path ../../.gitignore";
     "check:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' './scripts/**/*.{js,mjs,cjs,ts,tsx,svelte}'";
     "check:release-build": "node scripts/check-release-build.mjs";
@@ -33,7 +33,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "fix:format": "prettier . --write --cache --ignore-path ../../.gitignore --list-different";
     "fix:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' './scripts/**/*.{js,mjs,cjs,ts,tsx,svelte}' --fix";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "make-release-manifest": "tsx scripts/make-release-manifest.ts";
     package: "vsce package --no-dependencies --allow-missing-repository";
     prepare: "turbo codegen:types --output-logs errors-only";
     preview: "vite preview";
@@ -109,23 +109,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           markdownDescription: "`Experimental` Visualise Mermaid diagrams in code blocks";
           type: "boolean";
         };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "poolside.notifyOnApproval": {
+          default: true;
+          description: "Show a system notification when approval is needed and the window is not focused";
+          type: "boolean";
+        };
+        "poolside.toolActivity": {
+          default: "grouped";
+          description: "How much detail to show while the agent works. Finished replies always collapse into a summary.";
+          type: "string";
+          enum: ["detailed", "grouped", "compact"];
+          enumItemLabels: ["Detailed", "Grouped", "Compact"];
+          enumDescriptions: [
+            "Every step, as it happens — all tool calls stay visible while the agent responds",
+            "Tool calls fold into short summaries, leaving the agent's messages between them",
+            "One summary line plus the current step — tool calls and interim messages fold as the agent works",
+          ];
+        };
         "poolside.defaultWorkingDirectory": {
           default: "";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -247,7 +247,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     };
     yamlValidation: [
       {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        fileMatch: "**/{.,}poolside/settings{.local,}.{yaml,yml}";
         url: "./dist/resources/poolside.settings.json";
       },
     ];
@@ -264,7 +264,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@poolsideai/helperapi": "workspace:*";
     "@poolsideai/lib": "workspace:*";
     "@poolsideai/rpc": "workspace:*";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    archiver: "^7.0.0";
     chokidar: "^4.0.3";
     "comment-json": "^4.2.5";
     json5: "^2.2.3";
@@ -282,7 +282,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@poolsideai/tailwind-config": "workspace:*";
     "@poolsideai/tsconfig": "workspace:*";
     "@poolsideai/vite-config": "workspace:*";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@types/archiver": "^6.0.0";
     "@types/lodash": "catalog:";
     "@types/luxon": "catalog:";
     "@types/node": "catalog:";

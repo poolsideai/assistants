@@ -80,10 +80,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       "development": "./src/lib/components/spinner/index.ts",
       "default": "./dist/components/spinner/index.js"
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "./switch": {
+      "development": "./src/lib/components/switch/index.ts",
+      "default": "./dist/components/switch/index.js"
+    },
     "./tooltip": {
       "development": "./src/lib/components/tooltip/index.ts",
       "default": "./dist/components/tooltip/index.js"

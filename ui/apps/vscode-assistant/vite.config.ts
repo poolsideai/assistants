@@ -31,7 +31,7 @@ function vscode(): PluginOption {
     const { assetsDir = "webview" } = config.build ?? {};
 
     return {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      base: "./",
       build: {
         assetsDir,
         manifest: true,

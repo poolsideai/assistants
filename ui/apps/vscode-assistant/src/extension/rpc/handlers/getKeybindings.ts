@@ -23,7 +23,7 @@ const extensionKeyBindings: Keybinding[] = packageJson.contributes.keybindings;
  * @param commands {string[]} a list of commands to lookup keybindings for
  * @returns {Promise<Keybinding[]>} A promise for a list of resolved keybindings
  */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function getKeybindings(commands: string[]) {
   const showKeybindings = getConfiguration("poolside.showKeybindings");
   if (!showKeybindings) return {};
 

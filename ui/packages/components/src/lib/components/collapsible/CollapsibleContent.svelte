@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Collapsible, type CollapsibleContentProps } from "bits-ui";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { revealTransition } from "./revealTransition.js";
 
   type Props = CollapsibleContentProps & {
     /** Disable the height-reading reveal for bodies that mount expensive content. */

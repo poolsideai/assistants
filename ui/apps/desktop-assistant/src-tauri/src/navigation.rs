@@ -26,7 +26,7 @@ pub fn create_main_window<R: Runtime>(app: &mut App<R>) -> tauri::Result<()> {
     crate::window_chrome::adjust_traffic_light_position(&mut window_config);
     let dev_url = app.config().build.dev_url.clone();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    #[cfg_attr(not(target_os = "macos"), allow(unused_mut))]
     // Native webview zoom stays disabled: it scales the page with a CSS-zoom
     // factor that breaks `position: fixed` popup positioning. Cmd +/−/0 are
     // handled in the webview instead as a font-size zoom (see src/zoom.ts).
@@ -36,30 +36,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         // use the explicit open_external_url command instead.
         .on_navigation(move |url| is_allowed_navigation(url, dev_url.as_ref()))
         .on_new_window(|_, _| tauri::webview::NewWindowResponse::Deny);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    // On macOS, make the window transparent and render a native NSVisualEffectView
+    // material behind the webview, so the grayish panel areas (the sidebar band
+    // and the insets around the main content card) get a native frosted-glass
+    // blur (see vibrancy_effects_config). The webview's top-level backgrounds are
+    // cleared in the frontend (app.css, gated on `.desktop-vibrancy`) so the
+    // material shows through; the main content card keeps its opaque background.
+    #[cfg(target_os = "macos")]
+    {
+        // The window is always created transparent: transparency is a
+        // creation-time property, while the material can be added and removed at
+        // runtime (apply_window_vibrancy). With vibrancy disabled the webview
+        // paints its opaque panel backgrounds, so the transparent window is
+        // indistinguishable from an opaque one.
+        builder = builder.transparent(true);
         let vibrancy_enabled = crate::settings::read_settings(app.handle())
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            .map(|settings| settings.window_vibrancy())
+            .unwrap_or(true);
+        if vibrancy_enabled {
+            builder = builder.effects(vibrancy_effects_config());
+        }
+    }
+
+    let window = builder.build()?;
     crate::window_state::save_on_bounds_changes(&window);
 
     Ok(())
@@ -211,42 +211,42 @@ fn focus_existing_window<R: Runtime>(
     Ok(true)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/// The vibrancy material rendered behind the main window. `Popover` rather than
+/// `Sidebar`: its base tint is markedly brighter in light appearance (white
+/// glass instead of gray), which is what lets the light theme's white wash in
+/// app.css stay translucent instead of having to paint over a gray frost.
+/// `EffectState::Active`, not `FollowsWindowActiveState`: in the follow mode
+/// macOS collapses the material to its flat gray "inactive" appearance whenever
+/// the window loses focus, which reads as a dirty gray sidebar any time another
+/// app is frontmost. Requires the `macos-private-api` Cargo feature +
+/// `macOSPrivateApi: true` in tauri.conf.json.
+#[cfg(target_os = "macos")]
+fn vibrancy_effects_config() -> tauri::utils::config::WindowEffectsConfig {
+    use tauri::window::{Effect, EffectState, EffectsBuilder};
+
+    EffectsBuilder::new()
+        .effect(Effect::Popover)
+        .state(EffectState::Active)
+        .build()
+}
+
 /// Adds or removes the vibrancy material on the (always transparent) main
 /// window, so the "Translucent window" setting applies without a restart.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#[cfg(target_os = "macos")]
+pub fn apply_window_vibrancy(app_handle: &tauri::AppHandle, enabled: bool) {
+    use tauri::Manager;
+
     let Some(window) = app_handle.get_webview_window(MAIN_WINDOW_LABEL) else {
         return;
     };
     if let Err(err) = window.set_effects(enabled.then(vibrancy_effects_config)) {
         eprintln!("failed to update window vibrancy: {err}");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn apply_window_vibrancy(_app_handle: &tauri::AppHandle, _enabled: bool) {}
+
 fn is_allowed_navigation(url: &Url, dev_url: Option<&Url>) -> bool {
     // Tauri exempts its own isolation-frame URL before calling this handler.
     // about:blank/srcdoc are needed for opaque sandboxed visualization frames.

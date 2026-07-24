@@ -1,92 +1,92 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# UI release helper
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Tested CLI utilities used by the tag-driven VS Code and Desktop workflows.
+Run commands from this directory or through the package filter from repo root.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+```bash
+pnpm -F @poolsideai/release-helper test
+pnpm -F @poolsideai/release-helper check:types
+pnpm -F @poolsideai/release-helper check:lint
+```
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+## Release plans
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+`plan` writes one JSON object to stdout; diagnostics go to stderr. It resolves
+the source SHA, checks `main` and previous-channel ancestry, validates an exact
+bootstrap/recovery version or calculates the next version, detects affected
+paths, reports the latest lineage reservation, and detects a resumable tag or
+tag/SHA conflict. The workflows use `latestTag` to prevent a new version from
+overtaking an incomplete GitHub draft.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+`plan-products` runs those product calculations against one source and chooses
+the exact version passed to each reusable release workflow. With synchronization
+enabled it uses the highest active candidate. A tag already reserved at the
+source SHA wins during a partial retry only while its GitHub release is
+unpublished; conflicting incomplete reservations fail closed.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+```bash
+pnpm -F @poolsideai/release-helper find-version plan vscode \
+  --channel nightly --ref HEAD --tag-prefix vscode-assistant \
+  --destination poolside-ai.acp-assistant --dry-run
+
+pnpm -F @poolsideai/release-helper find-version plan desktop \
+  --channel nightly --ref HEAD --tag-prefix desktop \
+  --destination poolside/desktop-assistant --dry-run
+
+pnpm -F @poolsideai/release-helper find-version plan-products \
+  --channel nightly --ref HEAD --vscode --desktop --sync-versions \
+  --scheduled --skip-if-no-changes \
+  --vscode-destination poolside-ai.acp-assistant \
+  --vscode-display-name "Poolside Assistant" \
+  --desktop-destination poolside/desktop-assistant
+```
+
+Important options used by the workflows:
+
+- `--version M.m.p` and `--create-lineage`: explicit migration tools for an
   unbound lineage; `plan-products --bootstrap-version M.m.p` applies both to
   every selected product;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+- `--tag-prefix <prefix>`: select the workflow's managed
+  `${prefix}/vM.m.p` release lineage;
+- `--destination <id>`: immutable external app identity for a managed lineage;
+- `--display-name <name>`: mutable display name, held constant while resuming
+  one exact version;
+- `--sync-versions`: align a manual run against the maximum numeric version in
+  `vscode-assistant/v*` and `desktop/v*`; `plan-products` additionally gives
+  every active product the same highest exact candidate;
+  existing-tag recovery may remain below the current alignment floor;
+- `--scheduled --skip-if-no-changes`: disable alignment, skip before bootstrap,
+  and skip when no owning paths changed since the newest product release across
+  either channel;
+- `--bump patch|minor|major`: stable product-local bump;
+- `--main-ref origin/main`: ancestry boundary.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Both products use numeric versions: even minor is Stable and odd minor is
+Preview/Nightly. SemVer suffixes and build metadata are rejected.
+
+## Managed tag lineages
+
+Both release workflows use one fixed managed lineage. Desktop binds its tag
+prefix to one CrabNebula application; VS Code binds its tag prefix to one
+Marketplace extension:
+
+```text
+vscode-assistant/v0.1.0       -> poolside-ai.acp-assistant
+desktop/v0.7.2                -> poolside/desktop-assistant
+```
+
+The first tag is annotated with product, prefix, destination, version, source
+SHA, and the version's display name. Every bump and retry verifies that
+metadata. A prefix cannot change destinations, and one destination cannot be
+bound to two prefixes. Display names may change between versions.
+
 New lineages require an exact version and `--create-lineage`. Desktop stores the tag annotation in its
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+CrabNebula release notes so an existing version/channel is resumed only when
+both the tag and external draft have matching provenance. VS Code packages
+carry the annotation in `release-provenance.json`; retries download existing
+Marketplace targets and verify it before skipping duplicates. Malformed
+annotations fail closed inside the active prefix.
+
 ## First release after a repository migration
 
 A fresh-history repository has no product tags, even when its Marketplace and
@@ -136,15 +136,15 @@ pnpm -s -F @poolsideai/release-helper find-version plan-products \
   --desktop-destination poolside/desktop-assistant
 ```
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+## Changelogs and channel baselines
 
 ```bash
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+pnpm -F @poolsideai/release-helper find-version prev-stable desktop
+pnpm -F @poolsideai/release-helper find-version prev-nightly vscode
+pnpm -F @poolsideai/release-helper find-version changelog desktop \
+  --prev desktop/v0.8.0 --head "$SHA"
+pnpm -F @poolsideai/release-helper find-version changelog vscode \
+  --channel nightly --slack
 pnpm -F @poolsideai/release-helper find-version render-changelog desktop \
   --version 1.2.0 --head "$SHA" --out -
 ```
@@ -169,9 +169,9 @@ A release normally compares with the previous release in the same channel.
 When a channel has never released, the planner falls back to the newest
 earlier tag in the product lineage instead of dumping the monorepo history; a
 lineage with no earlier tag is labeled `Initial release`.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+The same ownership mapping drives scheduled affected detection. Keep it
+updated whenever a shipped app gains a workspace or root build dependency.
+Release workflows and actions are intentionally excluded: changes to release
+automation should be exercised through the validation workflows rather than
+trigger a scheduled product release.

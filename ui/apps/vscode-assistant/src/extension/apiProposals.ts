@@ -2,99 +2,99 @@ import * as commentJSON from "comment-json";
 import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { ApiProposalStatus, System } from "./system";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const VSCODE_CONFIG_DIRS = [".vscode", ".vscode-insiders"];
+const DEFAULT_CONFIG_DIR = ".vscode";
 
 /**
  * ensureEnabled checks whether the `enable-proposed-api` flag is set for our extension in the
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ * argv.json files across all VSCode variant config directories, enables it where needed, and
+ * prompts the user to restart VSCode.
  */
 export async function ensureEnabled(system: System) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  if (vscode.env.remoteName != null) {
+    // We don't support enabling API proposals in remote environments.
+    // This is because the argv.json file is not shared between the local and remote environments.
+    system.setApiProposalStatus(ApiProposalStatus.disabled);
+    return;
+  }
+
+  const existingDirs = await getExistingConfigDirs();
+  const dirsToCheck = existingDirs.length > 0 ? existingDirs : [DEFAULT_CONFIG_DIR];
+
+  const enabledDirs: string[] = [];
+  const updatedDirs: string[] = [];
+
+  for (const configDir of dirsToCheck) {
+    const argvJSONPath = getArgvJSONPath(configDir);
+    const argvJSON = await readArgvJSON(argvJSONPath);
+
+    if (isEnabled(argvJSON, system.context.extension.id)) {
+      enabledDirs.push(configDir);
+      continue;
+    }
+
+    const enableProposedAPI = (argvJSON["enable-proposed-api"] || []) as string[];
+    const newArgvJSON = commentJSON.assign(argvJSON, {
+      "enable-proposed-api": [...enableProposedAPI, system.context.extension.id],
+    });
+
+    const newFileContents = commentJSON.stringify(newArgvJSON, null, 2);
+    await writeArgvJSON(argvJSONPath, newFileContents);
+    updatedDirs.push(configDir);
+  }
+
+  // Check if enabled in a relevant dir for the current VSCode variant
+  if (includesRelevantVscodeDir(enabledDirs)) {
     system.setApiProposalStatus(ApiProposalStatus.enabled);
     return;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const needsRestart = includesRelevantVscodeDir(updatedDirs);
+  system.setApiProposalStatus(
+    needsRestart ? ApiProposalStatus.pendingRestart : ApiProposalStatus.disabled,
+  );
+  if (needsRestart) {
+    await promptRestart();
+  }
+}
+
+function getArgvJSONPath(configDir: string): string {
+  return path.join(os.homedir(), configDir, "argv.json");
+}
+
+async function configDirExists(dir: string): Promise<boolean> {
+  const dirUri = vscode.Uri.file(path.join(os.homedir(), dir));
+  try {
+    await vscode.workspace.fs.stat(dirUri);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function getExistingConfigDirs(): Promise<string[]> {
+  const dirChecks = await Promise.all(
+    VSCODE_CONFIG_DIRS.map(async (dir) => ({ dir, exists: await configDirExists(dir) })),
+  );
+  return dirChecks.filter((check) => check.exists).map((check) => check.dir);
+}
+
+function isInsiders(): boolean {
+  return vscode.env.appName.includes("Insiders");
+}
+
+// Returns true if any of the given dirs are relevant to the current VSCode variant.
+// Insiders historically used .vscode, so either dir is relevant for Insiders.
+function includesRelevantVscodeDir(dirs: string[]): boolean {
+  if (dirs.length === 0) {
+    return false;
+  }
+  if (isInsiders()) {
+    return dirs.includes(".vscode") || dirs.includes(".vscode-insiders");
+  }
+  return dirs.includes(".vscode");
 }
 
 /**
@@ -124,25 +124,25 @@ function isEnabled(argvJSON: commentJSON.CommentObject, extensionId: string) {
 }
 
 // readArgvJSON returns the parsed JSON contents of the user's argv.json or returns an empty version
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// if not found or if the file is malformed.
+async function readArgvJSON(argvJSONPath: string) {
+  const argvJSONUri = vscode.Uri.file(argvJSONPath);
   try {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const fileData = await vscode.workspace.fs.readFile(argvJSONUri);
+    const json = new TextDecoder().decode(fileData);
+    return commentJSON.parse(json) as commentJSON.CommentObject;
   } catch (_e) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return commentJSON.parse(blankArgvJSON) as commentJSON.CommentObject;
   }
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Write contents to the argv.json file
+async function writeArgvJSON(argvJSONPath: string, contents: string) {
+  const argvJSONUri = vscode.Uri.file(argvJSONPath);
+  const data = new TextEncoder().encode(contents);
+  await vscode.workspace.fs.writeFile(argvJSONUri, data);
+}
+
 // This is an empty argv.json file that we can write to enable API proposals if no existing file is
 // present
 const blankArgvJSON = `

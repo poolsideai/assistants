@@ -3,7 +3,7 @@ import type { SearchSymbolDefinitionsParams } from "@poolsideai/helperapi/schema
 import { createVSCodeMock } from "jest-mock-vscode";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as vscode from "vscode";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { searchSymbolDefinitions } from "./searchSymbolDefinitions";
 
 vi.mock("vscode", () => createVSCodeMock(vi));
 

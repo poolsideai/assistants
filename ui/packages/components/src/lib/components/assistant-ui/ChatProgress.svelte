@@ -8,10 +8,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   interface Props {
     complete?: boolean;
     children?: Snippet;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onExpandedChange?: (expanded: boolean) => void;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let { complete, children, onExpandedChange }: Props = $props();
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -76,7 +76,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 
   let isExpanded = $derived(displayMode === "Preview" || displayMode === "Expanded");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   // A collapsed transcript can be one of many on screen, so it owns no
   // observers or input listeners. Opening it creates the same pinned-scroll
   // manager as the main chat panel; the effect cleanup disconnects everything
@@ -131,19 +131,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     wasComplete = completed;
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let wasExpanded = false;
+  $effect(() => {
+    if (isExpanded !== wasExpanded) {
+      wasExpanded = isExpanded;
+      onExpandedChange?.(isExpanded);
+    }
+  });
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   data-chat-progress="true"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  class="thinking-parent flex min-h-6 flex-col overflow-clip text-psx-foreground-secondary focus-visible:outline-offset-2"
   class:expanded={isExpanded}
   class:unexpanded={!isExpanded}
   style="contain: paint layout;"
@@ -168,15 +168,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       : undefined}
   >
     <div
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      class="group flex h-6 items-center gap-1.5 rounded-md pr-2 pl-0 text-base text-psx-foreground-secondary transition-colors select-none"
       class:cursor-pointer={hasContent}
       class:hover:bg-psx-background-secondary={hasContent}
       class:hover:text-psx-foreground-primary={hasContent}
     >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <span
+        class="flex w-4 shrink-0 items-center justify-center text-[10px] leading-none opacity-60"
+        >•••</span
+      >
       <span>{complete ? "Thought" : "Thinking"}</span>
       {#if hasContent}
         <Icon
@@ -213,7 +213,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   >
     {#if isExpanded}
       <div
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        class="origin-top-left pt-2 text-sm opacity-90"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -227,7 +227,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 <style lang="postcss">
   @reference "#tailwind.css";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   /* No intrinsic min-width here: text without soft-wrap opportunities (long
      unbroken runs, NBSP-joined sentences) would size the block to its
      min-content width and overflow the transcript column (PE-2431). The block

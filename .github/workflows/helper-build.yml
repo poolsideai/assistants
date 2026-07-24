@@ -1,56 +1,56 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Builds poolside-helper cross-platform using Bazel + Zig cross-compilation.
+# Can be triggered directly for testing or called from helper and product releases.
+#
+# To trigger a test build without tagging a release, run:
+#
+#   gh workflow run poolside-helper-build --ref <YOUR_BRANCH> -f 'tag=0.0.1-build.1'
 name: poolside-helper-build
 on:
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     inputs:
+      tag:
+        description: "Version tag to embed (e.g. helper/v1.2.3)"
+        type: string
+        required: false
+      version:
+        description: "Exact version string to embed instead of deriving one from tag"
+        type: string
+        required: false
+      ref:
+        description: "Exact source ref to build"
+        type: string
+        required: false
+      sign:
+        description: "Sign and notarize release binaries"
+        type: boolean
+        required: false
+        default: true
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    inputs:
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        description: "Version tag to embed (e.g. helper/v1.2.3)"
         type: string
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      sign:
+        description: "Sign and notarize release binaries"
+        type: boolean
+        required: true
+        default: true
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   build:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    uses: ./.github/workflows/reusable-bazel-build.yml
+    with:
+      bazel_target: //cmd/poolside-helper:poolside-helper
+      binary_name: poolside-helper
+      tag: ${{ inputs.tag || github.ref_name }}
+      version: ${{ inputs.version }}
+      tag_prefix: helper/
+      ref: ${{ inputs.ref || github.sha }}
+      sign_windows: ${{ inputs.sign }}
+      sign_darwin: ${{ inputs.sign }}
       embed_mobile_webui: true
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    secrets: inherit
 
   mlx-sidecar:
     runs-on: macos-latest
@@ -58,7 +58,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       - name: Checkout
         uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2 # v4.2.2
         with:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          ref: ${{ inputs.ref || github.sha }}
           fetch-depth: 0
 
       - name: Verify Apple Silicon runner
@@ -76,7 +76,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           chmod u+w dist/poolside-mlx-sidecar-darwin-arm64
 
       - name: Sign macOS sidecar
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if: inputs.sign
         uses: ./.github/actions/sign-darwin-binary
         with:
           BINARY_PATH: dist/poolside-mlx-sidecar-darwin-arm64
@@ -108,8 +108,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     steps:
       - name: Checkout
         uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2 # v4.2.2
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
       - name: Verify Apple Silicon runner
         shell: bash
@@ -144,7 +144,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           chmod u+w dist/poolside-whisper-server-darwin-arm64
 
       - name: Sign macOS whisper-server
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if: inputs.sign
         uses: ./.github/actions/sign-darwin-binary
         with:
           BINARY_PATH: dist/poolside-whisper-server-darwin-arm64

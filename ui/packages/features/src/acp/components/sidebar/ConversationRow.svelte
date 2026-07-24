@@ -4,7 +4,7 @@
   import { formatRelativeTimeWithoutAgo } from "../../shared/time";
   import type { ACPConversationSummary } from "../../navTypes";
   import RegistryAgentIcon from "../RegistryAgentIcon.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import StreamingSequenceLoader from "../ui/StreamingSequenceLoader.svelte";
   import RenamableLabel from "./RenamableLabel.svelte";
   import { getAcpSidebarController } from "./SidebarController.svelte";
 
@@ -52,8 +52,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const sidebar = getAcpSidebarController();
   const renaming = $derived(sidebar.isRenamingConversation(session.id));
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // A draft (not-yet-started) conversation has no session id yet.
+  const isDraft = $derived(session.sessionId === null);
   const showDraftIcon = $derived(session.draftPromptPresent === true);
   const updatedAtLabel = $derived(
     session.updatedAt ? formatRelativeTimeWithoutAgo(session.updatedAt) : null,
@@ -68,18 +68,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 <div
   class={[
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "relative flex min-w-0 flex-1 select-none items-center gap-2 rounded-[6px] pr-2",
     leadingPaddingClass,
   ]}
 >
   {#snippet agentIconSlot()}
     <span
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      class="sidebar-agent-icon-slot"
+      style={`--sidebar-agent-icon-size: ${iconSize}px; --sidebar-agent-icon-slot-size: ${iconSlotSize}px;`}
+      aria-hidden="true"
+    >
+      <RegistryAgentIcon {iconUrl} size={iconSize} class={iconClass} />
+    </span>
   {/snippet}
   {#if renaming}
     <!-- py compensates for the input's border box so the row keeps its height. -->

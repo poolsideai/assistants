@@ -19,7 +19,7 @@ import (
 	"github.com/tliron/glsp"
 	protocol "github.com/tliron/glsp/protocol_3_16"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	acpsdk "github.com/coder/acp-go-sdk"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -29,7 +29,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/approvals"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/localinference"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 	githandler "github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/git"
 	githubhandler "github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/github"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -100,7 +100,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	secretsHandler             *secretshandler.Server
 	githubHandler              *githubhandler.Server
 	gitHandler                 *githandler.Server
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	mcpServersHandler          *mcpservers.Server
 	clientSupportsWatchedFiles bool
 
 	receivedShutdown atomic.Bool
@@ -337,51 +337,51 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		Description: methods.GitCommitParams{}.Description(),
 	}, handler.gitHandler.Commit)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.MCPServersListParams{}.MethodName(),
+		Description: "list user MCP servers",
+	}, handler.mcpServersHandler.List)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.MCPServersUpsertParams{}.MethodName(),
+		Description: "add or replace a user MCP server",
+	}, handler.mcpServersHandler.Upsert)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.MCPServersDeleteParams{}.MethodName(),
+		Description: "delete a user MCP server",
+	}, handler.mcpServersHandler.Delete)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.MCPServersSetEnabledParams{}.MethodName(),
+		Description: "enable or disable a user MCP server",
+	}, handler.mcpServersHandler.SetEnabled)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.MCPServersAuthenticateParams{}.MethodName(),
+		Description: "initiate OAuth flow for a user MCP server",
+	}, handler.mcpServersHandler.Authenticate)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.MCPServersSignOutParams{}.MethodName(),
+		Description: "sign out (clear OAuth tokens) for a user MCP server",
+	}, handler.mcpServersHandler.SignOut)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.MCPServersTestConnectionParams{}.MethodName(),
+		Description: "run a transient probe against a user MCP server",
+	}, handler.mcpServersHandler.TestConnection)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.MCPServersTestConfigParams{}.MethodName(),
+		Description: "run a transient probe against an inline (unsaved) MCP server config",
+	}, handler.mcpServersHandler.TestConfig)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.MCPServersSetPoolServerDisabledParams{}.MethodName(),
+		Description: "enable/disable a pool MCP server globally via user settings",
+	}, handler.mcpServersHandler.SetPoolServerDisabled)
+
 	registerExtensionMethod(handler, JSONRPCOperation{
 		Method:      methods.LocalInferenceGetStateMethod,
 		Description: "returns local on-device inference state and catalog",
@@ -772,7 +772,7 @@ func newHandlerBaseState() *PoolsideHandler {
 		noDeadlineMethods: make(map[string]struct{}),
 		config:            &Config{},
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		cachedFS: cachedFS,
 
 		docLocks: map[string]*sync.Mutex{},
 
@@ -816,15 +816,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 				cfg.WorkingDir = uriToPath(string(folders[0].URI))
 			}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			cfg.MCPServerInjector = func(ctx context.Context, agentServer string, caps acpsdk.McpCapabilities) ([]acpsdk.McpServer, []methods.MCPServerStatus) {
+				isPool := acpproxy.NormalizeAgentServerName(agentServer) == acpproxy.DefaultAgentServerName
+				result := h.mcpServersHandler.Resolve(ctx, mcpservers.ResolveParams{
+					MCPCapabilities: caps,
+					IsPoolAgent:     isPool,
+				})
+				return result.Servers, result.Unavailable
+			}
+
 			cfg.AgentServerEnvProvider = h.localInferenceHandler.AgentServerEnv
 			cfg.AgentServerReady = h.localInferenceHandler.AgentServerReady
 

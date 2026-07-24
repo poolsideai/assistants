@@ -217,7 +217,7 @@
 
 <div
   data-lang={lang || undefined}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  class="highlightedCode relative isolate overflow-hidden rounded-md border border-psx-border bg-psx-editor-background py-[3px] pr-1 pl-1"
   class:wrapped={wrapLines}
   class:rounder={capabilities.customUI}
 >
@@ -305,8 +305,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   .highlightedCode {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    font-size: inherit;
+    line-height: var(--psx-text-leading, inherit);
 
     &.rounder {
       @apply rounded-xl;

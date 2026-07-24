@@ -80,18 +80,18 @@
     $editor.executeCommand((state, dispatch) => {
       const { tr, schema } = state;
       const decoration = getMatchDecorationState(state);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const hasMatch = decoration?.status === "match";
+
+      let resolvedContent;
+      if (typeof props.content === "function") {
+        if (!hasMatch) return false;
+        resolvedContent = props.content({
+          triggerMatch: decoration.triggerMatch,
+          queryMatch: decoration.queryMatch,
+        });
+      } else {
+        resolvedContent = props.content;
+      }
 
       if (!resolvedContent) return false;
 
@@ -101,7 +101,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       const content = {
         label,
         value: value ?? label,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        clipboard: clipboard ?? (hasMatch ? decoration.trigger : "") + label,
         icon,
         fileIconPath,
         tooltip,
@@ -113,14 +113,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
       const node = schema.nodes.chip.create({ id, ...content } satisfies ChipNodeAttrs);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (hasMatch) {
+        dispatch?.(
+          tr.replaceRangeWith(decoration.range.from, decoration.range.to, node).insertText(" "),
+        );
+      } else {
+        const { from, to } = state.selection;
+        dispatch?.(tr.replaceRangeWith(from, to, node).insertText(" "));
+      }
       return true;
     });
   }

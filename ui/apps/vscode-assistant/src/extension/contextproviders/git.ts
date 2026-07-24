@@ -4,7 +4,7 @@ import {
   type PromptContextFacet,
 } from "@poolsideai/rpc";
 import * as vscode from "vscode";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { System } from "../system";
 import type { GitExtension } from "./gitExtension";
 
 export async function getGitBranchNamesContext(): Promise<PromptContextFacet | undefined> {

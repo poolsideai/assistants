@@ -1,14 +1,14 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { relaunch } from "@tauri-apps/plugin-process";
+import { get, writable } from "svelte/store";
+
 import {
   checkAndStageDesktopUpdate,
   desktopBundleReplaced,
   installStagedDesktopUpdate,
   type DesktopUpdateInfo,
 } from "./rpc/host";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+// The Rust command owns channel selection, update comparison, signature
 // verification, and the download. A single invocation checks once and downloads
 // that exact Update value, so a feed or preference change cannot turn a
 // confirmed version into a different installed version.
@@ -17,24 +17,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 // the running .app in place, and a process running from an unlinked bundle is
 // killed by the next native file panel it opens (see bundle_guard.rs). The
 // install happens under the Update button, immediately before the relaunch.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+const STARTUP_DELAY_MS = 10_000;
 const PERIODIC_INTERVAL_MS = 24 * 60 * 60_000;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+interface UpdaterHost {
+  showInfoMessage(message: string): void;
+}
+
+export type UpdaterStatus =
+  | { kind: "idle" }
+  | { kind: "checking" }
   | { kind: "downloading"; progress?: number }
   | { kind: "downloaded"; version: string; notes?: string; waitingForIdle?: boolean }
   // Something outside our updater swapped the bundle on disk. There is nothing
   // to install — only this process is stale — so applying just relaunches.
   | { kind: "replaced" }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | { kind: "error"; message: string };
+
 /**
  * Trim feed release notes down to what users should see: the workflow appends
  * a `Release source: <tag>@<sha>` provenance trailer to the CrabNebula notes
@@ -50,28 +50,28 @@ export function userFacingUpdateNotes(notes: string | null | undefined): string 
   return stripped || undefined;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export const updaterStatus = writable<UpdaterStatus>({ kind: "idle" });
+
 /** Statuses that only a restart can clear. */
 function awaitingRestart(status: UpdaterStatus): boolean {
   return status.kind === "downloaded" || status.kind === "replaced";
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+let inFlightStage: Promise<DesktopUpdateInfo | null> | null = null;
+
+function checkAndStage(): Promise<DesktopUpdateInfo | null> {
+  if (inFlightStage) return inFlightStage;
+  inFlightStage = checkAndStageDesktopUpdate().finally(() => {
+    inFlightStage = null;
+  });
+  return inFlightStage;
+}
+
+async function stageAvailableUpdate(silent: boolean): Promise<DesktopUpdateInfo | null> {
   if (awaitingRestart(get(updaterStatus))) return null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  updaterStatus.set({ kind: "checking" });
+  try {
+    const update = await checkAndStage();
     if (update) {
       updaterStatus.set({
         kind: "downloaded",
@@ -80,19 +80,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       });
     } else {
       updaterStatus.update((status) => (awaitingRestart(status) ? status : { kind: "idle" }));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    return update;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    updaterStatus.update((status) => {
       if (awaitingRestart(status)) return status;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return silent ? { kind: "idle" } : { kind: "error", message };
+    });
     if (silent) console.debug("update check/download failed", error);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    throw error;
+  }
+}
+
 /**
  * Install the staged download and restart into it.
  *
@@ -101,7 +101,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
  * return on success; the process restarts. When the bundle was replaced by
  * something else there is nothing to install and we only relaunch.
  */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function applyDownloadedUpdate(): Promise<void> {
   // Nothing is ever staged in dev (the Rust command no-ops on unstamped local
   // builds), so the mocked pill below just restarts, as it always has.
   if (get(updaterStatus).kind === "replaced" || import.meta.env.DEV) {
@@ -130,57 +130,57 @@ export async function refreshBundleReplacedStatus(): Promise<boolean> {
     );
   }
   return replaced;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+/**
  * Silently check and download on startup and daily, and notice a
  * bundle replaced out from under us on the same cadence. Concurrent manual and
  * scheduled checks join the same promise.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ */
+export function startAutoUpdateLoop(): void {
+  if (import.meta.env.DEV) return;
+  const run = async () => {
     if (awaitingRestart(get(updaterStatus))) return;
     // A stale process cannot usefully install anything, so this comes first.
     if (await refreshBundleReplacedStatus()) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await stageAvailableUpdate(true).catch(() => {
+      // A later interval retries transient failures.
+    });
+  };
+  setTimeout(() => void run(), STARTUP_DELAY_MS);
+  setInterval(() => void run(), PERIODIC_INTERVAL_MS);
+}
+
+/** Manual macOS menu entry point with user-facing status. */
+export async function runManualUpdateCheck(host: UpdaterHost): Promise<void> {
+  if (import.meta.env.DEV) {
+    host.showInfoMessage("Updates are disabled in development builds.");
+    return;
+  }
+  const current = get(updaterStatus);
   if (awaitingRestart(current)) {
     // The sidebar Update button already shows the pending restart.
     return;
   }
   if (await refreshBundleReplacedStatus()) {
     host.showInfoMessage("Poolside has already been updated on disk — restart to finish updating.");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return;
+  }
+  if (inFlightStage) {
+    host.showInfoMessage("An update check is already in progress…");
+    return;
+  }
+
+  host.showInfoMessage("Checking for updates…");
+  try {
+    const update = await stageAvailableUpdate(false);
+    if (!update) {
+      host.showInfoMessage("You're on the latest version.");
+      return;
+    }
+    host.showInfoMessage(`Update ${update.version} is ready — use the Update button to restart.`);
+  } catch (error) {
+    console.debug("update check failed", error);
+    host.showInfoMessage("Couldn't check for updates — please try again later.");
+  }
+}

@@ -13,7 +13,7 @@
     disabled?: boolean;
     alwaysRender?: boolean;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "data-testid"?: string;
   }
 </script>
 

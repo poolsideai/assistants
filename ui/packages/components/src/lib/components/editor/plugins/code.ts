@@ -184,7 +184,7 @@ function isTableDelimiterRow(line: string | undefined): boolean {
  * Split pasted text into blank-line-separated chunks, classify each as code or
  * prose, and merge consecutive same-kind chunks back together. This lets a
  * paste that mixes explanatory prose with code only wrap the code portions in
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ * a code block.
  */
 export function classifyPasteSegments(text: string): PasteSegment[] {
   const chunks = text.split(/\n\s*\n+/);

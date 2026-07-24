@@ -142,8 +142,8 @@ func (h *PoolsideHandler) criticalPathDependencies(gCtx *glsp.Context, params *p
 		return err
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if err := h.ensureACPNavStore(gCtx.Context); err != nil {
+		return err
 	}
 
 	return nil
@@ -157,7 +157,7 @@ func clientSupportsWatchedFiles(params *protocol.InitializeParams) bool {
 	return dynamicRegistration != nil && *dynamicRegistration
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (h *PoolsideHandler) initializeConfiguration(_ *glsp.Context, params *protocol.InitializeParams) error {
 	h.mx.Lock()
 	defer h.mx.Unlock()
 

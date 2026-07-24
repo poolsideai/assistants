@@ -3,8 +3,8 @@
   "compilerOptions": {
     "noEmit": false,
     "declaration": true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "declarationMap": true,
+    "sourceMap": false,
 
     "rootDir": "${configDir}/src",
     "outDir": "${configDir}/dist",

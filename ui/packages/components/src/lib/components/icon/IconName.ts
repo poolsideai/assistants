@@ -78,9 +78,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   | "light"
   | "link"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "mcp-alert"
+  | "mcp-ready"
+  | "mcp"
   | "microphone"
   | "minus"
   | "more"

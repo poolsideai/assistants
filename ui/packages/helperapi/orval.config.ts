@@ -48,22 +48,22 @@ export default defineConfig({
   poolsideHelper: {
     input: {
       target: process.env.LOCAL_SCHEMA ?? "http://localhost:8080/openapi.yaml",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      override: {
+        // Some JSON-RPC methods are hand-maintained in `src/manualApi.ts` (kept
+        // outside `gen/` so they survive codegen runs). Derive the set to skip
+        // directly from that file's `toJsonrpcMethod("...")` calls and strip those
+        // paths from the spec, so codegen never duplicates them and the exclusion
+        // stays in sync automatically — add/remove a method in `manualApi.ts` and
+        // the exclusion follows, with no hand-maintained list to forget.
+        transformer: (spec) => {
+          const manualApi = fs.readFileSync("./src/manualApi.ts", "utf8");
+          const manualPaths = new Set(
+            [...manualApi.matchAll(/toJsonrpcMethod\("([^"]+)"\)/g)].map((m) => m[1]),
+          );
+          if (spec.paths) {
+            for (const path of Object.keys(spec.paths)) {
+              if (manualPaths.has(path)) delete spec.paths[path];
+            }
             // These OpenAPI operations exist only to publish helper→client
             // payload schemas. Generating callable client wrappers for them
             // creates APIs that can only call the protocol in the wrong
@@ -77,22 +77,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 delete spec.paths[path];
               }
             }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          }
+          // GitHub bindings (functions AND their types) are hand-written in
+          // manualApi.ts — the one hand-owned group the spec still defines — so
+          // also drop the GitHub component schemas so they don't generate as
+          // unused duplicates. (Matched by name to cover the spec's PRURL/PrUrl
+          // casing variants.)
+          if (spec.components?.schemas) {
+            for (const name of Object.keys(spec.components.schemas)) {
+              if (/github/i.test(name)) {
+                delete spec.components.schemas[name];
+              }
+            }
+          }
+          return spec;
+        },
+      },
     },
     output: {
       target: "./src/gen/api.ts",

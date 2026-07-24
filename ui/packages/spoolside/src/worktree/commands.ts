@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { manageStopWithOptions } from "../manage/client.js";
 import { isProcessAlive, listStates, logPath, readState } from "../manage/state.js";
 import { spoolsideDataDirs } from "../targets/vscode.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { portsForSlot, targetSpoolsidePort } from "./shared.js";
 import {
   claimOrReuseSlot,
   detectGitWorktreeInfo,
@@ -367,8 +367,8 @@ async function worktreeUp(args: string[], target: "vscode" | "desktop" = "vscode
     VITE_DEV_PORT: String(selectedVitePort),
     SPOOLSIDE_PORT: String(selectedSpoolsidePort),
     SPOOLSIDE_PORT_START: String(selectedSpoolsidePort),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    POOLSIDE_WORKTREE_SLOT: String(slot),
+    POOLSIDE_WORKTREE_ID: isMain ? id : (opts.worktreeName ?? id),
   };
   // Clear stale server state and profile dirs, but never while the server for
   // this target is still alive (re-running `up` reuses it).
@@ -781,8 +781,8 @@ function worktreeEnvCmd(): void {
 
   const ports = portsForSlot(slot);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  console.log(`export POOLSIDE_WORKTREE_SLOT=${slot}`);
+  console.log(`export POOLSIDE_WORKTREE_ID=${id}`);
   console.log(`export VITE_DEV_PORT=${ports.vite}`);
   console.log(`export DESKTOP_VITE_DEV_PORT=${ports.desktopVite}`);
   console.log(`export SPOOLSIDE_PORT=${ports.spoolside}`);
@@ -815,7 +815,7 @@ export async function handleTargetCommand(
     default:
       console.log(`Usage: spoolside ${target} <up|down|status|env>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  up [--fast]${target === "vscode" ? " [--acp|--lsp]" : " [--color HEX] [--worktree-name NAME]"}
                                             Start ${target} services for this worktree
   down [--all]                              Stop ${target} services (--all: both targets);
                                             releases the slot once nothing is left running

@@ -120,10 +120,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     --psx-button-secondary-border: var(--vscode-button-secondaryBackground);
     --psx-button-secondary-hover-border: var(--vscode-button-secondaryHoverBackground);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /* Not every VS Code theme injects --vscode-checkbox-background; fall back to
+       the input background (what checkbox.background derives from) so checkboxes
+       and the sidebar Settings pill never render with a transparent fill. */
+    --psx-checkbox-background: var(--vscode-checkbox-background, var(--vscode-input-background));
     --psx-checkbox-border: var(--vscode-checkbox-border);
     --psx-checkbox-foreground: var(--vscode-checkbox-foreground);
 

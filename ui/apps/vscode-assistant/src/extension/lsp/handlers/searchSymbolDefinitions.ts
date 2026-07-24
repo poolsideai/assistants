@@ -4,7 +4,7 @@ import type {
 } from "@poolsideai/helperapi/schemas";
 import * as vscode from "vscode";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function searchSymbolDefinitions(
   params: SearchSymbolDefinitionsParams,
 ): Promise<SearchSymbolDefinitionsOutput> {
   try {

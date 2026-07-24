@@ -208,24 +208,24 @@ func TestResolveAccessToken_RefreshFailureIsNotAuthenticated(t *testing.T) {
 	_, err := ResolveAccessToken(context.Background(), store, "https://huggingface.co/mcp", "huggingface")
 	assert.ErrorIs(t, err, ErrNotAuthenticated)
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+func TestHasStoredOAuthToken(t *testing.T) {
+	store := newFakeSecretsStore()
+	store.data["https://mcp.linear.app/mcp"] = &ServerSecrets{
+		OAuth: &OAuthData{AccessToken: "tok", Expiry: time.Now().Add(-time.Hour)},
+	}
+	store.data["https://no-oauth.example.com/mcp"] = &ServerSecrets{
+		Metadata: map[string]string{"k": "v"},
+	}
+
+	assert.True(t, HasStoredOAuthToken(context.Background(), store, "https://mcp.linear.app/mcp", "linear"),
+		"stored token counts even when expired — it refreshes on use")
+	assert.False(t, HasStoredOAuthToken(context.Background(), store, "https://no-oauth.example.com/mcp", "x"),
+		"secrets without OAuth data are not a sign-in")
+	assert.False(t, HasStoredOAuthToken(context.Background(), store, "https://unknown.example.com/mcp", "y"))
+	assert.False(t, HasStoredOAuthToken(context.Background(), store, "", ""), "bad key resolves to unauthenticated")
+
+	store.loadErr = assert.AnError
+	assert.False(t, HasStoredOAuthToken(context.Background(), store, "https://mcp.linear.app/mcp", "linear"),
+		"load errors degrade to unauthenticated")
+}

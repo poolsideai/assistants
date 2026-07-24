@@ -125,13 +125,13 @@ export { createACPConnection } from "./createACPConnection";
 export { ACP_DEBUG_DUMP_LOADED_EVENT, normalizeDumpEntries } from "./debugDump";
 export type { ACPDebugAPI, ACPDebugDumpLoadedEventDetail, ACPDumpEntry } from "./debugDump";
 export type { DesktopOpenerInfo } from "./desktopOpeners";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { desktopUpdate, type DesktopUpdateState } from "./desktopUpdate";
 export { extractErrorMessage } from "./errors";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export {
+  getACPActiveAgentAllowsCustomMcp,
+  getACPActiveAgentServer,
+  getACPActiveAgentSupportsMcp,
+  setACPActiveAgentServer,
 } from "./features/activeAgent.svelte";
 export {
   getACPAgentRegistryContext,
@@ -201,13 +201,13 @@ export {
   getLocalInferenceRepo,
   setLocalInferenceContext,
 } from "./features/LocalInferenceRepository.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export {
+  getACPMCPSettingsRepo,
+  setACPMCPSettingsContext,
 } from "./features/MCPSettingsRepository.context";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export {
+  ACPMCPSettingsRepositoryWriter,
+  fetchAllowCustomMCPServers,
 } from "./features/MCPSettingsRepository.svelte";
 export type { ACPMCPSettingsRepository } from "./features/MCPSettingsRepository.svelte";
 export {

@@ -14,7 +14,7 @@ const REQUEST_TIMEOUT = 20_000;
 /**
  * will return an attached URL or throw a descriptive error
  */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function getUrlContents(system: System, url: string): Promise<AttachedUrl> {
   const response = await fetchWithTimeout(url, system);
   if (!response.ok) {
     throw new Error(

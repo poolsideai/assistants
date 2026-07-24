@@ -3,13 +3,13 @@
   "remoteCache": {
     "enabled": false
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "globalPassThroughEnv": [
+    "NODE_ENV",
+    "CI",
+    "PORT",
+    "LOCAL_SCHEMA",
+    "CHOKIDAR_USEPOLLING"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

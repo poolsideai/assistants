@@ -11,13 +11,13 @@
   import Icon from "@poolsideai/components/icon";
   import type { WorkspaceFolder } from "@poolsideai/rpc";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { summarizeLiveToolGroup, summarizeToolGroup } from "./toolGroupSummary";
 
   interface Props {
     events: SessionEventGroupItem[];
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /** Present on groups formed while the turn streams: uses count labels instead of turn summaries. */
+    live?: boolean;
     /**
      * Draw the wavy rule under the trigger. Owned by the caller because it is a
      * per-turn decision, not a per-fold one: a turn should carry at most one
@@ -41,12 +41,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let expanded = $state(false);
 
   let tools = $derived(events.filter((item) => item.event.eventKind === "tool_call"));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let summaryLabel = $derived(
+    live ? summarizeLiveToolGroup(events) : summarizeToolGroup(events, turn),
+  );
 
   function toggle() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expanded = !expanded;
   }
 
   let triggerEl = $state<HTMLElement>();
@@ -189,7 +189,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     <div class="fold-strip" aria-hidden="true"></div>
   {/if}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {#if tools.length > 0}
     <!-- full-width row so the rule below has a full-width box to sit behind
          (see data-tool-group-rule in the desktop app.css). The pin is keyed off
          `expanded` rather than `showRule`: a fold that draws no rule still has
@@ -247,7 +247,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     </div>
   {/if}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {#if expanded && events.length > 0}
     <!-- mt-2.5 replaces the row gap dropped above. -->
     <div class="mt-2.5 box-border flex w-full min-w-0 max-w-full flex-col flex-wrap items-start">
       <div bind:this={bodySentinelEl} class="fold-sentinel" aria-hidden="true"></div>

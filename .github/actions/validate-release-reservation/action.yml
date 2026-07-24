@@ -1,57 +1,57 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+name: Validate release reservation
+description: Prevent a new release from overtaking an incomplete tag reservation
+
+inputs:
+  plan-file:
+    description: Path to the release-helper JSON plan
+    required: true
+  scheduled:
+    description: Whether an incomplete predecessor should skip instead of fail
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Check GitHub release state
+      shell: bash
+      env:
+        PLAN_FILE: ${{ inputs.plan-file }}
+        SCHEDULED: ${{ inputs.scheduled }}
+      run: |
+        set -euo pipefail
+        action=$(jq -r '.action' "${PLAN_FILE}")
+        tag=$(jq -r '.tag // ""' "${PLAN_FILE}")
+
+        if [[ "${action}" == "resume" ]]; then
+          if release=$(gh release view "${tag}" --json isDraft,url 2>/dev/null) && \
+            [[ "$(jq -r '.isDraft' <<<"${release}")" == "false" ]]; then
+            reason="GitHub release ${tag} is already published"
+            jq --arg reason "${reason}" '.action = "skip" | .reason = $reason' \
+              "${PLAN_FILE}" > "${PLAN_FILE}.tmp"
+            mv "${PLAN_FILE}.tmp" "${PLAN_FILE}"
+          fi
+          exit 0
+        fi
+
+        [[ "${action}" == "release" ]] || exit 0
+        latest_tag=$(jq -r '.latestTag // ""' "${PLAN_FILE}")
+        [[ -n "${latest_tag}" ]] || exit 0
+
+        reason=""
+        if ! release=$(gh release view "${latest_tag}" --json isDraft,url 2>/dev/null); then
+          reason="Latest reservation ${latest_tag} has no GitHub release; recover it before creating another version"
+        elif [[ "$(jq -r '.isDraft' <<<"${release}")" == "true" ]]; then
+          reason="Latest reservation ${latest_tag} is still a draft; recover it before creating another version"
+        fi
+        [[ -n "${reason}" ]] || exit 0
+
+        if [[ "${SCHEDULED}" == "true" ]]; then
+          jq --arg reason "${reason}" '.action = "skip" | .reason = $reason' \
+            "${PLAN_FILE}" > "${PLAN_FILE}.tmp"
+          mv "${PLAN_FILE}.tmp" "${PLAN_FILE}"
+          echo "### Scheduled release skipped: ${reason}" >> "${GITHUB_STEP_SUMMARY}"
+          exit 0
+        fi
+
+        echo "${reason}" >&2
+        exit 1

@@ -59,7 +59,7 @@
 <!-- Rendered with the shared pierre-based PatchDiff (same renderer as the
      desktop Diff tab) so diffs look identical everywhere in the app. The
      surrounding ToolRoot Diff context still carries the header stats. -->
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<div class="relative max-w-full">
   {#if renderDiff}
     <PatchDiff
       oldFile={{ name: diff.path, contents: diff.oldText ?? "" }}
@@ -92,4 +92,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     </Tooltip>
     <CopyToClipboard text={newContent} />
   </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</div>

@@ -3,7 +3,7 @@ import { initializeACPHostRpc } from "@poolsideai/features/acp";
 import { onDestroy, onMount } from "svelte";
 
 import { initializeStatefulModule as initializeHostRpc, rpc } from "../../../lib/rpc/client";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { WebviewRPCServer } from "../../../lib/rpc/server";
 import { appState, type PoolsideInitialState } from "../../../lib/store";
 import type { Repositories } from "./Repositories.svelte";
 import type { RuntimeProps } from "./types";

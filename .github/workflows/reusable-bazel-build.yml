@@ -1,136 +1,136 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Reusable workflow for building Go projects with Bazel + Zig cross-compilation.
+#
+# Linux and Windows targets are cross-compiled from Ubuntu using the Zig toolchain
+# registered in MODULE.bazel (hermetic_cc_toolchain).  No Docker, no musl-cross
+# download, no goreleaser needed.
+#
+# Darwin targets still require a macOS runner because the macOS SDK cannot be
+# redistributed separately from Xcode.
+#
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+#
+# Usage example:
+#
+#   jobs:
+#     build:
+#       uses: ./.github/workflows/reusable-bazel-build.yml
+#       with:
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+#         sign_windows: true
+#         sign_darwin: true
+#       secrets: inherit
+name: reusable-bazel-build
+
+on:
+  workflow_call:
+    inputs:
+      bazel_target:
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+        type: string
+        required: true
+      binary_name:
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+        type: string
+        required: true
+      tag:
+        description: "Version tag (e.g. pool/v1.2.3 or v1.2.3)"
+        type: string
+        required: false
+      version:
+        description: "Exact version string to embed instead of deriving one from tag"
+        type: string
+        required: false
+      tag_prefix:
+        description: "Prefix to strip from tag when embedding version (e.g. pool/ for pool/v1.2.3 → v1.2.3)"
+        type: string
+        required: false
+        default: ""
+      ref:
+        description: "Exact source ref to build"
+        type: string
+        required: false
+      sign_windows:
+        description: "Sign Windows binaries with SSL.com code signing"
+        type: boolean
+        required: false
+        default: false
+      sign_darwin:
+        description: "Sign macOS binaries with Apple code signing"
+        type: boolean
+        required: false
+        default: false
       embed_mobile_webui:
         description: "Build the mobile-remote UI bundle and copy it into the helper's webui embed dir before the Bazel build (poolside-helper only)"
         type: boolean
         required: false
         default: false
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          # linux and windows: cross-compiled from Ubuntu via the Zig toolchain.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          - os: ubuntu-24.04
+            goos: linux
+            goarch: amd64
+            build_type: cross
+
+          - os: ubuntu-24.04
+            goos: linux
+            goarch: arm64
+            build_type: cross
+
+          - os: ubuntu-24.04
+            goos: windows
+            goarch: amd64
+            build_type: cross
+
+          - os: ubuntu-24.04
+            goos: windows
+            goarch: arm64
+            build_type: cross
+
+          # darwin/arm64: native on arm64 runner (Apple Silicon).
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+            build_type: native
+
+          # darwin/amd64: native on Intel runner.
+          # Cross-compiling darwin/amd64 from arm64 is not possible with Bazel today:
+          # - @local_config_cc on arm64 only generates a darwin_arm64 toolchain (no darwin_x86_64).
+          # - The Zig toolchain (hermetic_cc_toolchain) doesn't bundle macOS SDK headers
+          #   (e.g. resolv.h) — Apple's SDK is proprietary and can't be redistributed.
+          # Until Bazel gains proper darwin cross-compilation support, a native Intel runner
+          # is the only reliable way to produce CGO-enabled darwin/amd64 binaries.
+          - os: macos-15-large
+            goos: darwin
+            goarch: amd64
+            build_type: native
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2 # v4.2.2
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          fetch-depth: 0
+
+      - name: Install Bazelisk (macOS)
+        if: runner.os == 'macOS'
+        run: brew install bazelisk
+
       # The helper serves the mobile-remote UI from a bundle embedded at Go
       # compile time (pkg/poolside-helper/internal/handler/remoteaccess/webui,
       # //go:embed via a glob'd embedsrcs). Only placeholders are committed, so
@@ -152,108 +152,108 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: pnpm --filter @poolsideai/mobile-remote embed
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      - name: Compute version tag
+        id: version
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          TAG="${{ env.TAG }}"
+          PREFIX="${{ inputs.tag_prefix }}"
+          if [ -n "$VERSION" ]; then
+            CLEAN_TAG="$VERSION"
+          elif [ -n "$PREFIX" ]; then
+            STRIP="${PREFIX}v"
+            CLEAN_TAG="${TAG#"${STRIP}"}"
+          else
+            CLEAN_TAG="${TAG#v}"
+          fi
+          echo "clean_tag=${CLEAN_TAG}" >> "$GITHUB_OUTPUT"
+          echo "archive_name=${{ inputs.binary_name }}-${{ matrix.goos }}-${{ matrix.goarch }}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and locate binary
+        id: build
+        shell: bash
+        env:
+          VERSION_TAG: ${{ steps.version.outputs.clean_tag }}
+        run: |
+          set -euo pipefail
+
+          case "${{ matrix.build_type }}" in
+            cross)
+              # Linux/Windows: use Zig toolchain via go_cross_binary.
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+              # but go_cross_binary applies its own platform transition so the
+              # outer --platforms does not override the cross-compiled target.
+              TARGET="${{ inputs.bazel_target }}_${{ matrix.goos }}_${{ matrix.goarch }}"
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+              ;;
+            native)
+              # darwin/arm64: plain native build, no platform override.
+              TARGET="${{ inputs.bazel_target }}"
+              BUILD_FLAGS="--config=publish"
+              ;;
+          esac
+
+          bazelisk build $BUILD_FLAGS "$TARGET"
+
+          # cquery --output=files reliably returns the actual output file path
+          # regardless of which platform subdirectory Bazel chose.
+          BINARY_PATH=$(bazelisk cquery $BUILD_FLAGS "$TARGET" --output=files | head -1)
+          echo "binary_path=${BINARY_PATH}" >> "$GITHUB_OUTPUT"
+
+      - name: Copy binary to dist/
+        shell: bash
+        run: |
+          mkdir -p dist
+
+          SUFFIX=""
+          if [[ "${{ matrix.goos }}" == "windows" ]]; then SUFFIX=".exe"; fi
+
+          DEST="dist/${{ steps.version.outputs.archive_name }}${SUFFIX}"
+          cp "${{ steps.build.outputs.binary_path }}" "${DEST}"
+          chmod u+w "${DEST}"
+          echo "BINARY_DEST=${DEST}" >> "${GITHUB_ENV}"
+          echo "SUFFIX=${SUFFIX}" >> "${GITHUB_ENV}"
+
+      - name: Sign macOS binary
+        if: inputs.sign_darwin && matrix.goos == 'darwin'
+        uses: ./.github/actions/sign-darwin-binary
+        with:
+          BINARY_PATH: ${{ env.BINARY_DEST }}
+          ASC_ISSUER_ID: ${{ vars.APPLE_API_ISSUER }}
+          ASC_KEY_ID: ${{ vars.APPLE_API_KEY }}
+          MACOS_DEVID_P12_B64: ${{ secrets.MACOS_DEVID_P12_B64 }}
+          MACOS_DEVID_P12_PASSWORD: ${{ secrets.MACOS_DEVID_P12_PASSWORD }}
+          ASC_KEY_P8_B64: ${{ secrets.ASC_KEY_P8_B64 }}
+
+      - name: Package tarball and checksum
+        shell: bash
+        run: |
+          cd dist
+          ARCHIVE="${{ steps.version.outputs.archive_name }}.tar.gz"
+          BINARY="${{ steps.version.outputs.archive_name }}${{ env.SUFFIX }}"
+          tar -czf "${ARCHIVE}" "${BINARY}"
+          sha256sum "${ARCHIVE}" > "${{ steps.version.outputs.archive_name }}.checksum"
+
+      - name: Sign Windows binary
+        if: inputs.sign_windows && matrix.goos == 'windows'
+        uses: ./.github/actions/sign-windows-binary
+        with:
+          archive_path: dist/${{ steps.version.outputs.archive_name }}.tar.gz
+          binary_name: ${{ steps.version.outputs.archive_name }}
+          username: ${{ secrets.WINDOWS_CODE_SIGN_USERNAME }}
+          password: ${{ secrets.WINDOWS_CODE_SIGN_PASSWORD }}
+          credential_id: ${{ secrets.WINDOWS_CODE_SIGN_CREDENTIAL_ID }}
+          totp_secret: ${{ secrets.WINDOWS_CODE_SIGN_TOTP_SECRET }}
+
+      - name: Upload artifact
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+        with:
+          name: artifact-${{ steps.version.outputs.archive_name }}
+          path: |
+            ${{ (inputs.sign_windows && matrix.goos == 'windows') && 'signing-workspace' || 'dist' }}/${{ steps.version.outputs.archive_name }}.tar.gz
+            ${{ (inputs.sign_windows && matrix.goos == 'windows') && 'signing-workspace' || 'dist' }}/${{ steps.version.outputs.archive_name }}.checksum
+          # GitHub Release assets are the durable copy. This artifact only
+          # transports the build to publication and product packaging jobs.
+          retention-days: 7

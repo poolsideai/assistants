@@ -1,7 +1,7 @@
 {
   "name": "@poolsideai/splits",
   "version": "2.3.53",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "private": true,
   "description": "Svelte split-pane tab controller and view components.",
   "license": "MIT",
   "sideEffects": false,

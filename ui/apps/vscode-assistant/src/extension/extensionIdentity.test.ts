@@ -29,25 +29,25 @@ describe("extensionIdentity", () => {
     expect(getExtensionIdentity().telemetryOutputChannelName).toBe("poolside");
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("passes a renamed production id through unchanged and keeps the poolside namespace", () => {
+    // Publishing under a new marketplace name must not break `@ext:` / marketplace
+    // deep-links, and the static `contributes` namespace stays `poolside.*`.
+    configureExtensionIdentity("poolside-ai.poolside");
+
+    expect(getExtensionIdentity().extensionId).toBe("poolside-ai.poolside");
+    expect(getExtensionIdentity().isDev).toBe(false);
+    expect(getExtensionIdentity().poolsideName).toBe("poolside");
+    expect(`${POOLSIDE}.open`).toBe("poolside.open");
+  });
+
+  it("treats any -dev suffixed id as the dev variant", () => {
+    configureExtensionIdentity("poolside-ai.poolside-dev");
+
+    expect(getExtensionIdentity().extensionId).toBe("poolside-ai.poolside-dev");
+    expect(getExtensionIdentity().isDev).toBe(true);
+    expect(getExtensionIdentity().poolsideName).toBe("poolside-dev");
+  });
+
   it("maps dev Poolside IDs to the dev namespace", () => {
     configureExtensionIdentity("poolside-ai.poolside-assistant-dev");
 

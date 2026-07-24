@@ -21,31 +21,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 import * as vscode from "vscode";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { POOLSIDE } from "../extensionIdentity";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getHelperSingleton, updateHelperConfig } from "../helper";
+import { System } from "../system";
 import type { AcpChatPanels } from "../views/acpChatPanels";
 import { assistantTerminalCommandLaunch } from "./assistantTerminalCommand";
 import { addFolderToWorkspace } from "./handlers/addFolderToWorkspace";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { checkFileExists } from "./handlers/checkFileExists";
+import { getCodeSymbols } from "./handlers/getCodeSymbols";
+import { getFileContents } from "./handlers/getFileContents";
 import { getImageFileData } from "./handlers/getImageFileData";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getPromptContext } from "./handlers/getPromptContext";
+import { getUrlContents } from "./handlers/getUrlContents";
+import { listVSCodeMcpServers } from "./handlers/listVSCodeMcpServers";
+import { openExternalURL } from "./handlers/openExternalURL";
+import { openFile } from "./handlers/openFile";
+import { openImageFile } from "./handlers/openImageFile";
+import { openSettings } from "./handlers/openSettings";
+import { openTerminal } from "./handlers/openTerminal";
 import { openWorkspace } from "./handlers/openWorkspace";
 import { ready } from "./handlers/ready";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { reportError } from "./handlers/reportError";
+import { reportEvent } from "./handlers/reportEvent";
 import { revealSourceControl } from "./handlers/revealSourceControl";
 import { saveTextFile } from "./handlers/saveTextFile";
 import { selectProjectFolder } from "./handlers/selectProjectFolder";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { showInfoMessage } from "./handlers/showInfoMessage";
 
 export class HostRPCServer implements Host {
   private assistantTerminals = new Map<
@@ -207,7 +207,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
   showInfoMessage = showInfoMessage;
   async jsonrpc<I, O>(methodName: string, params: I): Promise<O> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const client = await getHelperSingleton(this.system);
     const result = await client.sendRequest(methodName, params);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (this.options.acpChatPanels && conversationId) {
@@ -237,7 +237,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     await client.sendNotification(methodName, params);
   }
   selectProjectFolder = selectProjectFolder;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  listVSCodeMcpServers = () => listVSCodeMcpServers(this.system);
   saveTextFile = saveTextFile;
   openWorkspace = openWorkspace;
   addFolderToWorkspace = addFolderToWorkspace;

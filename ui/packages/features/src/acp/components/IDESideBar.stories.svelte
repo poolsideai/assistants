@@ -7,25 +7,25 @@
 
   const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60 * 1000).toISOString();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const workspacePath = "/Users/poolie/code/assistant";
 
   const currentWorkspaceFolders: WorkspaceFolder[] = [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    { path: workspacePath, name: "assistant", index: 0 },
   ];
 
   const conversations: ACPNavConversation[] = [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {
+      // Draft conversation (not yet started) — no session id, shown with a pencil icon.
+      id: "conv-draft",
+      workspacePath,
+      agentServer: "poolside",
+      cwd: workspacePath,
+      title: "New conversation",
+      updatedAt: minutesAgo(1),
+      active: true,
+      archived: false,
+      workingDirectories: [workspacePath],
+    },
     {
       id: "conv-1",
       workspacePath,
@@ -77,15 +77,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     {
       // out-of-workspace conversation — should be filtered out of the IDE sidebar
       id: "conv-5",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      workspacePath: "/Users/poolie/code/poolside-books-api-demo",
       agentServer: "poolside",
       sessionId: "session-acp-5",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      cwd: "/Users/poolie/code/poolside-books-api-demo",
       title: "Add Book description field",
       updatedAt: minutesAgo(60 * 6),
       active: true,
       archived: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      workingDirectories: ["/Users/poolie/code/poolside-books-api-demo"],
     },
   ];
 
@@ -93,7 +93,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onCollapsedChange: () => {},
     onNewConversation: () => {},
     onShowAgents: () => {},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onShowConnectors: () => {},
     onShowChat: () => {},
   };
 
