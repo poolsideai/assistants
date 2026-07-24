@@ -24,28 +24,28 @@ func (h *PoolsideHandler) InitiateMCPOAuth(ctx context.Context, params *methods.
 		return nil, pkgerrors.New("server ID is required")
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	err := mcp.RunMCPOAuthFlow(ctx, mcp.OAuthFlowParams{
+		ServerURL: params.ServerURL,
+		ServerID:  params.ServerID,
+		OnAuthURL: func(authURL string) {
+			log.Info("Notifying client to open OAuth URL", "auth_url", authURL)
+			if notifyErr := gCtx.Notify(ctx, methods.MCPOAuthURLParams{}.MethodName(), &methods.MCPOAuthURLParams{
+				ServerID: params.ServerID,
+				AuthURL:  authURL,
+			}); notifyErr != nil {
+				log.Warn("Failed to notify client of OAuth URL", "error", notifyErr)
+			}
 		},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	})
 	if err != nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		return nil, pkgerrors.Wrap(err, "MCP OAuth flow")
 	}
 
 	log.Info("Successfully completed MCP OAuth flow and stored token")
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// The flow may have outlived the request ctx; use a detached ctx so the
+	// success toast still reaches the client.
+	if err := gCtx.Notify(context.WithoutCancel(ctx), "window/showMessage", protocol.ShowMessageParams{
 		Type:    protocol.Info,
 		Message: fmt.Sprintf("poolside: Successfully signed in to %s MCP", params.ServerName),
 	}); err != nil {
@@ -68,7 +68,7 @@ func (h *PoolsideHandler) MCPOAuthCallback(_ context.Context, params *methods.MC
 func (h *PoolsideHandler) DeleteMCPSecrets(ctx context.Context, params *methods.DeleteMCPSecretsParams, _ *glsp.Context) (*methods.DeleteMCPSecretsOutput, error) {
 	log := slog.With("server_id", params.ServerID, "server_url", params.ServerURL)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if err := mcp.DeleteMCPServerSecrets(ctx, params.ServerURL, params.ServerID); err != nil {
 		return nil, pkgerrors.Wrap(err, "failed to delete MCP secrets")
 	}
 

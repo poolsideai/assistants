@@ -75,9 +75,9 @@ import Leg from "./glyphs/leg.svelte";
 import Light from "./glyphs/light.svelte";
 import Link from "./glyphs/link.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import MCPAlert from "./glyphs/mcp-alert.svelte";
+import MCPReady from "./glyphs/mcp-ready.svelte";
+import MCP from "./glyphs/mcp.svelte";
 import Microphone from "./glyphs/microphone.svelte";
 import Minus from "./glyphs/minus.svelte";
 import More from "./glyphs/more.svelte";
@@ -226,9 +226,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   light: Light,
   link: Link,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  mcp: MCP,
+  "mcp-alert": MCPAlert,
+  "mcp-ready": MCPReady,
   microphone: Microphone,
   minus: Minus,
   more: More,
@@ -379,9 +379,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   light: { weight: false },
   link: { weight: true },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  mcp: { weight: true, dashed: true },
+  "mcp-alert": { weight: true },
+  "mcp-ready": { weight: true },
   microphone: { weight: true },
   minus: { weight: true },
   more: { weight: true },

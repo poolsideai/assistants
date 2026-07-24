@@ -32,18 +32,18 @@ export class DesktopTarget {
   private bridgeResults = new Map<string, { ok: boolean; body?: string; error?: string }>();
 
   async launch(opts: DesktopLaunchOptions = {}): Promise<void> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const repoRoot = await this.findRepoRoot();
+    if (!repoRoot) throw new Error("Cannot find repo root.");
 
+    const appDir = path.join(repoRoot, "ui/apps/desktop-assistant");
+    const viteConfigDist = path.join(repoRoot, "ui/config/vite/dist/index.js");
+    const svelteConfigDist = path.join(repoRoot, "ui/config/svelte/dist/index.js");
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        cwd: repoRoot,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -51,9 +51,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     // Spawning the `tauri` script below skips the `dev` script's
     // download:binaries step, so fetch the helper/sidecar binaries here. The
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // script reuses complete version-stamped binaries without a network call;
+    // failures (for example, a fresh offline checkout) fall through to whatever
+    // is already on disk.
     try {
       execFileSync("pnpm", ["download:binaries"], { cwd: appDir, stdio: "inherit" });
     } catch {
@@ -63,11 +63,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
 
     const devPort = opts.devPort ?? Number(process.env.VITE_DEV_PORT ?? 5177);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const slot =
+      (opts.worktreeSlot ?? Number(process.env.POOLSIDE_WORKTREE_SLOT || "0")) || undefined;
+    const worktreeId = opts.worktreeId ?? process.env.POOLSIDE_WORKTREE_ID ?? "main";
     const isMain = !slot && worktreeId === "main";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const folderName = path.basename(repoRoot);
     const color = isMain
       ? undefined
       : (opts.color ?? process.env.SPOOLSIDE_DESKTOP_COLOR ?? slotColor(slot));
@@ -75,7 +75,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const title = `Poolside ${titleSuffix}`;
     const identSuffix = crypto
       .createHash("sha256")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      .update(`${repoRoot}:${slot ?? 0}:${worktreeId}`)
       .digest("hex")
       .slice(0, 8);
     const configPath = path.join(os.tmpdir(), `spoolside-tauri-${identSuffix}.json`);
@@ -463,7 +463,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     throw new Error("Timed out waiting for desktop webview bridge.");
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private async findRepoRoot(): Promise<string | null> {
     const packageDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
     const fromPackage = path.resolve(packageDir, "../../..");
     if (fs.existsSync(path.join(fromPackage, "ui/apps/desktop-assistant/package.json"))) {

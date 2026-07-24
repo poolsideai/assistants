@@ -39,12 +39,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   const context = getToolContext();
   const tool = $derived(context.tool);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // `_meta.tool_name` can override the coarse ACP kind label — e.g. a file
+  // "write" arrives as kind "edit" (so it would read as "Edit"), and a
+  // directory listing arrives as kind "read".
+  const label = $derived(
+    getToolNameLabel(tool) ?? (tool.kind && tool.kind !== "other" ? LABELS[tool.kind] : undefined),
+  );
   const path = $derived(getToolPath(tool));
   const parsedPath = $derived(
     path ? getReadableFileInfo(path, context.workspaceFolders, context.homeDirectory) : undefined,
@@ -71,17 +71,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       ? shortenDirectoryPathsInText(searchQuery, context.workspaceFolders, context.homeDirectory)
       : searchQuery,
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // A recognized kind normally renders a kind-specific detail next to its label
+  // (file path, command, or search query). Kinds like "think" have a label but
+  // no detail renderer, so the descriptive title would be dropped, leaving a bare
+  // "Think". When there's no inline detail, show the title in place of the label
+  // (matching how kind "other" renders) rather than an empty kind word.
+  const hasInlineDetail = $derived(
+    !!path || (isPermissionDenied && !!commandLabel) || !!searchQuery,
+  );
+  const titleFallback = $derived(
     !hasInlineDetail && tool.title && tool.title !== label ? displayTitle : undefined,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
   const status = $derived.by(() => {
     if (isPermissionDenied) return "denied";
     if (tool.status === "failed") return "error";
@@ -100,9 +100,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     className,
   ]}
 >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <!-- Single full-area click target so the whole row toggles, including the
+       gaps between icon/label/chevron. The icon, label, and chevron are plain
+       (non-interactive); only the file link sits above this overlay. -->
   {#if expandable}
     <CollapsibleTrigger
       aria-label={context.open ? "Collapse tool call" : "Expand tool call"}
@@ -110,8 +110,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       class="absolute inset-0 z-10"
     />
   {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  <span class="flex w-4 shrink-0 items-center justify-center">
     {#if context.icon === "loading"}
       <Spinner aria-hidden size={12} class="shrink-0" />
     {:else if context.icon}
@@ -121,30 +121,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         {...typeof context.icon === "string" ? { name: context.icon } : context.icon}
       />
     {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </span>
 
   {#if label}
     <span class="text-auto flex min-w-0 items-baseline gap-1.5 text-current">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {#if titleFallback}
+        <span class="min-w-0 truncate">{titleFallback}</span>
+      {:else}
+        <span class="shrink-0">
+          {isPermissionDenied && tool.kind === "execute" ? "Execute" : label}
+        </span>
         {#if isPermissionDenied && displayCommandLabel}
           <span class="truncate font-mono opacity-90">{displayCommandLabel}</span>
         {:else if displaySearchQuery}
           <span class="truncate font-mono opacity-90">{displaySearchQuery}</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {/if}
       {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </span>
     {#if path}
       <Tooltip
         text={parsedPath?.filePath}
         placement="top"
         gutter={8}
         openDelay={200}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        class="relative z-20 min-w-0"
       >
         <FileButton
           path={parsedPath?.absolutePath ?? path}

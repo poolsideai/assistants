@@ -139,7 +139,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     // Source-list selection, styled in the desktop stylesheet off this class
     // rather than here: the fill and its ring are desktop-only — see app.css.
     selected && desktop ? "desktop-sidebar-row-selected" : "",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "text-psx-foreground-primary",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

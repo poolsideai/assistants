@@ -21,8 +21,8 @@ func (h *PoolsideHandler) WorkspaceDidChangeConfiguration(c *glsp.Context, param
 	if err != nil {
 		return err
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if err := h.ensureACPNavStore(c.Context); err != nil {
+		return err
 	}
 
 	return nil

@@ -851,14 +851,14 @@ impl HelperProcess {
     }
 
     async fn initialize(&self) -> Result<(), HelperJsonRpcError> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        let app_version = self.app_handle.package_info().version.to_string();
         self.send_request(
             Initialize::METHOD,
             json!({
                 "processId": std::process::id(),
                 "clientInfo": {
                     "name": "Poolside",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                    "version": app_version.clone()
                 },
                 "capabilities": {
                     "workspace": {

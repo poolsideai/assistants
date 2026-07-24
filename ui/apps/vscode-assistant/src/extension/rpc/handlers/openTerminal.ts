@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { System } from "../../system";
 
 const terminalsByCwd = new Map<string, vscode.Terminal>();
 

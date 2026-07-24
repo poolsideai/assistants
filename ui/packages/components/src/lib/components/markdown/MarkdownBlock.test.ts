@@ -62,7 +62,7 @@ describe("MarkdownBlock", () => {
     const checkFileExists = vi.fn(async (path: string) => path === "/repo/docs/review.md");
     const host: MarkdownHostAdapter = {
       state: readable({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        userSettings: {},
         environment: { assistantHost: "desktop" },
         workspaces: [{ path: "/repo" }],
       }),
@@ -274,7 +274,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   it("uses custom markdown link text as the file link label", async () => {
     const host: MarkdownHostAdapter = {
       state: readable({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        userSettings: {},
         environment: { assistantHost: "desktop" },
         workspaces: [{ path: "/repo" }],
       }),
@@ -304,7 +304,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }));
     const host: MarkdownHostAdapter = {
       state: readable({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        userSettings: {},
         environment: { assistantHost: "desktop" },
         workspaces: [{ path: "/repo" }],
       }),
@@ -339,11 +339,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const openFile = vi.fn();
     const host: MarkdownHostAdapter = {
       state: readable({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        userSettings: {},
         environment: { assistantHost: "desktop" },
         workspaces: [
           {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            path: "/Users/poolie/Library/Application Support/poolside/worktrees/pale-porthole",
           },
         ],
       }),
@@ -475,30 +475,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(mountedCodeBlocks).toBeLessThan(20);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("renders content with bare/autolinked URLs without overflowing the stack", async () => {
+    // A custom link renderer used to re-parse the link text inline, which
+    // re-discovered the autolinked URL and recursed forever — bare URLs (e.g.
+    // web-search results) rendered as an empty block. Regression guard.
+    render(MarkdownBlock, {
+      props: {
+        content:
+          'Web search results.\n\nLinks: [{"title":"Paris","url":"https://www.timeanddate.com/weather/france/paris"}] ' +
+          "and a bare https://example.com/a/b/c here.",
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Web search results/)).toBeInTheDocument();
+    });
+    const link = screen.getByRole("link", { name: "https://example.com/a/b/c" });
+    expect(link).toHaveAttribute("href", "https://example.com/a/b/c");
+  });
+
   it("preserves encoded literal percent escapes in markdown file links", async () => {
     const openFile = vi.fn();
     const host: MarkdownHostAdapter = {
       state: readable({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        userSettings: {},
         environment: { assistantHost: "desktop" },
         workspaces: [{ path: "/repo" }],
       }),

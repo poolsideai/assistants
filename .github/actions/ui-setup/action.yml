@@ -1,5 +1,5 @@
 name: 'Setup'
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+description: 'Setup pnpm with caching'
 inputs:
   pnpm_install_args:
     description: '`pnpm install` args'
@@ -17,7 +17,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       with:
         cache: "pnpm"
         node-version-file: ".tool-versions"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     - name: Install dependencies
       shell: bash
       run: pnpm install ${{ inputs.pnpm_install_args }}

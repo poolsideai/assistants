@@ -3,7 +3,7 @@
   import {
     ACPMCPSettingsRepositoryWriter,
     getUserMCPServersRepo,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    setACPMCPSettingsContext,
     type ACPSessionRepository,
   } from "@poolsideai/features/acp";
 
@@ -29,7 +29,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    setACPMCPSettingsContext(repo.publicAPI());
 
     // Same-webview fallback trigger: keeps connector mutations refreshing
     // sessions on helpers that predate the mcpServers/didChange broadcast

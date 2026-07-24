@@ -16,22 +16,22 @@ import (
 // refreshed. Callers should prompt the user to (re-)authenticate.
 var ErrNotAuthenticated = errors.New("mcp: server requires OAuth authentication")
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// HasStoredOAuthToken reports whether any OAuth token is stored for the server,
+// without validating or refreshing it. List-style callers use it as a cheap
+// signed-in check; an expired token still counts because it is refreshed on
+// first use.
+func HasStoredOAuthToken(ctx context.Context, store SecretsServerStore, serverURL, serverID string) bool {
+	key, err := NewServerKey(serverURL, serverID)
+	if err != nil {
+		return false
+	}
+	secrets, err := store.Load(ctx, key)
+	if err != nil {
+		return false
+	}
+	return secrets != nil && secrets.OAuth != nil
+}
+
 // ResolveAccessToken loads the stored OAuth token for the given server key,
 // refreshing (and persisting) it if expired, and returns the access token.
 //

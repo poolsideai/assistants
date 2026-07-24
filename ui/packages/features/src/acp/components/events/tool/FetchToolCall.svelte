@@ -37,9 +37,9 @@
     {#if hasContent}
       <ToolCallContents tool={event} {workspaceFolders} />
     {:else if rawOutput}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <CollapsibleContent class="relative flex max-w-full flex-col">
         <div
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          class="border-psx-border bg-psx-panel font-(family-name:--editor-font-size) block min-h-4 overflow-auto rounded-md border px-2.5 py-2 text-sm"
         >
           <pre class="whitespace-pre-wrap break-all">{rawOutput}</pre>
         </div>

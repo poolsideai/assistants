@@ -16,6 +16,6 @@ func NewDefault() (*server.Server, *handler.PoolsideHandler) {
 }
 
 func New(h *handler.PoolsideHandler) (*server.Server, *handler.PoolsideHandler) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	options := server.NewServerOptions(h.IsConcurrentMethod)
+	return server.NewServerWithOptions(h, "poolside Helper", false, options), h
 }

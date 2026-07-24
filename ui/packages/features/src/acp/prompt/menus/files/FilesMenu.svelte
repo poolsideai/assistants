@@ -141,7 +141,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }) satisfies Command);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // TODO: migrate this listener to a ProseMirror keymap plugin
   // attached to the editor, so the file picker no longer reaches into
   // `document` to intercept keys. The decision logic itself is already
   // pure (`decideFilePickerAction`), so the plugin would just dispatch

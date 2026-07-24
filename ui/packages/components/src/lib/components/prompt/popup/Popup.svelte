@@ -40,16 +40,16 @@
   const { customUI } = getDisplay();
   const { selectedAction, selectNext, selectFirst, selectLast, selectPrevious } = getItems();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  $effect(() => {
     search = $searchValue;
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  $effect(() => {
     const searchText = $searchValue;
     if (searchText !== undefined) {
       if (debounce) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        const timer = setTimeout(() => onSearch?.(searchText), 150);
+        return () => clearTimeout(timer);
       } else {
         onSearch?.(searchText);
       }

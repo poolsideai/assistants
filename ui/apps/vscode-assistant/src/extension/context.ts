@@ -3,7 +3,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 import * as os from "os";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import * as vscode from "vscode";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { System } from "./system";
 import { isDiffTab, isOpenInTab, isTextTab } from "./tabs";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

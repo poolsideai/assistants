@@ -106,7 +106,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const conversations = getACPConversationRepo();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   const registry = getACPAgentRegistryRepo();
   const keybindings = getKeybindingService();
@@ -469,12 +469,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       return;
     }
 
+    const server = chatSession.sessionAgentServer ?? chatSession.activeAgentServer;
+    const entries = scopeTrajectoryToConversation(
+      acpConnectionPool.debug.dump(server),
+      chatSession.sessionId,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const data = JSON.stringify(entries, null, 2);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
@@ -543,21 +543,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   function handleDraftPromptChange(value: string): void {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (value) {
+      // Surface a draft in the sidebar as soon as the user starts composing, so
+      // it can be left and returned to (no send required).
+      chatSession.ensureDraftPersisted();
+    }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const draftConversationId = chatSession.pendingConversationId;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       scheduleDraftSidebarPreview(draftConversationId, value, { updateTitle: true });
     } else if (chatSession.conversationId && !chatSession.isSending) {
       scheduleDraftSidebarPreview(chatSession.conversationId, value, { updateTitle: false });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
     if (!draftKey) return;
     if (value) {
       draftPrompts.set(draftKey, value);
@@ -565,24 +565,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       draftPrompts.delete(draftKey);
     }
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  // Flows that land the user here ready to type ("New conversation", "Add
+  // project") request focus on the session; consume it only once focusing
+  // succeeds — on the first run after a fresh mount the editor may not be
+  // attached yet, so retry once after the next frame.
+  $effect(() => {
+    if (!chatSession.promptFocusRequested) return;
+    if (prompt?.focus()) {
+      chatSession.consumePromptFocusRequest();
+      return;
+    }
+    const handle = requestAnimationFrame(() => {
+      if (chatSession.promptFocusRequested && prompt?.focus()) {
+        chatSession.consumePromptFocusRequest();
+      }
+    });
+    return () => cancelAnimationFrame(handle);
+  });
 </script>
 
 <Prompt.Root

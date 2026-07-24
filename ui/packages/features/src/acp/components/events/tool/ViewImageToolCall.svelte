@@ -72,7 +72,7 @@
     class="min-w-0 max-w-full self-start"
   >
     <div
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      class="hover:bg-psx-background-secondary text-psx-foreground-secondary hover:text-psx-foreground-primary group relative isolate flex h-6 w-fit min-w-0 max-w-full cursor-default select-none items-center gap-1.5 self-start rounded-md text-xs transition-colors"
     >
       <Icon name="file" size={14} class="shrink-0" />
       <span class="shrink-0">View image</span>

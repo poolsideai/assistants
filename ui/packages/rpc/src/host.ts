@@ -10,7 +10,7 @@ import type {
 } from "@poolsideai/helperapi/schemas";
 import type { ErrorObject } from "serialize-error";
 import type { Client, Messages } from "./generics";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 interface LineRange {
   start: number;
   end: number;
@@ -43,8 +43,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
    */
   revealSourceControl(): void;
   selectProjectFolder(): Promise<ProjectFolder | undefined>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /** Lists MCP servers configured in the host editor (VS Code mcp.json). Empty off VS Code. */
+  listVSCodeMcpServers(): Promise<VSCodeMcpServer[]>;
   saveTextFile(options: SaveTextFileOptions): Promise<string | undefined>;
   openWorkspace(path: string): Promise<void>;
   addFolderToWorkspace(path: string): Promise<void>;
@@ -204,13 +204,13 @@ export interface AcpChatPanelMetadata {
   agentServer?: string;
   agentName?: string;
   agentIconUrl?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /** Whether this agent accepts MCP servers (null = capabilities not known yet). */
+  supportsMcp?: boolean | null;
+  /**
+   * For the Poolside agent: whether the active model permits user/custom MCP
+   * servers. Per-model, so only the live session knows it (null = unknown).
+   */
+  allowCustomMcp?: boolean | null;
 }
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -231,7 +231,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  highlightTelemetryElements?: boolean;
   // boolean only feature flags, matching the server-side features.
   // These are pre-processed to allow us to specify full "poolside.boolFeatures.foo"
   // keys, but end up with a single object, where all non-booleans are dropped.
@@ -240,10 +240,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     [name: string]: boolean;
   };
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  notifyOnApproval?: boolean;
+  // How much of the agent's activity to show while it works. Stores the mode
+  // string so future modes are new values, not a settings migration.
+  toolActivity?: "detailed" | "grouped" | "compact";
   agentServers?: ACPAgentServers;
   acpAgentServers?: ACPAgentServers;
 }
@@ -259,20 +259,20 @@ export interface ProjectFolder {
   name: string;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/** An MCP server read from the host editor's configuration (VS Code mcp.json). */
+export interface VSCodeMcpServer {
+  name: string;
+  /** Where the entry came from, for display. */
+  source: "workspace" | "user";
+  // stdio
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  // http
+  url?: string;
+  headers?: Record<string, string>;
+}
+
 export type AssistantTerminalCommandMode = "interactive" | "nonInteractive";
 
 export interface AssistantTerminalTab {
@@ -310,8 +310,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  client_error: "client_error",
+  user_interaction: "user_interaction",
 } as const;
 
 export type TelemetryEventInputMetadata = { [key: string]: unknown };

@@ -37,10 +37,10 @@ export const base = defineConfig((_) => {
           extends: true,
           test: {
             name: "unit",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            // Heavy Svelte integration suites (full component renders + debounced
+            // effects on real timers) routinely exceed the 5s default on slower
+            // CI runners. 20s keeps them green without per-test bumps everywhere.
+            testTimeout: 20_000,
             include: ["src/**/*.test.ts"],
             exclude: [...configDefaults.exclude, "**/*.{browser,node}.test.ts"],
             typecheck: {

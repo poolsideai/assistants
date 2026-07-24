@@ -1,6 +1,6 @@
 import type { ACPConversationLiveStatus } from "../../navTypes";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type DesktopChatTabStatusKind = "default" | "unread" | "waiting";
 
 export interface DesktopChatStatusSession {
   sessionId: string | null;

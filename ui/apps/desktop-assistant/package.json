@@ -1,6 +1,6 @@
 {
   "name": "@poolsideai/desktop-assistant",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "version": "0.0.0",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   "description": "The Poolside desktop assistant shell.",
   "repository": {
@@ -24,7 +24,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "dev": "pnpm download:binaries && tauri dev",
     "dev:web": "pnpm build:isolation && vite --host 127.0.0.1",
     "download:binaries": "node scripts/copy-helper.mjs",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "download:binaries:refresh": "node scripts/copy-helper.mjs --refresh",
     "fix:format": "prettier . --write --cache --ignore-path .gitignore --ignore-path ../../.gitignore --ignore-path .prettierignore --list-different",
     "fix:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' './isolation/**/*.{js,mjs,cjs,ts,tsx,svelte}' --fix",
     "icons:macos": "node scripts/compile-macos-icon.mjs",
@@ -49,8 +49,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@tauri-apps/api": "2",
     "@tauri-apps/plugin-dialog": "2",
     "@tauri-apps/plugin-notification": "^2.3.3",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@tauri-apps/plugin-process": "2",
+    "@tauri-apps/plugin-updater": "2",
     "dom-accessibility-api": "0.6.3",
     "html-to-image": "^1.11.13",
     "tauri-plugin-screenshots-api": "^2.2.0",

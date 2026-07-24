@@ -69,8 +69,8 @@ export const DESKTOP_TOGGLE_LEFT_SIDEBAR_EVENT = "poolside:desktop-toggle-left-s
 export const DESKTOP_TOGGLE_RIGHT_SIDEBAR_EVENT = "poolside:desktop-toggle-right-sidebar";
 export const DESKTOP_TOGGLE_BOTTOM_PANEL_EVENT = "poolside:desktop-toggle-bottom-panel";
 export const DESKTOP_SAVE_LAYOUT_AS_DEFAULT_EVENT = "poolside:desktop-save-layout-as-default";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export const DESKTOP_CHECK_FOR_UPDATES_EVENT = "poolside:desktop-check-for-updates";
+export const DESKTOP_UPDATE_STAGED_EVENT = "poolside:desktop-update-staged";
 export const DESKTOP_UPDATE_PROGRESS_EVENT = "poolside:desktop-update-progress";
 export const DESKTOP_BUNDLE_REPLACED_EVENT = "poolside:desktop-bundle-replaced";
 export const DESKTOP_NAVIGATE_BACK_EVENT = "poolside:desktop-navigate-back";
@@ -104,11 +104,11 @@ export interface DesktopSettings {
   terminalFontFamilies: string[];
   terminalFontSize: number;
   terminalCursorStyle: DesktopTerminalCursorStyle;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  toolActivity: DesktopToolActivity;
   steerWithEnter: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  windowVibrancy: boolean;
   appIconTint: AppIconTint;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  updateChannel: DesktopUpdateChannel;
   autoInstallUpdates: boolean;
   fileOpenerId: string;
   fileOpeners: DesktopFileOpener[];
@@ -156,21 +156,21 @@ export type AppIconTint =
   | "red";
 
 export type DesktopTerminalCursorStyle = "block" | "bar" | "underline";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type DesktopToolActivity = "detailed" | "grouped" | "compact";
+export type DesktopUpdateChannel = "stable" | "nightly";
+
+/** Update available on the selected channel's feed. */
+export interface DesktopUpdateInfo {
+  version: string;
   /** Release notes from the update feed (the CrabNebula release notes). */
   notes?: string | null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+export interface DesktopStableSwitchResult {
   status: "alreadyStable" | "noUpdate" | "cancelled" | "staged";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  currentVersion: string;
+  version?: string;
+}
 
 export interface DesktopFileOpener {
   id: string;
@@ -657,39 +657,39 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async setDesktopToolActivity(toolActivity: DesktopToolActivity): Promise<DesktopSettings> {
+    return await setDesktopToolActivity(toolActivity);
+  }
+
   async setDesktopSteerWithEnter(steerWithEnter: boolean): Promise<DesktopSettings> {
     return await setDesktopSteerWithEnter(steerWithEnter);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async setDesktopWindowVibrancy(windowVibrancy: boolean): Promise<DesktopSettings> {
+    return await setDesktopWindowVibrancy(windowVibrancy);
+  }
+
   async setDesktopAppIconTint(appIconTint: AppIconTint): Promise<DesktopSettings> {
     return await setDesktopAppIconTint(appIconTint);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async setDesktopUpdateChannel(updateChannel: DesktopUpdateChannel): Promise<DesktopSettings> {
+    return await setDesktopUpdateChannel(updateChannel);
+  }
   async setDesktopAutoInstallUpdates(autoInstallUpdates: boolean): Promise<DesktopSettings> {
     return await setDesktopAutoInstallUpdates(autoInstallUpdates);
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  async switchDesktopToStable(): Promise<DesktopStableSwitchResult> {
+    const result = await switchDesktopToStable();
     if (result.status === "staged" && result.version) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      window.dispatchEvent(
+        new CustomEvent(DESKTOP_UPDATE_STAGED_EVENT, { detail: { version: result.version } }),
+      );
+    }
+    return result;
+  }
+
   async setDesktopFileOpener(fileOpenerId: string): Promise<DesktopSettings> {
     return await setDesktopFileOpener(fileOpenerId);
   }
@@ -855,8 +855,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   async updateHelperConfig(): Promise<void> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // ACP-chat-only: the legacy auth/apiUrl/completion-model fields were removed
+    // from the helper's RuntimeSettings, so we no longer send them.
     await helperJsonRpcNotify("workspace/didChangeConfiguration", {
       settings: {
         agentServers: this.initialState.userSettings.agentServers,
@@ -1061,20 +1061,20 @@ export async function setDesktopTerminalPreferences(
   });
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function setDesktopToolActivity(
+  toolActivity: DesktopToolActivity,
+): Promise<DesktopSettings> {
+  return await invoke("set_desktop_tool_activity", { toolActivity });
+}
+
 export async function setDesktopSteerWithEnter(steerWithEnter: boolean): Promise<DesktopSettings> {
   return await invoke("set_desktop_steer_with_enter", { steerWithEnter });
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function setDesktopWindowVibrancy(windowVibrancy: boolean): Promise<DesktopSettings> {
+  return await invoke("set_desktop_window_vibrancy", { windowVibrancy });
+}
+
 export async function setDesktopAppIconTint(appIconTint: AppIconTint): Promise<DesktopSettings> {
   return await invoke("set_desktop_app_icon_tint", { appIconTint });
 }
@@ -1083,12 +1083,12 @@ export async function getSystemAccentColors(): Promise<SystemAccentColors | null
   return await invoke("get_system_accent_colors");
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function setDesktopUpdateChannel(
+  updateChannel: DesktopUpdateChannel,
+): Promise<DesktopSettings> {
+  return await invoke("set_desktop_update_channel", { updateChannel });
+}
+
 export async function setDesktopAutoInstallUpdates(
   autoInstallUpdates: boolean,
 ): Promise<DesktopSettings> {
@@ -1096,10 +1096,10 @@ export async function setDesktopAutoInstallUpdates(
 }
 
 /** Check once and download that exact selected-channel update. */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function checkAndStageDesktopUpdate(): Promise<DesktopUpdateInfo | null> {
+  return await invoke("check_and_stage_desktop_update");
+}
+
 /**
  * Install the staged download and relaunch into it. Resolves only on failure —
  * a successful install restarts the process.
@@ -1126,11 +1126,11 @@ export async function takePendingUpdateAnnouncement(): Promise<string | null> {
   return await invoke("take_pending_update_announcement");
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/** Explicitly switch an installed Preview build to the signed Stable feed. */
+export async function switchDesktopToStable(): Promise<DesktopStableSwitchResult> {
+  return await invoke("switch_desktop_to_stable");
+}
+
 export async function setDesktopFileOpener(fileOpenerId: string): Promise<DesktopSettings> {
   return await invoke("set_desktop_file_opener", { fileOpenerId });
 }

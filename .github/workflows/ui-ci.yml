@@ -5,9 +5,9 @@ on:
       - ui/**
       - scripts/ui/**
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      - .github/workflows/release-*.yml
+      - .github/workflows/validate-*-release.yml
+      - .github/actions/**
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     branches:
@@ -17,9 +17,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       - ui/**
       - scripts/ui/**
       - .github/workflows/ui-ci.yml
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      - .github/workflows/release-*.yml
+      - .github/workflows/validate-*-release.yml
+      - .github/actions/**
       - package.json
       - pnpm-*.yaml
 
@@ -28,23 +28,23 @@ env:
   DO_NOT_TRACK: 1
 
 jobs:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  workflow_lint:
+    name: Actions lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Validate workflows
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 -color
+
   affected:
     timeout-minutes: 15
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    # Canonical repo runs on the org's GitHub-hosted 4-core runner (ubuntu-24.04-4);
+    # any other repo (forks) falls back to standard ubuntu-24.04 — a free 4-core once
+    # the repo is public. The 4-core box roughly halves these jobs vs the 2-core default
+    # (Build ~5.5m vs ~9m) and keeps --concurrency=50% at 2 rather than collapsing to 1.
+    # Actionlint cannot validate the organization-specific runner label.
     runs-on: ${{ github.repository == 'poolsideai/assistant' && 'ubuntu-24.04-4' || 'ubuntu-24.04' }}
     name: ${{ matrix.name }}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -77,8 +77,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
       - name: ${{ matrix.name }}
         run: pnpm ${{ matrix.script }}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        env:
+          NODE_OPTIONS: "--max-old-space-size=8192"
           SKIP_DESKTOP_TAURI_BUILD: ${{ matrix.name == 'Build' && '1' || '' }}
 
       - name: Visualization navigation regressions

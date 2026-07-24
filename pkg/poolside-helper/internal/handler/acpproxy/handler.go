@@ -345,9 +345,9 @@ func (h *Handler) validateServerName(serverName string) error {
 
 func (h *Handler) ensureStarted(ctx context.Context, gCtx *glsp.Context, serverName string, initReq *acpsdk.InitializeRequest) (*process, error) {
 	serverName = normalizeServerName(serverName)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if err := h.validateServerName(serverName); err != nil {
+		return nil, err
+	}
 	proc, client := h.processFor(serverName, gCtx)
 	err := proc.ensureStarted(ctx, h.configFn, serverName, client, initReq, func(serverName string, err error) {
 		if h.liveStatusSink != nil {
@@ -397,10 +397,10 @@ func notifyAgentServerDidExit(gCtx *glsp.Context, serverName string, err error) 
 	}
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// refreshAuthAfterCallError is retained as a no-op. The helper is ACP-only and
+// no longer brokers Poolside backend tokens; ACP agents authenticate
+// themselves, so there is nothing to refresh after an agent call error.
+func (h *Handler) refreshAuthAfterCallError(_ context.Context, _ string, _ error) {}
 
 func (h *Handler) initializedProcess(gCtx *glsp.Context, serverName string) (*process, error) {
 	serverName = normalizeServerName(serverName)
@@ -536,80 +536,80 @@ func (h *Handler) Logout(ctx context.Context, params *methods.ACPLogoutParams, g
 	return &resp, nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// configProbeMetaKey marks a config-probe session in NewSession/LoadSession
+// _meta. The client (AcpAgentRepository) sets it on the throwaway probe session
+// so we skip user-connector injection (and its subprocess/HTTP side effects) for
+// it. Keep the literal in sync with the client.
+const configProbeMetaKey = "poolside/configProbe"
+
+// isConfigProbeSession reports whether a session request's _meta marks it as a
+// config probe.
+func isConfigProbeSession(meta any) bool {
+	m, ok := meta.(map[string]any)
+	if !ok {
+		return false
+	}
+	v, _ := m[configProbeMetaKey].(bool)
+	return v
+}
+
+// injectUserMCPServers appends enabled user MCP connectors to *servers for a real
+// (non-probe) session and returns the entries that couldn't be injected. Config-
+// probe sessions are skipped (see configProbeMetaKey) so opening Connectors
+// doesn't spawn every stdio server or dial every HTTP endpoint.
+func (h *Handler) injectUserMCPServers(ctx context.Context, proc *process, agentServer string, meta any, servers *[]acpsdk.McpServer) []methods.MCPServerStatus {
+	injector := h.configFn().MCPServerInjector
+	if injector == nil || isConfigProbeSession(meta) {
+		return nil
+	}
+	var caps acpsdk.McpCapabilities
+	if ir, err := proc.initializeResponse(); err == nil {
+		caps = ir.AgentCapabilities.McpCapabilities
+	}
+	injected, unavailable := injector(ctx, agentServer, caps)
+	*servers = append(*servers, injected...)
+	return unavailable
+}
+
 func (h *Handler) NewSession(ctx context.Context, params *methods.ACPNewSessionParams, gCtx *glsp.Context) (*methods.ACPNewSessionOutput, error) {
 	proc, err := h.processReadyForSession(ctx, gCtx, params.AgentServer)
 	if err != nil {
 		return nil, err
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	req := params.NewSessionRequest
+	// Config/probe sessions arrive with cwd "/" (workspace-independent), but the
+	// agent can't resolve ~/.poolside from "/" on a read-only root. Map it to a
+	// real dir (workspace, else home) so per-server settings land where real
+	// sessions read them.
+	if req.Cwd == "/" || req.Cwd == "" {
+		fallback := h.configFn().WorkingDir
+		if fallback == "" || fallback == "/" {
+			fallback = resolveRealHomeDir()
+		}
+		if fallback != "" && fallback != "/" {
+			slog.Info("acpproxy: substituting session cwd", "from", req.Cwd, "to", fallback)
+			req.Cwd = fallback
+		}
+	}
+	unavailable := h.injectUserMCPServers(ctx, proc, params.AgentServer, req.Meta, &req.McpServers)
+
 	// Runs concurrently with session/new below; see claude_auth_probe.go.
 	claudeAuthResult := h.maybeProbeClaudeAuthStatus(ctx, proc, params.AgentServer, req.Meta)
 
 	proc.mu.Lock()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	resp, err := proc.newSessionLocked(ctx, req)
 	proc.mu.Unlock()
 	if err != nil {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		return nil, err
 	}
 	if claudeAuthResult != nil {
 		if authErr := <-claudeAuthResult; authErr != nil {
 			return nil, authErr
 		}
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 	// Bind the nav conversation row to the new session id before returning:
 	// the helper witnesses session/new, so the binding must not depend on the
 	// client echoing it back over a possibly-flaky socket. Live status is
@@ -629,8 +629,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		}
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	notifySessionResolved(ctx, gCtx, params.AgentServer, string(resp.SessionId), req.McpServers, unavailable)
+	return resp, nil
 }
 
 func (h *Handler) LoadSession(ctx context.Context, params *methods.ACPLoadSessionParams, gCtx *glsp.Context) (*methods.ACPLoadSessionOutput, error) {
@@ -641,7 +641,7 @@ func (h *Handler) LoadSession(ctx context.Context, params *methods.ACPLoadSessio
 	}
 	_, client := h.processFor(serverName, gCtx)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	req := params.LoadSessionRequest
 	unavailable := h.injectUserMCPServers(ctx, proc, serverName, req.Meta, &req.McpServers)
 
 	// Scope this session's update traffic to the requesting client for the
@@ -657,7 +657,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}
 
 	proc.mu.Lock()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	resp, err := proc.loadSessionLocked(ctx, req)
 	proc.mu.Unlock()
 	if err != nil {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -666,7 +666,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	if flushErr := client.waitForSessionUpdates(ctx); flushErr != nil {
 		return nil, preserveACPError("acpproxy: load session notifications", flushErr)
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 	// Report the session's live-event cursor as of the completed replay so
 	// the client can seq-gate subsequent live updates (the replay/live
 	// cutover) and resume after reconnects. Live events were scoped away from
@@ -684,7 +684,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}
 
 	notifySessionResolved(ctx, gCtx, serverName, string(req.SessionId), req.McpServers, unavailable)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return resp, nil
 }
 
 func (h *Handler) ResumeSession(ctx context.Context, params *methods.ACPResumeSessionParams, gCtx *glsp.Context) (*methods.ACPResumeSessionOutput, error) {
@@ -942,37 +942,37 @@ func (h *Handler) MCPSetInputVariable(ctx context.Context, params *methods.ACPMC
 	return &output, nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// notifySessionResolved emits the poolside/mcpServers/sessionResolved notification
+// after a session is set up. It is best-effort: failures are logged, not propagated.
+func notifySessionResolved(ctx context.Context, gCtx *glsp.Context, agentServer, sessionID string, injectedServers []acpsdk.McpServer, unavailable []methods.MCPServerStatus) {
+	injected := make([]methods.MCPServerStatus, 0, len(injectedServers))
+	for _, srv := range injectedServers {
+		name := mcpServerName(srv)
+		if name != "" {
+			injected = append(injected, methods.MCPServerStatus{ServerName: name})
+		}
+	}
+	params := methods.MCPServersSessionResolvedParams{
+		AgentServer: agentServer,
+		SessionID:   sessionID,
+		Injected:    injected,
+		Unavailable: unavailable,
+	}
+	if err := gCtx.Notify(ctx, params.MethodName(), params); err != nil {
+		slog.Debug("acpproxy: sessionResolved notify", "server", agentServer, "error", err)
+	}
+}
+
+func mcpServerName(srv acpsdk.McpServer) string {
+	if srv.Stdio != nil {
+		return srv.Stdio.Name
+	}
+	if srv.Http != nil {
+		return srv.Http.Name
+	}
+	return ""
+}
+
 func (h *Handler) Prompt(ctx context.Context, params *methods.ACPPromptParams, gCtx *glsp.Context) (*methods.ACPPromptOutput, error) {
 	serverName := normalizeServerName(params.AgentServer)
 	// A client that lost its connection mid-turn re-issues the prompt with

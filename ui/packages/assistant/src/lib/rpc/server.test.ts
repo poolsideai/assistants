@@ -36,11 +36,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      (_command, _payload) => {}, // We intercept calls for the test
+      {} as any, // appState
+      {} as any, // elicitationRepo
       acpTransport as any,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {} as any, // contextRepo
       assistantTerminals,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       undefined,

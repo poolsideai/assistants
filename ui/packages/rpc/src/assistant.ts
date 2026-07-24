@@ -41,17 +41,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   setTheme(theme: object): void;
   setFileIconTheme(theme: FileIconTheme): void;
   setLanguages(languages: Language[]): void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  setEditorFocused(focused: boolean): void;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   acpAgentServerDidExit(params: { agentServer: string; error?: string }): void;
   acpNavDidChange(params: ACPNavDidChangeParams): void;
   localInferenceDidChange(params: LocalInferenceDidChangeParams): void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /** The agent of the most-recently-active ACP chat (so the sidebar can reflect it). */
+  acpActiveAgentDidChange(params: {
+    agentServer: string | null;
+    supportsMcp?: boolean | null;
+    allowCustomMcp?: boolean | null;
+  }): void;
   assistantTerminalDidOpen(tab: AssistantTerminalTab): void;
   assistantTerminalDidUpdate(params: AssistantTerminalUpdate): void;
   assistantTerminalDidWrite(params: { terminalId: string; data: string }): void;

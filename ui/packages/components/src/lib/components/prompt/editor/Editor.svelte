@@ -4,7 +4,7 @@
   import { uniqueBy } from "@poolsideai/lib/array";
   import { type Command, EditorState, Plugin } from "prosemirror-state";
   import { undo } from "prosemirror-history";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { markdownParser, schema } from "./schema.js";
   import { ChipNodeView } from "./chip/ChipNodeView.js";
   import type { KeyboardEventHandler } from "svelte/elements";
   import { get } from "svelte/store";
@@ -18,7 +18,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     docHistory,
     Editor,
     exitTrailingCodeBlockBelow,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    loadDocsMeta,
     matchDecoration,
     nodeObserver,
     nativeMacWordNavigation,
@@ -36,17 +36,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   interface Props {
     id?: string;
     plugins?: Plugin[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    promptHistory?: string[];
     children?: Snippet;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let { id, plugins, promptHistory, children }: Props = $props();
 
   const {
     editor,
     isDirty,
     imeIsComposing,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    isSubmitting,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     submit,
     submitNow,
@@ -91,9 +91,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       });
     },
     onRemoveNodes(details, { siblings }) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      // Skip during submission to preserve context between messages
+      if ($isSubmitting) return;
+
       uniqueBy(details, ({ value }) => value).forEach(({ id, value }) => {
         const hasDuplicate = siblings.some(({ node }) => node.attrs.value === value);
         if (hasDuplicate) return;
@@ -105,27 +105,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     },
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function parsePrompt(text: string) {
+    try {
+      return markdownParser.parse(text);
+    } catch {
+      return schema.node("doc", null, [
+        schema.node("paragraph", null, text ? [schema.text(text)] : []),
+      ]);
+    }
+  }
+
+  $effect(() => {
+    if (!promptHistory?.length) return;
+    const ed = get(editor);
+    if (!ed) return;
+    const docs = promptHistory.map(parsePrompt);
+    ed.executeCommand((state, dispatch) => {
+      dispatch?.(loadDocsMeta(state.tr, docs));
+      return true;
+    });
+  });
+
   const defaultPlugins = [
     ...undoHistory(),
     docHistory(),
@@ -144,7 +144,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         if (get(imeIsComposing)) return true;
         if (submitSuggestion()) return true;
         submit();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        return true;
       },
       "Mod-Enter": () => {
         if (get(imeIsComposing)) return true;

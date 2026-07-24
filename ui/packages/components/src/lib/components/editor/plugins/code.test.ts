@@ -14,7 +14,7 @@ function docFromMarkdownSlice(markdown: string) {
 }
 
 describe("classifyPasteSegments", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("splits prose-and-code mixes so only the code chunks are flagged", () => {
     const segments = classifyPasteSegments(
       `Here is some background context for the task:
 

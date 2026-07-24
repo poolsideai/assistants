@@ -5,7 +5,7 @@ import * as vscode from "vscode";
  * getFileContents returns the contents of a file. If the file does not exist or if the given path
  * is a directory then undefined is returned
  */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function getFileContents(path: string): Promise<AttachedFile | undefined> {
   const uri = vscode.Uri.file(path);
 
   try {

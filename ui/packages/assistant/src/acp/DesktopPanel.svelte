@@ -1,7 +1,7 @@
 <script lang="ts">
   import {
     AcpChatPane,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    AcpConnectorsView,
     AcpDesktopSplitsPane,
     DESKTOP_SPLITS_CACHE_LIMIT,
     DESKTOP_SETTINGS_SECTIONS,
@@ -271,8 +271,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   onDestroy(() => desktopSplitsCache.disposeAll());
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // "connectors" is intentionally not a settings view: it renders as its own
+  // destination (AcpConnectorsView), not inside the settings frame/nav.
   function isSettingsView(view: string): boolean {
     return (
       view === "settings" ||
@@ -384,10 +384,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     branches (chrome and settings sections) are temporary and should be removed once VS gets
     dedicated panels.
   -->
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <!-- On non-desktop (VS) hosts, connectors renders inside the settings frame
+       (it is still an IDE settings section); on desktop it is its own
+       destination, handled below. -->
+  {#if (isSettingsView(desktop.view) || desktop.view === "connectors") && !desktop.isDesktop}
     <div class="h-screen min-w-0 bg-psx-panel">
       <DesktopSettingsView
         section={activeSettingsSection(desktop.view, desktop.isDesktop)}
@@ -398,12 +398,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       />
     </div>
   {:else}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <!-- `desktop-app-surface` is a styling hook: on macOS the desktop app clears this
+         background (app.css, `.platform-macos`) so native window vibrancy shows through
+         the sidebar band; elsewhere `bg-psx-panel` keeps it opaque. -->
+    <div
+      class={["flex h-screen min-w-0", desktop.isDesktop ? "desktop-app-surface bg-psx-panel" : ""]}
+    >
       <!-- VS borrows this panel: desktop sidebar chrome vs the IDE sidebar (temporary; see note above) -->
       {#if desktop.isDesktop}
         <DesktopSideBar
@@ -474,7 +474,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           activeConversationId={desktop.activeConversationId}
           onActiveConversationIdChange={desktop.handleActiveConversationIdChange}
         />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {:else if desktop.view === "connectors" && desktop.isDesktop}
         <AcpConnectorsView
           desktopFrame
           sidebarCollapsed={desktop.sidebarCollapsed}

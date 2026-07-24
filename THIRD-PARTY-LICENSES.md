@@ -97,43 +97,43 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+## JetBrains Mono fonts (Nerd Fonts patched)
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+Bundled font paths:
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+- `ui/apps/desktop-assistant/public/fonts/JetBrainsMonoNerdFontMono-Bold.ttf`
+- `ui/apps/desktop-assistant/public/fonts/JetBrainsMonoNerdFontMono-Regular.ttf`
+- `ui/config/tailwind/public/jetbrains-mono-regular.woff2`
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+The `jetbrains-mono-regular.woff2` file is the JetBrains Mono typeface,
+licensed under the SIL Open Font License, Version 1.1 (OFL-1.1). The
+`JetBrainsMonoNerdFontMono-*` files are JetBrains Mono patched with additional
+glyphs by the Nerd Fonts project. Nerd Fonts patched font files are also
+licensed under OFL-1.1.
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+Notice from the JetBrains Mono project:
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+```text
+Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+```
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+License: SIL Open Font License, Version 1.1 (OFL-1.1).
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+Full license text: <https://openfontlicense.org/open-font-license-official-text/>
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+Upstream project: <https://github.com/JetBrains/JetBrainsMono>
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+Notice from the Nerd Fonts project:
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+Copyright (c) 2014, Ryan L McIntyre (https://ryanlmcintyre.com).
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+```
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Nerd Fonts project: <https://github.com/ryanoasis/nerd-fonts>
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

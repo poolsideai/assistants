@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function openExternalURL(url: string) {
   vscode.env.openExternal(vscode.Uri.parse(url));
 }

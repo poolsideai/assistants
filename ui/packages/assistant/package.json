@@ -3,7 +3,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   "repository": {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "url": "https://github.com/poolsideai/assistant"
   },
   "sideEffects": [
     "**/*.css"
@@ -115,7 +115,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@vitest/coverage-v8": "catalog:",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "eslint": "catalog:",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "katex": "^0.16.22",
     "playwright": "catalog:",
     "prettier": "catalog:",
     "storybook": "catalog:",

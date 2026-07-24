@@ -12,7 +12,7 @@
   Renders inline file pills the same way rendered user markdown does: a
   `.markdown.user` wrapper with a `[data-file-path]` host span around the real
   FileChip component (so the chip's scoped styles apply). Used to verify pill
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  contrast across bubble variants and themes (pills were unreadable on
   the enqueued/pending-prompt bubble because they reused the brand bubble's
   foreground colour).
 -->

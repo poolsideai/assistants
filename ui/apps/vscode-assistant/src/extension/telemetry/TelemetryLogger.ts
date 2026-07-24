@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { TelemetryEventInputEventType, type TelemetryEventInputMetadata } from "@poolsideai/rpc";
 import { DateTime } from "luxon";
 import { serializeError, type ErrorObject } from "serialize-error";
 import * as vscode from "vscode";
@@ -25,7 +25,7 @@ export class TelemetryLogger {
     if (this.#disposed) return;
     this.#output.appendLine(
       JSON.stringify({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        timestamp: DateTime.now().toISO(),
         ...args,
         message,
       }),
@@ -35,12 +35,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   reportUsage(eventType: TelemetryEventInputEventType, data: TelemetryEventInputMetadata) {
     if (this.#disposed) return;
     this.#output.appendLine(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      JSON.stringify({
+        timestamp: DateTime.now().toISO(),
+        event_type: eventType,
+        session_id: vscode.env.sessionId,
+        metadata: data,
+      }),
     );
   }
 
@@ -77,7 +77,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       const { stack: _, ...kept } = serialized as Record<string, any>;
       this.#output.appendLine(
         [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          `[${DateTime.now().toISO()}] Error: ${serialized.stack || serialized}`,
           ...(tags ? [`Tags: ${JSON.stringify(tags, null, 4)}`] : []),
           `Error properties: ${JSON.stringify(kept, null, 4)}`,
         ].join("\n\t"),

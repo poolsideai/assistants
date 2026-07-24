@@ -43,12 +43,12 @@ CI release builds do this on purpose — published artifacts must not come out
 of a shared cache. Direct `cargo` commands against `src-tauri/Cargo.toml`
 still work; they just skip the cache unless you prefix them with `mbx`.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+`download:binaries` installs the highest published `helper/v*` runtime on a
+fresh checkout and then reuses its local `.version` stamps without a GitHub API
+call. Run `pnpm -F @poolsideai/desktop-assistant download:binaries:refresh` to
+check for a newer runtime, or set
+`POOLSIDE_HELPER_VERSION=helper/vM.m.p` to install an exact release.
+
 The macOS app icon source is `src-tauri/icons/icon.icon`. After editing it in
 Icon Composer, export its default 1024 px PNG to `src-tauri/icons/icon-source.png`,
 then regenerate the legacy Tauri icons and the adaptive macOS asset:

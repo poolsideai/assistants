@@ -71,9 +71,9 @@ const initialAppState = {
     wrapLines: false,
     showMermaidDiagrams: false,
     renderScan: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    highlightTelemetryElements: false,
     boolFeatures: {},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    notifyOnApproval: true,
   } as Configuration,
   environment: {
     assistantEnv: "development",
@@ -91,7 +91,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   defaultCwd: "",
   isAgenticMode: false,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  isEditorFocused: true,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   ...stripAuthFields(globalThis.POOLSIDE_INITIAL_STATE),
 };

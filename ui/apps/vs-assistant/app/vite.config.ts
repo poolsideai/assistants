@@ -6,7 +6,7 @@ export default defineConfig((env) =>
   mergeConfigs(
     base(env),
     defineConfig({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      plugins: [],
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       resolve: {
         alias: [
@@ -35,7 +35,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             assetFileNames: "assets/[name].[ext]",
           },
         },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        sourcemap: false,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       server: {

@@ -1,14 +1,14 @@
 import type { SessionUpdate } from "@agentclientprotocol/sdk";
 import { describe, expect, it } from "vitest";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getToolIcon } from "./components/shared/toolIcon";
+import {
+  getToolName,
+  getToolNameLabel,
+  getWrittenFileContents,
+  getWrittenFileDiff,
+  isDirectoryListing,
+  isFileWrite,
+} from "./components/shared/toolPaths";
 import { hostContextBlock } from "./features/session/hostContext";
 import {
   USER_MESSAGE_END_BOUNDARY,
@@ -71,26 +71,26 @@ function applyAll(updates: SessionUpdate[]): readonly SessionEvent[] {
   return m.events;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function firstTool(updates: SessionUpdate[]): Extract<SessionEvent, { eventKind: "tool_call" }> {
+  const event = applyAll(updates)[0];
+  expect(event.eventKind).toBe("tool_call");
+  if (event.eventKind !== "tool_call") throw new Error("expected tool_call");
+  return event;
+}
+
+function acpTool(fields: Record<string, unknown>): SessionUpdate {
+  return {
+    sessionUpdate: "tool_call",
+    toolCallId: "tool-1",
+    title: "Tool",
+    ...fields,
+  } as SessionUpdate;
+}
+
+function acpToolUpdate(toolCallId: string, fields: Record<string, unknown>): SessionUpdate {
+  return { sessionUpdate: "tool_call_update", toolCallId, ...fields } as SessionUpdate;
+}
+
 describe("TurnMaterializer", () => {
   it("starts with empty items", () => {
     const m = new TurnMaterializer();
@@ -877,134 +877,134 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       expect(m.events[0]).toMatchObject({ content: [{ text: "new" }] });
     });
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  describe("tool_name-driven rendering", () => {
+    it("detects directory listings by Pool and Claude tool names", () => {
+      for (const meta of [{ tool_name: "list_directory" }, { claudeCode: { toolName: "LS" } }]) {
+        const event = firstTool([
+          acpTool({ kind: "read", rawInput: { path: "/repo" }, _meta: meta }),
+        ]);
+
+        expect(getToolName(event)).toBe("list_directory");
+        expect(isDirectoryListing(event)).toBe(true);
+        expect(getToolIcon(event)).toBe("folder");
+      }
+    });
+
+    it("leaves ordinary reads as file reads", () => {
+      for (const fields of [
+        { rawInput: { path: "/repo/a.ts" }, _meta: { tool_name: "read" } },
+        { title: "List `.`", rawInput: { path: "/repo" } },
+      ]) {
+        const event = firstTool([acpTool({ kind: "read", ...fields })]);
+
+        expect(isDirectoryListing(event)).toBe(false);
+        expect(getToolIcon(event)).toMatchObject({ type: "file" });
+      }
+    });
+
+    it("labels Pool and Claude writes as creates", () => {
+      for (const meta of [{ tool_name: "write" }, { claudeCode: { toolName: "Write" } }]) {
+        const event = firstTool([acpTool({ kind: "edit", _meta: meta })]);
+
+        expect(getToolName(event)).toBe("write");
+        expect(getToolNameLabel(event)).toBe("Create");
+        expect(isFileWrite(event)).toBe(true);
+      }
+    });
+
+    it("keeps tool names across partial metadata updates", () => {
+      const event = firstTool([
+        acpTool({
+          toolCallId: "w1",
+          kind: "edit",
+          _meta: { "poolside/step_id": "step-1", tool_name: "write" },
+        }),
+        acpToolUpdate("w1", {
+          status: "completed",
+          _meta: { "poolside/step_id": "step-1" },
+        }),
+      ]);
+
+      expect(event.status).toBe("completed");
+      expect(getToolName(event)).toBe("write");
+      expect(getToolNameLabel(event)).toBe("Create");
+    });
+
+    it("keeps nested Claude tool names across partial metadata updates", () => {
+      const event = firstTool([
+        acpTool({
+          toolCallId: "claude-w1",
+          kind: "edit",
+          _meta: { claudeCode: { toolName: "Write", id: "1" } },
+        }),
+        acpToolUpdate("claude-w1", {
+          status: "completed",
+          _meta: { claudeCode: { id: "1" } },
+        }),
+      ]);
+
+      expect(getToolName(event)).toBe("write");
+      expect(getToolNameLabel(event)).toBe("Create");
+    });
+
+    it("leaves real edits without a label override", () => {
+      const event = firstTool([acpTool({ kind: "edit", _meta: { tool_name: "edit" } })]);
+
+      expect(getToolNameLabel(event)).toBeUndefined();
+    });
+
+    it("recovers write contents and synthetic diff from raw input after completion", () => {
+      const event = firstTool([
+        acpTool({
+          toolCallId: "w1",
+          kind: "edit",
+          rawInput: { path: "/repo/fb8/index.html", contents: "<!doctype html>\n<html></html>" },
+          _meta: { "poolside/step_id": "s1", tool_name: "write" },
+        }),
+        acpToolUpdate("w1", {
+          status: "completed",
+          content: [
+            { type: "content", content: { type: "text", text: "Created file index.html" } },
+          ],
+          _meta: { "poolside/step_id": "s1" },
+        }),
+      ]);
+
+      expect(getWrittenFileContents(event)).toBe("<!doctype html>\n<html></html>");
+      expect(getWrittenFileDiff(event)).toEqual({
+        type: "diff",
+        path: "/repo/fb8/index.html",
+        oldText: "",
+        newText: "<!doctype html>\n<html></html>",
+      });
+    });
+
+    it("resolves a Claude write's synthetic diff from file_path/content without locations", () => {
+      const event = firstTool([
+        acpTool({
+          toolCallId: "claude-w1",
+          kind: "edit",
+          rawInput: { file_path: "/repo/fb/index.html", content: "<!doctype html>" },
+          _meta: { claudeCode: { toolName: "Write" } },
+        }),
+      ]);
+
+      expect(getWrittenFileContents(event)).toBe("<!doctype html>");
+      expect(getWrittenFileDiff(event)).toEqual({
+        type: "diff",
+        path: "/repo/fb/index.html",
+        oldText: "",
+        newText: "<!doctype html>",
+      });
+    });
+
+    it("does not treat reads as file writes", () => {
+      const event = firstTool([acpTool({ kind: "read", _meta: { tool_name: "read" } })]);
+
+      expect(isFileWrite(event)).toBe(false);
+      expect(getWrittenFileContents(event)).toBeUndefined();
+      expect(getWrittenFileDiff(event)).toBeUndefined();
+    });
+  });
 });

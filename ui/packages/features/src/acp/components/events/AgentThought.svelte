@@ -9,10 +9,10 @@
   interface Props {
     event: AgentThoughtEvent;
     complete: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onExpandedChange?: (expanded: boolean) => void;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let { event, complete, onExpandedChange }: Props = $props();
 
   // Markdown height can change on nearly every streamed token, which makes a
   // constrained scrollbar constantly resize. Keep collapsed content current,

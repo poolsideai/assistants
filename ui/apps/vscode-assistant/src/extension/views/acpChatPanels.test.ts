@@ -116,12 +116,12 @@ function createPanels(): AcpChatPanels {
       globalStorageUri: { fsPath: "/global-storage", path: "/global-storage" },
     },
     telemetry: { reportError: vi.fn() },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // The sidebar broadcast (acpActiveAgentDidChange) runs whenever a panel is
+    // bound/focused; provide a minimal assistant so it no-ops in tests.
+    assistant: {
+      runWhenReady: (fn: () => void) => fn(),
+      rpc: { acpActiveAgentDidChange: vi.fn() },
+    },
   } as any);
 }
 

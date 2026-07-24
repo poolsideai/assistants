@@ -1,126 +1,126 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+name: "Notify Slack about a release"
+description: >-
+  Sends one best-effort, one-way release outcome with a Slack bot token.
+  Empty Slack configuration is a clean no-op for forks and unconfigured repositories.
+
+inputs:
+  bot-token:
+    description: "Slack bot token with chat:write. Empty means skip."
+    required: false
+    default: ""
+  channel-id:
+    description: "Slack channel ID that receives release notifications. Empty means skip."
+    required: false
+    default: ""
+  status:
+    description: "Release outcome: success, failure, or cancelled"
+    required: true
+  app:
+    description: "Human product label"
+    required: true
+  tag:
+    description: "Release tag"
+    required: false
+    default: ""
+  channel:
+    description: "Release channel: stable or nightly"
+    required: false
+    default: ""
+  changelog-file:
+    description: >-
+      Optional path containing a Slack-formatted changelog. Must already be
+      mrkdwn-safe: untrusted text escaped (&lt; &gt; &amp;), links written as
+      <url|label> (the release-helper changelog --slack output satisfies this).
+    required: false
+    default: ""
+  run-url:
+    description: "URL of the Actions run"
+    required: true
+  trigger:
+    description: "Actions event name"
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Post outcome
+      shell: bash
+      env:
+        SLACK_BOT_TOKEN: ${{ inputs.bot-token }}
+        SLACK_CHANNEL_ID: ${{ inputs.channel-id }}
+        STATUS: ${{ inputs.status }}
+        APP: ${{ inputs.app }}
+        TAG: ${{ inputs.tag }}
+        CHANNEL: ${{ inputs.channel }}
+        CHANGELOG_FILE: ${{ inputs.changelog-file }}
+        RUN_URL: ${{ inputs.run-url }}
+        TRIGGER: ${{ inputs.trigger }}
+      run: |
+        set -euo pipefail
+
+        if [[ -z "${SLACK_BOT_TOKEN}" && -z "${SLACK_CHANNEL_ID}" ]]; then
+          echo "No Slack notifier configured; skipping notification."
+          exit 0
+        fi
+        if [[ -z "${SLACK_BOT_TOKEN}" || -z "${SLACK_CHANNEL_ID}" ]]; then
+          echo "::warning::Slack notifier is incomplete; both SLACK_BOT_TOKEN and SLACK_RELEASE_CHANNEL_ID are required."
+          exit 0
+        fi
+        if [[ ! "${SLACK_CHANNEL_ID}" =~ ^[CGD][A-Z0-9]+$ ]]; then
+          echo "::warning::SLACK_RELEASE_CHANNEL_ID is not a valid Slack channel ID; skipping notification."
+          exit 0
+        fi
+
+        case "${STATUS}" in
+          success) emoji=":white_check_mark:"; verb="succeeded" ;;
+          failure) emoji=":x:"; verb="failed" ;;
+          cancelled) emoji=":grey_exclamation:"; verb="was cancelled" ;;
+          *) emoji=":information_source:"; verb="finished with ${STATUS}" ;;
+        esac
+
+        case "${CHANNEL}:${TRIGGER}" in
+          stable:*) channel_label="Stable" ;;
+          nightly:schedule) channel_label="Nightly (unstable)" ;;
+          nightly:*) channel_label="Unstable" ;;
+          *) channel_label="" ;;
+        esac
+        label="${APP}${channel_label:+ · ${channel_label}}"
+        header="${emoji} *${label}* release ${TAG:+\`${TAG}\` }${verb}"
+        context="<${RUN_URL}|Actions run>"
+        case "${TRIGGER}" in
+          workflow_dispatch) trigger_label="Manual" ;;
+          schedule) trigger_label="Scheduled" ;;
+          workflow_call) trigger_label="Coordinated" ;;
+          "") trigger_label="" ;;
+          *) trigger_label="${TRIGGER}" ;;
+        esac
+        [[ -n "${trigger_label}" ]] && context="${context} · ${trigger_label}"
+        text="${header}"$'\n'"${context}"
+
+        if [[ "${STATUS}" == "success" && -n "${CHANGELOG_FILE}" && -s "${CHANGELOG_FILE}" ]]; then
+          # The generator (changelog.ts) escapes untrusted commit subjects and
+          # deliberately emits <url|label> links, so keep angle brackets intact.
+          # Neutralize @-mentions and bound the text so a long changelog cannot
+          # overwhelm a channel notification.
+          changelog=$(jq -Rrs 'gsub("@"; "@​") | .[0:2400]' "${CHANGELOG_FILE}")
+          text="${text}"$'\n\n'"*Changes:*"$'\n'"${changelog}"
+        fi
+
+        payload=$(jq -n \
+          --arg channel "${SLACK_CHANNEL_ID}" \
+          --arg text "${text}" \
+          '{channel: $channel, text: $text, unfurl_links: false, unfurl_media: false}')
+        if ! response=$(curl --fail-with-body --silent --show-error \
+          --request POST \
+          --header "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
+          --header 'Content-Type: application/json; charset=utf-8' \
+          --data "${payload}" \
+          'https://slack.com/api/chat.postMessage'); then
+          echo "::warning::Slack notification request failed (non-fatal)."
+          exit 0
+        fi
+        if [[ "$(jq -r '.ok // false' <<< "${response}")" != "true" ]]; then
+          error=$(jq -r '.error // "unknown_error"' <<< "${response}")
+          echo "::warning::Slack notification failed: ${error} (non-fatal)."
+        fi

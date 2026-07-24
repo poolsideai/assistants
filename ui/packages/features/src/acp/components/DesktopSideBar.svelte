@@ -66,7 +66,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import ACPLogCaptureConfirmation from "./sidebar/ACPLogCaptureConfirmation.svelte";
   import { acpLogCaptureMenuAction, type ACPLogCaptureTarget } from "./sidebar/acpLogCapture";
   import SidebarNavButton from "./sidebar/SidebarNavButton.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import SidebarIconButton from "./sidebar/SidebarIconButton.svelte";
   import SidebarLocalDownloads from "./sidebar/SidebarLocalDownloads.svelte";
   import SidebarLocalRuntime from "./sidebar/SidebarLocalRuntime.svelte";
   import SidebarToasts from "./sidebar/SidebarToasts.svelte";
@@ -205,9 +205,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Don't highlight the active conversation while a non-chat destination (e.g.
+    // Connectors) is open — otherwise the sidebar shows two active items.
+    isChatActive: () => currentView === "chat",
   });
 
   let searchQuery = $state("");
@@ -514,9 +514,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   const settingsSections = DESKTOP_SETTINGS_NAV_SECTIONS;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // "connectors" is intentionally excluded: it renders as its own destination in
+  // the main content pane, so the sidebar stays on the conversation list rather
+  // than switching into the settings nav.
   const settingsViewActive = $derived(
     currentView === "settings" ||
       currentView === "shortcuts" ||
@@ -1036,9 +1036,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         name: project.name || project.path,
       });
       await conversations.refresh();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      // Land in a ready-to-type conversation for the new project instead of
+      // leaving the user to click "New conversation" themselves.
+      await handleNewSession(project.path);
     } finally {
       addingProject = false;
     }
@@ -1682,19 +1682,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       </div>
 
       <div class="flex shrink-0 flex-col gap-0.5 pb-2 pl-1.5 pt-0.5">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <SidebarNavButton
+          icon="new"
+          label="New conversation"
+          title={withShortcut("New conversation", "newConversation")}
           shortcutHint={conversationShortcutHintsVisible
             ? (shortcutHint("newConversation") ?? undefined)
             : undefined}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          disabled={isLoading}
           onclick={() => {
             void handleNewSession();
           }}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        />
+
         {#if connectedRemoteDevices > 0}
           <SidebarNavButton
             icon="remote-access"
@@ -1709,15 +1709,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         {/if}
 
         <SidebarNavButton
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          icon="mcp"
+          label="Connectors"
+          selected={currentView === "connectors"}
+          onclick={() => onShowConnectors?.()}
         />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
         <SidebarNavButton
           icon="search"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          label="Search"
           title={withShortcut("Search conversations", "searchConversations")}
           shortcutHint={conversationShortcutHintsVisible
             ? (shortcutHint("searchConversations") ?? undefined)
@@ -2138,7 +2138,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     {#snippet settings()}
       {#if settingsViewActive}
         <nav
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          class="flex shrink-0 flex-col gap-0.5 pb-1.5 pl-1.5 pt-12"
           aria-label="Settings sections"
           data-tauri-drag-region="deep"
         >

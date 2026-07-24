@@ -31,14 +31,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     items?: GroupedItem[];
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /**
      * Drives the fallback grouping built here from `events`; when the
      * pre-grouped `items` prop is passed, the owner's timeline state has
      * already applied the mode and this only tells the rows which mode they
      * were grouped under (see showRule below). Owners passing `items` must pass
      * the mode those items were built with.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+     */
+    toolActivity?: ToolActivityMode;
     workspaceFolders?: WorkspaceFolder[];
     /**
      * Pass alongside a pre-grouped `items` prop: the expansion state of the
@@ -61,7 +61,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     items,
     turns = [],
     isPrompting = false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    toolActivity = "detailed",
     workspaceFolders = [],
     expansion,
     scrollElement,
@@ -83,9 +83,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    get toolActivity() {
+      return toolActivity;
+    },
   });
 
   setToolCallExpansionContext(() => expansion ?? eventsState.expansion);

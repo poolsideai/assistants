@@ -6,7 +6,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 } from "@poolsideai/helperapi/schemas";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import path from "path";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import vscode, { env } from "vscode";
 import {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   type CloseHandlerResult,
@@ -22,21 +22,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { getPoolsideConfig } from "./configuration";
 import { getExtensionIdentity } from "./extensionIdentity";
 import { _getValidHelperTarget } from "./helperUtils";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getDiagnostics } from "./lsp/handlers/getDiagnostics";
+import { searchSymbolDefinitions } from "./lsp/handlers/searchSymbolDefinitions";
+import { getEnvironment } from "./state";
+import { System } from "./system";
 
 /**
  * start launches an instance of the poolside-helper binary and initializes communication via stdio.
  */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+async function startHelper(system: System) {
   const { context } = system;
   const identity = getExtensionIdentity();
 
   let goRunDebug = {
     command: "go",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    args: ["run", "-tags=fts5", "./cmd/poolside-helper/...", "--pprof"],
     transport: TransportKind.stdio,
     options: {
       cwd: context.asAbsolutePath("../../../"),
@@ -59,7 +59,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         "--api-version=2",
         "--accept-multiclient",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "--build-flags=-tags=fts5",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         // If you're having issues with delve itself, you can enable logging by uncommenting
@@ -90,7 +90,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     debug: goRunDebug,
   };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const environment = getEnvironment(system);
 
   const clientOptions: LanguageClientOptions = {
     documentSelector: [{ scheme: "file" }],
@@ -158,12 +158,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  client.onNotification(
+    "poolside/mcpOAuthURL",
+    async (params: { serverID: string; authURL: string }) => {
+      await vscode.env.openExternal(vscode.Uri.parse(params.authURL));
+    },
+  );
   client.onNotification("poolside/acpNav/didChange", (params: ACPNavDidChangeParams) => {
     system.assistant.updateAttentionCount(params.state.conversations);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -203,12 +203,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 let running: LanguageClient | undefined;
 let starting: Promise<LanguageClient> | undefined;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function getHelperSingleton(system: System): Promise<LanguageClient> {
   if (running) {
     return running;
   }
   if (!starting) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    starting = startHelper(system);
     starting.then(
       (client) => {
         running = client;
@@ -221,7 +221,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   return await starting;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function helperBinary(system: System) {
   const { platform, arch } = _getValidHelperTarget();
   const suffix = platform === "windows" ? ".exe" : "";
   return path.join(
@@ -231,8 +231,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   );
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Based on /pkg/poolside-helper/handler/config.go#Config. The assistant is
+// ACP-chat-only, so the legacy auth/apiUrl/completion-model fields are gone.
 async function getRuntimeSettings() {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -240,13 +240,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     agentServers: poolsideConfig.agentServers,
   };
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 /**
  * Notifies helper when configuration changes
  */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function updateHelperConfig(system: System) {
   try {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const client = await getHelperSingleton(system);
 
     await client.sendRequest("workspace/didChangeConfiguration", {
       settings: {

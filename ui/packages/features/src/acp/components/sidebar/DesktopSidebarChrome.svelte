@@ -2,7 +2,7 @@
   import Kbd from "@poolsideai/components/kbd";
   import { MarkdownBlock } from "@poolsideai/components/markdown";
   import type { Snippet } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { desktopUpdate } from "../../desktopUpdate";
   import SidebarIconButton from "./SidebarIconButton.svelte";
 
   interface Props {
@@ -43,19 +43,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let toggleTooltip = $derived(
     toggleDisabled ? "Cannot hide sidebar while showing settings" : toggleTitle,
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  // Self-update "Update" pill (populated by the desktop host once a new version
+  // has downloaded). Mirrors Poolside Studio: an "Update" text pill (smaller
+  // when the sidebar is collapsed), full "Restart to update…" as the tooltip.
   // The pill stays one-click restart; the staged update's release notes open
   // from a separate "What's new" link so wanting to read them never costs an
   // extra click on the restart path.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let applyingUpdate = $state(false);
   let updateTooltip = $derived.by(() => {
     if (!$desktopUpdate.available) return "";
     if ($desktopUpdate.waitingForIdle) return "Waiting for conversations to finish before updating";
     return $desktopUpdate.version
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      ? `Restart to update Poolside Assistant to ${$desktopUpdate.version}`
       : "Restart to finish updating Poolside Assistant";
   });
   let updateNotes = $derived($desktopUpdate.available ? $desktopUpdate.notes : undefined);
@@ -77,19 +77,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   function closeNotesOnEscape(event: KeyboardEvent) {
     if (event.key === "Escape") notesOpen = false;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  async function onApplyUpdate() {
+    if (applyingUpdate || !$desktopUpdate.available) return;
+    applyingUpdate = true;
+    try {
+      // On success the app relaunches, so the flag never needs resetting; on
+      // failure re-enable the button so the restart can be retried.
+      await $desktopUpdate.apply();
+    } catch (error) {
+      console.error("failed to apply desktop update", error);
+      applyingUpdate = false;
+    }
+  }
 </script>
 
 <svelte:window onpointerdown={closeNotesOnOutsidePointerDown} onkeydown={closeNotesOnEscape} />
@@ -121,7 +121,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     </div>
   {/if}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {#if $desktopUpdate.available}
     {#if collapsed}
       <button
         type="button"
@@ -173,8 +173,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         {/if}
       </div>
     {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {/if}
+
   {#if !$desktopUpdate.available && $desktopUpdate.downloading}
     <div
       class="desktop-update-progress bg-psx-chrome border-psx-border text-psx-foreground-secondary absolute flex h-6 w-[132px] items-center overflow-hidden rounded-full border px-2 text-[10px] font-medium shadow-sm"
@@ -295,10 +295,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
      placement); when collapsed only the pill remains and sits just right of
      the sidebar toggle in the titlebar strip. */
   .desktop-update-cluster {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    position: absolute;
+    top: var(--desktop-title-bar-control-top, 12px);
+    right: 12px;
+    z-index: 50;
     pointer-events: auto;
   }
 
@@ -309,24 +309,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   .desktop-update-button {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    line-height: 1;
+    cursor: pointer;
+    pointer-events: auto;
+  }
+
+  .desktop-update-button--collapsed {
+    position: fixed;
     top: var(--desktop-title-bar-control-top, 12px);
     z-index: 50;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    left: calc(
+      var(
+          --desktop-sidebar-compensated-inset,
+          calc(var(--desktop-main-panel-inset, 8px) - 0.375rem)
+        ) +
+        var(--desktop-window-controls-space, 88px) + 34px
+    );
+  }
+
   /* Release notes for the staged update, anchored under the cluster. The
      cluster sits 12px from the right edge of a sidebar that hugs the window's
      left edge, and the root overflow: clip swallows anything past that edge —

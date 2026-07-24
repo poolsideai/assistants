@@ -1,5 +1,5 @@
 <script lang="ts">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { createPopover, melt } from "@melt-ui/svelte";
   import Icon, { type IconName } from "@poolsideai/components/icon";
   import { formatError } from "@poolsideai/lib/errors";
   import { InfoMessageType, type WorkspaceFolder } from "@poolsideai/rpc";
@@ -44,7 +44,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onCollapsedChange: (collapsed: boolean) => void;
     onNewConversation: () => void;
     onShowAgents: () => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onShowConnectors?: () => void;
     onShowChat: () => void;
     fillWidth?: boolean;
     collapsible?: boolean;
@@ -61,7 +61,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onCollapsedChange,
     onNewConversation,
     onShowAgents,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onShowConnectors,
     onShowChat,
     fillWidth = false,
     collapsible = true,
@@ -106,14 +106,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   let groupedHistorySessions = $derived(groupSessions(history.sessions ?? [], searchQuery));
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const {
+    elements: { trigger: settingsTrigger, content: settingsContent },
+    states: { open: settingsOpen },
+  } = createPopover({
+    positioning: { placement: "top-end", gutter: 8 },
+    forceVisible: true,
+  });
+
   let visibleSessions = $derived.by(() => {
     const query = searchQuery.trim().toLowerCase();
     return navSessions.filter((session) => {
@@ -577,7 +577,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       <div
         use:melt={$settingsContent}
         class="menu-surface z-50 flex w-[224px] flex-col gap-0.5 p-1.5"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      >
         {#if onShowConnectors}
           {@render settingsMenuItem("mcp", "Connectors", "MCP servers & tools", () => {
             settingsOpen.set(false);
@@ -598,7 +598,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           },
         )}
       </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {/if}
   </aside>
 {/if}
 

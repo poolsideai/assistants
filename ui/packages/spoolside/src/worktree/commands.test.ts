@@ -50,8 +50,8 @@ describe("parseWorktreeUpOptions", () => {
     });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  test("accepts acp mode", () => {
+    expect(parseWorktreeUpOptions(["--acp"])).toEqual({
       fast: false,
       agentMode: "acp",
       color: undefined,

@@ -957,14 +957,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         let mut parser = TerminalMetadataParser::default();
 
         let update = parser
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            .process("\x1b]2;pnpm test\x07\x1b]7;file://host/Users/poolie/poolside%20assistant\x07")
             .expect("metadata update");
 
         assert_eq!(
             update,
             TerminalMetadataUpdate {
                 title: Some("pnpm test".to_string()),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                cwd: Some("/Users/poolie/poolside assistant".to_string()),
             },
         );
     }
@@ -973,14 +973,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     fn parses_split_osc_sequences() {
         let mut parser = TerminalMetadataParser::default();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        assert_eq!(parser.process("\x1b]7;file://host/Users/poolie"), None);
         let update = parser.process("/assistant\x1b\\").expect("metadata update");
 
         assert_eq!(
             update,
             TerminalMetadataUpdate {
                 title: None,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                cwd: Some("/Users/poolie/assistant".to_string()),
             },
         );
     }
@@ -998,9 +998,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         let mut parser = TerminalMetadataParser::default();
 
         let update = parser
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            .process("\x1b]7;file://host/C:/Users/poolie/project\x07")
             .expect("metadata update");
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        assert_eq!(update.cwd, Some("C:/Users/poolie/project".to_string()));
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

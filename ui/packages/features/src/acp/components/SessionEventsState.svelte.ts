@@ -81,45 +81,45 @@ export function isInsideToolCallGroup(): boolean {
   return getContext<boolean | undefined>(IN_GROUP_CONTEXT_KEY) ?? false;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * How the live turn's tools render while a prompt streams: "detailed" keeps
+ * every tool call expanded until the turn completes; "grouped" (the product
  * default) folds every contiguous run of finished tools and settled thoughts —
  * whatever their kind, errors included — into one collapsed group, so only
  * agent messages and the tools still running break the transcript up (a
  * markdown reply renders in full and a fresh group starts beneath it), and
  * keeps the same two-slot tail
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ * as "compact" so the bottom of the transcript does not jump; "compact" folds
+ * the turn (finished tools, errors included, and interim messages) into one
+ * growing summary line above a constant two-slot tail: the last two tool
+ * calls, with any trailing activity (thought, "think" step, or the streaming
+ * reply) taking the second slot. The user-facing setting stores this mode
+ * string directly (VS Code `poolside.toolActivity`, desktop
+ * `toolActivity`), so future modes are new values, not a settings
  * migration. Finished turns summarize regardless of the mode — except
  * interrupted ones, which keep their streaming layout (see
  * `groupModeForTool`).
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ */
+export type ToolActivityMode = "detailed" | "grouped" | "compact";
+
+/**
+ * Resolves the activity mode from host state: VS Code persists the setting in
+ * its configuration (`userSettings`), the desktop app in its own settings
+ * file surfaced through `environment`. Unknown or missing values fall back to
+ * the product default, "grouped". Typed structurally so state modules don't
+ * depend on the host adapter.
+ */
+export function toolActivityFrom(state: {
   userSettings: unknown;
   environment: { desktopToolActivity?: unknown };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}): ToolActivityMode {
   const userSettings = state.userSettings as { toolActivity?: unknown };
   const mode = userSettings.toolActivity ?? state.environment.desktopToolActivity;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return mode === "detailed" || mode === "grouped" || mode === "compact" ? mode : "grouped";
+}
+
 export type GroupedItem =
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | { id: string; kind: "event"; event: SessionEvent; index: number; liveThought?: boolean }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -129,48 +129,48 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
        * Set on groups formed while the turn streams and kept on interrupted
        * turns' groups; absent on end-of-turn summaries.
        */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      live?: boolean;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 export interface SessionEventsProps {
   readonly events: SessionEvent[];
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  readonly toolActivity?: ToolActivityMode;
 }
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  live?: boolean;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * The live turn's two-slot tail, shared by "grouped" and "compact": the rows at
+ * the bottom of the transcript that never fold, so the transcript does not
+ * collapse and re-expand under the reader on every step.
+ */
+type LiveTail = {
+  /** Live-turn tools before this index may fold; the rest are the tail. */
+  foldBoundary: number;
+  /** First live-turn index — one past the latest user message. */
+  start: number;
+  /** `visibleAfter[i - start]`: whether a rendered event follows index `i`. */
+  visibleAfter: boolean[];
+};
+
 export class SessionEventsState {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Events that can appear between collapsible tools without breaking the
    * group. Explicitly tagged steer messages are bufferable in settled turns;
    * live steers remain visible chronological boundaries (see `grouped`).
    * Ordinary user messages are always hard turn boundaries. Thoughts fold on
    * their own terms (see `groupModeForThought`); they stay listed here so
    * look-ahead can still see *through* them to a following tool.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+   */
   private static readonly BUFFERABLE_KINDS = new Set<SessionEvent["eventKind"]>([
     "agent_message",
     "agent_thought",
@@ -193,8 +193,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const result: GroupedItem[] = [];
     const events = this.props.events;
     const latestUserMessageIndex = this.latestUserMessageIndex(events);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const isPrompting = !!this.props.isPrompting;
+    const liveTail = this.liveTailFor(events, latestUserMessageIndex, isPrompting);
     const compactFolds = this.compactFoldsFor(events, liveTail);
     const interruptedCompactFolds = this.interruptedCompactFoldsFor(events);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -202,21 +202,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     // Every thought renders — standalone or inside a fold. The latest one,
     // while it is still trailing and a prompt is in flight, renders live
     // (streaming); every earlier thought is settled. Locate the live one here.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let lastThoughtIndex = -1;
+    let lastRealEventIndex = -1;
+    for (let i = events.length - 1; i >= 0; i--) {
+      if (lastThoughtIndex === -1 && events[i].eventKind === "agent_thought") {
+        lastThoughtIndex = i;
+      }
+      if (lastRealEventIndex === -1 && !isTransientForThoughtVisibility(events[i])) {
+        lastRealEventIndex = i;
+      }
+      if (lastThoughtIndex !== -1 && lastRealEventIndex !== -1) break;
+    }
+
     function flushGroup() {
       if (!currentGroup) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const { events: groupEvents, turn, live } = currentGroup;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (tools.length >= 2) {
         result.push({
@@ -228,7 +228,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           kind: "event_group",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          live,
         });
       } else {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -247,7 +247,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (currentGroup && (currentGroup.turn !== mode.turn || currentGroup.live !== mode.live)) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -295,7 +295,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     for (let i = 0; i < events.length; i++) {
       const event = events[i];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
       if (
         event.eventKind === "mode_change" &&
         (firstAgentActivityIndex === -1 || i < firstAgentActivityIndex)
@@ -325,13 +325,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       const compactFold = compactFolds.get(i);
       if (compactFold) {
         if (!compactFold.pushed) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          flushGroup();
           result.push(compactFold.item);
           compactFold.pushed = true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
+        continue;
+      }
+
       if (event.eventKind === "agent_thought") {
         const live = isPrompting && i === lastThoughtIndex && i > lastRealEventIndex;
         // Settled thoughts fold with the tools around them; only the live
@@ -364,14 +364,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         continue;
       }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const mode = this.groupModeForTool(event, i, latestUserMessageIndex, liveTail);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       } else if (SessionEventsState.isBufferable(event)) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        const nextMode = this.nextGroupModeForTool(events, i, latestUserMessageIndex, liveTail);
+        // Streaming groups never absorb messages: while the turn is live, agent
+        // text stays visible outside the fold (in "grouped" it is the only
         // thing that splits a tool run). Active steers were handled above; a
         // steer in an already-settled interrupted turn may still bridge its
         // live-layout group to the next foldable tool. End-of-turn summaries
@@ -396,13 +396,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return result;
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * A tool that is done, however it ended. Status is the only thing that keeps
+   * a tool out of a fold: neither its kind nor its outcome does. A turn that
+   * alternates reads, shells, MCP calls and failures reads as one collapsed
+   * group rather than a stack of them, and errors summarize with everything
+   * else — the same rule "compact" and the end-of-turn summary already use.
+   */
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -416,7 +416,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     event: SessionEvent,
     index: number,
     latestUserMessageIndex: number,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    liveTail: LiveTail | null,
   ): GroupMode | null {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -440,25 +440,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         if (fold && !this.foldsBehindTail(event, index, fold)) return null;
         return { turn, live: true };
       }
+      return this.isFinishedTool(event) ? { turn } : null;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      // Tools from earlier turns stay summarized while a new reply streams
+      // (#171); the current turn's tools render live.
       if (index < latestUserMessageIndex) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        return this.isFinishedTool(event) ? {} : null;
       }
+      if (
+        this.props.toolActivity === "grouped" &&
+        liveTail &&
+        this.isFinishedTool(event) &&
+        this.foldsBehindTail(event, index, liveTail)
+      ) {
+        return { live: true };
+      }
+      return null;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return this.isFinishedTool(event) ? {} : null;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   /**
@@ -505,51 +505,51 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return {};
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * The live turn's tail: the two rows that never fold. Normally the last two
+   * tool calls; when anything visibly trails the newest one (a thought, a
+   * "think" step, or the reply being written) it takes the second slot, so the
+   * tail stays exactly two rows: [last-1, last] ⇄ [last, thinking…]. The
+   * boundary only ever advances, so a folded tool never pops back out — without
+   * this the bottom row collapses the instant a tool completes, then re-expands
+   * as the next thought or call arrives.
+   */
+  private liveTailFor(
+    events: SessionEvent[],
+    latestUserMessageIndex: number,
+    isPrompting: boolean,
+  ): LiveTail | null {
+    const mode = this.props.toolActivity;
+    if (!isPrompting || (mode !== "grouped" && mode !== "compact")) return null;
+    const start = latestUserMessageIndex + 1;
+    // Live-turn tool calls, with "think" pseudo-steps left out: they trail a
+    // real call rather than holding a tail slot of their own.
+    const realToolIndices: number[] = [];
+    for (let i = start; i < events.length; i++) {
+      const event = events[i];
+      if (event.eventKind !== "tool_call" || this.findTurnForIndex(i)) continue;
+      if (event.kind !== "think") realToolIndices.push(i);
+    }
+    // Whether a rendered event follows each live-turn index, in one backward
+    // pass — the per-"think" checks would otherwise rescan the suffix each
+    // time, going quadratic on think-heavy turns. Blank streaming placeholders
+    // render nothing, so they never count.
+    const visibleAfter: boolean[] = new Array(Math.max(0, events.length - start));
+    let seenVisible = false;
+    for (let i = events.length - 1; i >= start; i--) {
+      visibleAfter[i - start] = seenVisible;
       if (!isBlankAgentMessage(events[i]) && !isSteerMessage(events[i])) seenVisible = true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    const lastRealToolIndex = realToolIndices[realToolIndices.length - 1] ?? -1;
+    // Anything visibly trailing the newest real call takes the second slot, so
+    // only one real call stays out; otherwise the last two do.
+    const trailingActivity =
+      lastRealToolIndex === -1 ? seenVisible : visibleAfter[lastRealToolIndex - start];
+    const keepReals = trailingActivity ? 1 : 2;
+    const foldBoundary =
+      realToolIndices.length >= keepReals
+        ? realToolIndices[realToolIndices.length - keepReals]
+        : -1;
     return {
       foldBoundary: this.clampFoldBoundaryToPinned(events, realToolIndices, foldBoundary),
       start,
@@ -579,24 +579,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (event.eventKind === "tool_call" && pinned.has(event.toolCallId)) return index;
     }
     return foldBoundary;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  /**
+   * Whether a live-turn tool has left the tail and may fold. A "think" step
+   * folds once anything visible follows it; real calls fold once they leave the
+   * two-slot tail.
+   */
+  private foldsBehindTail(event: ToolCall, index: number, tail: LiveTail): boolean {
     // A pinned tool never folds: the user expanded it standalone and is
     // reading it. Real calls are already covered by the boundary clamp; this
     // check also keeps a pinned "think" step out, since those fold by
     // trailing visibility rather than the boundary.
     if (this.expansion.pinnedToolCallIds.has(event.toolCallId)) return false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return event.kind === "think"
+      ? tail.visibleAfter[index - tail.start]
+      : index < tail.foldBoundary;
+  }
+
   /**
    * Each interrupted turn's settled fold boundary and trailing-visibility map.
    * The live two-slot tail is an automatic layout-stability affordance, so once
@@ -640,15 +640,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return folds;
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
    * Membership and shared group items for "compact" mode: each live span
    * between steer prompts folds into a summary line above the two-slot tail.
    * Unlike "grouped" it absorbs interim messages and allows single-tool folds;
    * steer prompts remain visible chronological boundaries between the spans.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+   */
   private compactFoldsFor(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    events: SessionEvent[],
+    liveTail: LiveTail | null,
   ): Map<number, { item: Extract<GroupedItem, { kind: "event_group" }>; pushed: boolean }> {
     const folds = new Map<
       number,
@@ -676,58 +676,58 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     start: number,
     end: number,
   ): void {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let lastToolIndex = -1;
     for (let i = start; i <= end; i++) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const event = events[i];
       // Earlier turns keep their own rendering (a summary, or expanded when
       // interrupted); only the live turn folds here.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (event.eventKind !== "tool_call" || this.findTurnForIndex(i)) continue;
+      lastToolIndex = i;
+    }
     if (lastToolIndex === -1) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const items: SessionEventGroupItem[] = [];
+    const indices = new Set<number>();
     for (let i = start; i <= end; i++) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (this.findTurnForIndex(i)) continue;
+      const event = events[i];
+      if (event.eventKind !== "tool_call" || !this.isFinishedTool(event)) continue;
+      if (!this.foldsBehindTail(event, i, liveTail)) continue;
+      items.push({ event, index: i });
+      indices.add(i);
+    }
+    // Unlike other groups, even a single folded tool renders as the line:
+    // the constant two-slot tail matters more than the group-size nicety.
     if (items.length === 0) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // The group id anchors on the first folded tool so it survives messages
+    // joining the fold below.
+    const idIndex = items[0].index;
     // Interim narration and reasoning fold too — matching how the end-of-turn
     // summary absorbs them — as soon as any tool call follows them, kept or
     // folded. Only trailing activity after every tool stays out: it is the
     // current thought or streaming/final reply. Agents narrate and reason
     // constantly between tools, which otherwise buries the summary line.
     for (let i = start; i <= end; i++) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const event = events[i];
       if (i >= lastToolIndex) continue;
       if (!SessionEventsState.isBufferable(event)) continue;
       if (isBlankAgentMessage(event)) continue;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (this.findTurnForIndex(i)) continue;
+      items.push({ event, index: i });
+      indices.add(i);
+    }
+    items.sort((a, b) => a.index - b.index);
     const fold = {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      item: {
+        id: `group-${idIndex}`,
         kind: "event_group" as const,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        events: items,
+        live: true,
+      },
+      pushed: false,
+    };
     for (const i of indices) folds.set(i, fold);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   /**
    * Per-turn cache for `interruptedCompactFoldsFor`, keyed by the turn's
    * `startIndex`. `Session.svelte.ts`'s `flushTranscript` rebuilds `turns`
@@ -868,12 +868,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     events: SessionEvent[],
     from: number,
     latestUserMessageIndex: number,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    liveTail: LiveTail | null,
   ): GroupMode | null {
     for (let j = from + 1; j < events.length; j++) {
       const e = events[j];
       if (SessionEventsState.isBufferable(e)) continue;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return this.groupModeForTool(e, j, latestUserMessageIndex, liveTail);
     }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
@@ -902,22 +902,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return -1;
   }
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 function isSteerMessage(event: SessionEvent): boolean {
   return event.eventKind === "user_message" && event.steer === true;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function isBlankAgentMessage(event: SessionEvent | undefined): boolean {
+  if (event?.eventKind !== "agent_message") return false;
+  if (event.content.length === 0) return true;
+  return event.content.every((block) => block.type === "text" && block.text.trim().length === 0);
+}
+
+/** Events that never count as "real" content following a thought. */
+function isTransientForThoughtVisibility(event: SessionEvent): boolean {
+  return (
+    event.eventKind === "agent_thought" ||
+    event.eventKind === "mode_change" ||
+    isBlankAgentMessage(event)
+  );
+}

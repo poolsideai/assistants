@@ -4,7 +4,7 @@ import * as path from "node:path";
 import { isProcessAlive as isManagedProcessAlive, readState } from "../manage/state.js";
 import { type WorktreePorts } from "./shared.js";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const SLOT_DIR = "/tmp/poolside-worktree-slots";
 const MAX_SLOTS = 8;
 
 interface SlotLock {

@@ -1,26 +1,26 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package mcp
+
+import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"fmt"
 	"net"
 	"net/http"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"net/url"
 	"slices"
+	"time"
+
+	"golang.org/x/oauth2"
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
+
+// oauthFlowTimeout is the maximum time to wait for the user to complete the
+// OAuth flow in their browser.
+const oauthFlowTimeout = 10 * time.Minute
+
 // discoveryHTTPTimeout bounds each metadata-discovery HTTP request. The default
 // client has no timeout, so an unreachable or DNS-filtered provider would hang
 // on the OS TCP/TLS timeouts (tens of seconds) per request before failing.
@@ -30,16 +30,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 // the connector reports its error.
 const discoveryHTTPTimeout = 15 * time.Second
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// OAuthFlowParams configures a single interactive MCP OAuth flow.
+type OAuthFlowParams struct {
 	// ServerURL is the MCP server URL. It is used to discover the
 	// authorization-server metadata (via Protected Resource Metadata, falling
 	// back to its scheme+host), and (with ServerID) forms the keychain key.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ServerURL string
+	// ServerID is the keychain key id used when ServerURL is empty.
+	ServerID string
+	// Scopes is the optional list of OAuth scopes to request.
+	Scopes []string
 	// ClientID selects a pre-registered public OAuth client. When empty, the
 	// provider must support Dynamic Client Registration.
 	ClientID string
@@ -51,14 +51,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	// client receives the redirect from the OS and forwards it back over
 	// JSON-RPC (DeliverOAuthCallback). Takes precedence over CallbackPort.
 	DeepLinkRedirectURI string
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// OnAuthURL is invoked with the authorization URL so the caller can forward
+	// it to the client (e.g. open a browser). Best-effort; the caller owns any
+	// notification errors.
+	OnAuthURL func(authURL string)
 	// SecretsStore overrides the OS keychain store. Tests use an in-memory store.
 	SecretsStore SecretsServerStore
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 // resolveAuthServerMeta discovers the authorization-server metadata for an MCP
 // resource. Following the MCP authorization spec (RFC 9728), it first reads the
 // resource's Protected Resource Metadata to learn which authorization server(s)
@@ -148,20 +148,20 @@ func networkErrorHint(err error, host string) string {
 // pre-registered public client or falls back to Dynamic Client Registration.
 // It blocks until the user completes (or cancels) the browser sign-in, or
 // oauthFlowTimeout elapses.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+//
 // Callers supply OnAuthURL and handle their own success messaging.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func RunMCPOAuthFlow(ctx context.Context, p OAuthFlowParams) error {
+	parsedURL, err := url.ParseRequestURI(p.ServerURL)
+	if err != nil {
+		return fmt.Errorf("invalid server URL: %w", err)
+	}
+	baseURL := parsedURL.Scheme + "://" + parsedURL.Host
+
 	httpClient := newOAuthHTTPClient(discoveryHTTPTimeout)
 	authMeta, err := resolveAuthServerMeta(ctx, p.ServerURL, baseURL, httpClient)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if err != nil {
+		return fmt.Errorf("resolve auth server metadata: %w", err)
+	}
 	// Discovery began at a URL the user supplied; these three come out of the
 	// metadata document the server controls, so they are checked before the
 	// helper fetches them or hands one to the browser.
@@ -178,10 +178,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	// (RFC 7591), there is no way to obtain a client ID. Fail before opening the
 	// browser rather than surfacing a generic registration error mid-flow.
 	if p.ClientID == "" && authMeta.RegistrationEndpoint == "" {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		return fmt.Errorf("the OAuth provider for %s does not support Dynamic Client Registration, so Poolside cannot sign in to it: connect with a bearer token instead", parsedURL.Host)
+	}
+
+	state := oauth2.GenerateVerifier()
 	var redirectURI string
 	var waitForCode func(context.Context) (string, error)
 	if p.DeepLinkRedirectURI != "" {
@@ -204,8 +204,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		defer callbackServer.Shutdown(ctx)
 		redirectURI = callbackServer.CallbackURI()
 		waitForCode = callbackServer.GetCodeAndShutdown
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
+
 	authMethod := "none"
 	clientID := p.ClientID
 	clientSecret := ""
@@ -217,81 +217,81 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		}
 		clientID = regResponse.ClientID
 		clientSecret = regResponse.ClientSecret
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
+
+	endpoint := oauth2.Endpoint{
+		AuthURL:  authMeta.AuthorizationEndpoint,
+		TokenURL: authMeta.TokenEndpoint,
+	}
+	// Public clients (no secret) must send client_id in the request body rather
+	// than the Authorization header.
+	if authMethod == "none" {
+		endpoint.AuthStyle = oauth2.AuthStyleInParams
+	}
+
+	config := &oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		RedirectURL:  redirectURI,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		Scopes:       p.Scopes,
+		Endpoint:     endpoint,
+	}
+
+	codeVerifier := oauth2.GenerateVerifier()
+	authURL := config.AuthCodeURL(state,
+		oauth2.AccessTypeOffline,
+		oauth2.S256ChallengeOption(codeVerifier),
+	)
+	if p.OnAuthURL != nil {
+		p.OnAuthURL(authURL)
+	}
+
+	// The browser round-trip can outlive the request ctx; use a detached ctx with
+	// its own timeout so callback/exchange/store aren't cancelled mid-flight.
+	oauthCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), oauthFlowTimeout)
+	defer cancel()
 	// The token endpoint also comes from server-controlled metadata, so the
 	// exchange must go through the guarded client rather than oauth2's default.
 	oauthCtx = context.WithValue(oauthCtx, oauth2.HTTPClient, httpClient)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 	authCode, err := waitForCode(oauthCtx)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if err != nil {
+		return fmt.Errorf("OAuth callback: %w", err)
+	}
+
+	token, err := config.Exchange(oauthCtx, authCode, oauth2.VerifierOption(codeVerifier))
+	if err != nil {
+		return fmt.Errorf("token exchange: %w", err)
+	}
+
+	key, err := NewServerKey(p.ServerURL, p.ServerID)
+	if err != nil {
+		return fmt.Errorf("server key: %w", err)
+	}
 	store := p.SecretsStore
 	if store == nil {
 		store = NewKeyringSecretsServerStore()
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	secrets, err := store.Load(oauthCtx, key)
+	if err != nil {
+		return fmt.Errorf("load existing secrets: %w", err)
+	}
+	if secrets == nil {
+		secrets = &ServerSecrets{}
+	}
+	secrets.OAuth = NewOAuthData(token, config)
+	if err := store.Save(oauthCtx, key, secrets); err != nil {
+		return fmt.Errorf("store token: %w", err)
+	}
+	return nil
+}
+
+// DeleteMCPServerSecrets removes any stored secrets (OAuth tokens, metadata) for
+// the given MCP server from the keychain.
+func DeleteMCPServerSecrets(ctx context.Context, serverURL, serverID string) error {
+	key, err := NewServerKey(serverURL, serverID)
+	if err != nil {
+		return fmt.Errorf("server key: %w", err)
+	}
+	return NewKeyringSecretsServerStore().Delete(ctx, key)
+}

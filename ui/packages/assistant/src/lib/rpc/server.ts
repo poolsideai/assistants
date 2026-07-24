@@ -2,7 +2,7 @@ import type { AnyMessage } from "@agentclientprotocol/sdk";
 import type { ColorTheme, FileIconTheme, ThemeRepository } from "@poolsideai/components/providers";
 import {
   getUserMCPServersRepo,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  setACPActiveAgentServer,
   type ACPConversationRepository,
   type ACPProjectRepository,
   type ACPSession,
@@ -124,18 +124,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.localInferenceRepo?.applyDidChange(params);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  acpActiveAgentDidChange(params: {
+    agentServer: string | null;
+    supportsMcp?: boolean | null;
+    allowCustomMcp?: boolean | null;
+  }): void {
+    setACPActiveAgentServer(
+      params.agentServer,
+      params.supportsMcp ?? null,
+      params.allowCustomMcp ?? null,
+    );
+  }
+
   setCurrentConversation = (id: string) => {
     window.dispatchEvent(
       new CustomEvent(SET_CURRENT_CONVERSATION_EVENT, { detail: { conversationId: id } }),
@@ -209,13 +209,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }));
   };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  setEditorFocused = (isEditorFocused: boolean) => {
+    this.appState.update(($state) => ({
+      ...$state,
+      isEditorFocused,
+    }));
+  };
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.getActiveSession?.()?.togglePlanMode();
 __POOL_SYNTHETIC_IMPORT_BASELINE__

@@ -11,5 +11,5 @@ export function contextPathToVSCodeUri(path: string) {
 }
 
 export function documentToContextPath(document: vscode.TextDocument) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return document.isUntitled ? document.uri.toString() : document.uri.fsPath;
 }

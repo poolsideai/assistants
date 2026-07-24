@@ -8,7 +8,7 @@ export { clearStoredMarksPlugin } from "./plugins/clearStoredMarks.js";
 export { code } from "./plugins/code.js";
 export {
   docHistory,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  loadDocsMeta,
   restoreNextDoc,
   restorePreviousDoc,
   saveDocMeta,

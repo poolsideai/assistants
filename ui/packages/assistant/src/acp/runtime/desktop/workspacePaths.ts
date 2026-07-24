@@ -8,26 +8,26 @@ import {
   type AppState,
 } from "@poolsideai/features/acp";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const LAST_CONVERSATION_CWD_STORAGE_KEY = "poolside.desktop.lastConversationCwd";
+
+// Remembers the last project/worktree a conversation was opened in so a fresh
+// "New conversation" can reopen there across restarts.
+export function readStoredLastConversationCwd(): string | null {
+  try {
+    return window.localStorage.getItem(LAST_CONVERSATION_CWD_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function writeStoredLastConversationCwd(cwd: string): void {
+  try {
+    window.localStorage.setItem(LAST_CONVERSATION_CWD_STORAGE_KEY, cwd);
+  } catch {
+    // Ignore storage failures (private mode, quota, disabled storage).
+  }
+}
+
 export function defaultDesktopConversationCwd({
   appState,
   isDesktop,

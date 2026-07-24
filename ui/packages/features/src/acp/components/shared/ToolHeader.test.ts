@@ -1,10 +1,10 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { render, screen } from "@testing-library/svelte";
 import { get } from "svelte/store";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { appState, type AppState } from "../../hostAdapter";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ToolCall } from "../../types";
+import ToolCallHarness from "../events/tool/ImageGenerationToolCall.test.svelte";
+
 describe("ToolHeader", () => {
   let previousAppState: AppState;
 
@@ -33,63 +33,63 @@ describe("ToolHeader", () => {
     expect(screen.getByText("Run Shell Command:").parentElement).toHaveClass("items-baseline");
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // A "think" tool has a kind label but no kind-specific detail renderer and no
+  // icon. Without a fallback the descriptive title is dropped and the row reads
+  // as a bare "Think". The fallback shows the title in place of the kind label.
+  it("shows the title instead of the kind label for a think tool with no inline detail", () => {
+    render(ToolCallHarness, {
+      props: {
+        event: {
+          eventKind: "tool_call",
+          toolCallId: "call_think",
+          title: "Pondering the architecture",
+          kind: "think",
+          status: "completed",
+        } satisfies ToolCall,
+      },
+    });
+
+    expect(screen.getByText("Pondering the architecture")).toBeInTheDocument();
+    expect(screen.queryByText("Think")).not.toBeInTheDocument();
+  });
+
+  it("does not duplicate the title when it equals the kind label", () => {
+    render(ToolCallHarness, {
+      props: {
+        event: {
+          eventKind: "tool_call",
+          toolCallId: "call_think_2",
+          title: "Think",
+          kind: "think",
+          status: "completed",
+        } satisfies ToolCall,
+      },
+    });
+
+    expect(screen.getAllByText("Think")).toHaveLength(1);
+  });
+
+  // A directory listing arrives with ACP kind "read" (no dedicated list kind),
+  // distinguished only by `_meta.tool_name`. It should read as "List", not "Read".
+  it("labels a directory listing 'List' rather than 'Read'", () => {
+    render(ToolCallHarness, {
+      props: {
+        event: {
+          eventKind: "tool_call",
+          toolCallId: "call_list",
+          title: "List `components`",
+          kind: "read",
+          status: "completed",
+          rawInput: { path: "/repo/components" },
+          _meta: { tool_name: "list_directory" },
+        } satisfies ToolCall,
+      },
+    });
+
+    expect(screen.getByText("List")).toBeInTheDocument();
+    expect(screen.queryByText("Read")).not.toBeInTheDocument();
+  });
+
   // A multi-hunk edit arrives as several diff content blocks; the header's
   // ambient Diff context only covers the first block, so without aggregation
   // the stats badge would report that hunk alone.
@@ -125,26 +125,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(screen.queryByText("5")).not.toBeInTheDocument();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // A file write/create arrives with ACP kind "edit", so without the
+  // `_meta.tool_name` override it would read as "Edit" for a brand-new file.
+  it("labels a file write 'Create' rather than 'Edit'", () => {
+    render(ToolCallHarness, {
+      props: {
+        event: {
+          eventKind: "tool_call",
+          toolCallId: "call_write",
+          title: "Write `config.js`",
+          kind: "edit",
+          status: "completed",
+          rawInput: { path: "/repo/config.js" },
+          _meta: { tool_name: "write" },
+        } satisfies ToolCall,
+      },
+    });
+
+    expect(screen.getByText("Create")).toBeInTheDocument();
+    expect(screen.queryByText("Edit")).not.toBeInTheDocument();
+  });
 
   it("renders files in the host-provided home directory with a tilde", () => {
     appState.update((state) => ({ ...state, homeDirectory: "/Users/andy" }));
@@ -247,4 +247,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     expect(screen.getByText("wc -l ~/notes.txt")).toBeInTheDocument();
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+});

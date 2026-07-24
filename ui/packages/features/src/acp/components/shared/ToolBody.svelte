@@ -21,9 +21,9 @@
 {#if children || showRawFailure}
   {#if showRawFailure && !children}
     <CollapsibleContent>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <div
+        class="border-psx-border bg-psx-panel text-psx-foreground-secondary overflow-auto rounded-md border px-2.5 py-2"
+      >
         <pre class="whitespace-pre-wrap break-all">{JSON.stringify(
             context.tool.rawOutput,
             null,

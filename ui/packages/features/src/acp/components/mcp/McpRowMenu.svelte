@@ -1,12 +1,12 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import { createPopover, melt } from "@melt-ui/svelte";
+  import Icon from "@poolsideai/components/icon";
+  import { Spinner } from "@poolsideai/components/spinner";
   import { appState } from "../../hostAdapter";
   import { supportsNativeMenus } from "../chat/desktopContextMenu";
   import { presentNativeMenu, type MenuSpecItem } from "../ui/menuSpec";
   import { mcpMenuDangerItemClass, mcpMenuItemClass } from "./mcpMenu";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   type MenuSpecAction = Extract<MenuSpecItem, { kind: "action" }>;
 
   // The actions menu shared by the connector rows: the "…" trigger button
@@ -47,22 +47,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       nativeOpen = false;
     }
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const {
+    elements: { trigger, content },
+    states: { open },
+  } = createPopover({ positioning: { placement: "bottom-end", gutter: 4 }, forceVisible: true });
+
+  function close() {
+    open.set(false);
+  }
 
   function selectFromDom(item: MenuSpecAction) {
     close();
     onSelect(item.id);
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
 {#if native}
   <button
     type="button"
@@ -129,4 +129,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       {/each}
     </div>
   {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{/if}

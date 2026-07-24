@@ -1,6 +1,6 @@
 <script lang="ts">
   import ToolCallContents from "../shared/ToolCallContents.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import ToolDiffContent from "../shared/ToolDiffContent.svelte";
   import ToolRoot from "../shared/ToolRoot.svelte";
   import ToolHeader from "../shared/ToolHeader.svelte";
   import ToolBody from "../shared/ToolBody.svelte";
@@ -14,7 +14,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     getToolDescription,
     isPermissionDeniedToolCall,
   } from "../shared/toolStatus";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getWrittenFileDiff } from "../shared/toolPaths";
   import { findToolOverride } from "./tool/toolOverrides";
   import type { ToolCall } from "../../types";
   import type { WorkspaceFolder } from "@poolsideai/rpc";
@@ -33,12 +33,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   let hasContent = $derived(!!event.content?.length);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // A create/write tool's completed `content` only carries a short "Created
+  // file …" summary; the file's actual contents live in the raw input. Render
+  // them as a new-file diff so the body shows what was written — reading the
+  // same `<Diff>` context ToolRoot sets up for the header stats (see
+  // getWrittenFileDiff), so the body and header stay in lockstep.
+  let writtenFileDiff = $derived(getWrittenFileDiff(event));
   let rawInput = $derived(stringify(event.rawInput));
   let rawOutput = $derived(stringify(event.rawOutput));
   let isPermissionDenied = $derived(isPermissionDeniedToolCall(event));
@@ -80,34 +80,34 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             </div>
           {/if}
         </CollapsibleContent>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {:else if writtenFileDiff}
         <CollapsibleContent class="relative flex flex-col gap-2" animated={false}>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <ToolDiffContent diff={writtenFileDiff} />
+        </CollapsibleContent>
       {:else if hasContent}
         <ToolCallContents tool={event} {workspaceFolders} />
       {:else if rawInput || rawOutput}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <CollapsibleContent class="relative flex max-w-full flex-col">
+          <div class="border-psx-border bg-psx-panel overflow-hidden rounded-md border">
+            {#if rawInput}
+              <div
+                class={[
+                  "font-(family-name:--editor-font-size) block min-h-4 overflow-auto px-2.5 py-2 text-sm",
+                  rawOutput && "border-psx-border border-b",
+                ]}
+              >
+                <pre class="whitespace-pre-wrap break-all">{rawInput}</pre>
+              </div>
+            {/if}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            {#if rawOutput}
+              <div
+                class="font-(family-name:--editor-font-size) block min-h-4 overflow-auto px-2.5 py-2 text-sm"
+              >
+                <pre class="whitespace-pre-wrap break-all">{rawOutput}</pre>
+              </div>
+            {/if}
+          </div>
         </CollapsibleContent>
       {/if}
     </ToolBody>

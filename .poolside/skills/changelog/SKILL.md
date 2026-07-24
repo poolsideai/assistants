@@ -11,52 +11,52 @@ since each surface's last release. Output is grouped into **Headlines** and
 
 ## Release model (read this first)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Releases are tagged as `desktop/vX.Y.Z`, `vscode-assistant/vX.Y.Z`, and
+`helper/v0.0.N`. Desktop and VS Code are released independently from exact
+`main` commits; there are no release PRs or committed version-bump commits.
+
+For Desktop and VS Code, even minor versions are Stable and odd minor versions
+are Preview. Always use the previous tag from the same product, channel, and tag
+prefix as the lower boundary. A temporary VS Code Marketplace app has its own
+`vscode-<slug>/vX.Y.Z` prefix and must never use `vscode-assistant` history.
 
 ## Steps
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+1. **Fetch tags and identify the product lineage.**
    ```bash
    git fetch --tags
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-   ```
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-   ```bash
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+   gh release list --limit 50
    ```
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-   ```bash
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-   ```
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+   Defaults are `desktop` for Desktop and `vscode-assistant` for VS Code. If the
+   request is for a temporary Marketplace app, obtain its exact tag prefix from
+   the release request or annotated tag metadata.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+2. **Generate the canonical tag-bounded draft.** Prefer the tested release
+   helper over constructing a range manually:
+   ```bash
+   pnpm -F @poolsideai/release-helper find-version changelog desktop \
+     --channel stable --head <release-sha>
+
+   pnpm -F @poolsideai/release-helper find-version changelog vscode \
+     --channel nightly --tag-prefix vscode-assistant --head <release-sha>
+   ```
+
+   When reviewing an already-created release plan, use its `previousTag` and
+   `sourceSha` exactly:
+   ```bash
+   pnpm -F @poolsideai/release-helper find-version changelog <product> \
+     --prev <previousTag> --head <sourceSha>
+   ```
+
+3. **Inspect the exact tag range when manual curation is needed.**
+   ```bash
+   git log --first-parent --oneline <previousTag>..<sourceSha>
+   ```
+   Each squash-merged commit normally ends in `(#NNN)`. There is no release PR
+   to include or exclude.
+
+4. **Pull metadata + changed files for each PR** (author + surface detection):
    ```bash
    for pr in NNN NNN ...; do
      gh pr view $pr --json number,title,author,url,body \
@@ -65,9 +65,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
    done
    ```
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+5. **Classify each PR by surface** (see rules below).
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+6. **Write the changelog** in the output format below, one section per surface.
 
 ## Surface classification
 
@@ -95,7 +95,7 @@ When a PR in `features/src/acp` is about one of these (title/body mention
 classify it **Desktop-only** even though the code is shared. Verify with:
 ```bash
 # If these return no hits, the feature is Desktop-only (VS Code doesn't render it):
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+rg -il "conversation picker|diff panel|command palette" ui/apps/vscode-assistant/src
 ```
 The genuinely shared chat UI — prompt editor, session/turn rendering, plan/todo,
 model picker, interrupted-turn layout — ships to **both**.

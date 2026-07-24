@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Default/legacy production id, used only as the pre-activation seed and in
+// tests. The authoritative id at runtime comes from `context.extension.id`
+// (see main.ts) and can differ when we publish under a new marketplace name.
 export const POOLSIDE_EXTENSION_ID = "poolside-ai.poolside-assistant";
 export const POOLSIDE_NAME = "poolside";
 export const POOLSIDE_DEV_NAME = "poolside-dev";
@@ -25,16 +25,16 @@ function titleForPoolsideName(poolsideName: ExtensionIdentity["poolsideName"]): 
 }
 
 function buildIdentity(extensionId: string): ExtensionIdentity {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Detect the dev variant by suffix so any published marketplace name works
+  // (a rename to `poolside-ai.<new-name>` keeps a `<new-name>-dev` dev build).
+  const isDev = extensionId.endsWith("-dev");
   const poolsideName = isDev ? POOLSIDE_DEV_NAME : POOLSIDE_NAME;
   const title = titleForPoolsideName(poolsideName);
 
   return {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Pass through the real runtime id (from `context.extension.id`) so
+    // marketplace / settings deep-links resolve under whatever name we ship as.
+    extensionId,
     poolsideName,
     isDev,
     assistantTitle: isDev ? title : "Poolside Assistant",

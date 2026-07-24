@@ -202,8 +202,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         id: "conv-1",
         sessionId: null,
         agentServer: "claude-acp",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // A just-created draft is stamped "now" so it sorts to the top.
+        updatedAt: expect.any(String),
       }),
     );
 

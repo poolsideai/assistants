@@ -81,7 +81,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     /* Chips embedded in rendered markdown must remain part of the text
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+       selection so copying surrounding prose keeps the chip label.
        The ProseMirror editor is not `.markdown`, so its chips stay atomic via
        the base `select-none` above. */
     :global(.markdown [data-skill]) &,

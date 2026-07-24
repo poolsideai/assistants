@@ -1,7 +1,7 @@
 import type { IconName, IconProps } from "@poolsideai/components/icon";
 import type { ToolCall } from "../../types";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { isMcpToolCall, isSkillToolCall } from "../events/tool/toolCategory";
+import { getToolPath, isDirectoryListing } from "./toolPaths";
 
 function modeToIcon(rawInput: unknown): IconName {
   if (rawInput == null || typeof rawInput !== "object" || Array.isArray(rawInput)) return "code";
@@ -10,15 +10,15 @@ function modeToIcon(rawInput: unknown): IconName {
   return mode === "plan" ? "plan" : "code";
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function getToolIcon(tool: ToolCall, iconPath?: string): IconName | IconProps {
+  // Directory listings come through as ACP kind "read"; show a folder, not a
+  // file glyph, so they read as listings rather than file reads.
+  if (isDirectoryListing(tool)) return "folder";
+  // MCP tools and skills also arrive as kind "other", which would otherwise fall
+  // through to the shell "terminal" glyph; give them their own icons.
+  if (isMcpToolCall(tool)) return "mcp";
+  if (isSkillToolCall(tool)) return "skills";
+
   const path = getToolPath(tool);
 
   switch (tool.kind) {
@@ -36,12 +36,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     case "fetch":
       return "web";
     case "think":
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return "sparkles";
     case "other":
       return "terminal";
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  // Fallback so every tool row shows a glyph. Some agents (e.g. codex) send tool
+  // calls with no `kind` at all, which would otherwise render icon-less.
+  return "sparkles";
 }

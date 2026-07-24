@@ -17,8 +17,8 @@
       title: "Read README.md",
       kind: "read",
       status: "completed",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      locations: [{ path: "/Users/poolie/poolside/assistant/README.md" }],
+      rawInput: { path: "/Users/poolie/poolside/assistant/README.md" },
       rawOutput: { lines: 42 },
       content: [
         {

@@ -5,12 +5,12 @@
   interface Props {
     complete?: boolean;
     children?: Snippet;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onExpandedChange?: (expanded: boolean) => void;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let { complete, children, onExpandedChange }: Props = $props();
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<SharedChatProgress {complete} {onExpandedChange}>
   {@render children?.()}
 </SharedChatProgress>

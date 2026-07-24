@@ -5,7 +5,7 @@ import * as vscode from "vscode";
 import { getPoolsideConfig } from "../configuration";
 import { sendActiveFileContext } from "../context";
 import { POOLSIDE } from "../extensionIdentity";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { createRpcClient } from "../rpc/client";
 import { HostRPCServer } from "../rpc/server";
 import type { System } from "../system";
 import { getWebviewHtml } from "./getWebviewHtml";
@@ -62,7 +62,7 @@ export class Assistant implements vscode.WebviewViewProvider {
 
   constructor(readonly system: System) {
     this.events = new EventEmitter();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.rpc = createRpcClient(this);
     this.onDidChangeState((to, from) => {
       system.telemetry.log("assistant changed state", { from, to });
 

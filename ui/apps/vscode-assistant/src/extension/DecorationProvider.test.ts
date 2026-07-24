@@ -1,7 +1,7 @@
 import { createTextDocument, createVSCodeMock } from "jest-mock-vscode";
 import * as vscode from "vscode";
 import { Range, Uri } from "vscode";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { DecorationProvider } from "./DecorationProvider";
 
 vi.mock("vscode", () => createVSCodeMock(vi));
 
@@ -44,7 +44,7 @@ describe("DecorationProvider", () => {
     it("sets new insert locations and applies decorations", async () => {
       const locations = new Map([
         [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          mockEditor.document.uri.fsPath,
           {
             lines: [new Range(0, 0, 0, 10)],
             inner: [new Range(1, 0, 1, 5)],
@@ -61,7 +61,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     it("clears existing decorations before setting new ones", async () => {
       const initialLocations = new Map([
         [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          mockEditor.document.uri.fsPath,
           {
             lines: [new Range(0, 0, 0, 5)],
             inner: [],
@@ -75,7 +75,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
       const newLocations = new Map([
         [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          mockEditor.document.uri.fsPath,
           {
             lines: [new Range(2, 0, 2, 10)],
             inner: [],
@@ -204,7 +204,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     it("removes specific path decorations and locations", async () => {
       const locations = new Map([
         [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          mockEditor.document.uri.fsPath,
           {
             lines: [new Range(0, 0, 0, 10)],
             inner: [],
@@ -216,7 +216,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       const decorationType = vi.mocked(vscode.window.createTextEditorDecorationType).mock.results[0]
         .value;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      provider.deleteInserts(mockEditor.document.uri.fsPath);
 
       expect(decorationType.dispose).toHaveBeenCalled();
     });
@@ -232,7 +232,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     it("disposes decorations but keeps locations", async () => {
       const locations = new Map([
         [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          mockEditor.document.uri.fsPath,
           {
             lines: [new Range(0, 0, 0, 10)],
             inner: [],
@@ -244,7 +244,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       const decorationType = vi.mocked(vscode.window.createTextEditorDecorationType).mock.results[0]
         .value;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      provider.hideInserts(mockEditor.document.uri.fsPath);
 
       expect(decorationType.dispose).toHaveBeenCalled();
     });

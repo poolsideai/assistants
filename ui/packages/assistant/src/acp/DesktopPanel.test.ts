@@ -322,7 +322,7 @@ describe("DesktopPanel integration", () => {
     // No projects: instead of a "get started" page, the user lands in a ready-to-type chat
     // seeded in an isolated chat working directory.
     await waitFor(() =>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      expect(repositories.acpRepo.createSession).toHaveBeenCalledWith(
         "/state/poolside/chat",
         "poolside",
         expect.stringMatching(/^conversation:/),
@@ -334,7 +334,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     // With only the built-in Poolside agent configured, the set-up-agent nudge shows.
     expect(screen.getByRole("button", { name: "Set up another agent" })).toBeInTheDocument();
     // Draft chat is not persisted to the sidebar until the first message is sent.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(repositories.acpConversationRepo.createPendingConversation).not.toHaveBeenCalled();
   });
 
   it("hides the set-up-agent action once more than one extra agent is configured", async () => {
@@ -740,80 +740,80 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(items[1]).toHaveTextContent("project-a");
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("toggles a worktree's conversation list on desktop", async () => {
+    const repositories = new TestRepositories({
+      projects: [
+        project("/tmp/project-a"),
+        project("/tmp/project-a/worktree", {
+          isWorktree: true,
+          parentPath: "/tmp/project-a",
+        }),
+      ],
+      conversations: [
+        conversationSummary("s-wt", "/tmp/project-a/worktree", "Worktree chat", {
+          workingDirectories: ["/tmp/project-a/worktree"],
+        }),
+      ],
+    });
+
+    await renderDesktopPanel({
+      repositories,
+      initialState: state({ assistantHost: "desktop", defaultCwd: "/tmp/project-a" }),
+    });
+
+    expect(await screen.findByText("Worktree chat")).toBeInTheDocument();
+
+    await fireEvent.click(await screen.findByRole("button", { name: "Collapse worktree" }));
+
+    expect(repositories.acpProjectRepo.setProjectCollapsed).toHaveBeenCalledWith(
+      "/tmp/project-a/worktree",
+      true,
+    );
+    // The chevron flips to the expand affordance once the list is collapsed.
+    expect(await screen.findByRole("button", { name: "Expand worktree" })).toBeInTheDocument();
+  });
+
+  it("toggles a worktree's conversation list by clicking the worktree row on desktop", async () => {
+    const repositories = new TestRepositories({
+      projects: [
+        project("/tmp/project-a"),
+        project("/tmp/project-a/worktree", {
+          isWorktree: true,
+          parentPath: "/tmp/project-a",
+        }),
+      ],
+      conversations: [
+        conversationSummary("s-wt", "/tmp/project-a/worktree", "Worktree chat", {
+          workingDirectories: ["/tmp/project-a/worktree"],
+        }),
+      ],
+    });
+
+    // Desktop cannot open workspaces, so the worktree row falls through to toggling
+    // its conversation list — the whole name/icon is the collapse target.
+    const desktopState = state({ assistantHost: "desktop", defaultCwd: "/tmp/project-a" });
+    await renderDesktopPanel({
+      repositories,
+      initialState: {
+        ...desktopState,
+        environment: {
+          ...desktopState.environment,
+          capabilities: { ...desktopState.environment.capabilities, openWorkspace: false },
+        },
+      },
+    });
+
+    expect(await screen.findByText("Worktree chat")).toBeInTheDocument();
+
+    // Click the worktree row (its name), not the chevron.
+    await fireEvent.click(await screen.findByRole("button", { name: "worktree" }));
+
+    expect(repositories.acpProjectRepo.setProjectCollapsed).toHaveBeenCalledWith(
+      "/tmp/project-a/worktree",
+      true,
+    );
+  });
+
   it("reorders worktrees by dragging their rows", async () => {
     const repositories = new TestRepositories({
       projects: [
@@ -2538,7 +2538,7 @@ Workspace: \`/tmp/project-a\`
     await fireEvent.click(screen.getByRole("button", { name: "Back" }));
 
     // Back returns to the normal conversation sidebar.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(await screen.findByText("Current conversation")).toBeInTheDocument();
     expect(screen.queryByPlaceholderText("Search archived chats")).toBeNull();
   });
 
@@ -2785,7 +2785,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     await fireEvent.click(await screen.findByText("Current conversation"));
     repositories.acpRepo.createSession.mockClear();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await archiveConversationViaContextMenu("Current conversation");
 
     expect(repositories.acpConversationRepo.archiveSession).toHaveBeenCalledWith(
       "/tmp/project-a",
@@ -3125,7 +3125,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(await screen.findByRole("button", { name: "Settings" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
     expect(screen.getByText("Current conversation")).toBeInTheDocument();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }, 30_000);
 
   it("uses the settings sidebar back button for desktop project settings", async () => {
     const repositories = new TestRepositories({
@@ -3231,14 +3231,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Adding a project drops the user into a ready-to-type draft conversation.
+    await waitFor(() =>
+      expect(repositories.acpRepo.createSession).toHaveBeenCalledWith(
+        "/tmp/project-b",
+        "poolside",
+        null,
+      ),
+    );
   });
 
   it("deletes projects from desktop project settings after confirmation", async () => {
@@ -3576,7 +3576,7 @@ async function openProjectContextMenu(projectName: string, itemLabel: string) {
   await selectFromNativeContextMenu(projectToggle, itemLabel);
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+async function archiveConversationViaContextMenu(title: string) {
   // Fake timers must be installed before the Archive action fires so that the
   // countdown setInterval is created under fake-timer control.
   vi.useFakeTimers();
@@ -3586,8 +3586,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   } finally {
     vi.useRealTimers();
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 async function beginArchiveConversationViaContextMenu(title: string) {
   const button = screen.getByRole("button", {
     name: new RegExp(`^${escapeRegExp(title)} - `),
@@ -3853,7 +3853,7 @@ function makeSessionRepo(sessions: Map<string, any>) {
           repo,
         });
         sessions.set(conversationId, session);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        return session;
       },
     ),
     loadSessionRecord: vi.fn(
@@ -3901,10 +3901,10 @@ function makeSession({
     isChat,
     pendingCwd: sessionId ? null : cwd,
     pendingConversationId: sessionId ? null : conversationId,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    persistPendingConversation: vi.fn(),
+    requestPromptFocus: vi.fn(),
+    promptFocusRequested: false,
+    consumePromptFocusRequest: vi.fn(() => false),
     sessionInfo: sessionId
       ? {
           sessionId,
@@ -3974,15 +3974,15 @@ function makeProjectRepo(projects: ACPNavProject[]) {
       ),
     );
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  repo.setProjectCollapsed = vi
+    .fn()
+    .mockImplementation(async (path: string, collapsed: boolean) => {
+      writer.replaceProjects(
+        writer.projects.map((project) =>
+          project.path === path ? { ...project, collapsed } : project,
+        ),
+      );
+    });
   repo.reorderWorktrees = vi
     .fn()
     .mockImplementation(async (parentPath: string, paths: string[]) => {
@@ -4168,8 +4168,8 @@ function historyConversationButton(title: string): HTMLElement {
   if (!button) throw new Error(`Could not find history conversation button for ${title}`);
   return button;
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 async function openArchivedChats(): Promise<void> {
   await fireEvent.click(await screen.findByRole("button", { name: "Settings" }));
   await fireEvent.click(screen.getByRole("button", { name: "Archived Chats" }));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

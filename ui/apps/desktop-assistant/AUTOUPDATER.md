@@ -1,26 +1,26 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Desktop auto-updater
+
+The packaged app uses Tauri's updater with signed artifacts served by
+CrabNebula Cloud. Apple signing/notarization protects installation; the updater
+minisign key independently verifies downloaded updates.
+
+## Channels and versions
+
+| UI               | Eligible versions        | CrabNebula endpoints        |
+| ---------------- | ------------------------ | --------------------------- |
+| Stable (default) | numeric, even minor      | default channel             |
+| Preview          | latest even or odd minor | default + `nightly` channel |
+
+CrabNebula keeps Stable and Nightly as separate feeds; version parity is the
+ordering and validation convention. `tauri.conf.json` contains the Stable
+endpoint. `src-tauri/src/updater.rs` derives Nightly from that endpoint at
+runtime by adding `?channel=nightly`; there is no second hard-coded slug. The
+release preflight requires `CN_APP_SLUG` to match CrabNebula's **Configure
+Tauri Updates** URL.
+
+The release workflow injects the exact numeric version into `tauri.conf.json`
+before building. Committed app/package versions remain `0.0.0` placeholders.
+
 ## Never install in the background
 
 Background checks download but **must not install**. Tauri's macOS installer
@@ -52,27 +52,27 @@ panels in `rpc/host.ts` check it first and offer a restart (`NSAlert` is
 in-process, so the prompt itself is safe), and the update loop surfaces the same
 sidebar **Update** pill, which then only relaunches.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+## Runtime behavior
+
+- Stable builds default to Stable and Preview builds default to Preview, using
+  the same even/odd minor rule as the release workflow. This also migrates
+  existing odd-minor installs whose settings predate the channel preference;
+  an explicitly persisted choice is always preserved.
+- The Rust updater reads the preference once for each operation.
+- A Stable background/manual operation checks the Stable feed once. A Preview
   operation checks Stable and Nightly once each, then downloads the higher valid
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  version. It never re-checks after selecting that exact signed `Update`.
+- Rust serializes updater operations; the frontend also joins concurrent calls.
+- Normal checks keep Tauri's `remote > current` comparator and never downgrade.
 - Staging a Stable update while Preview is selected preserves the Preview
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  preference, so a later, higher Nightly build is still eligible.
 - After staging, the sidebar **Update** button installs the download and
   restarts into it. A failed install stays staged so the button can be retried.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+- The channel selector is disabled while an updater operation is in flight. A
+  staged update cannot be replaced or cancelled, so the selector stays disabled
+  until the app restarts and the backend rejects further updater operations or
+  channel changes. Channel writes are serialized with updater operations so the
+  persisted preference cannot disagree with the build waiting to launch.
 - Quitting with an upgrade staged keeps the downloaded archive on disk. The next
   launch's first check re-verifies it against the feed's signature and stages it
   without re-downloading; the archive is deleted once the feed stops offering
@@ -85,47 +85,47 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   is affected — it is deliberately a confirmed, in-session action, and keeping it
   would mean persisting the intent to install something the feed no longer
   offers as an upgrade.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+When a Preview user selects Stable, the app queries only the Stable endpoint
+with a one-shot `remote != current` comparator. It rejects suffix versions and
+odd-minor responses. If Stable is lower, a native dialog shows the exact
+`Preview -> Stable` versions before installing the same signed `Update` value.
+This comparator is never used by background checks. Cancelling the switch, not
+finding a Stable build, or encountering an updater error restores Preview as
+the selected channel so the user can retry the explicit transition later.
+
+Older Stable builds may not understand data written by Preview. Before enabling
+public Preview distribution, exercise settings, task/session databases, local
+state, and the bundled helper across a real Preview-to-Stable transition. If a
+future migration is not backward compatible, disable in-app downgrade for that
+line and direct users to the Stable installer with explicit data guidance.
+
+## Distribution setup
+
+Repository configuration is listed in the root [release guide](../../../RELEASING.md).
+In CrabNebula:
+
+1. create or select the application and record its exact slug;
+2. create the `nightly` channel;
+3. verify default and nightly updater URLs;
+4. verify the updater public key matches the CI private key;
+5. decide whether existing internal installations should follow this app/feed.
+
+Desktop publication currently builds only macOS arm64. Intel, Windows, and
+Linux require additional signed artifacts and updater platform entries.
+
+## Validation
+
+Run **Validate · Signed Desktop release** from `main` and inspect the packaged
+`CFBundleShortVersionString`; it must equal the planned numeric version. Then
+test:
+
+1. Stable to newer Preview;
+2. Preview to newer Stable while preserving the Preview preference;
+3. Preview chooses Nightly when it is newer than Stable;
+4. Preview background check against lower Stable (no downgrade);
+5. explicit Preview to lower Stable (exact-version confirmation and install);
+6. tampered signature (must fail);
 7. settings, tasks/sessions, and helper behavior after the downgrade;
 8. **Add Project after a staged download** — the folder picker must still open
    while an update is waiting, proving nothing was installed behind it;
@@ -136,6 +136,6 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     without a second download (watch `pending-update/` mtime), and clicking it
     must install; corrupt the cached archive first and the install must still
     succeed via re-download.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+For local feed testing, temporarily point a test build at a local signed Tauri
+manifest. Never commit a local/insecure endpoint or a real private signing key.

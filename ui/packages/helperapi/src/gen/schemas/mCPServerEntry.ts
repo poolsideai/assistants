@@ -17,7 +17,7 @@ export interface MCPServerEntry {
   env?: MCPServerEntryEnv;
   headers?: MCPServerEntryHeaders;
   name: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  oauthAuthenticated?: boolean;
   oauthCallbackPort?: number;
   oauthClientId?: string;
   oauthDeepLink?: boolean;

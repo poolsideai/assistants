@@ -43,7 +43,7 @@ export function defaultGoDebugPort(slot: number): number {
 }
 
 export function parseDebugGoArgs(args: string[]): { port: number; dlvBinary: string } {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const slot = Number.parseInt(process.env.POOLSIDE_WORKTREE_SLOT || "0", 10) || 0;
   let port = defaultGoDebugPort(slot);
   let dlvBinary = process.env.SPOOLSIDE_DLV_BINARY || "dlv";
 

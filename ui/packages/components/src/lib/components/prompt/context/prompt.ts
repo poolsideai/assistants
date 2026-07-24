@@ -71,12 +71,12 @@ export interface PromptContext {
    */
   isDirty: Writable<boolean>;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Indicates whether a submission is in progress.
+   * Used to prevent chip onRemove callbacks from firing during submit.
+   */
+  isSubmitting: Readable<boolean>;
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -118,12 +118,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
    */
   setValue: (text: string, options?: { focus?: boolean }) => void;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Focuses the prompt editor.
+   * @returns false when the editor is not mounted yet
+   */
+  focus: () => boolean;
+
   /**
    * Records editor content changes.
    */
@@ -249,13 +249,13 @@ export function createPrompt({
     submitEl: writable(),
   } satisfies PromptContext["elements"];
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const resetMenuState = () => {
     search.set(undefined);
     selectedItem.set(undefined);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  };
+
+  const onNavigate = () => {
+    resetMenuState();
 
     const $editor = get(prompt.editor);
     const $menu = get(menu);
@@ -271,8 +271,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   const navigation = createNavigationStore<Menu["id"]>([], {
     onNavigate,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onReplace: resetMenuState,
+    onClear: resetMenuState,
   });
 
   const menus = writable<Menus>(new Map());
@@ -663,7 +663,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   const imeIsComposing = writable(false);
   const isDirty = writable(false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const isSubmitting = writable(false);
   let currentValue = value;
   let suppressValueChange = false;
 
@@ -791,7 +791,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     elements,
     imeIsComposing,
     isDirty,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    isSubmitting,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     canSubmit,
     suggestion,
@@ -805,12 +805,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     },
     restore: (text: string) => setValue(text, { focus: true }),
     setValue,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    focus: () => {
+      const $editor = get(prompt.editor);
+      if (!$editor) return false;
+      $editor.focus();
+      return true;
+    },
     onEditorUpdate,
     reset: () => {
       prompt.clear();

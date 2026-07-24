@@ -30,7 +30,7 @@
   import { getReadableFileInfo } from "../../shared/paths";
   import { getToolCallExpansionContext, isInsideToolCallGroup } from "../SessionEventsState.svelte";
   import { getToolIcon } from "./toolIcon";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getToolPath, getWrittenFileDiff } from "./toolPaths";
   import { isPermissionDeniedToolCall } from "./toolStatus";
   import { appState } from "../../hostAdapter";
 
@@ -52,12 +52,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return getToolIcon(tool, parsedToolPath?.absolutePath ?? parsedToolPath?.fileName);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Prefer a synthetic diff built from a write tool's raw input: a completed
+  // write replaces its diff `content` block with a summary, so reading only the
+  // block would make the header's diff stats flicker off the moment it lands.
+  let diff = $derived(
+    getWrittenFileDiff(tool) ?? tool.content?.find((content) => content.type === "diff"),
+  );
   let parsedPath = $derived(
     diff ? getReadableFileInfo(diff.path, workspaceFolders, $appState.homeDirectory) : undefined,
   );

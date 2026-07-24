@@ -347,7 +347,7 @@ func TestJSONRPC_Cancellation(t *testing.T) {
 
 	})
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 func TestConcurrentMethods(t *testing.T) {
 	t.Run("default handler marks extension methods as concurrent", func(t *testing.T) {
 		h := New()

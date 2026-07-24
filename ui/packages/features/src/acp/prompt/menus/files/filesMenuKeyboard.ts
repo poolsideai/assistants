@@ -6,7 +6,7 @@
  * lets us unit-test the matrix of cases (open quote, parent control,
  * directory drill-in, no-match row) without rendering the menu.
  *
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ * TODO: the actual listener still lives on `document` with capture
  * — see FilesMenu.svelte. Migrating to a ProseMirror keymap plugin attached
  * to the editor is the next step; this module is shaped to slot into either.
  */

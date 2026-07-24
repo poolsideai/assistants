@@ -37,13 +37,13 @@ notify = "8"
 portable-pty = "0.9"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+semver = "1"
+# `macos-private-api` is required to build transparent windows on macOS, which
+# in turn lets us render the native NSVisualEffectView vibrancy behind the
+# webview (see src/navigation.rs). Paired with `macOSPrivateApi: true` in
+# tauri.conf.json. Note: this makes the app ineligible for the Mac App Store,
+# which is fine — it ships as a notarized DeveloperTool bundle outside the MAS.
+tauri = { version = "2", features = ["isolation", "macos-private-api"] }
 # Re-verify the staged update archive before installing it (see updater.rs).
 # The same crate the updater plugin uses for its own download verification,
 # already in the dependency tree.
@@ -51,8 +51,8 @@ minisign-verify = "0.2"
 tauri-plugin-dialog = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-opener = "2"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Relaunches the app after an update is installed (see src/updater.ts / relaunch()).
+tauri-plugin-process = "2"
 tauri-plugin-screenshots = "2.2.0"
 tauri-plugin-shell = "2"
 tauri-plugin-window-state = "2"
@@ -69,17 +69,17 @@ libc = "0.2"
 
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Self-update via the CrabNebula Cloud feed. Desktop-only (there is no mobile
+# build). The minisign public key + updater endpoint live in tauri.conf.json
+# under plugins.updater; the private signing key is supplied in CI via
+# TAURI_SIGNING_PRIVATE_KEY. Registered in lib.rs setup() under #[cfg(desktop)].
+# Use native-tls (the OS/system cert store — Secure Transport on macOS) instead
+# of the default rustls-tls, so we don't bundle the CDLA-licensed Mozilla CA
+# roots (webpki-root-certs). Keep `zip` — it unpacks the macOS .app.tar.gz.
+tauri-plugin-updater = { version = "2", default-features = false, features = [
+  "native-tls",
+  "zip",
+] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 # Used by src/desktop_notification.rs to send clickable, cancellable native notifications.

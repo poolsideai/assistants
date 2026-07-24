@@ -2,6 +2,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	ServerID   string `json:"serverID"`
+	ServerURL  string `json:"serverURL"`
+	ServerName string `json:"serverName"`
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -21,10 +24,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 // MCPOAuthCallbackParams carries an OAuth redirect callback URL
 // (poolside://oauth/callback?code=…&state=…) that a client with the
 // poolside:// URL scheme registered received from the OS. Forwarding it
@@ -41,16 +41,16 @@ func (p MCPOAuthCallbackParams) MethodName() string {
 type MCPOAuthCallbackOutput struct {
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// DeleteMCPSecretsParams represents the parameters for deleting secrets for an MCP server.
+type DeleteMCPSecretsParams struct {
+	ServerID  string `json:"serverID"`
+	ServerURL string `json:"serverURL"`
+}
+
+func (p DeleteMCPSecretsParams) MethodName() string {
+	return "poolside/deleteMcpSecrets"
+}
+
+// DeleteMCPSecretsOutput represents the output of the delete MCP secrets operation.
+type DeleteMCPSecretsOutput struct {
+}

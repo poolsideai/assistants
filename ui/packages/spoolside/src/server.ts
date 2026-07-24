@@ -456,9 +456,9 @@ async function launchTarget() {
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  if (process.env.POOLSIDE_WORKTREE_SLOT) {
+    opts.worktreeSlot = parseInt(process.env.POOLSIDE_WORKTREE_SLOT, 10);
+    opts.worktreeId = process.env.POOLSIDE_WORKTREE_ID;
   }
 
   target = targetKind === "desktop" ? new DesktopTarget() : new VscodeTarget();

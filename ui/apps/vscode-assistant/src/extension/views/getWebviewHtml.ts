@@ -4,7 +4,7 @@ import type { Manifest, ManifestChunk } from "vite";
 import * as vscode from "vscode";
 import { getPoolsideConfigurationSection } from "../api/configuration";
 import { getExtensionIdentity } from "../extensionIdentity";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getInitialAppStateAsJSON } from "../state";
 import type { System } from "../system";
 
 // A packaged extension's manifest is immutable for this activation. Do not
@@ -129,10 +129,10 @@ export async function getWebviewHtml(
     logoFaceUri = "/poolside-logo-face.glb";
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const notificationIconUri = webview
+    .asWebviewUri(vscode.Uri.joinPath(system.context.extensionUri, "dist", "resources", "icon.png"))
+    .toString();
+
   return `<!doctype html>
 <html>
   <head>
@@ -187,7 +187,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
         window.riveUri = "${riveUri}";
         window.riveThinUri = "${riveThinUri}";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        window.notificationIconUri = "${notificationIconUri}";
         window.logoUri = "${logoUri}";
         window.logoFaceUri = "${logoFaceUri}";
     </script>

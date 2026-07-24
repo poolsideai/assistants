@@ -16,9 +16,9 @@
     "dialog:allow-open",
     "dialog:allow-save",
     "notification:default",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "screenshots:default",
+    "updater:default",
+    "process:default",
+    "process:allow-restart"
   ]
 }

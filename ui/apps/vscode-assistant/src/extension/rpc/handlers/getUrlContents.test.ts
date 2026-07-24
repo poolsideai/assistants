@@ -1,5 +1,5 @@
 import { describe, type Mock, vi } from "vitest";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { _isBinaryMime, _treatAsHTML, getUrlContents } from "./getUrlContents";
 
 describe("getUrlContents", () => {
   let fetchMock: Mock<typeof fetch>;

@@ -1,98 +1,98 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+name: Release · Helper
+
 on:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: "Mainline commit or ref to release"
+        required: true
+        default: main
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: release-products
+  queue: max
 
 jobs:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  plan:
+    name: Plan helper release
     if: github.repository == 'poolsideai/assistant'
     runs-on: ubuntu-latest
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    outputs:
+      action: ${{ steps.plan.outputs.action }}
+      source_sha: ${{ steps.plan.outputs.source_sha }}
+      tag: ${{ steps.plan.outputs.tag }}
+      tag_annotation_base64: ${{ steps.plan.outputs.tag_annotation_base64 }}
+      version: ${{ steps.plan.outputs.version }}
     steps:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      - name: Checkout helper source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
 
+      - name: Validate mainline source
+        shell: bash
+        run: git merge-base --is-ancestor HEAD origin/main
+
+      - name: Setup UI
+        uses: ./.github/actions/ui-setup
+
+      - name: Create helper release plan
+        id: plan
+        shell: bash
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        run: |
+          set -euo pipefail
+          pnpm -s -F @poolsideai/release-helper find-version \
+            plan-helper \
+            --ref HEAD \
+            --main-ref origin/main \
+            > "$RUNNER_TEMP/helper-release-plan.json"
+          {
+            echo "action=$(jq -r '.action' "$RUNNER_TEMP/helper-release-plan.json")"
+            echo "source_sha=$(jq -r '.sourceSha' "$RUNNER_TEMP/helper-release-plan.json")"
+            echo "tag=$(jq -r '.tag' "$RUNNER_TEMP/helper-release-plan.json")"
+            echo "tag_annotation_base64=$(jq -r '.tagAnnotation | @base64' "$RUNNER_TEMP/helper-release-plan.json")"
+            echo "version=$(jq -r '.version' "$RUNNER_TEMP/helper-release-plan.json")"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "### Helper release plan"
+            echo '```json'
+            jq . "$RUNNER_TEMP/helper-release-plan.json"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    name: Build signed helper runtime
+    needs: plan
+    if: needs.plan.outputs.action != 'reuse'
+    uses: ./.github/workflows/helper-build.yml
+    with:
+      ref: ${{ needs.plan.outputs.source_sha }}
+      version: ${{ needs.plan.outputs.version }}
+      sign: true
+    secrets: inherit
+
+  publish:
+    name: Publish permanent helper release
+    needs: [plan, build]
+    if: >-
+      always() &&
+      (
+        needs.plan.outputs.action == 'reuse' ||
+        needs.build.result == 'success'
+      )
+    uses: ./.github/workflows/helper-publish.yml
+    with:
+      action: ${{ needs.plan.outputs.action }}
+      source_sha: ${{ needs.plan.outputs.source_sha }}
+      tag: ${{ needs.plan.outputs.tag }}
+      tag_annotation_base64: ${{ needs.plan.outputs.tag_annotation_base64 }}
+      version: ${{ needs.plan.outputs.version }}
+    secrets: inherit

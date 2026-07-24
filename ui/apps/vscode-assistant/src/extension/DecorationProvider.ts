@@ -4,7 +4,7 @@ import { POOLSIDE } from "./extensionIdentity";
 /**
  * DecorationProvider is used to set green line background highlights for inserted lines
  */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export class DecorationProvider {
   // insertDecorations tracks decorations that have actually been applied to a visible text editor
   private insertDecorations: Map<string, vscode.TextEditorDecorationType[]>;
   // insertLocations tracks all ranges in all files that could currently have a highlight

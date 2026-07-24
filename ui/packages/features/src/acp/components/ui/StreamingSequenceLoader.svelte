@@ -1,20 +1,20 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
   import { onMount } from "svelte";
   import spriteUrl from "./streaming-sequence-loader-sprite.webp";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  interface Props {
+    /** Glyph size in px. */
+    size?: number;
+    ariaLabel?: string;
+  }
+
   const SPRITE_UNIQUE_FRAMES = 321;
   const SPRITE_TOTAL_FRAMES = SPRITE_UNIQUE_FRAMES + 1;
   const SPRITE_DURATION_MS = 21400;
   const FRAME_INTERVAL_MS = SPRITE_DURATION_MS / SPRITE_UNIQUE_FRAMES;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   let { size = 16, ariaLabel = "Working" }: Props = $props();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   const spriteWidth = $derived(size * SPRITE_TOTAL_FRAMES);
   let spriteElement: HTMLSpanElement;
   let playing = $state(false);
@@ -51,12 +51,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       reducedMotion.removeEventListener("change", syncPlayback);
     };
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
 <span
   class="streaming-sequence-loader"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  role="img"
+  aria-label={ariaLabel}
   data-playing={playing}
   style={`--streaming-sequence-size: ${size}px; --streaming-sequence-width: ${spriteWidth}px;`}
 >

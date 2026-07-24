@@ -10,8 +10,8 @@
 
   const projects: ACPNavProject[] = [
     {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      path: "/Users/poolie/code/assistant",
+      name: "assistant",
       isWorktree: false,
       collapsed: false,
       displayOrder: 0,
@@ -19,30 +19,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       updatedAt: minutesAgo(15),
     },
     {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      path: "/Users/poolie/code/assistant/.worktrees/acp-sidebar",
       name: "acp-sidebar",
       isWorktree: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      parentPath: "/Users/poolie/code/assistant",
       collapsed: false,
       displayOrder: 0,
       createdAt: minutesAgo(60 * 24),
       updatedAt: minutesAgo(15),
     },
     {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      path: "/Users/poolie/code/assistant/.worktrees/refactor-router",
       name: "refactor-router",
       isWorktree: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      parentPath: "/Users/poolie/code/assistant",
       collapsed: false,
       displayOrder: 0,
       createdAt: minutesAgo(60 * 12),
       updatedAt: minutesAgo(120),
     },
     {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      path: "/Users/poolie/code/assistant/.worktrees/crisp-current",
       name: "crisp-current",
       isWorktree: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      parentPath: "/Users/poolie/code/assistant",
       collapsed: false,
       displayOrder: 0,
       createdAt: minutesAgo(4),
@@ -50,10 +50,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       busy: "creating",
     },
     {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      path: "/Users/poolie/code/assistant/.worktrees/steady-setup",
       name: "steady-setup",
       isWorktree: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      parentPath: "/Users/poolie/code/assistant",
       collapsed: false,
       displayOrder: 0,
       createdAt: minutesAgo(5),
@@ -61,10 +61,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       busy: "running_setup",
     },
     {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      path: "/Users/poolie/code/assistant/.worktrees/tidy-teardown",
       name: "tidy-teardown",
       isWorktree: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      parentPath: "/Users/poolie/code/assistant",
       collapsed: false,
       displayOrder: 0,
       createdAt: minutesAgo(6),
@@ -72,10 +72,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       busy: "tearing_down",
     },
     {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      path: "/Users/poolie/code/assistant/.worktrees/deft-delete",
       name: "deft-delete",
       isWorktree: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      parentPath: "/Users/poolie/code/assistant",
       collapsed: false,
       displayOrder: 0,
       createdAt: minutesAgo(7),
@@ -83,7 +83,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       busy: "deleting",
     },
     {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      path: "/Users/poolie/code/poolside-books-api-demo",
       name: "poolside-books-api-demo",
       isWorktree: false,
       collapsed: false,
@@ -96,68 +96,68 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const conversations: ACPNavConversation[] = [
     {
       id: "conv-1",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      workspacePath: "/Users/poolie/code/assistant",
       agentServer: "poolside",
       sessionId: "session-acp-1",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      cwd: "/Users/poolie/code/assistant",
       title: "Wire up workspace-scoped ACP sidebar",
       updatedAt: minutesAgo(15),
       active: true,
       archived: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      workingDirectories: ["/Users/poolie/code/assistant"],
     },
     {
       id: "conv-2",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      workspacePath: "/Users/poolie/code/assistant",
       agentServer: "claude-code",
       sessionId: "session-claude-2",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      cwd: "/Users/poolie/code/assistant",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       updatedAt: minutesAgo(60),
       active: true,
       archived: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      workingDirectories: ["/Users/poolie/code/assistant"],
     },
     {
       id: "conv-3",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      workspacePath: "/Users/poolie/code/assistant/.worktrees/acp-sidebar",
       agentServer: "poolside",
       sessionId: "session-acp-3",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      cwd: "/Users/poolie/code/assistant/.worktrees/acp-sidebar",
       title: "Add storybook coverage for sidebars",
       updatedAt: minutesAgo(20),
       active: true,
       archived: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      workingDirectories: ["/Users/poolie/code/assistant/.worktrees/acp-sidebar"],
     },
     {
       id: "conv-4",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      workspacePath: "/Users/poolie/code/assistant/.worktrees/refactor-router",
       agentServer: "poolside",
       sessionId: "session-acp-4",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      cwd: "/Users/poolie/code/assistant/.worktrees/refactor-router",
       title: "Refactor router for ACP host scopes",
       updatedAt: minutesAgo(120),
       active: true,
       archived: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      workingDirectories: ["/Users/poolie/code/assistant/.worktrees/refactor-router"],
     },
     {
       id: "conv-5",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      workspacePath: "/Users/poolie/code/poolside-books-api-demo",
       agentServer: "poolside",
       sessionId: "session-acp-5",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      cwd: "/Users/poolie/code/poolside-books-api-demo",
       title: "Add Book description field",
       updatedAt: minutesAgo(60 * 6),
       active: true,
       archived: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      workingDirectories: ["/Users/poolie/code/poolside-books-api-demo"],
     },
   ];
 
   const currentWorkspaceFolders: WorkspaceFolder[] = [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    { path: "/Users/poolie/code/assistant", name: "assistant", index: 0 },
   ];
 
   const desktopCapabilities = {

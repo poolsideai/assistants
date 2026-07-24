@@ -1,5 +1,5 @@
 import { getFilenameFromPath } from "../../shared/paths";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ToolCall, ToolCallDiffContent } from "../../types";
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   if (value == null || typeof value !== "object" || Array.isArray(value)) return;
@@ -32,8 +32,8 @@ export function getRawInputPath(tool: ToolCall): string | undefined {
 
   const directPath = [
     rawInput.path,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    rawInput.file_path,
+    rawInput.filePath,
     rawInput.cwd,
     rawInput.toPath,
     rawInput.to_path,
@@ -62,108 +62,108 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 export function getToolPath(tool: ToolCall): string | undefined {
   return getLocationPath(tool) ?? getDiffPath(tool) ?? getRawInputPath(tool);
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+/**
+ * The full file contents a write/create tool is writing, read from its raw
+ * input. A completed write's `content` only carries a short "Created file …"
+ * summary (the materializer overwrites the initial block on completion), so the
+ * raw input is the reliable source for showing what was actually written.
+ */
+export function getWrittenFileContents(tool: ToolCall): string | undefined {
+  const rawInput = asRecord(tool.rawInput);
+  if (!rawInput) return;
+  return [rawInput.contents, rawInput.content, rawInput.text].map(asString).find(Boolean);
+}
+
+/**
+ * Canonical tool ids (see {@link getToolName}) that list a directory's contents.
+ * They arrive with ACP `kind: "read"` — the protocol has no dedicated "list"
+ * kind — so without this the UI would render them as plain file reads. Extend
+ * the set as agents expose equivalent directory-listing tools.
+ */
+const DIRECTORY_LISTING_TOOL_NAMES = new Set<string>(["list_directory"]);
+
+/**
+ * Aliases that fold an agent's tool name onto the canonical id the override
+ * tables key off. Most names canonicalize by lowercasing alone (`Write` →
+ * `write`, `Read` → `read`); add an entry only when agents disagree on the name
+ * — e.g. Claude Code's directory lister is `LS` where Pool's is `list_directory`.
+ */
+const TOOL_NAME_ALIASES: Record<string, string> = {
+  ls: "list_directory",
+};
+
+/**
+ * The agent-reported tool name, normalized to a canonical lowercase id so the
+ * override tables below key off a single spelling regardless of agent. Pool
+ * exposes it at `_meta.tool_name` (snake_case); Claude Code nests it under
+ * `_meta.claudeCode.toolName` (PascalCase). So a Pool `write` and a Claude
+ * `Write` both resolve to `write`, and the same override applies to each.
+ */
+export function getToolName(tool: ToolCall): string | undefined {
+  const meta = asRecord(tool._meta);
+  if (!meta) return undefined;
+  const raw = asString(meta.tool_name) ?? asString(asRecord(meta.claudeCode)?.toolName);
+  if (raw === undefined) return undefined;
+  const canonical = raw.toLowerCase();
+  return TOOL_NAME_ALIASES[canonical] ?? canonical;
+}
+
+/**
+ * Whether this tool call lists a directory rather than reading a file. ACP
+ * reports it as `kind: "read"`, so it is distinguished only by its tool name
+ * ({@link getToolName}, preserved across status updates by the materializer's
+ * `_meta` merge).
+ */
+export function isDirectoryListing(tool: ToolCall): boolean {
+  const name = getToolName(tool);
+  return name !== undefined && DIRECTORY_LISTING_TOOL_NAMES.has(name);
+}
+
+/**
+ * Canonical tool ids ({@link getToolName}) that write a whole file (create or
+ * overwrite). ACP reports them as `kind: "edit"`; we surface the written
+ * contents in the body since the completion message is only a short summary.
+ */
+const FILE_WRITE_TOOL_NAMES = new Set<string>(["write"]);
+
+/** Whether this tool call writes a whole file's contents (create/overwrite). */
+export function isFileWrite(tool: ToolCall): boolean {
+  const name = getToolName(tool);
+  return name !== undefined && FILE_WRITE_TOOL_NAMES.has(name);
+}
+
+/**
+ * A synthetic new-file diff for a write/create tool, built from the contents in
+ * its raw input (old text empty). On completion the agent replaces the diff
+ * `content` block with a short "Created file …" summary, so deriving from the
+ * raw input keeps both the header's diff stats and the body stable across the
+ * tool's whole lifecycle instead of flickering off when that block disappears.
+ */
+export function getWrittenFileDiff(tool: ToolCall): ToolCallDiffContent | undefined {
+  if (!isFileWrite(tool)) return undefined;
+  const contents = getWrittenFileContents(tool);
+  if (contents === undefined) return undefined;
+  return { type: "diff", path: getToolPath(tool) ?? "", oldText: "", newText: contents };
+}
+
+/**
+ * Header label overrides keyed by the canonical tool id ({@link getToolName}),
+ * for tools whose ACP `kind` is too coarse — e.g. a file `write` arrives as
+ * `kind: "edit"` (so creating a file reads as "Edit"), and a `list_directory`
+ * arrives as `kind: "read"`. Extend as agents expose more specific tool names.
+ */
+const TOOL_NAME_LABELS: Record<string, string> = {
+  list_directory: "List",
+  write: "Create",
+};
+
+/** A display label derived from `_meta.tool_name`, when it should override the
+ *  generic `kind` label (see {@link TOOL_NAME_LABELS}). */
+export function getToolNameLabel(tool: ToolCall): string | undefined {
+  const name = getToolName(tool);
+  return name ? TOOL_NAME_LABELS[name] : undefined;
+}
 
 /**
  * Filename prefix the Pool agent binary uses when it spills an oversized MCP

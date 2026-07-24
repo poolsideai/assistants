@@ -8,8 +8,8 @@ import {
 describe("desktopChatTabStatus", () => {
   it.each([
     ["waiting", { working: true, waitingForUser: true, unread: true }, "waiting"],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ["working with unread", { working: true, waitingForUser: false, unread: true }, "unread"],
+    ["working only", { working: true, waitingForUser: false, unread: false }, "default"],
     ["unread", { working: false, waitingForUser: false, unread: true }, "unread"],
     ["default", { working: false, waitingForUser: false, unread: false }, "default"],
   ] as const)("maps %s live status to the tab status kind", (_name, liveStatus, expected) => {

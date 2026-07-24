@@ -93,26 +93,26 @@ export function toErrorResponse(error: unknown): ErrorResponse {
   return { code: -32603, message: toError(error).message };
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// JSON-RPC "method not found" is code -32601 (e.g. an older helper that predates
+// a method). Some transports surface it only as a message, so also string-match.
+export function isMethodNotFoundError(error: unknown): boolean {
+  const { code, message } = toErrorResponse(error);
+  return code === -32601 || message.toLowerCase().includes("method not found");
+}
+
+// RPC rejections often arrive as a plain { message, code } object rather than an
+// Error instance, which would otherwise collapse to the opaque fallback string.
+// Shared by the ACP MCP settings and user MCP server repositories.
+export function extractErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error) return error.message || fallback;
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string" && message.trim()) return message;
+  }
+  if (typeof error === "string" && error.trim()) return error;
+  return fallback;
+}
+
 export function normalizeACPError(error: unknown): ACPRequestError {
   if (error instanceof ACPError) {
     return error;
