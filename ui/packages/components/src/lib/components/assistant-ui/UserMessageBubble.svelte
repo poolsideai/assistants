@@ -40,28 +40,28 @@
   let expanded = $state(false);
   let codeBlockCut = $state(false);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // checkOverflow() both reads layout (scrollHeight / getBoundingClientRect)
+  // and writes state that toggles classes (.bubble-content-truncated,
+  // .codeblock-cut) which change the bubble's own max-height. Running it
+  // synchronously inside the ResizeObserver callback feeds that size change
+  // straight back into the observer: with a scrollable code block whose height
+  // sits on the max-height boundary, isOverflowing / codeBlockCut flip every
+  // frame and the bubble visibly flickers (PE-2482).
+  //
+  // Coalesce observer notifications into a single requestAnimationFrame and
+  // guard re-entry so at most one measure-and-write runs per frame, no matter
+  // how many resize notifications arrive. This breaks the read→write→resize
+  // loop while still reacting to genuine size changes on the next frame.
+  let overflowFrame: number | null = null;
+
+  function scheduleCheckOverflow() {
+    if (overflowFrame !== null) return;
+    overflowFrame = requestAnimationFrame(() => {
+      overflowFrame = null;
+      checkOverflow();
+    });
+  }
+
   function checkOverflow() {
     if (bubbleContent && collapsible) {
       const shouldOverflow = bubbleContent.scrollHeight > MAX_HEIGHT;
@@ -90,12 +90,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (!collapsible) return;
 
     // Use a small delay to ensure the content has fully rendered
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const initialCheck = setTimeout(checkOverflow, 100);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Re-check on resize, but batched via rAF so the class changes this makes
+    // don't synchronously retrigger the observer (see scheduleCheckOverflow).
     const resizeObserver = new ResizeObserver(() => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      scheduleCheckOverflow();
     });
 
     if (bubbleContent) {
@@ -103,12 +103,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
 
     return () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      clearTimeout(initialCheck);
       resizeObserver.disconnect();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (overflowFrame !== null) {
+        cancelAnimationFrame(overflowFrame);
+        overflowFrame = null;
+      }
     };
   });
 

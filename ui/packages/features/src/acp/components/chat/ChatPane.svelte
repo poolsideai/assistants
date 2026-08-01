@@ -546,26 +546,26 @@
   let conversationAreaEl = $state<HTMLElement>();
   let heroGridCenter = $state<{ x: number; y: number } | null>(null);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // The conversation area is the pane's definite, shrinkable height. The
+  // composer (and the elicitation form inside it) is shrink-0 / auto-height, so
+  // it has no ancestor with a resolvable height to bound against — a tall
+  // elicitation form would otherwise overflow the top of this overflow-clip box
+  // and clip its Submit row when a terminal/split shrinks the pane (PE-2475).
+  // Publish the measured height as a CSS var so the form can cap itself to the
+  // pane and scroll its fields internally.
+  let conversationAreaHeight = $state(0);
+  $effect(() => {
+    const area = conversationAreaEl;
+    if (!area) return;
+    const measure = () => {
+      conversationAreaHeight = area.clientHeight;
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(area);
+    return () => observer.disconnect();
+  });
+
   $effect(() => {
     const area = conversationAreaEl;
     if (!isDesktop || !shouldCenterComposer || shouldWaitForInitialProject || !area) {

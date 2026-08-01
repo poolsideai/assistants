@@ -65,38 +65,38 @@ describe("ElicitationPrompt", () => {
 });
 
 describe("ElicitationPrompt constrained layout (PE-2475)", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // PE-2475: the fields box sized itself to the viewport
+  // (max-h-[calc(100dvh-16rem)]). The form lives in ChatPane's composer, which
+  // is shrink-0 / auto-height, so a viewport-based cap let the form outgrow the
+  // pane and the Submit row was clipped when a terminal/split shrank the pane.
   // The fields scroll independently while the message and Submit rows remain
   // outside that scrolling region.
   it("keeps the fields scrollable and the submit row pinned", async () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let repo: ElicitationRepository | undefined;
+    render(Harness, { onReady: (r: ElicitationRepository) => (repo = r) });
+    if (!repo) throw new Error("harness did not provide the repository");
+    void repo.register({ ...questionParams, elicitationId: "elicitation-3" });
+    await tick();
+    const submit = await screen.findByRole("button", { name: /Submit answers/ });
+
+    const form = submit.closest("form");
+    expect(form).not.toBeNull();
+    expect(form?.className).toContain("min-h-0");
+
+    // The fields region — not the whole form — is what scrolls.
+    const scroller = form?.querySelector(".overflow-y-auto");
+    expect(scroller).not.toBeNull();
+    expect(scroller?.className).toContain("flex-1");
+    expect(scroller?.className).toContain("min-h-0");
+    // The viewport-only cap that caused PE-2475 must be gone from the fields.
+    expect(scroller?.className).not.toContain("100dvh");
+
+    // The Submit/Reject row is pinned (never compressed by the scroll region).
+    const submitRow = submit.parentElement;
+    expect(submitRow?.className).toContain("shrink-0");
+  });
+});
+
 describe("ElicitationPrompt after a failed submit attempt", () => {
   // PE-2419: a failed submit runs every configured validator and records its
   // error per cause. Typing re-runs only the change validator, so any other
