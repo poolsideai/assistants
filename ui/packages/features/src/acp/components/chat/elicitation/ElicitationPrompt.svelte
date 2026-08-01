@@ -93,7 +93,7 @@
     },
   }))}
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <!--
     Cap the form to the chat pane's height, not the viewport, so its Submit row
     is never clipped when a terminal/split shrinks the pane (PE-2475). Two
     limits do that:
@@ -111,7 +111,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     Either way the fields region below scrolls while the message and Submit rows
     stay pinned.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  -->
   <form
     bind:this={formElement}
     class="border-psx-border bg-psx-editor-background text-psx-foreground-primary shadow-low dark:shadow-low-dark flex min-h-0 shrink-[100] flex-col gap-2 rounded-md border p-2"
@@ -131,7 +131,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       {@const hideMessage =
         model.fields.length === 1 && message === model.fields[0].field.description}
       {#if !hideMessage}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <div class="text-psx-foreground-secondary shrink-0 text-sm">{message}</div>
       {/if}
     {/if}
 
