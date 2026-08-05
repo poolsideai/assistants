@@ -99,7 +99,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  getCodeSymbols = getCodeSymbols;
   openExternalURL = openExternalURL;
   openFile = openFile;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -337,9 +337,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   listSecrets = poolsideListSecrets;
   getSecret = poolsideGetSecret;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  writeToClipboard(text: string): void {
     vscode.env.clipboard.writeText(text);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
 }
 
 // Command-argument delivery overrides the terminal profile's shellPath, which

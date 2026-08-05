@@ -86,8 +86,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   deleteSecret(deleteSecretParams: DeleteSecretParams): Promise<DeleteSecretOutput>;
   listSecrets(listSecretsParams: ListSecretsParams): Promise<ListSecretsOutput>;
   getSecret(getSecretParams: GetSecretParams): Promise<GetSecretOutput>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Available if the hostClipboardWrite capability is set.
+  writeToClipboard(text: string): void;
 }
 
 export type Selection = [start: number, end: number];
@@ -114,7 +114,7 @@ export interface AttachedFile {
   selection?: Selection;
   selectedCode?: string;
   visibleRange?: LineRange;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  codeSymbolsAvailable?: boolean;
   cursorLine?: number;
 }
 
@@ -366,7 +366,7 @@ export type PromptContextFacet = {
    */
   mime_type: string;
   /** indicates the source of this context */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  source: EnrichedContextSource;
 };
 
 export type ContextItem = {
@@ -377,15 +377,15 @@ export type ContextItem = {
 
 /** The kinds of enriched context that we might send to the API. */
 export enum EnrichedContextKind {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  branchCommits = "branch_commits",
+  branchName = "branch_name",
+}
+
+/** The various sources of enriched context we might have. The sources are user-facing views
  of the enriched context, and may produce more than one kind of context. (For example, the
  `branch` source produces both branch names and latest commits on the branch, which are two
  kinds of content.) */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export enum EnrichedContextSource {
   // e.g. the name of the current VCS branch and commit messages of changes on the branch
   branch = "branch",
 }

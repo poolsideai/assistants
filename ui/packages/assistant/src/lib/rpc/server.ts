@@ -47,11 +47,11 @@ export const SET_CURRENT_CONVERSATION_EVENT = "poolside:set-current-conversation
 type RPCMessageEvent = Pick<MessageEvent<AssistantMessage>, "data"> &
   Partial<Pick<MessageEvent, "source">>;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+export type WebViewRPCResponseSender = (
+  command: string,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+) => void;
+
 interface AssistantTerminalEventSink {
   terminalDidOpen(tab: AssistantTerminalTab): void;
   terminalDidUpdate(update: AssistantTerminalUpdate): void;
@@ -62,7 +62,7 @@ interface AssistantTerminalEventSink {
 
 export class WebviewRPCServer implements Assistant {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  sendMessage: WebViewRPCResponseSender;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     win: WebviewRPCListener,

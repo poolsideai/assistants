@@ -1,6 +1,6 @@
 import type { HostClient } from "@poolsideai/rpc";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type HostMessageSender = (method: string, args: any[]) => Promise<any>;
 type RawJsonRPC = Pick<HostClient, "jsonrpc" | "jsonrpcNotify">;
 export type RPCClient = Omit<HostClient, keyof RawJsonRPC>;
 export interface HelperAPIClient {
@@ -8,18 +8,18 @@ export interface HelperAPIClient {
   jsonrpcNotify(method: string, params: object): Promise<void>;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+let hostMessageSender: HostMessageSender;
+
+/**
  * initializeStatefulModule readies rpc package for use, allowing communication with extension
  * host (VSCode, web, etc). Must be called before the `rpc` singleton can be used
  *
  * @param sender - method to send RPC methods through to Host
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ */
 export function initializeStatefulModule(sender: HostMessageSender) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  hostMessageSender = sender;
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
