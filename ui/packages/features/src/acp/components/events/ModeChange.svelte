@@ -28,10 +28,10 @@
   >
     <div class="inline-flex items-center gap-1 truncate">
       <Icon class="text-psx-icon" name={mode === "plan" ? "plan" : "code"} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <span class="flex items-baseline gap-1 truncate">
+        <span>Mode switched to</span>
+        <span class="bg-psx-chrome rounded-sm px-1 py-0.5 font-mono">{label}</span>
+      </span>
     </div>
   </div>
 </div>

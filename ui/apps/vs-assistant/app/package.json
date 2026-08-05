@@ -1,19 +1,19 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{
   "name": "@poolsideai/vs-assistant",
+  "version": "1.4.0",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "description": "The Poolside app to run in a tool window in Visual Studio.",
   "repository": {
     "type": "git",
     "url": "https://github.com/poolsideai/assistant"
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "author": {
+    "name": "Poolside",
+    "email": "hello@poolside.ai",
+    "url": "https://poolside.ai"
+  },
+  "type": "module",
+  "scripts": {
     "build": "vite build",
     "check:format": "prettier . --check --cache --ignore-path ../../../.gitignore",
     "check:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}'",
@@ -38,7 +38,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@poolsideai/rpc": "workspace:*"
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "devDependencies": {
     "@poolsideai/eslint-config": "workspace:*",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -54,5 +54,5 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+}

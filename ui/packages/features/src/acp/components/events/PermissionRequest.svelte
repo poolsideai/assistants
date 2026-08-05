@@ -270,15 +270,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     <div class="inline-flex min-w-0 items-center gap-1 truncate">
       <Icon class="text-psx-icon self-center" name="pause" />
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <span class="flex min-w-0 items-baseline gap-1 truncate">
+        <span class="shrink-0">{currentAgentName} wants to</span>
+        <span class="shrink-0">{actionLabel}</span>
+        {#if headerSubject}
+          <span class="bg-psx-chrome truncate rounded-sm px-1 py-0.5 font-mono">
+            {headerSubject}
+          </span>
+        {/if}
+      </span>
     </div>
   </div>
 

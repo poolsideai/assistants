@@ -1,2 +1,2 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+@echo off
+powershell -ExecutionPolicy Bypass -File "%~dp0sign-vsix.ps1" %*
