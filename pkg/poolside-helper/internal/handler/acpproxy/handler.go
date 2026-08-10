@@ -2,44 +2,44 @@ package acpproxy
 
 import (
 	"context"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"encoding/json"
+	"errors"
 	"fmt"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"log/slog"
+	"reflect"
 	"strings"
 	"sync"
 
 	acpsdk "github.com/coder/acp-go-sdk"
 	"github.com/google/uuid"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-	"github.com/tliron/glsp"
-)
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/approvals"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/tliron/glsp"
+)
+
+// preserveACPError keeps the original JSON-RPC error code (e.g. -32000
+// AUTH_REQUIRED) when the agent returns one. Without this the helper's
+// jsonrpc2 layer rewrites unknown errors to -32603 (Internal error) and the
+// webview can't tell auth-required apart from other failures.
+func preserveACPError(prefix string, err error) error {
+	if err == nil {
+		return nil
+	}
+	var reqErr *acpsdk.RequestError
+	if errors.As(err, &reqErr) && reqErr != nil {
+		wire := &jsonrpc2.WireError{Code: int64(reqErr.Code), Message: reqErr.Message}
+		if reqErr.Data != nil {
+			wire.SetError(reqErr.Data)
+		}
+		return wire
+	}
+	return fmt.Errorf("%s: %w", prefix, err)
+}
+
 // isSessionGoneError matches agent responses meaning "no such live session".
 // Adapters express this inconsistently (claude-agent-acp raises a plain
 // internal error with a "Session not found" detail), so match on the message.
@@ -65,30 +65,30 @@ func isSteeringTurnBoundaryError(err error) bool {
 	return err != nil && strings.Contains(err.Error(), steeringTurnBoundaryDiagnostic)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Handler proxies ACP methods to one `pool acp` (or third-party) subprocess
+// per configured agent server.
 type Handler struct {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	mu              sync.Mutex
+	procs           map[string]*process
+	clients         map[string]*acpClient
+	promptsInFlight map[promptSessionKey]*activeTurn
+	// finishedTurns keeps recent turnID -> result so a client that lost its
+	// connection mid-turn can re-issue the same prompt and get the stored
+	// outcome instead of running a duplicate turn.
+	finishedTurns     map[string]*activeTurn
+	finishedTurnOrder []string
+	// loadScopes maps sessions with a session/load in flight to the client
+	// that requested it; loadDone signals the load's completion to waiters.
 	loadScopes     map[promptSessionKey]string
 	loadDone       map[promptSessionKey]chan struct{}
 	readFile       ReadFileFn
 	configFn       ConfigFn
 	liveStatusSink LiveStatusSink
 	events         SessionEventSink
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// approvals holds pending permission prompts and elicitations as
+	// helper-owned state; agent requests block on it and surfaces answer via
+	// poolside/acp/approvals/respond. Set once at wiring time.
+	approvals *approvals.Store
 	// closed is set by Close, before it stops the processes. A session call
 	// that arrives during shutdown must not restart an agent (see
 	// processReadyForSession): nothing would stop the new subprocess, leaving
@@ -96,13 +96,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	closed bool
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// promptSessionKey identifies one conversation's turn across every connected
+// surface: prompts are tracked per {agent server, session}, not per client.
+type promptSessionKey struct {
+	agentServer string
+	sessionID   string
+}
+
 type LiveStatusSink interface {
 	SetConversationLiveStatus(context.Context, *glsp.Context, string, string, acpnav.ConversationLiveStatusPatch) error
 	CompletePrompt(context.Context, *glsp.Context, string, string) error
@@ -110,10 +110,10 @@ type LiveStatusSink interface {
 	// UpdateConversationTitle persists an agent-authored title in the nav store
 	// so it survives even when no webview has materialized the session.
 	UpdateConversationTitle(ctx context.Context, gCtx *glsp.Context, agentServer, sessionID, title string) error
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// BindConversationSession records (conversationID → sessionID) in the nav
+	// store at session/new time, so live status keyed by session id is
+	// attachable before any turn starts.
+	BindConversationSession(ctx context.Context, gCtx *glsp.Context, conversationID, agentServer, sessionID, cwd string) error
 }
 
 type conversationHandoffSink interface {
@@ -131,46 +131,46 @@ func NewHandler(cfg ConfigFn, readFile ReadFileFn, liveStatusSink LiveStatusSink
 		finishedTurns:   map[string]*activeTurn{},
 		loadScopes:      map[promptSessionKey]string{},
 		loadDone:        map[promptSessionKey]chan struct{}{},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// SetApprovals installs the helper-owned approval store. Call once at wiring
+// time, before any agent can request a permission or elicitation.
+func (h *Handler) SetApprovals(store *approvals.Store) {
+	h.approvals = store
+}
+
+// RespondApproval answers one pending approval on behalf of a surface.
+func (h *Handler) RespondApproval(ctx context.Context, params *methods.ACPApprovalsRespondParams, gCtx *glsp.Context) (methods.ACPApprovalsRespondOutput, error) {
+	if h.approvals == nil {
+		return methods.ACPApprovalsRespondOutput{Outcome: methods.ACPApprovalOutcomeAlreadyResolved}, nil
+	}
+	params.AgentServer = normalizeServerName(params.AgentServer)
+	return h.approvals.Respond(*params), nil
+}
+
+// ListApprovals returns the current pending approval set; surfaces pull it at
+// boot and after reconnects, relying on didChange pushes in between.
+func (h *Handler) ListApprovals(ctx context.Context, params *struct{}, gCtx *glsp.Context) (methods.ACPApprovalsDidChangeParams, error) {
+	if h.approvals == nil {
+		return methods.ACPApprovalsDidChangeParams{Pending: []methods.ACPApproval{}}, nil
+	}
+	pending := h.approvals.Pending()
+	if pending == nil {
+		pending = []methods.ACPApproval{}
+	}
+	return methods.ACPApprovalsDidChangeParams{Pending: pending}, nil
+}
+
 func (h *Handler) Close() error {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	h.mu.Lock()
 	h.closed = true
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	procs := make([]*process, 0, len(h.procs))
+	for _, proc := range h.procs {
+		procs = append(procs, proc)
+	}
+	h.mu.Unlock()
+
 	return stopProcesses(procs)
 }
 
@@ -192,7 +192,7 @@ func stopProcesses(procs []*process) error {
 		stopErr error
 		wg      sync.WaitGroup
 	)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	for _, proc := range procs {
 		wg.Go(func() {
 			if err := proc.stop(); err != nil {
 				mu.Lock()
@@ -204,107 +204,107 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		})
 	}
 	wg.Wait()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return stopErr
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (h *Handler) StopChangedAgentServers(before, after map[string]AgentServerConfig) error {
+	before = NormalizeAgentServers(before)
+	after = NormalizeAgentServers(after)
+
+	toStop := map[string]struct{}{}
+	for serverName, beforeConfig := range before {
+		afterConfig, ok := after[serverName]
+		if !ok || !sameAgentServerRuntimeConfig(beforeConfig, afterConfig) {
+			toStop[serverName] = struct{}{}
+		}
+	}
+	if len(toStop) == 0 {
+		return nil
+	}
+
+	h.mu.Lock()
 	procs := make([]*process, 0, len(toStop))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	for serverName := range toStop {
+		if proc := h.procs[serverName]; proc != nil {
 			procs = append(procs, proc)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		}
+	}
+	h.mu.Unlock()
+
 	if err := stopProcesses(procs); err != nil {
 		return fmt.Errorf("stop changed agent servers: %w", err)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
 	return nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-		client = &acpClient{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func sameAgentServerRuntimeConfig(a, b AgentServerConfig) bool {
+	a = normalizeAgentServerRuntimeConfig(a)
+	b = normalizeAgentServerRuntimeConfig(b)
+	// AgentServerConfig is intentionally plain structured data. A unit test
+	// guards against adding fields, such as funcs or floats, that would make
+	// reflect.DeepEqual surprising here.
+	return reflect.DeepEqual(a, b)
+}
+
+func normalizeAgentServerRuntimeConfig(cfg AgentServerConfig) AgentServerConfig {
+	cfg.DefaultConfigOptions = nil
+	if len(cfg.Args) == 0 {
+		cfg.Args = nil
+	}
+	if len(cfg.Env) == 0 {
+		cfg.Env = nil
+	}
+	if len(cfg.Binary) == 0 {
+		cfg.Binary = nil
+	}
+	for target, binary := range cfg.Binary {
+		if len(binary.Args) == 0 {
+			binary.Args = nil
 		}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		if len(binary.Env) == 0 {
+			binary.Env = nil
+		}
+		cfg.Binary[target] = binary
+	}
+	return cfg
+}
+
+func (h *Handler) processFor(serverName string, gCtx *glsp.Context) (*process, *acpClient) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	proc := h.procs[serverName]
+	if proc == nil {
+		proc = &process{}
+		h.procs[serverName] = proc
+	}
+
+	client := h.clients[serverName]
+	if client == nil {
+		client = &acpClient{
+			readFile:    h.readFile,
+			liveStatus:  h.liveStatusSink,
+			agentServer: serverName,
+			gCtx:        gCtx,
+			handler:     h,
+		}
+		client.notify = func(ctx context.Context, method string, params any) {
+			gCtx.Notify(ctx, methods.JSONRPCNotifyMethod, bridgeMessage(serverName, map[string]any{
 				"jsonrpc": "2.0",
 				"method":  method,
 				"params":  params,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			}))
 		}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		client.request = func(ctx context.Context, method string, params any, result any) error {
+			return gCtx.Call(ctx, methods.JSONRPCRequestMethod, bridgeMessage(serverName, map[string]any{
 				"jsonrpc": "2.0",
 				"id":      uuid.NewString(),
 				"method":  method,
 				"params":  params,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			}), result)
+		}
+		client.lspNotify = func(ctx context.Context, method string, params any) {
+			gCtx.Notify(ctx, method, params)
 		}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -314,49 +314,49 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			defer proc.mu.Unlock()
 			return proc.session
 		}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		h.clients[serverName] = client
 	} else {
 		client.liveStatus = h.liveStatusSink
 		client.agentServer = serverName
 		client.gCtx = gCtx
+	}
+
+	return proc, client
+}
+
+func bridgeMessage(serverName string, message map[string]any) map[string]any {
+	return map[string]any{
+		"agentServer": serverName,
+		"message":     message,
+	}
+}
+
+func normalizeServerName(serverName string) string {
+	return NormalizeAgentServerName(serverName)
+}
+
+func (h *Handler) validateServerName(serverName string) error {
+	agentServers := NormalizeAgentServers(h.configFn().AgentServers)
+	if _, ok := agentServers[serverName]; !ok {
+		return fmt.Errorf("acpproxy: unknown agent server %q", serverName)
+	}
+	return nil
+}
+
+func (h *Handler) ensureStarted(ctx context.Context, gCtx *glsp.Context, serverName string, initReq *acpsdk.InitializeRequest) (*process, error) {
+	serverName = normalizeServerName(serverName)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	proc, client := h.processFor(serverName, gCtx)
 	err := proc.ensureStarted(ctx, h.configFn, serverName, client, initReq, func(serverName string, err error) {
 		if h.liveStatusSink != nil {
 			if statusErr := h.liveStatusSink.ClearAgentServerInFlightStatus(context.Background(), gCtx, serverName); statusErr != nil {
 				slog.Debug("acpproxy: failed to clear status after server exit", "server", serverName, "error", statusErr)
 			}
 		}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		notifyAgentServerDidExit(gCtx, serverName, err)
+	})
 	return proc, agentLaunchErrorToJSONRPC(err)
 }
 
@@ -385,39 +385,39 @@ func agentLaunchErrorToJSONRPC(err error) error {
 		}
 	}
 	return err
+}
+
+func notifyAgentServerDidExit(gCtx *glsp.Context, serverName string, err error) {
+	params := methods.ACPAgentServerDidExitParams{AgentServer: serverName}
+	if err != nil {
+		params.Error = err.Error()
+	}
+	if notifyErr := gCtx.Notify(context.Background(), methods.ACPAgentServerDidExitMethod, params); notifyErr != nil {
+		slog.Debug("acpproxy: failed to notify agent server exit", "server", serverName, "error", notifyErr)
+	}
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+
+func (h *Handler) initializedProcess(gCtx *glsp.Context, serverName string) (*process, error) {
+	serverName = normalizeServerName(serverName)
+	if err := h.validateServerName(serverName); err != nil {
+		return nil, err
+	}
+	proc, _ := h.processFor(serverName, gCtx)
+	return proc, nil
+}
+
+func (h *Handler) processReadyForCall(ctx context.Context, gCtx *glsp.Context, serverName string) (*process, error) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	proc, err := h.initializedProcess(gCtx, serverName)
+	if err != nil {
+		return nil, err
+	}
+	return proc, nil
 }
 
 func (h *Handler) processReadyForSession(ctx context.Context, gCtx *glsp.Context, serverName string) (*process, error) {
@@ -475,67 +475,67 @@ func (h *Handler) preflightAgentServerForSession(ctx context.Context, gCtx *glsp
 }
 
 func (h *Handler) Initialize(ctx context.Context, params *methods.ACPInitializeParams, gCtx *glsp.Context) (*methods.ACPInitializeOutput, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	proc, err := h.ensureStarted(ctx, gCtx, params.AgentServer, &params.InitializeRequest)
+	if err != nil {
 		return nil, err
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return proc.initializeResponse()
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (h *Handler) RestartServer(_ context.Context, params *methods.ACPAgentServerParams, gCtx *glsp.Context) (*methods.ACPRestartServerOutput, error) {
+	serverName := normalizeServerName(params.AgentServer)
+	if err := h.validateServerName(serverName); err != nil {
+		return nil, err
+	}
+
+	proc, _ := h.processFor(serverName, gCtx)
+	if err := proc.stop(); err != nil {
+		return nil, err
+	}
+
+	return &methods.ACPRestartServerOutput{}, nil
+}
+
+func (h *Handler) Authenticate(ctx context.Context, params *methods.ACPAuthenticateParams, gCtx *glsp.Context) (*methods.ACPAuthenticateOutput, error) {
+	proc, err := h.processReadyForCall(ctx, gCtx, params.AgentServer)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, err := proc.initializedConn()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := conn.Authenticate(ctx, params.AuthenticateRequest)
+	if err != nil {
+		h.refreshAuthAfterCallError(ctx, params.AgentServer, err)
+		return nil, preserveACPError("acpproxy: authenticate", err)
+	}
+
+	return &resp, nil
+}
+
+func (h *Handler) Logout(ctx context.Context, params *methods.ACPLogoutParams, gCtx *glsp.Context) (*methods.ACPLogoutOutput, error) {
+	proc, err := h.processReadyForCall(ctx, gCtx, params.AgentServer)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, err := proc.initializedConn()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := conn.Logout(ctx, params.LogoutRequest)
+	if err != nil {
+		return nil, preserveACPError("acpproxy: logout", err)
+	}
+
+	return &resp, nil
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -573,6 +573,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 func (h *Handler) NewSession(ctx context.Context, params *methods.ACPNewSessionParams, gCtx *glsp.Context) (*methods.ACPNewSessionOutput, error) {
 	proc, err := h.processReadyForSession(ctx, gCtx, params.AgentServer)
+	if err != nil {
+		return nil, err
+	}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -590,31 +594,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	// Runs concurrently with session/new below; see claude_auth_probe.go.
+	claudeAuthResult := h.maybeProbeClaudeAuthStatus(ctx, proc, params.AgentServer, req.Meta)
+
+	proc.mu.Lock()
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+	proc.mu.Unlock()
+	if err != nil {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
+	if claudeAuthResult != nil {
+		if authErr := <-claudeAuthResult; authErr != nil {
+			return nil, authErr
+		}
+	}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// Bind the nav conversation row to the new session id before returning:
+	// the helper witnesses session/new, so the binding must not depend on the
+	// client echoing it back over a possibly-flaky socket. Live status is
+	// keyed by session id and silently unattachable until this lands.
+	if convID := acp.DecodeSessionConversationID(req.Meta); convID != "" && h.liveStatusSink != nil {
 		handoffID := acp.DecodeSessionHandoffID(req.Meta)
 		if handoffID != "" {
 			sink, ok := h.liveStatusSink.(conversationHandoffSink)
@@ -625,10 +625,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 				return nil, fmt.Errorf("acpproxy: commit conversation handoff: %w", bindErr)
 			}
 		} else if bindErr := h.liveStatusSink.BindConversationSession(ctx, gCtx, convID, params.AgentServer, string(resp.SessionId), req.Cwd); bindErr != nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			slog.Warn("acpproxy: failed to bind conversation session", "conversation", convID, "session", resp.SessionId, "error", bindErr)
+		}
+	}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
@@ -636,57 +636,57 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 func (h *Handler) LoadSession(ctx context.Context, params *methods.ACPLoadSessionParams, gCtx *glsp.Context) (*methods.ACPLoadSessionOutput, error) {
 	serverName := normalizeServerName(params.AgentServer)
 	proc, err := h.processReadyForSession(ctx, gCtx, serverName)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if err != nil {
+		return nil, err
+	}
 	_, client := h.processFor(serverName, gCtx)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	unavailable := h.injectUserMCPServers(ctx, proc, serverName, req.Meta, &req.McpServers)
+
+	// Scope this session's update traffic to the requesting client for the
+	// duration of the load (through the notification flush below): the agent
+	// interleaves replay updates with any in-flight turn's live updates, and
+	// replayed history must not be broadcast to clients that already have it.
+	if h.events != nil {
+		release, scopeErr := h.beginSessionLoad(ctx, serverName, string(req.SessionId), methods.ClientOriginFromContext(ctx))
+		if scopeErr != nil {
+			return nil, scopeErr
+		}
+		defer release()
+	}
+
+	proc.mu.Lock()
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+	proc.mu.Unlock()
+	if err != nil {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
+	if flushErr := client.waitForSessionUpdates(ctx); flushErr != nil {
+		return nil, preserveACPError("acpproxy: load session notifications", flushErr)
+	}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// Report the session's live-event cursor as of the completed replay so
+	// the client can seq-gate subsequent live updates (the replay/live
+	// cutover) and resume after reconnects. Live events were scoped away from
+	// the log during the window, so the pre-load seq is exact.
+	if h.events != nil && resp != nil {
+		cursor := h.events.Cursor(serverName, string(req.SessionId))
+		if resp.Meta == nil {
+			resp.Meta = map[string]any{}
+		}
+		resp.Meta[methods.LoadSessionCursorMetaKey] = map[string]any{
+			"epoch":      cursor.Epoch,
+			"seq":        cursor.Seq,
+			"turnActive": cursor.TurnActive,
+		}
+	}
+
 	notifySessionResolved(ctx, gCtx, serverName, string(req.SessionId), req.McpServers, unavailable)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 func (h *Handler) ResumeSession(ctx context.Context, params *methods.ACPResumeSessionParams, gCtx *glsp.Context) (*methods.ACPResumeSessionOutput, error) {
 	serverName := normalizeServerName(params.AgentServer)
 	proc, err := h.processReadyForSession(ctx, gCtx, serverName)
@@ -710,42 +710,42 @@ func (h *Handler) ResumeSession(ctx context.Context, params *methods.ACPResumeSe
 }
 
 func (h *Handler) ListSessions(ctx context.Context, params *methods.ACPListSessionsParams, gCtx *glsp.Context) (*methods.ACPListSessionsOutput, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	proc, err := h.processReadyForCall(ctx, gCtx, params.AgentServer)
 	if err != nil {
 		return nil, err
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	conn, err := proc.initializedConn()
 	if err != nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		return nil, err
+	}
+
+	resp, err := conn.ListSessions(ctx, params.ListSessionsRequest)
+	if err != nil {
+		h.refreshAuthAfterCallError(ctx, params.AgentServer, err)
+		return nil, preserveACPError("acpproxy: list sessions", err)
 	}
 
 	return &resp, nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (h *Handler) DeleteSession(ctx context.Context, params *methods.ACPDeleteSessionParams, gCtx *glsp.Context) (*methods.ACPDeleteSessionOutput, error) {
+	proc, err := h.processReadyForCall(ctx, gCtx, params.AgentServer)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, err := proc.initializedConn()
 	if err != nil {
 		return nil, err
 	}
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-	if err != nil {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		h.refreshAuthAfterCallError(ctx, params.AgentServer, err)
+		return nil, preserveACPError("acpproxy: delete session", err)
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
 
@@ -788,23 +788,23 @@ func (h *Handler) CloseSession(ctx context.Context, params *methods.ACPCloseSess
 	return &resp, nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (h *Handler) RenameSession(ctx context.Context, params *methods.ACPRenameSessionParams, gCtx *glsp.Context) (*methods.ACPRenameSessionOutput, error) {
+	var output methods.ACPRenameSessionOutput
+	err := h.callExtension(
+		ctx,
+		gCtx,
+		params.AgentServer,
+		acp.ExtensionMethodSessionRename,
+		"acpproxy: rename session",
+		params.SessionRenameRequest,
+		&output,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
 func (h *Handler) Steer(ctx context.Context, params *methods.ACPSteerParams, gCtx *glsp.Context) (*methods.ACPSteerOutput, error) {
 	serverName := normalizeServerName(params.AgentServer)
 	proc, err := h.processReadyForCall(ctx, gCtx, serverName)
@@ -849,31 +849,31 @@ func (h *Handler) Steer(ctx context.Context, params *methods.ACPSteerParams, gCt
 	return &output, nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (h *Handler) callExtension(ctx context.Context, gCtx *glsp.Context, agentServer, extensionMethod, prefix string, request any, output any) error {
+	proc, err := h.processReadyForCall(ctx, gCtx, agentServer)
+	if err != nil {
+		return err
+	}
+
+	conn, err := proc.initializedConn()
+	if err != nil {
+		return err
+	}
+
+	raw, err := conn.CallExtension(ctx, extensionMethod, request)
+	if err != nil {
+		h.refreshAuthAfterCallError(ctx, agentServer, err)
+		return preserveACPError(prefix, err)
+	}
+	if output == nil || len(raw) == 0 {
+		return nil
+	}
+	if err := json.Unmarshal(raw, output); err != nil {
+		return fmt.Errorf("%s: decode response: %w", prefix, err)
+	}
+	return nil
+}
+
 func (h *Handler) CodexGoalControl(ctx context.Context, params *methods.ACPCodexGoalControlParams, gCtx *glsp.Context) (*methods.ACPCodexGoalControlOutput, error) {
 	if params.SessionID == "" {
 		return nil, fmt.Errorf("acpproxy: codex goal control: sessionId is required")
@@ -898,6 +898,46 @@ func (h *Handler) CodexGoalControl(ctx context.Context, params *methods.ACPCodex
 	_, client := h.processFor(serverName, gCtx)
 	if flushErr := client.waitForSessionUpdates(ctx); flushErr != nil {
 		return nil, preserveACPError("acpproxy: codex goal control notifications", flushErr)
+	}
+	return &output, nil
+}
+
+func (h *Handler) MCPSettings(ctx context.Context, params *methods.ACPMCPSettingsParams, gCtx *glsp.Context) (*methods.ACPMCPSettingsOutput, error) {
+	var output methods.ACPMCPSettingsOutput
+	if err := h.callExtension(ctx, gCtx, params.AgentServer, acp.ExtensionMethodMCPSettings, "acpproxy: mcp settings", params.MCPSettingsRequest, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (h *Handler) MCPSetServerDisabled(ctx context.Context, params *methods.ACPMCPSetServerDisabledParams, gCtx *glsp.Context) (*methods.ACPMCPSetServerDisabledOutput, error) {
+	var output methods.ACPMCPSetServerDisabledOutput
+	if err := h.callExtension(ctx, gCtx, params.AgentServer, acp.ExtensionMethodMCPSetServerDisabled, "acpproxy: mcp set server disabled", params.MCPSetServerDisabledRequest, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (h *Handler) MCPDeleteSecrets(ctx context.Context, params *methods.ACPMCPDeleteSecretsParams, gCtx *glsp.Context) (*methods.ACPMCPDeleteSecretsOutput, error) {
+	var output methods.ACPMCPDeleteSecretsOutput
+	if err := h.callExtension(ctx, gCtx, params.AgentServer, acp.ExtensionMethodMCPDeleteSecrets, "acpproxy: mcp delete secrets", params.MCPDeleteSecretsRequest, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (h *Handler) MCPAuthenticate(ctx context.Context, params *methods.ACPMCPAuthenticateParams, gCtx *glsp.Context) (*methods.ACPMCPAuthenticateOutput, error) {
+	var output methods.ACPMCPAuthenticateOutput
+	if err := h.callExtension(ctx, gCtx, params.AgentServer, acp.ExtensionMethodMCPAuthenticate, "acpproxy: mcp authenticate", params.MCPAuthenticateRequest, &output); err != nil {
+		return nil, err
+	}
+	return &output, nil
+}
+
+func (h *Handler) MCPSetInputVariable(ctx context.Context, params *methods.ACPMCPSetInputVariableParams, gCtx *glsp.Context) (*methods.ACPMCPSetInputVariableOutput, error) {
+	var output methods.ACPMCPSetInputVariableOutput
+	if err := h.callExtension(ctx, gCtx, params.AgentServer, acp.ExtensionMethodMCPSetInputVariable, "acpproxy: mcp set input variable", params.MCPSetInputVariableRequest, &output); err != nil {
+		return nil, err
 	}
 	return &output, nil
 }
@@ -933,132 +973,92 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (h *Handler) Prompt(ctx context.Context, params *methods.ACPPromptParams, gCtx *glsp.Context) (*methods.ACPPromptOutput, error) {
 	serverName := normalizeServerName(params.AgentServer)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// A client that lost its connection mid-turn re-issues the prompt with
+	// the same _meta turnId; if that turn already finished, hand back the
+	// stored outcome instead of running a duplicate.
+	turnID, _ := params.Meta["poolside/turnId"].(string)
+	if turnID != "" {
+		if finished := h.finishedTurn(turnID); finished != nil {
+			return finished.resp, finished.err
+		}
+	}
+
 	proc, err := h.processReadyForCall(ctx, gCtx, serverName)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	_, client := h.processFor(serverName, gCtx)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	conn, activeSession, err := proc.connForSession()
+	if err != nil {
+		return nil, err
+	}
+	sessionID := params.SessionId
+	if sessionID == "" {
+		sessionID = activeSession
+	}
+	if sessionID == "" {
+		return nil, fmt.Errorf("acpproxy: no active session; call session/new first")
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// Reject overlapping prompts before any side effect (live status, task
+	// turn, user-message relay): a second concurrent Prompt on the same agent
+	// connection would interleave two turns in one transcript, and its
+	// deferred cleanups would clear the first turn's in-flight bookkeeping.
+	turn, reserved := h.beginPromptInFlight(serverName, string(sessionID), turnID)
+	if !reserved {
+		if turn == nil {
+			return nil, fmt.Errorf("a turn is already running in this conversation; wait for it to finish or stop it first")
+		}
+		// Same turnID as the running turn: this is a retry of a call whose
+		// response was lost to a dropped connection. Attach to the turn
+		// rather than duplicating it.
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-turn.done:
+			return turn.resp, turn.err
+		}
+	}
+	// Release the reservation via defer: a panic inside runTurn is recovered
+	// by the JSON-RPC dispatcher (the process survives), and without this a
+	// panicking turn would leave promptsInFlight set and turn.done never
+	// closed — wedging the conversation until a helper restart.
+	var resp *methods.ACPPromptOutput
+	var turnErr error
+	defer func() {
+		if rv := recover(); rv != nil {
 			panicErr := errFromTurnPanic(rv)
 			h.completeTurn(serverName, string(sessionID), turn, nil, panicErr)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			panic(rv)
+		}
+		h.completeTurn(serverName, string(sessionID), turn, resp, turnErr)
+	}()
 	resp, turnErr = h.runTurn(ctx, params, gCtx, client, proc, conn, serverName, sessionID, turn)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return resp, turnErr
+}
+
+// errFromTurnPanic records a panicking turn's failure for retries attached to
+// the same turnID, which read turn.err once turn.done closes.
+func errFromTurnPanic(rv any) error {
+	return fmt.Errorf("prompt turn panicked: %v", rv)
+}
+
+// runTurn executes one reserved prompt turn; Prompt owns the turn
+// reservation and result bookkeeping around it.
 func (h *Handler) runTurn(ctx context.Context, params *methods.ACPPromptParams, gCtx *glsp.Context, client *acpClient, proc *process, conn *acpsdk.ClientSideConnection, serverName string, sessionID acpsdk.SessionId, turn *activeTurn) (*methods.ACPPromptOutput, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// A session/load in flight scopes this session's updates to the loading
+	// client; starting a turn now would stream its output only there. Loads
+	// finish in seconds, and the turn reservation above already rejects
+	// competing prompts while we wait.
+	if err := h.waitForLoadScopeClear(ctx, serverName, string(sessionID)); err != nil {
+		return nil, err
+	}
+	if h.events != nil {
+		h.events.BeginTurn(serverName, string(sessionID))
 		defer client.enqueueTurnEnded(sessionID)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
 	if h.liveStatusSink != nil {
 		if statusErr := h.liveStatusSink.SetConversationLiveStatus(ctx, gCtx, serverName, string(sessionID), acpnav.ConversationLiveStatusPatch{
 			Working: acpnav.Bool(true),
@@ -1084,10 +1084,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		} else {
 			relayUserMessageToOtherClients(gCtx, client, serverName, string(sessionID), req.Prompt, false)
 		}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
+
 	promptCtx, releasePrompt, err := proc.contextForPrompt(ctx, conn)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if err != nil {
 		return nil, err
 	}
 	defer releasePrompt()
@@ -1129,15 +1129,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		}
 		h.refreshAuthAfterCallError(ctx, params.AgentServer, promptErr)
 		return nil, preserveACPError("acpproxy: prompt", promptErr)
+	}
+
+	return &resp, nil
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// activeTurn tracks one running (or recently finished) prompt turn. turnID is
+// the client-generated idempotency key from the prompt's _meta (empty when
+// the client sends none); resp/err are set before done closes.
+type activeTurn struct {
 	turnID string
 	done   chan struct{}
 	resp   *methods.ACPPromptOutput
@@ -1153,53 +1153,53 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	promptReturnUsageBaseline int
 	steerStateChanged         chan struct{}
 	cancelled                 bool
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+const finishedTurnCap = 32
+
+// beginPromptInFlight reserves the session's turn. A prompt already running
+// for the session — from this or any other connected surface — rejects the
+// caller (reserved=false, attach=nil), UNLESS it carries the same turnID: a
+// client re-issuing a prompt after its connection dropped mid-turn attaches
+// to the running turn (reserved=false, attach!=nil) and receives its result
+// instead of an error. The reservation is released by completeTurn when the
+// agent's prompt call returns (including after a session/cancel).
+func (h *Handler) beginPromptInFlight(serverName, sessionID, turnID string) (attach *activeTurn, reserved bool) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	key := promptSessionKey{agentServer: serverName, sessionID: sessionID}
+	if running := h.promptsInFlight[key]; running != nil {
+		if turnID != "" && running.turnID == turnID {
+			return running, false
+		}
+		return nil, false
+	}
 	turn := &activeTurn{
 		turnID:            turnID,
 		done:              make(chan struct{}),
 		steerStateChanged: make(chan struct{}),
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	h.promptsInFlight[key] = turn
+	return turn, true
+}
+
+func (h *Handler) completeTurn(serverName, sessionID string, turn *activeTurn, resp *methods.ACPPromptOutput, err error) {
+	turn.resp = resp
+	turn.err = err
+	h.mu.Lock()
+	delete(h.promptsInFlight, promptSessionKey{agentServer: serverName, sessionID: sessionID})
+	if turn.turnID != "" {
+		h.finishedTurns[turn.turnID] = turn
+		h.finishedTurnOrder = append(h.finishedTurnOrder, turn.turnID)
+		if len(h.finishedTurnOrder) > finishedTurnCap {
+			delete(h.finishedTurns, h.finishedTurnOrder[0])
+			h.finishedTurnOrder = h.finishedTurnOrder[1:]
+		}
+	}
+	h.mu.Unlock()
+	close(turn.done)
+}
+
 func signalSteerStateChangedLocked(turn *activeTurn) {
 	close(turn.steerStateChanged)
 	turn.steerStateChanged = make(chan struct{})
@@ -1331,12 +1331,12 @@ func (h *Handler) cancelPromptWait(serverName, sessionID string) {
 	signalSteerStateChangedLocked(turn)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (h *Handler) finishedTurn(turnID string) *activeTurn {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return h.finishedTurns[turnID]
+}
+
 func relayedUserMessageUpdate(messageID string, block acpsdk.ContentBlock, steer bool) map[string]any {
 	update := map[string]any{
 		"sessionUpdate": "user_message_chunk",
@@ -1356,82 +1356,82 @@ func isSteerFallbackPrompt(meta map[string]any) bool {
 	return meta[methods.ACPSteerFallbackMetaKey] == true
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// publishUserMessage mirrors a prompt's user message to the other connected
+// surfaces through the event sink, replacing relayUserMessageToOtherClients
+// when the sink is installed. The stamped events land in the session log so a
+// reconnecting surface replays them too. The prompting surface rendered the
+// message locally already: the primary is simply skipped, while a remote
+// origin still receives its stamped copy — tagged with its device so its
+// transport drops the content — keeping the seq stream gapless for every
+// remote. The publishes go through the client's async notification queue so
+// they cannot be reordered against agent updates.
 func publishUserMessage(client *acpClient, events SessionEventSink, serverName, sessionID, originID string, blocks []acpsdk.ContentBlock, steer bool) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	originDevice := methods.ClientOriginDevice(originID)
+	skipPrimary := originID == methods.PrimaryClientOrigin
 	messageID := uuid.NewString()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	for _, block := range blocks {
+		message := map[string]any{
+			"jsonrpc": "2.0",
+			"method":  acpsdk.ClientMethodSessionUpdate,
+			"params": map[string]any{
+				"sessionId": sessionID,
 				"update":    relayedUserMessageUpdate(messageID, block, steer),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			},
+		}
+		client.asyncNotifications.enqueue(func(ctx context.Context, method string, params any) {
+			events.PublishSessionUpdate(serverName, sessionID, originDevice, skipPrimary, message)
+		}, methods.JSONRPCNotifyMethod, message)
+	}
+}
+
+// relayUserMessageToOtherClients mirrors a prompt's user message to every
+// OTHER connected surface (desktop watching while a phone replies, or vice
+// versa) as the same user_message_chunk session updates a session/load replay
+// would produce. Without this only the originating client — which renders its
+// user message locally — ever sees the prompt: agents do not echo it, so on
+// other surfaces the turn's agent chunks glue onto the previous message. The
+// updates go through the client's async notification queue so they cannot
+// overtake or be overtaken by agent session updates, and through the
+// NotifyOthers hub sentinel so the origin gets no duplicate.
 func relayUserMessageToOtherClients(gCtx *glsp.Context, client *acpClient, serverName, sessionID string, blocks []acpsdk.ContentBlock, steer bool) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	notify := func(ctx context.Context, method string, params any) {
+		if err := gCtx.Notify(ctx, method, params); err != nil {
+			slog.Debug("acpproxy: relay user message to other clients", "server", serverName, "error", err)
+		}
+	}
 	messageID := uuid.NewString()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	for _, block := range blocks {
+		client.asyncNotifications.enqueue(notify, methods.NotifyOthersMethod, methods.NotifyOthersParams{
+			Method: methods.JSONRPCNotifyMethod,
+			Params: bridgeMessage(serverName, map[string]any{
+				"jsonrpc": "2.0",
+				"method":  acpsdk.ClientMethodSessionUpdate,
+				"params": map[string]any{
+					"sessionId": sessionID,
 					"update":    relayedUserMessageUpdate(messageID, block, steer),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+				},
+			}),
+		})
+	}
+}
+
 func (h *Handler) Cancel(ctx context.Context, params *methods.ACPCancelParams, gCtx *glsp.Context) (*methods.ACPCancelOutput, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	proc, err := h.processReadyForCall(ctx, gCtx, params.AgentServer)
 	if err != nil {
 		return nil, err
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	conn, activeSession, err := proc.connForSession()
+	if err != nil {
+		return nil, err
+	}
+	sessionID := params.SessionId
+	if sessionID == "" {
+		sessionID = activeSession
+	}
+	if sessionID == "" {
+		return nil, fmt.Errorf("acpproxy: no active session; call session/new first")
+	}
 	if h.liveStatusSink != nil {
 		defer func() {
 			if statusErr := h.liveStatusSink.CompletePrompt(context.Background(), gCtx, params.AgentServer, string(sessionID)); statusErr != nil {
@@ -1444,18 +1444,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			}
 		}()
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// Belt-and-braces: a well-behaved agent cancels its own in-flight
+	// permission/elicitation requests when the turn is cancelled (which
+	// resolves the store entries via ctx); this covers agents that don't, so
+	// no surface is left showing approvals for a dead turn.
+	if h.approvals != nil {
+		h.approvals.CancelSession(normalizeServerName(params.AgentServer), string(sessionID))
+	}
 	if err := conn.Cancel(ctx, acpsdk.CancelNotification{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		SessionId: sessionID,
 	}); err != nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		h.refreshAuthAfterCallError(ctx, params.AgentServer, err)
+		return nil, preserveACPError("acpproxy: cancel", err)
 	}
 	h.cancelPromptWait(params.AgentServer, string(sessionID))
 
@@ -1463,49 +1463,49 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
 
 func (h *Handler) SetMode(ctx context.Context, params *methods.ACPSetModeParams, gCtx *glsp.Context) (*methods.ACPSetModeOutput, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	proc, err := h.processReadyForCall(ctx, gCtx, params.AgentServer)
 	if err != nil {
 		return nil, err
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	conn, activeSession, err := proc.connForSession()
+	if err != nil {
+		return nil, err
+	}
+	sessionID := params.SessionId
+	if sessionID == "" {
+		sessionID = activeSession
+	}
+	if sessionID == "" {
+		return nil, fmt.Errorf("acpproxy: no active session; call session/new first")
+	}
 	resp, err := conn.SetSessionMode(ctx, acpsdk.SetSessionModeRequest{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		SessionId: sessionID,
 		ModeId:    params.ModeId,
 	})
 	if err != nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		h.refreshAuthAfterCallError(ctx, params.AgentServer, err)
+		return nil, preserveACPError("acpproxy: set mode", err)
 	}
 
 	return &resp, nil
 }
 
 func (h *Handler) SetConfigOption(ctx context.Context, params *methods.ACPSetConfigOptionParams, gCtx *glsp.Context) (*methods.ACPSetConfigOptionOutput, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	proc, err := h.processReadyForCall(ctx, gCtx, params.AgentServer)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, activeSession, err := proc.connForSession()
 	if err != nil {
 		return nil, err
 	}
 	req, _, err := setConfigOptionRequestSessionID(params.SetSessionConfigOptionRequest, activeSession)
 	if err != nil {
 		return nil, err
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
+
 	resp, err := conn.SetSessionConfigOption(ctx, req)
 	if err != nil {
 		h.refreshAuthAfterCallError(ctx, params.AgentServer, err)

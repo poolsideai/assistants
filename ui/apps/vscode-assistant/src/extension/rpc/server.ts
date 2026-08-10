@@ -1,14 +1,14 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import {
+  poolsideDeleteSecret,
+  poolsideGetSecret,
+  poolsideListSecrets,
+  poolsideUpsertSecret,
+} from "@poolsideai/helperapi";
 import type {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPAgentServers,
   AcpChatPanelMetadata,
   AssistantTerminalCommandMode,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  AssistantTerminalTab,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   Host,
   HostMessage,
@@ -16,15 +16,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   TelemetryEventInputEventType,
   TelemetryEventInputMetadata,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+import { randomUUID } from "crypto";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { POOLSIDE } from "../extensionIdentity";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import type { AcpChatPanels } from "../views/acpChatPanels";
 import { assistantTerminalCommandLaunch } from "./assistantTerminalCommand";
+import { addFolderToWorkspace } from "./handlers/addFolderToWorkspace";
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getImageFileData } from "./handlers/getImageFileData";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -33,31 +38,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { openWorkspace } from "./handlers/openWorkspace";
 import { ready } from "./handlers/ready";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { revealSourceControl } from "./handlers/revealSourceControl";
+import { saveTextFile } from "./handlers/saveTextFile";
+import { selectProjectFolder } from "./handlers/selectProjectFolder";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 export class HostRPCServer implements Host {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private assistantTerminals = new Map<
+    string,
+    {
+      terminal: vscode.Terminal;
+      tab: AssistantTerminalTab;
+      closeDisposable: vscode.Disposable;
+      dataDisposable?: vscode.Disposable;
+    }
+  >();
+
   constructor(
     private system: System,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -66,10 +66,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     } = {},
   ) {}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async getFileIconDefinition(_iconName: string): Promise<string | undefined> {
+    return undefined;
+  }
+
   async route({ command, payload, requestId }: HostMessage) {
     // Ignore non RPC messages
     const handler = this[command];
@@ -105,32 +105,32 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   getUrlContents = (url: string) => getUrlContents(this.system, url);
   getFileContents = getFileContents;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  getImageFileData = getImageFileData;
   getPromptContext = () => getPromptContext(this.system);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  openTerminal = (command?: string, cwd?: string) => openTerminal(this.system, command, cwd);
+  async listAssistantTerminals(worktreePath: string): Promise<AssistantTerminalTab[]> {
+    return Array.from(this.assistantTerminals.values())
+      .filter(({ tab }) => tab.worktreePath === worktreePath)
+      .map(({ tab }) => ({ ...tab }));
+  }
   // VS Code terminals live in the editor's own panel, which sizes them itself,
   // so the optional cols/rows spawn size has no effect here.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async createAssistantTerminal(
+    worktreePath: string,
+    command?: string,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     commandMode?: AssistantTerminalCommandMode,
     cwd?: string,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ): Promise<AssistantTerminalTab> {
+    const id = `vscode-terminal-${Date.now()}-${this.assistantTerminals.size + 1}`;
     const resolvedCwd = cwd || worktreePath;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const tab: AssistantTerminalTab = {
+      id,
+      title: `Terminal ${this.assistantTerminals.size + 1}`,
       cwd: resolvedCwd,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      worktreePath,
+      createdAt: new Date().toISOString(),
+    };
     const trimmedCommand = command?.trim();
     // `nonInteractive` is the legacy name for command-argument delivery. The
     // shell itself remains interactive (`-i`) so its normal rc files apply,
@@ -139,24 +139,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       commandMode === "nonInteractive" && trimmedCommand && !defaultTerminalProfileHasCustomLaunch()
         ? assistantTerminalCommandLaunch(vscode.env.shell, trimmedCommand)
         : undefined;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const terminal = vscode.window.createTerminal({
+      name: "poolside",
       cwd: resolvedCwd || undefined,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       ...commandLaunch,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      iconPath: {
+        dark: vscode.Uri.parse(
+          this.system.context.asAbsolutePath("./dist/resources/icon-dark.svg"),
+        ),
+        light: vscode.Uri.parse(
+          this.system.context.asAbsolutePath("./dist/resources/icon-light.svg"),
+        ),
+      },
+    });
+    const dataDisposable = this.captureTerminalData(id, terminal);
+    const closeDisposable = vscode.window.onDidCloseTerminal((closed) => {
+      if (closed !== terminal) return;
+      this.assistantTerminals.delete(id);
       // With command-argument delivery the shell exits as soon as the command
       // finishes, and the completion-marker channel (proposal-gated terminal
       // data capture) may be unavailable or lose the race with this close
@@ -167,44 +167,44 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         payload: [{ terminalId: id, exitCode: closed.exitStatus?.code }],
         requestId: randomUUID(),
       });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.webview.postMessage({
+        command: "assistantTerminalDidClose",
+        payload: [{ terminalId: id }],
+        requestId: randomUUID(),
+      });
+      closeDisposable.dispose();
+      dataDisposable?.dispose();
+    });
+    this.assistantTerminals.set(id, { terminal, tab, closeDisposable, dataDisposable });
     if (trimmedCommand && !commandLaunch) {
       terminal.sendText(trimmedCommand);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    terminal.show();
+    return tab;
+  }
+  async deleteAssistantTerminal(terminalId: string): Promise<void> {
+    this.disposeAssistantTerminal(terminalId);
+  }
+  async writeAssistantTerminal(terminalId: string, data: string): Promise<void> {
+    this.assistantTerminals.get(terminalId)?.terminal.sendText(data, false);
+  }
+  async clearAssistantTerminal(terminalId: string): Promise<void> {
+    const entry = this.assistantTerminals.get(terminalId);
+    if (!entry) return;
+    // Drop the mirrored buffer and ask the shell to clear + redraw (Ctrl+L).
+    entry.tab = { ...entry.tab, buffer: "" };
+    entry.terminal.sendText("\f", false);
+  }
+  async resizeAssistantTerminal(_terminalId: string, _cols: number, _rows: number): Promise<void> {}
+  async closeAssistantTerminalsForWorktree(worktreePath: string): Promise<void> {
+    await this.closeMatchingAssistantTerminals((tab) => tab.worktreePath === worktreePath);
+  }
+  async closeAssistantTerminalsForProject(projectPath: string): Promise<void> {
+    const prefix = projectPath.endsWith("/") ? projectPath : `${projectPath}/`;
+    await this.closeMatchingAssistantTerminals(
+      (tab) => tab.worktreePath === projectPath || tab.worktreePath.startsWith(prefix),
+    );
+  }
   showInfoMessage = showInfoMessage;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -236,13 +236,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const client = await getHelperSingleton(this.system);
     await client.sendNotification(methodName, params);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  selectProjectFolder = selectProjectFolder;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  saveTextFile = saveTextFile;
+  openWorkspace = openWorkspace;
+  addFolderToWorkspace = addFolderToWorkspace;
   openSettings = openSettings;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  revealSourceControl = revealSourceControl;
   ready = () => {
     if (this.options.acpChatPanels) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -258,15 +258,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     reportEvent(this.system, event, data);
   };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async setACPAgentServers(agentServers: ACPAgentServers, defaultAgentServer?: string) {
     const client = await getHelperSingleton(this.system);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await client.sendRequest("poolside/acpNav/setAgentServers", {
+      agentServers,
+      defaultAgentServer,
+    });
+    await updateHelperConfig(this.system);
+  }
+
   async openAcpChat(opts: OpenAcpChatOptions): Promise<void> {
     await this.system.acpChatPanels.openSession(opts);
   }
@@ -281,62 +281,62 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.options.acpChatPanels.updatePanelMetadata(conversationId, metadata);
   }
 
+  private async closeMatchingAssistantTerminals(
+    predicate: (tab: AssistantTerminalTab) => boolean,
+  ): Promise<void> {
+    for (const [id, { tab }] of this.assistantTerminals) {
+      if (!predicate(tab)) continue;
+      this.disposeAssistantTerminal(id);
+    }
+  }
+
+  private disposeAssistantTerminal(terminalId: string): void {
+    const entry = this.assistantTerminals.get(terminalId);
+    if (!entry) return;
+    entry.closeDisposable.dispose();
+    entry.dataDisposable?.dispose();
+    entry.terminal.dispose();
+    this.assistantTerminals.delete(terminalId);
+  }
+
+  private captureTerminalData(
+    terminalId: string,
+    terminal: vscode.Terminal,
+  ): vscode.Disposable | undefined {
+    const onDidWriteTerminalData = (
+      vscode.window as typeof vscode.window & {
+        onDidWriteTerminalData?: (
+          listener: (event: { terminal: vscode.Terminal; data: string }) => void,
+        ) => vscode.Disposable;
+      }
+    ).onDidWriteTerminalData;
+    if (!this.system.isApiProposalsEnabled() || !onDidWriteTerminalData) return undefined;
+    return onDidWriteTerminalData((event) => {
+      if (event.terminal !== terminal) return;
+      const entry = this.assistantTerminals.get(terminalId);
+      if (!entry) return;
+      entry.tab = {
+        ...entry.tab,
+        buffer: `${entry.tab.buffer ?? ""}${event.data}`.slice(-200_000),
+      };
+      this.webview.postMessage({
+        command: "assistantTerminalDidWrite",
+        payload: [{ terminalId, data: event.data }],
+        requestId: randomUUID(),
+      });
+    });
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    executeSetContextCommand(`${POOLSIDE}.webviewFocus`, focused);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  upsertSecret = poolsideUpsertSecret;
+  deleteSecret = poolsideDeleteSecret;
+  listSecrets = poolsideListSecrets;
+  getSecret = poolsideGetSecret;
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

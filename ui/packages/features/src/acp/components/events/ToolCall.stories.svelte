@@ -33,51 +33,51 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     workspaceFolders: storyWorkspaceFolders,
   }}
 />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+<Story
+  name="Fetch (Poolside)"
+  args={{
+    event: {
+      eventKind: "tool_call",
+      toolCallId: "chatcmpl-tool-815a00fa7da849c0",
+      title: "web_fetch",
+      kind: "execute",
+      status: "completed",
+      rawInput: {
+        objective: "Get the content of the ACP llms.txt file for a summary",
+        url: "https://agentclientprotocol.com/llms.txt",
+      },
+      content: [
+        {
+          type: "content",
+          content: {
+            type: "text",
+            text: "# Agent Client Protocol\n\nThe Agent Client Protocol (ACP) standardizes communication between code editors and coding agents.",
+          },
+        },
+      ],
+    },
+    workspaceFolders: storyWorkspaceFolders,
+  }}
+/>
+
+<Story
+  name="Fetch (Codex, in progress)"
+  args={{
+    event: {
+      eventKind: "tool_call",
+      toolCallId: "ws_03c67dff913208b4",
+      title: "Opening: https://agentclientprotocol.com/llms.txt",
+      kind: "fetch",
+      status: "in_progress",
+      rawInput: {
+        action: { type: "open_page", url: "https://agentclientprotocol.com/llms.txt" },
+        query: "https://agentclientprotocol.com/llms.txt",
+      },
+    },
+    workspaceFolders: storyWorkspaceFolders,
+  }}
+/>
 
 <!--
   Pool reports a delegated task as a plain tool call tagged `_meta.tool_name:

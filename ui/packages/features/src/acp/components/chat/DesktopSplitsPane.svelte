@@ -36,7 +36,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { rpc } from "../../hostRpc";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -45,22 +45,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import SubagentChatPane from "./SubagentChatPane.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  import DesktopDiffPanel from "./DesktopDiffPanel.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    DESKTOP_OPEN_CHANGES_EVENT,
+    DESKTOP_OPEN_CHANGES_VIEW_EVENT,
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    DESKTOP_OPEN_DIFF_TAB_EVENT,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    type DesktopOpenDiffTabEventDetail,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     gitViewDisabledReason,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -100,8 +100,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { readDesktopFilesTreePrefs, writeDesktopFilesTreePrefs } from "./desktopFilesTreePrefs";
+  import { requestDesktopChangesView } from "./desktopChangesViewRequest";
   import { showDesktopContextMenu } from "./desktopContextMenu";
   import { buildTabContextMenuItems } from "./desktopTabContextMenu";
   import {
@@ -192,17 +192,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  interface DiffCreateOptions {
+    worktreePath: string;
+    relativePath?: string;
+    openToken: number;
+  }
+
+  interface DiffOpenRequest extends DiffCreateOptions {
+    entry: DesktopSplitsEntry;
+    tabId: TabID;
+  }
+
   interface SubagentCreateOptions {
     conversationId: string;
     subagentKey: string;
@@ -225,7 +225,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  type DesktopDiffTabDescriptor = Extract<DesktopTabDescriptor, { kind: "diff" }>;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -317,10 +317,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (pendingDiffCreateOptions) {
+        createDiffForTab(targetEntry, controller, tab, pendingDiffCreateOptions);
+        return;
+      }
       if (pendingSubagentCreateOptions) {
         setSubagentDescriptorForTab(targetEntry, tab.id, pendingSubagentCreateOptions);
         controller.updateTab(tab.id, desktopSubagentTabOptions(pendingSubagentCreateOptions.title));
@@ -546,11 +546,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let pendingDiffCreateOptions: DiffCreateOptions | undefined;
   let pendingSubagentCreateOptions: SubagentCreateOptions | undefined;
+  let diffOpenRequest = $state.raw<DiffOpenRequest>();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let diffOpenToken = 0;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -809,7 +809,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      diff: {
         disabled: diffViewDisabledReason !== undefined,
         disabledReason: diffViewDisabledReason,
       },
@@ -893,6 +893,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    window.addEventListener(DESKTOP_OPEN_CHANGES_EVENT, handleDesktopOpenChangesEvent);
+    window.addEventListener(DESKTOP_OPEN_CHANGES_VIEW_EVENT, handleDesktopOpenChangesViewEvent);
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    window.addEventListener(DESKTOP_OPEN_DIFF_TAB_EVENT, handleDesktopOpenDiffTabEvent);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -905,24 +911,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      window.removeEventListener(DESKTOP_OPEN_CHANGES_EVENT, handleDesktopOpenChangesEvent);
+      window.removeEventListener(
+        DESKTOP_OPEN_CHANGES_VIEW_EVENT,
+        handleDesktopOpenChangesViewEvent,
+      );
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      window.removeEventListener(DESKTOP_OPEN_DIFF_TAB_EVENT, handleDesktopOpenDiffTabEvent);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1734,41 +1734,41 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "changes":
+        // The legacy review panel and the standalone Changes panel are both
+        // removed: restore their persisted tabs as a files tab opening in
+        // its git changes view so old layouts keep working.
+        restoreAsChangesFilesTab(
+          targetEntry,
+          controller,
+          tab,
+          "worktreePath" in descriptor ? descriptor.worktreePath : undefined,
+        );
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "files": {
+        const rootPath = descriptor.rootPath || filesRootPath;
+        setFilesDescriptorForTab(targetEntry, tab.id, { rootPath });
+        controller.updateTab(tab.id, filesTabOptions(rootPath));
+        // A layout saved while the tree showed its changes view restores in
+        // changes mode — but only when no per-worktree pref exists yet. The
+        // pref is written on every subview toggle while layouts are only
+        // captured on tab events, so an existing pref is always the fresher
+        // record of what the user last looked at.
+        if (descriptor.viewMode === "changes" && rootPath) {
+          const existing = readDesktopFilesTreePrefs(rootPath);
+          if (!existing) {
+            writeDesktopFilesTreePrefs(rootPath, {
+              viewMode: "changes",
+              expandedDirectoryPaths: [],
+            });
+          }
+        }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1923,21 +1923,51 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Legacy "open changes" requests (e.g. Review Diff... in the file tree menu)
+  // route to the file tree's changes view — the standalone Changes panel has
+  // been removed in favor of it.
+  function handleDesktopOpenChangesEvent(event: Event) {
+    handleDesktopOpenChangesViewEvent(event);
+  }
+
+  // Focuses (or creates) the files sidebar tab so the tree — which listens
+  // for the same event / pending request — can flip into its changes view.
+  // An existing tree is used wherever it lives; when none exists a new one
+  // opens in the right sidebar (revealed if hidden) rather than as a main
+  // panel tab, so "Stage and Commit..." never displaces the conversation.
+  function handleDesktopOpenChangesViewEvent(event: Event) {
+    const currentEntry = entry;
     if (!currentEntry || changesViewDisabledReason) return;
+
+    const filesTabId = Object.entries(currentEntry.descriptors).find(
+      ([, descriptor]) => descriptor.kind === "files",
+    )?.[0];
+    if (filesTabId) {
+      const controller = controllerForTab(currentEntry, filesTabId);
+      controller?.selectTab(filesTabId);
+      // Reveal whichever hidden surface hosts the tab — selecting a tab in a
+      // hidden panel would otherwise be a silent no-op.
+      const surface = controller ? surfaceForController(currentEntry, controller) : undefined;
+      if (surface === "rightSidebar" && !rightSidebarVisible) {
+        setRightSidebarVisible(true);
+      } else if (surface === "bottomPanel" && !bottomPanelVisible) {
+        setBottomPanelVisible(true);
+      }
+      event.preventDefault();
+      return;
+    }
+
+    if (!filesRootPath) return;
+    const sidebarController = currentEntry.rightSidebarController;
+    if (createFilesTab(currentEntry, sidebarController, { rootPath: filesRootPath })) {
+      if (!rightSidebarVisible) {
+        setRightSidebarVisible(true);
+      }
+      activeSurface = "rightSidebar";
+      event.preventDefault();
+    }
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1975,50 +2005,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "diff":
         if (diffViewDisabledReason) return false;
+        return openDesktopDiffTab(
+          { worktreePath: githubWorktreePath },
+          target.surface,
+          target.paneId,
+        );
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "changes":
         if (changesViewDisabledReason) return false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Legacy kinds: the review/Changes panels are gone; the file tree's
+        // changes view is the review surface now.
+        requestDesktopChangesView(filesRootPath || undefined);
+        return true;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -2660,6 +2660,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Persisted legacy review/Changes tabs restore as a files tab pre-set to
+  // its git changes view (the worktree pref is seeded before the tree
+  // mounts), so old layouts land on the new review surface.
+  function restoreAsChangesFilesTab(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+    tab: Tab,
+    persistedWorktreePath?: string,
+  ) {
+    // Prefer the worktree the tab was persisted with — the session's own
+    // roots may not have resolved yet when layouts hydrate.
+    const rootPath = persistedWorktreePath || filesRootPath || githubWorktreePath;
+    if (rootPath) {
+      writeDesktopFilesTreePrefs(rootPath, {
+        viewMode: "changes",
+        expandedDirectoryPaths: readDesktopFilesTreePrefs(rootPath)?.expandedDirectoryPaths ?? [],
+      });
+    }
+    setFilesDescriptorForTab(targetEntry, tab.id, { rootPath });
+    controller.updateTab(tab.id, filesTabOptions(rootPath));
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -2753,151 +2775,129 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // --- Singleton Diff tab -------------------------------------------------
+  // At most one diff tab exists per layout. It always shows the diff for all
+  // changed files in the worktree; opening a diff focuses the existing tab
+  // and scrolls the requested file into view.
+
+  function diffTabOptions(): Pick<Tab, "title" | "icon"> {
+    return {
+      title: "Review Diff",
+      icon: "diff",
+    };
+  }
+
+  function diffTabIdForEntry(targetEntry: DesktopSplitsEntry): TabID | undefined {
+    return Object.entries(targetEntry.descriptors).find(
+      ([, descriptor]) => descriptor.kind === "diff",
+    )?.[0];
+  }
+
+  function setDiffDescriptorForTab(
+    targetEntry: DesktopSplitsEntry,
+    tabId: TabID,
+    options: DiffCreateOptions,
+  ) {
+    setDescriptor(targetEntry, tabId, {
+      kind: "diff",
+      worktreePath: options.worktreePath,
+      relativePath: options.relativePath,
+      openToken: options.openToken,
+    });
+  }
+
   // Tolerates an undefined descriptor: the tab-content snippet re-evaluates
   // this while a stale tab's content is being torn down, after its descriptor
   // is already gone.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function diffRequestForTab(
+    tabId: TabID,
     descriptor: DesktopDiffTabDescriptor | undefined,
   ): DiffCreateOptions | undefined {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const request = diffOpenRequest;
+    if (!request || request.entry !== entry || request.tabId !== tabId) return descriptor;
+    return request;
+  }
+
+  function openDesktopDiffTab(
+    detail: DesktopOpenDiffTabEventDetail | undefined,
+    targetSurface: DesktopSplitSurface = "main",
+    paneId?: PaneID,
+  ): boolean {
+    const currentEntry = entry;
+    const worktreePath = detail?.worktreePath?.trim();
+    const relativePath = detail?.relativePath?.trim();
     if (!currentEntry || !worktreePath || diffViewDisabledReason) return false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    const options: DiffCreateOptions = {
+      worktreePath,
+      relativePath: relativePath || undefined,
+      openToken: ++diffOpenToken,
+    };
+
+    const existingTabId = diffTabIdForEntry(currentEntry);
+    if (existingTabId) {
+      // Retarget the singleton diff tab instead of stacking another one.
+      const controller = controllerForTab(currentEntry, existingTabId);
+      if (!controller) return false;
+      const surface = surfaceForController(currentEntry, controller);
+      if (surface) {
+        activeSurface = surface;
+        revealDesktopSurface(surface);
+      }
+      const existingDescriptor = currentEntry.descriptors[existingTabId];
+      if (
+        existingDescriptor?.kind === "diff" &&
+        normalizeWorkspacePath(existingDescriptor.worktreePath) ===
+          normalizeWorkspacePath(options.worktreePath)
+      ) {
+        // Keep the mounted full diff intact. Only the target path/token need
+        // to change, which lets DesktopDiffPanel animate to the requested file.
+        diffOpenRequest = { entry: currentEntry, tabId: existingTabId, ...options };
+      } else {
+        diffOpenRequest = undefined;
+        setDiffDescriptorForTab(currentEntry, existingTabId, options);
+      }
+      const tab = controller.tab(existingTabId);
+      const tabOptions = diffTabOptions();
+      if (tab?.title !== tabOptions.title || tab.icon !== tabOptions.icon) {
+        controller.updateTab(existingTabId, tabOptions);
+      }
+      controller.selectTab(existingTabId);
+      return true;
+    }
+
+    diffOpenRequest = undefined;
+    activeSurface = targetSurface;
+    revealDesktopSurface(targetSurface);
+    const controller = controllerForSurface(currentEntry, targetSurface);
+    pendingDiffCreateOptions = options;
+    try {
+      const tabId = controller.createTab({ ...diffTabOptions(), inPane: paneId });
+      if (tabId) {
+        setDiffDescriptorForTab(currentEntry, tabId, options);
+        controller.selectTab(tabId);
+      }
+      return Boolean(tabId);
+    } finally {
+      pendingDiffCreateOptions = undefined;
+    }
+  }
+
+  function createDiffForTab(
+    targetEntry: DesktopSplitsEntry,
+    controller: SplitsController,
+    tab: Tab,
+    options: DiffCreateOptions,
+  ) {
+    setDiffDescriptorForTab(targetEntry, tab.id, options);
+    controller.updateTab(tab.id, diffTabOptions());
+  }
+
+  function handleDesktopOpenDiffTabEvent(event: Event) {
+    const detail = (event as CustomEvent<DesktopOpenDiffTabEventDetail>).detail;
+    openDesktopDiffTab(detail);
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -3934,11 +3934,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         label: "Review Diff",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        icon: "diff",
         disabled: diffViewDisabledReason !== undefined,
         disabledReason: diffViewDisabledReason,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          openDesktopDiffTab({ worktreePath: githubWorktreePath }, surface, paneId);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -3989,8 +3989,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {:else if descriptor?.kind === "diff"}
+    <Icon name="diff" size={14} class="opacity-80" aria-hidden="true" />
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -4191,10 +4191,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         cacheKey={`${entry?.cacheKey ?? "desktop"}:${tabId}`}
         rootPath={descriptor?.rootPath ?? ""}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        active={isSelected &&
+          (surface === "main" ||
+            (surface === "rightSidebar" && rightSidebarVisible) ||
+            (surface === "bottomPanel" && bottomPanelVisible))}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -4203,13 +4203,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         onTitleChange={(title) => updateGithubTabTitle(tabId, title)}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {:else if descriptor?.kind === "diff"}
       {@const request = diffRequestForTab(tabId, descriptor)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <DesktopDiffPanel
         worktreePath={descriptor?.worktreePath ?? ""}
         relativePath={request?.relativePath}
         openToken={request?.openToken ?? 0}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      />
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -4238,7 +4238,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div bind:this={desktopSplitsFrameElement} class="desktop-splits-frame">
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       <!-- Keyed on the entry so a layout-key switch tears the old tabs' content
            down as a unit: without the boundary, mounted content can observe the
@@ -4431,7 +4431,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                   controller={entry.rightSidebarController}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                  usePaneShape
                   paneShapeAnimating={paneShapesAnimating && rightSidebarVisible}
                   onTabContextMenu={handleTabContextMenu}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -4547,8 +4547,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     --desktop-splits-pane-edge-shadow-color: rgba(0, 0, 0, 0.15);
     --desktop-splits-pane-edge-shadow: 0 0 1.5px var(--desktop-splits-pane-edge-shadow-color);
     --desktop-splits-pane-edge-ring-blur: 1px;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --desktop-splits-pane-shoulder-edge-color: rgba(0, 0, 0, 0.22);
+    --desktop-splits-pane-shadow: 0 4px 24px rgba(0, 0, 0, 0.1), 0 1px 12px rgba(0, 0, 0, 0.2);
     --desktop-splits-pane-shape-filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.21))
       drop-shadow(0 0.5px 2px rgba(0, 0, 0, 0.14));
     --desktop-splits-pane-shape-motion-filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.28));
@@ -5114,17 +5114,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --splits-tab-shadow-gutter: var(--desktop-splits-shadow-gutter);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     --splits-pane-border-color: var(--desktop-splits-pane-border-color);
     --splits-active-tab-background: var(--splits-pane-background);
+    --splits-active-tab-border: transparent;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --splits-active-tab-shadow:
+      var(--desktop-splits-pane-edge-shadow), var(--desktop-splits-pane-shadow);
+    --splits-active-tab-shoulder-edge-width: 1.25px;
+    --splits-active-tab-shoulder-edge-color: var(--desktop-splits-pane-shoulder-edge-color);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -5158,12 +5158,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     --splits-pane-shape-edge-stroke-color: var(--desktop-splits-pane-edge-stroke-color);
     --splits-pane-shape-edge-ring-width: 1.5px;
     --splits-pane-shape-border-width: 1px;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --splits-pane-shape-border-color: var(--splits-pane-border-color);
     --splits-pane-shape-inner-shadow-color: #ffffff;
     --splits-pane-shape-inner-shadow-width: 2px;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --splits-pane-content-background: var(--splits-pane-background);
+    --splits-pane-content-shadow:
+      var(--desktop-splits-pane-edge-shadow), var(--desktop-splits-pane-shadow),
       inset 0 0 0 var(--psx-hairline, 1px) var(--splits-pane-border-color);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

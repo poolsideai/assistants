@@ -1,33 +1,33 @@
 <script lang="ts">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { isPreviewableImagePath, Tooltip } from "@poolsideai/components/assistant-ui";
+  import { FileCodeView, type GitGutterDecorations } from "@poolsideai/components/file-diff";
   import Icon from "@poolsideai/components/icon";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { MarkdownBlock } from "@poolsideai/components/markdown";
+  import {
     buildDesktopImageContextMenuItems,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    DESKTOP_GIT_CHANGED_EVENT,
+    DESKTOP_OPEN_DIFF_TAB_EVENT,
+    markdownHost,
+    parseGitGutterDecorations,
     performDesktopImageContextMenuAction,
     requestDesktopImageAttachment,
     showDesktopContextMenu,
     type DesktopImageContextMenuRPC,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    type DesktopFileViewerPanelProps,
+    type DesktopOpenDiffTabEventDetail,
+  } from "@poolsideai/features/acp";
+  import {
+    poolsideGitDiffFile,
+    poolsideGitStatus,
+    type GitStatusOutput,
+  } from "@poolsideai/helperapi";
   import { getUnknownErrorMessage } from "@poolsideai/lib/errors";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { onMount, tick, untrack } from "svelte";
 
   import {
     DESKTOP_SETTINGS_CHANGED_EVENT,
     getDesktopSettings,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    getImageFileData,
     openPathWithOpener,
     readTextFile,
     revealPathInFinder,
@@ -50,38 +50,38 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }: DesktopFileViewerPanelProps = $props();
 
   type LoadState = "idle" | "loading" | "ready" | "error";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  type ViewerMode = "text" | "markdown" | "image";
 
   const DEFAULT_CODE_FONT_FAMILY = "Menlo";
   const DEFAULT_CODE_FONT_SIZE = 13;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let codeView = $state<ReturnType<typeof FileCodeView>>();
   let loadState = $state<LoadState>("idle");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let viewerMode = $state<ViewerMode>("text");
   let errorMessage = $state("");
   let externalOpenError = $state("");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let imageSrc = $state("");
+  let markdownContent = $state("");
+  let codeContent = $state("");
+  let gitDecorations = $state<GitGutterDecorations>(emptyGitDecorations());
+  let hasGitChanges = $state(false);
   let fileOpeners = $state<DesktopFileOpener[]>([]);
   let codeFontFamily = $state(normalizeCodeFontFamily(initialCodeFontFamily));
   let codeFontSize = $state(normalizeCodeFontSize(initialCodeFontSize));
   let loadVersion = 0;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let gitDecorationsToken = 0;
   let previousFocusToken = 0;
   let previousOpenToken = 0;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   const displayPath = $derived(relativePathFromCwd(path, cwd));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const gitRelativePath = $derived.by(() => {
+    const worktree = cwd?.trim();
+    if (!worktree) return undefined;
+    const relative = relativePathFromCwd(path, worktree);
+    if (!relative || relative === path) return undefined;
+    return relative.replace(/\\/g, "/");
+  });
+  const canReviewDiff = $derived(hasGitChanges && gitRelativePath !== undefined);
   const imageContextMenuRpc: DesktopImageContextMenuRPC = {
     getImageFileData,
     openPathWithOpener,
@@ -100,7 +100,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       applyDesktopSettings((event as CustomEvent<DesktopSettings>).detail);
     };
     window.addEventListener(DESKTOP_SETTINGS_CHANGED_EVENT, onSettingsChanged);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return () => window.removeEventListener(DESKTOP_SETTINGS_CHANGED_EVENT, onSettingsChanged);
   });
 
   $effect(() => {
@@ -119,136 +119,136 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const token = focusToken;
     if (!token || token === previousFocusToken) return;
     previousFocusToken = token;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    void tick().then(() => codeView?.focus());
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  $effect(() => {
+    void path;
+    void cwd;
+    untrack(() => void refreshGitDecorations());
+  });
+
+  $effect(() => {
+    const onGitChanged = () => void refreshGitDecorations();
+    window.addEventListener(DESKTOP_GIT_CHANGED_EVENT, onGitChanged);
+    return () => window.removeEventListener(DESKTOP_GIT_CHANGED_EVENT, onGitChanged);
+  });
 
   async function loadFile(nextPath: string) {
     const version = ++loadVersion;
     loadState = "loading";
     errorMessage = "";
     externalOpenError = "";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    gitDecorations = emptyGitDecorations();
+    hasGitChanges = false;
     onFileContextChange?.({ path: nextPath });
 
     try {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (isPreviewableImagePath(nextPath)) {
+        const image = await getImageFileData(nextPath);
+        if (version !== loadVersion) return;
+        if (!image) throw new Error("Image files of this type cannot be opened in Poolside.");
+
+        codeContent = "";
+        imageSrc = `data:${image.mimeType};base64,${image.data}`;
+        markdownContent = "";
+        viewerMode = "image";
+        loadState = "ready";
+        return;
+      }
+
       const file = await readTextFile(nextPath);
       if (version !== loadVersion) return;
 
       onFileContextChange?.({ path: nextPath, content: file.contents });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      imageSrc = "";
+      if (isMarkdownPath(nextPath)) {
+        codeContent = "";
+        markdownContent = file.contents;
+        viewerMode = "markdown";
+        loadState = "ready";
+        return;
+      }
+
+      markdownContent = "";
+      codeContent = file.contents;
+      viewerMode = "text";
       loadState = "ready";
       await tick();
       jumpToLocation();
     } catch (error) {
       if (version !== loadVersion) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      codeContent = "";
+      imageSrc = "";
+      markdownContent = "";
+      gitDecorations = emptyGitDecorations();
+      viewerMode = "text";
       loadState = "error";
       errorMessage = getUnknownErrorMessage(error);
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function refreshGitDecorations(): Promise<void> {
+    const token = ++gitDecorationsToken;
+    const worktree = cwd?.trim();
+    const currentPath = path;
+    const relative = gitRelativePath;
+    if (!worktree || !relative) {
+      gitDecorations = emptyGitDecorations();
+      hasGitChanges = false;
+      return;
+    }
+
+    let status: GitStatusOutput;
+    try {
+      status = await poolsideGitStatus({ path: worktree });
+    } catch {
+      if (token !== gitDecorationsToken || path !== currentPath) return;
+      gitDecorations = emptyGitDecorations();
+      hasGitChanges = false;
+      return;
+    }
+    if (token !== gitDecorationsToken || path !== currentPath) return;
+    if (!status.isRepo) {
+      gitDecorations = emptyGitDecorations();
+      hasGitChanges = false;
+      return;
+    }
+
+    const staged = status.staged ?? [];
+    const unstaged = status.unstaged ?? [];
+    const untracked = status.untracked ?? [];
+    const isUntracked = untracked.some((file) => file.path === relative);
+    const isChanged = [...staged, ...unstaged, ...untracked].some((file) => file.path === relative);
+    hasGitChanges = isChanged;
+    if (!hasGitChanges) {
+      gitDecorations = emptyGitDecorations();
+      return;
+    }
+
+    try {
+      const diff = await poolsideGitDiffFile({
+        path: worktree,
+        file: relative,
+        head: !isUntracked,
+        untracked: isUntracked,
+      });
+      if (token !== gitDecorationsToken || path !== currentPath) return;
+      gitDecorations = diff.binary ? emptyGitDecorations() : parseGitGutterDecorations(diff.patch);
+    } catch {
+      if (token === gitDecorationsToken) gitDecorations = emptyGitDecorations();
+    }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function openReviewDiff(): void {
+    const worktreePath = cwd?.trim();
+    const relativePath = gitRelativePath;
+    if (!canReviewDiff || !worktreePath || !relativePath) return;
+    window.dispatchEvent(
+      new CustomEvent<DesktopOpenDiffTabEventDetail>(DESKTOP_OPEN_DIFF_TAB_EVENT, {
+        detail: { worktreePath, relativePath },
+      }),
+    );
   }
 
   async function openInExternalEditor() {
@@ -289,12 +289,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return fileOpeners.find((opener) => opener.kind === "inApp")?.id ?? "poolside";
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function jumpToLocation() {
+    if (!line) return;
+    codeView?.revealLine(Math.max(1, line));
+    codeView?.focus();
+  }
+
   function applyDesktopSettings(settings: DesktopSettings) {
     fileOpeners = settings.fileOpeners;
     codeFontFamily = normalizeCodeFontFamily(settings.codeFontFamily);
@@ -312,19 +312,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return Math.min(24, Math.max(8, fontSize));
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function emptyGitDecorations(): GitGutterDecorations {
+    return { added: [], modified: [], deletedAfter: [] };
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function wordWrapForPath(nextPath: string): boolean {
+    return nextPath.toLowerCase().endsWith(".txt");
+  }
+
+  function isMarkdownPath(nextPath: string): boolean {
+    const lowerPath = nextPath.toLowerCase();
+    return lowerPath.endsWith(".md") || lowerPath.endsWith(".markdown");
+  }
+
   function relativePathFromCwd(nextPath: string, nextCwd: string | undefined): string {
     const trimmedCwd = nextCwd?.trim();
     if (!trimmedCwd) return nextPath;
@@ -333,10 +333,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const normalizedCwd = normalizePathForDisplay(trimmedCwd);
     const prefix = normalizedCwd.endsWith("/") ? normalizedCwd : `${normalizedCwd}/`;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (normalizedPath.toLowerCase() === normalizedCwd.toLowerCase()) {
       return normalizedPath.split("/").pop() || normalizedPath;
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (normalizedPath.toLowerCase().startsWith(prefix.toLowerCase())) {
       return normalizedPath.slice(prefix.length);
     }
 
@@ -355,53 +355,53 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       <Icon type="file" name={path} fallback="file" size={16} aria-hidden="true" />
       <span>{displayPath}</span>
     </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <Tooltip text="Review Diff" placement="bottom" gutter={6} openDelay={300}>
+      <button
+        type="button"
+        class="desktop-file-viewer-action"
+        disabled={!canReviewDiff}
+        aria-label="Review diff for {displayPath}"
+        onclick={openReviewDiff}
+      >
+        <Icon name="diff" size={14} aria-hidden="true" />
+      </button>
+    </Tooltip>
+    <Tooltip text="Open in external editor" placement="bottom" gutter={6} openDelay={300}>
+      <button
+        type="button"
+        class="desktop-file-viewer-action"
+        aria-label="Open in external editor"
+        onclick={() => void openInExternalEditor()}
+      >
+        <Icon name="arrow-up-right" size={14} aria-hidden="true" />
+      </button>
+    </Tooltip>
   </div>
 
   <div class="desktop-file-viewer-body">
     <div
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      class="desktop-file-viewer-editor"
+      class:desktop-file-viewer-editor--hidden={loadState !== "ready" || viewerMode !== "text"}
+    >
+      <FileCodeView
+        bind:this={codeView}
+        content={codeContent}
+        filename={path}
+        {gitDecorations}
+        wrap={wordWrapForPath(path)}
+        fontFamily={codeFontFamily}
+        fontSize={codeFontSize}
+      />
+    </div>
+    {#if loadState === "ready" && viewerMode === "image"}
+      <div class="desktop-file-viewer-image-frame">
         <img src={imageSrc} alt={displayPath} oncontextmenu={openImageContextMenu} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </div>
+    {:else if loadState === "ready" && viewerMode === "markdown"}
+      <div class="desktop-file-viewer-markdown-frame">
+        <MarkdownBlock content={markdownContent} host={markdownHost} />
+      </div>
+    {/if}
     {#if loadState === "loading"}
       <div class="desktop-file-viewer-message">Loading file...</div>
     {:else if loadState === "error"}
@@ -465,19 +465,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     border-radius: 5px;
     background: transparent;
     color: var(--psx-foreground-secondary);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    cursor: pointer;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .desktop-file-viewer-action:hover:not(:disabled) {
     background: var(--psx-menu-hover-background);
     color: var(--psx-foreground-primary);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .desktop-file-viewer-action:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
   .desktop-file-viewer-action:focus-visible {
     outline: 2px solid var(--psx-focus);
     outline-offset: 1px;
@@ -496,39 +496,39 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     min-width: 0;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .desktop-file-viewer-editor :global(.psx-file-code-view) {
+    height: 100%;
+  }
+
   .desktop-file-viewer-editor--hidden {
     visibility: hidden;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .desktop-file-viewer-image-frame {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 16px;
+    background: var(--psx-editor-background);
+  }
+
+  .desktop-file-viewer-image-frame img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  .desktop-file-viewer-markdown-frame {
+    position: absolute;
+    inset: 0;
+    overflow: auto;
+    padding: 18px 24px 32px;
+    background: var(--psx-editor-background);
+  }
+
   .desktop-file-viewer-message {
     position: absolute;
     inset: 0;

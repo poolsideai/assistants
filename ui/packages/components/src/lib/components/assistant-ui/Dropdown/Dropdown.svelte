@@ -15,16 +15,16 @@
     /** Roomier menu, for lists whose items carry a description line. */
     wide?: boolean;
     header?: Snippet;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Children receive the live search query so list owners can filter AND
+    // rank their items by match quality (items also self-filter as a fallback).
+    children?: Snippet<[{ query: string }]>;
+    // Optional custom trigger: when provided, it replaces the default pill
+    // button contents. The melt trigger wiring stays on the button, so callers
+    // only supply the visual (inline coloured text, signal bars, a bare icon…)
+    // and receive the open state for active styling.
+    trigger?: Snippet<[{ open: boolean }]>;
+    triggerClass?: string;
+    triggerLabel?: string;
   }
 
   let {
@@ -38,9 +38,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     wide = false,
     header,
     children,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    trigger,
+    triggerClass,
+    triggerLabel,
   }: Props = $props();
 
   const menu = createDropdownMenu({
@@ -51,7 +51,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 
   const {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    elements: { trigger: triggerEl, menu: menuEl },
     states: { open },
   } = menu;
 
@@ -96,11 +96,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Enter selects the top of the (relevance-sorted) list.
   function handleSearchEnter() {
     if (!menuRef) return;
     const visibleItems = menuRef.querySelectorAll<HTMLElement>('[role="menuitem"]');
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    visibleItems[0]?.click();
   }
 
   function handleSearchKeydown(e: KeyboardEvent) {
@@ -115,26 +115,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     e.stopPropagation();
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Melt moves focus to the menu/items after open, so the search input rarely
+  // holds focus when the user starts typing. Route printable keys typed
+  // anywhere in the menu into the search box instead of letting them get lost.
+  function routeMenuKeydown(e: KeyboardEvent) {
+    if (!searchable || !searchInputRef || e.target === searchInputRef) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === "Backspace") {
+      searchQuery = searchQuery.slice(0, -1);
+      searchInputRef.focus();
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    if (e.key.length !== 1) return;
+    searchQuery += e.key;
+    searchInputRef.focus();
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
   function handleMenuFocusIn(event: FocusEvent) {
     if (!suppressInitialItemFocus || event.target === menuRef) return;
     suppressInitialItemFocus = false;
@@ -149,37 +149,37 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#if trigger}
+  <button
+    type="button"
+    use:melt={$triggerEl}
+    aria-label={triggerLabel ?? label}
+    class={triggerClass ??
+      "flex max-w-full min-w-0 items-center rounded-md focus:outline-psx-focus focus-visible:outline-2 active:outline-0"}
+  >
+    {@render trigger({ open: $open })}
+  </button>
+{:else}
+  <button
+    type="button"
+    use:melt={$triggerEl}
+    class="relative flex max-w-full min-w-0 items-center gap-0.5 truncate rounded-xl py-1 pr-1 pl-2 text-sm text-psx-foreground-secondary shadow-low transition-all focus:outline-psx-focus focus-visible:outline-2 active:outline-0 dark:shadow-low-dark {$open
+      ? 'bg-psx-chrome-active/50'
+      : 'bg-psx-chrome'}"
+  >
     <Icon name={icon} size={14} class={["shrink-0", iconClass]} aria-hidden="true" />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <span class="truncate">{label}</span>
+    <Icon name="chevron" aria-hidden="true" />
+  </button>
+{/if}
 
 {#if $open}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <div
     bind:this={menuRef}
     use:melt={$menuEl}
     onfocusin={handleMenuFocusIn}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onkeydowncapture={routeMenuKeydown}
     class={[
       "z-50 max-h-[300px] max-w-[calc(100vw-2rem)] overflow-y-auto menu-surface p-1",
       wide ? "w-[450px]" : "w-[300px]",
@@ -215,7 +215,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         {/if}
       </div>
     {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {@render children?.({ query: trimmedSearchQuery })}
     {#if showEmptySearchResults}
       <div class="flex items-center gap-2 px-2 pt-1 pb-2 text-psx-foreground-secondary">
         <Icon name="search" size={14} aria-hidden="true" />

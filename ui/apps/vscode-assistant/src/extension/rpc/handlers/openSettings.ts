@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getExtensionIdentity } from "../../extensionIdentity";
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   vscode.commands.executeCommand(
     "workbench.action.openSettings",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    `@ext:${getExtensionIdentity().extensionId}${setting ? " " + setting : ""}`,
   );
 }

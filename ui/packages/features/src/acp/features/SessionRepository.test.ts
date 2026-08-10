@@ -3119,9 +3119,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Carried so the helper can bind the nav row to the new session id
+        // synchronously at session/new.
+        "poolside/conversation_id": "conv-1",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -5387,182 +5387,182 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("holds permission requests for unknown sessions instead of cancelling them", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo);
+
+    const response = repo.handleRequestPermission(
+      DEFAULT_AGENT_SERVER,
+      permissionRequest({ sessionId: "s-not-open-here" }),
+    );
+
+    // The request must not resolve on its own: an instant "cancelled" would
+    // win the helper's first-response-wins broadcast and kill the prompt on
+    // every other surface.
+    let settled = false;
+    void response.then(() => {
+      settled = true;
+    });
+    await Promise.resolve();
+    expect(settled).toBe(false);
+
+    expect(repo.pendingApprovals).toHaveLength(1);
+    expect(repo.unboundPermissionRequestsFor("s-not-open-here", DEFAULT_AGENT_SERVER)).toHaveLength(
+      1,
+    );
+
+    repo.selectPermissionOption(repo.pendingApprovals[0]!.id, "allow-once");
+    await expect(response).resolves.toEqual({
+      outcome: { outcome: "selected", optionId: "allow-once" },
+    });
+    expect(repo.pendingApprovals).toHaveLength(0);
+  });
+
+  it("cancels unbound permission requests when the session is invalidated", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo);
+
+    const response = repo.handleRequestPermission(
+      DEFAULT_AGENT_SERVER,
+      permissionRequest({ sessionId: "s-not-open-here" }),
+    );
+    expect(repo.pendingApprovals).toHaveLength(1);
+
+    repo.cancelPermissionRequests("s-not-open-here", DEFAULT_AGENT_SERVER);
+
+    await expect(response).resolves.toEqual({ outcome: { outcome: "cancelled" } });
+    expect(repo.pendingApprovals).toHaveLength(0);
+  });
+
+  it("includes live-session permission requests in pendingApprovals", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo);
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      undefined,
+      DEFAULT_AGENT_SERVER,
+    );
+    expect(session).not.toBeNull();
+
+    void repo.handleRequestPermission(DEFAULT_AGENT_SERVER, permissionRequest());
+
+    expect(session!.pendingPermissionRequests).toHaveLength(1);
+    expect(repo.pendingApprovals).toHaveLength(1);
+    expect(repo.pendingApprovals[0]!.id).toBe(session!.pendingPermissionRequests[0]!.id);
+  });
+
+  it("dismisses a bound permission answered on another surface", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo);
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      undefined,
+      DEFAULT_AGENT_SERVER,
+    );
+    expect(session).not.toBeNull();
+
+    const response = repo.handleRequestPermission(DEFAULT_AGENT_SERVER, permissionRequest());
+    expect(session!.pendingPermissionRequests).toHaveLength(1);
+
+    // Another surface answered the broadcast; the helper tells us to dismiss it.
+    repo.resolvePermissionExternally("s-loaded", DEFAULT_AGENT_SERVER, "tool-1");
+
+    await expect(response).resolves.toEqual({ outcome: { outcome: "cancelled" } });
+    expect(session!.pendingPermissionRequests).toHaveLength(0);
+  });
+
+  it("dismisses a held unbound permission answered on another surface", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo);
+
+    const response = repo.handleRequestPermission(
+      DEFAULT_AGENT_SERVER,
+      permissionRequest({ sessionId: "s-not-open-here" }),
+    );
+    expect(repo.pendingApprovals).toHaveLength(1);
+
+    repo.resolvePermissionExternally("s-not-open-here", DEFAULT_AGENT_SERVER, "tool-1");
+
+    await expect(response).resolves.toEqual({ outcome: { outcome: "cancelled" } });
+    expect(repo.pendingApprovals).toHaveLength(0);
+  });
+
+  it("ignores an external resolve for an unrelated tool call", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo);
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      undefined,
+      DEFAULT_AGENT_SERVER,
+    );
+    void repo.handleRequestPermission(DEFAULT_AGENT_SERVER, permissionRequest());
+
+    repo.resolvePermissionExternally("s-loaded", DEFAULT_AGENT_SERVER, "some-other-tool");
+
+    expect(session!.pendingPermissionRequests).toHaveLength(1);
+  });
+
+  it("reconciles helper-pushed approvals into the live session and answers via respond RPC", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo);
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      undefined,
+      DEFAULT_AGENT_SERVER,
+    );
+    expect(session).not.toBeNull();
+
+    const approval = {
+      agentServer: DEFAULT_AGENT_SERVER,
+      sessionId: "s-loaded",
+      kind: "permission" as const,
+      id: "tc-1",
+      permission: {
+        toolCall: { toolCallId: "tc-1", title: "Create hello.txt", kind: "edit" },
+        options: [
+          { optionId: "allow-once", kind: "allow_once", name: "Allow once" },
+          { optionId: "reject-once", kind: "reject_once", name: "Deny" },
+        ],
+      },
+    };
+    repo.reconcileApprovals([approval]);
+
+    expect(session!.pendingPermissionRequests).toHaveLength(1);
+    const request = session!.pendingPermissionRequests[0]!;
+    expect(request.approval).toMatchObject({ kind: "permission", id: "tc-1" });
+    expect(request.toolCall.title).toBe("Create hello.txt");
+    expect(repo.pendingApprovals).toHaveLength(1);
+
+    // Re-delivery of the same set (reconnect) is idempotent: same single card,
+    // same object identity.
+    repo.reconcileApprovals([approval]);
+    expect(session!.pendingPermissionRequests).toHaveLength(1);
+    expect(session!.pendingPermissionRequests[0]).toBe(request);
+
+    helperJsonrpcCall.mockClear();
+    helperJsonrpcCall.mockResolvedValue({ outcome: "accepted" });
+    repo.selectPermissionOption(request.id, "allow-once", ["tool:allow"]);
+    await vi.waitFor(() => {
+      expect(session!.pendingPermissionRequests).toHaveLength(0);
+    });
+    expect(helperJsonrpcCall).toHaveBeenCalledWith("poolside/acp/approvals/respond", {
+      agentServer: DEFAULT_AGENT_SERVER,
+      sessionId: "s-loaded",
+      kind: "permission",
+      id: "tc-1",
+      optionId: "allow-once",
+      overrideRules: ["tool:allow"],
+    });
+  });
+
   it.each(["invalid", "rejected"] as const)(
     "restores an optimistically removed approval after a %s response",
     async (failure) => {
@@ -5657,119 +5657,119 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("holds reconciled approvals unbound for conversations not open here and drops them on removal", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo);
+
+    const approval = {
+      agentServer: DEFAULT_AGENT_SERVER,
+      sessionId: "s-not-open-here",
+      kind: "permission" as const,
+      id: "tc-9",
+      permission: {
+        toolCall: { toolCallId: "tc-9", title: "Run command", kind: "execute" },
+        options: [{ optionId: "allow-once", kind: "allow_once", name: "Allow once" }],
+      },
+    };
+    repo.reconcileApprovals([approval]);
+    expect(repo.pendingApprovals).toHaveLength(1);
+    expect(repo.unboundPermissionRequestsFor("s-not-open-here", DEFAULT_AGENT_SERVER)).toHaveLength(
+      1,
+    );
+
+    // Answered on another surface → the next push no longer contains it.
+    repo.reconcileApprovals([]);
+    expect(repo.pendingApprovals).toHaveLength(0);
+    expect(repo.unboundPermissionRequestsFor("s-not-open-here", DEFAULT_AGENT_SERVER)).toHaveLength(
+      0,
+    );
+  });
+
+  it("preserves legacy and debug permission requests across approval reconciles", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo);
+    const session = await repo.loadSessionRecord(
+      "s-loaded",
+      "/repo",
+      [],
+      undefined,
+      DEFAULT_AGENT_SERVER,
+    );
+    // Legacy SDK-delivered request (old helper): no approval key.
+    void repo.handleRequestPermission(DEFAULT_AGENT_SERVER, permissionRequest());
+    expect(session!.pendingPermissionRequests).toHaveLength(1);
+
+    repo.reconcileApprovals([]);
+
+    expect(session!.pendingPermissionRequests).toHaveLength(1);
+    expect(session!.pendingPermissionRequests[0]!.approval).toBeUndefined();
+  });
+
+  it("reconciles elicitation approvals into the elicitation repository", async () => {
+    const conversationStatus = new ACPConversationStatusRepositoryWriter();
+    const elicitation = new ElicitationRepository(conversationStatus.publicAPI());
+    const repo = new ACPSessionRepositoryWriter(conversationStatus.publicAPI(), elicitation);
+    await connectRepo(repo);
+
+    repo.reconcileApprovals([
+      {
+        agentServer: DEFAULT_AGENT_SERVER,
+        sessionId: "s-1",
+        kind: "elicitation" as const,
+        id: "e-1",
+        elicitation: {
+          sessionId: "s-1",
+          mode: "form" as const,
+          message: "Need input",
+          elicitationId: "e-1",
+        },
+      },
+    ]);
     expect(elicitation.firstPendingForChat("s-1", DEFAULT_AGENT_SERVER)?.elicitationId).toBe("e-1");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    // Answering routes through the respond RPC and clears locally.
+    helperJsonrpcCall.mockClear();
+    helperJsonrpcCall.mockResolvedValue({ outcome: "accepted" });
+    elicitation.decline("e-1");
     expect(elicitation.isElicitationPending("e-1")).toBe(false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(helperJsonrpcCall).toHaveBeenCalledWith(
+      "poolside/acp/approvals/respond",
+      expect.objectContaining({ kind: "elicitation", id: "e-1", action: "decline" }),
+    );
+
+    // Removal push for an already-answered elicitation is a no-op.
+    repo.reconcileApprovals([]);
     expect(elicitation.isElicitationPending("e-1")).toBe(false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  it("folds a held permission into its session once the conversation is live", async () => {
+    const repo = new ACPSessionRepositoryWriter();
+    await connectRepo(repo);
+
+    void repo.handleRequestPermission(
+      DEFAULT_AGENT_SERVER,
+      permissionRequest({ sessionId: "s-held" }),
+    );
+    expect(repo.unboundPermissionRequestsFor("s-held", DEFAULT_AGENT_SERVER)).toHaveLength(1);
+
+    const session = await repo.loadSessionRecord(
+      "s-held",
+      "/repo",
+      [],
+      { conversationId: "conv-held" },
+      DEFAULT_AGENT_SERVER,
+    );
+    repo.publishLiveStatuses();
+
+    // The single source of truth is now the session's own list; the waiting
+    // indicator reads from it, so both agree.
+    expect(session!.pendingPermissionRequests).toHaveLength(1);
+    expect(repo.unboundPermissionRequestsFor("s-held", DEFAULT_AGENT_SERVER)).toHaveLength(0);
+    expect(repo.getConversationStatus("s-held", DEFAULT_AGENT_SERVER)).toMatchObject({
+      waitingForUser: true,
+    });
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

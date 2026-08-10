@@ -48,10 +48,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	// PoolsideErrorCodeUserConfigInvalid is a PoolsideErrorCode of type User_config_invalid.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	PoolsideErrorCodeInternalError PoolsideErrorCode = iota + 1496
 	// PoolsideErrorCodeAgentInstallFailed is a PoolsideErrorCode of type Agent_install_failed.
 	PoolsideErrorCodeAgentInstallFailed PoolsideErrorCode = iota + 1497
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -86,7 +86,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	_PoolsideErrorCodeName[38:57]: PoolsideErrorCodeUserConfigInvalid,
+	_PoolsideErrorCodeName[57:71]: PoolsideErrorCodeInternalError,
 	_PoolsideErrorCodeName[71:91]: PoolsideErrorCodeAgentInstallFailed,
 __POOL_SYNTHETIC_IMPORT_BASELINE__

@@ -20,7 +20,7 @@
     tabShortcutLabel?: (tab: Tab) => string | undefined;
     showTabShortcutLabels?: boolean;
     onTabContextMenu?: (args: { paneId: PaneID; tabId: string; event: MouseEvent }) => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    usePaneShape?: boolean;
     paneShapeAnimating?: boolean;
     children: Snippet<[Tab, PaneID]>;
     emptyPane?: Snippet<[PaneID]>;
@@ -39,7 +39,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     tabShortcutLabel,
     showTabShortcutLabels = false,
     onTabContextMenu,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    usePaneShape = false,
     paneShapeAnimating = false,
     children: content,
     emptyPane,

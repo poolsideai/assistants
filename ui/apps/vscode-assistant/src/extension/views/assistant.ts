@@ -114,7 +114,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       enableScripts: true,
     };
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    webviewView.webview.html = await getWebviewHtml(this.system, webviewView.webview, "assistant");
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.cleanupRpc();
     const rpcServer = new HostRPCServer(this.system, webviewView.webview);

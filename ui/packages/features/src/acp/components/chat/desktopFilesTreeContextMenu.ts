@@ -15,22 +15,22 @@ export interface DesktopFileTreeContextMenuRequest {
   requestId: string;
   item: {
     kind: DesktopFilesTreeEntry["kind"];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /** True when the item has uncommitted git changes (enables "Review Diff..."). */
+    hasGitChanges?: boolean;
+    /**
+     * Present when the menu is opened from the changes list. Switches the
+     * spec to the changes variant: Open File first, plus stage/unstage/
+     * discard and Move to Trash, and no pasteboard items (cut/paste).
+     */
+    changesContext?: {
+      staged: boolean;
+      deleted: boolean;
+      /**
+       * True for files with no committed state to revert to (git status
+       * "added"/"untracked") — disables "Discard Local Changes…".
+       */
+      added: boolean;
+    };
   };
   position: {
     x: number;
@@ -64,9 +64,9 @@ export function buildDesktopFileTreeContextMenuSpec(
   request: DesktopFileTreeContextMenuRequest,
   pasteboardHasFiles: boolean,
 ): DesktopFileTreeContextMenuSpecItem[] {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  if (request.item.changesContext) {
+    return buildChangesListContextMenuSpec(request, request.item.changesContext);
+  }
   const openers = request.item.kind === "file" ? request.fileOpeners : request.desktopOpeners;
 
   const items: DesktopFileTreeContextMenuSpecItem[] = [
@@ -91,12 +91,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       label: "Add File to Chat",
       enabled: request.item.kind === "file",
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {
+      kind: "action",
+      action: "viewDiff",
+      label: "Review Diff...",
+      enabled: request.item.kind === "file" && request.item.hasGitChanges === true,
+    },
     { kind: "separator" },
     {
       kind: "action",
@@ -153,97 +153,97 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   return items;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * Native-menu spec for a changed file in the changes list. Mirrors the file
+ * tree's menu where it makes sense, with "Open File" prominently first and
  * the git actions (stage/unstage/discard) this view owns. There is no
  * "Review Diff..." item — clicking a row already opens the diff.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ */
+function buildChangesListContextMenuSpec(
+  request: DesktopFileTreeContextMenuRequest,
+  changes: { staged: boolean; deleted: boolean; added: boolean },
+): DesktopFileTreeContextMenuSpecItem[] {
+  const openers = request.fileOpeners;
+
+  return [
+    {
+      kind: "action",
+      action: "open",
+      label: "Open File",
+      enabled: !changes.deleted,
+    },
     buildOpenInContextMenuSpec(openers, request.currentOpenerId, !changes.deleted),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    { kind: "separator" },
+    ...(changes.staged
+      ? [
+          {
+            kind: "action",
+            action: "gitUnstage",
+            label: "Unstage",
+            enabled: true,
+          } satisfies DesktopFileTreeContextMenuSpecItem,
+        ]
+      : [
+          {
+            kind: "action",
+            action: "gitStage",
+            label: "Stage",
+            enabled: true,
+          } satisfies DesktopFileTreeContextMenuSpecItem,
+        ]),
+    {
+      kind: "action",
+      action: "gitDiscard",
+      label: "Discard Local Changes…",
+      // Added/untracked files have no committed state to revert to.
+      enabled: !changes.added,
+    },
+    { kind: "separator" },
+    {
+      kind: "action",
+      action: "addFileToChat",
+      label: "Add File to Chat",
+      enabled: !changes.deleted,
+    },
+    {
+      kind: "action",
+      action: "revealInFinder",
+      label: "Reveal in Finder",
+      enabled: !changes.deleted,
+      accelerator: "Cmd+Alt+R",
+    },
+    {
+      kind: "action",
+      action: "openInTerminal",
+      label: "Open in Terminal",
+      enabled: true,
+    },
+    { kind: "separator" },
+    {
+      kind: "action",
+      action: "copyPath",
+      label: "Copy Path",
+      enabled: true,
+      accelerator: "Cmd+Alt+C",
+    },
+    {
+      kind: "action",
+      action: "copyRelativePath",
+      label: "Copy Relative Path",
+      enabled: true,
+      accelerator: "Cmd+Shift+Alt+C",
+    },
+    { kind: "separator" },
+    {
+      kind: "action",
+      action: "delete",
+      label: "Move to Trash",
+      // A deleted file has nothing on disk to trash.
+      enabled: !changes.deleted,
+    },
+  ];
+}
+
 export function desktopFileTreeContextMenuNeedsPasteboard(
   request: DesktopFileTreeContextMenuRequest,
 ): boolean {

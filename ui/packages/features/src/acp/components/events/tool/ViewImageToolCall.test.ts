@@ -8,7 +8,7 @@ import { getViewImagePreview, isViewImageToolCall } from "./viewImageTool";
 vi.mock("../../../hostRpc", () => ({
   rpc: {
     openFile: vi.fn(),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    getImageFileData: vi.fn(),
   },
 }));
 
@@ -36,7 +36,7 @@ describe("viewImageTool", () => {
 describe("ViewImageToolCall", () => {
   beforeEach(() => {
     vi.mocked(rpc.openFile).mockReset();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    vi.mocked(rpc.getImageFileData).mockReset();
   });
 
   it("renders viewed images inline without raw output JSON", async () => {
@@ -57,48 +57,48 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     expect(rpc.openFile).toHaveBeenCalledWith("/tmp/cat.png");
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  it("reads file:// image urls through the host instead of the DOM", async () => {
+    vi.mocked(rpc.getImageFileData).mockResolvedValue({
+      path: "/tmp/cat.png",
+      mimeType: "image/png",
+      data: imageData,
+    });
+
+    render(ToolCallHarness, {
+      props: {
+        event: {
+          ...makeTool(),
+          rawOutput: [
+            { type: "input_image", detail: "original", image_url: "file:///tmp/cat.png" },
+          ],
+        },
+      },
+    });
+
+    expect(rpc.getImageFileData).toHaveBeenCalledWith("/tmp/cat.png");
+    expect(await screen.findByAltText("Viewed image cat.png")).toHaveAttribute(
+      "src",
+      `data:image/png;base64,${imageData}`,
+    );
+  });
+
+  it("shows a fallback when the host cannot read a local image", async () => {
+    vi.mocked(rpc.getImageFileData).mockResolvedValue(undefined);
+
+    render(ToolCallHarness, {
+      props: {
+        event: {
+          ...makeTool(),
+          rawOutput: [
+            { type: "input_image", detail: "original", image_url: "file:///tmp/cat.png" },
+          ],
+        },
+      },
+    });
+
+    expect(await screen.findByText("Unable to preview image")).toBeInTheDocument();
+  });
 });
 
 function makeTool(): ToolCall {

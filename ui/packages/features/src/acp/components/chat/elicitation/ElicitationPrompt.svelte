@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button } from "@poolsideai/components/button";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { insideModalOverlay, isAppleUser } from "@poolsideai/components";
   import Kbd from "@poolsideai/components/kbd";
   import {
     getElicitationContext,
@@ -62,9 +62,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 <svelte:window
   onkeydowncapture={(e) => {
     if (!pending || !formVisible()) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Keystrokes inside a modal overlay (e.g. the conversation search) belong
+    // to that overlay: Escape there closes it, it must not decline the form.
+    if (insideModalOverlay(e.target)) return;
     if (e.code === "Escape") {
       e.preventDefault();
       e.stopImmediatePropagation();

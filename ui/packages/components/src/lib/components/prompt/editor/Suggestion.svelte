@@ -11,11 +11,11 @@
 </script>
 
 {#if $suggestion && !$isDirty && !$disabled && !$menu}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div
+    role="status"
     data-testid="prompt-suggestion"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    aria-label={`Suggested prompt: ${$suggestion}. Enter sends; Tab or Right Arrow edits`}
+    class="pointer-events-none absolute inset-x-0 top-(--tw-pt) z-10 flex h-6 min-w-0 items-center gap-3 overflow-hidden text-left text-psx-input-placeholder-foreground select-none"
   >
     <span class="min-w-0 flex-1 truncate">{$suggestion}</span>
     <span
@@ -25,13 +25,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       <Icon name="enter" size={14} />
       to send
     </span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </div>
 {/if}
 
 <style lang="postcss">
   @reference "#tailwind.css";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  [data-testid="prompt-suggestion"] {
     :global(body.web-app) & {
       @apply text-(--color-mono-500);
     }

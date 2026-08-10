@@ -10,22 +10,22 @@
     description?: string | null;
     tag?: string;
     selected?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    disabled?: boolean;
     onclick?: () => void;
     accessories?: Snippet;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let {
+    icon,
     iconClass,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    label,
     description,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    tag,
+    selected = false,
+    disabled = false,
+    onclick,
+    accessories,
+  }: Props = $props();
 </script>
 
 <SharedDropdownItem

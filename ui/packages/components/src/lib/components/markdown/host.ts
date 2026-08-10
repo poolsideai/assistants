@@ -32,20 +32,20 @@ export type MarkdownAction = (
 export interface MarkdownHostAdapter {
   state: Readable<MarkdownHostState>;
   checkFileExists?: (path: string) => Promise<boolean>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  openFile?: (
+    path: string,
+    line?: number,
+    column?: number,
+    options?: { preferredEditor?: boolean },
+  ) => void | Promise<void>;
+  showFileContextMenu?: (options: {
+    path: string;
+    line?: number;
+    column?: number;
+    position: { x: number; y: number };
+  }) => void | Promise<void>;
   openImageFile?: (svgContent: string, filename?: string) => void | Promise<void>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  getImageFileData?: (path: string) => Promise<ImageFileData | undefined>;
   /** Opt in only after verifying native bridge isolation and bounded local reads. */
   readVisualizationFile?: (path: string) => Promise<string | undefined>;
   openTerminal?: (command: string) => void | Promise<void>;
@@ -57,12 +57,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   reportUserAction?: (target: string, data?: unknown) => void;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export interface ImageFileData {
+  data: string;
+  mimeType: string;
+  path: string;
+}
+
 const noopAction: MarkdownAction = () => {};
 
 export const defaultMarkdownHostState: MarkdownHostState = {

@@ -406,14 +406,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const capabilities = this.repo.agents.getInitializeResponse(agentServer)?.agentCapabilities;
+    // Unknown capabilities mean the agent hasn't connected in this webview.
+    // That's the steady state on split hosts (VS Code / VS), where the sidebar
+    // never opens an agent connection of its own, and a startup race elsewhere.
+    // Assume support instead of permanently disabling delete; an agent that
+    // rejects session/delete surfaces the failure at call time.
+    if (!capabilities) return true;
+    return supportsSessionDelete(capabilities);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

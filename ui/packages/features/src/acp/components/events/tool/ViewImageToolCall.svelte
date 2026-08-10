@@ -1,5 +1,5 @@
 <script lang="ts">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { imageFilePathFromUri } from "@poolsideai/components/assistant-ui";
   import Icon from "@poolsideai/components/icon";
   import Tooltip from "../../ui/Tooltip.svelte";
   import { rpc } from "../../../hostRpc";
@@ -19,45 +19,45 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let { event, workspaceFolders = [] }: Props = $props();
 
   let preview = $derived(getViewImagePreview(event));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // A file:// or bare-path image_url points at the agent machine's disk: no
+  // webview can fetch that as a URL (and a remote phone never can), so read
+  // it through the host like the read-image tool does. Web and data URLs
+  // render directly.
+  let localPath = $derived(preview ? imageFilePathFromUri(preview.src) : undefined);
+  let path = $derived(preview?.path ?? localPath);
   let displayPath = $derived(
     path ? getReadableFileInfo(path, workspaceFolders, $appState.homeDirectory).filePath : path,
   );
   let fileName = $derived(path?.split(/[\\/]/).filter(Boolean).at(-1) ?? path ?? "image");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  let hostSrc = $state<string | null>(null);
+  let hostLoadFailed = $state(false);
+  let loadVersion = 0;
+
+  $effect(() => {
+    const target = localPath;
+    const version = ++loadVersion;
+    hostSrc = null;
+    hostLoadFailed = false;
+    if (!target) return;
+    void rpc
+      .getImageFileData(target)
+      .then((image) => {
+        if (version !== loadVersion) return;
+        if (!image) {
+          hostLoadFailed = true;
+          return;
+        }
+        hostSrc = `data:${image.mimeType};base64,${image.data}`;
+      })
+      .catch(() => {
+        // A rejected read (transport drop) must still surface the fallback,
+        // not leave the card blank on an unhandled rejection.
+        if (version === loadVersion) hostLoadFailed = true;
+      });
+  });
+
+  let src = $derived(localPath ? hostSrc : (preview?.src ?? null));
 </script>
 
 <ToolRoot tool={event}>
@@ -84,15 +84,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     <div
       class="border-psx-border bg-psx-panel shadow-low dark:shadow-low-dark mt-1 w-fit max-w-full overflow-hidden rounded-md border"
     >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {#if src}
+        <button
+          type="button"
           data-cursor="link"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          class="bg-psx-background block max-w-full text-left disabled:cursor-default"
+          aria-label={`Open image file ${fileName}`}
+          disabled={!path}
+          onclick={() => path && rpc.openFile(path)}
+        >
           <img
             class="max-h-80 max-w-full object-contain"
             {src}
@@ -100,10 +100,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             data-poolside-image-path={path}
             data-poolside-image-name={fileName}
           />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        </button>
+      {:else if hostLoadFailed}
+        <div class="text-psx-foreground-secondary px-2.5 py-2 text-xs">Unable to preview image</div>
+      {/if}
     </div>
   {/if}
 

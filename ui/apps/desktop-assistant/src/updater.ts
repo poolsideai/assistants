@@ -19,6 +19,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 // install happens under the Update button, immediately before the relaunch.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+const PERIODIC_INTERVAL_MS = 24 * 60 * 60_000;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -27,9 +28,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | { kind: "downloading"; progress?: number }
+  | { kind: "downloaded"; version: string; notes?: string; waitingForIdle?: boolean }
   // Something outside our updater swapped the bundle on disk. There is nothing
   // to install — only this process is stale — so applying just relaunches.
   | { kind: "replaced" }
@@ -133,7 +133,7 @@ export async function refreshBundleReplacedStatus(): Promise<boolean> {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ * Silently check and download on startup and daily, and notice a
  * bundle replaced out from under us on the same cadence. Concurrent manual and
  * scheduled checks join the same promise.
 __POOL_SYNTHETIC_IMPORT_BASELINE__

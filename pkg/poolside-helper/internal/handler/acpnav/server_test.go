@@ -177,107 +177,107 @@ func TestClearAgentServerInFlightStatusPreservesUnread(t *testing.T) {
 	require.True(t, state.Conversations[0].LiveStatus.Unread)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestViewStateIsTrackedPerClientOrigin(t *testing.T) {
+	ctx := context.Background()
+	server := newTestServer(t, ctx)
+	upsertTestConversation(t, ctx, server, "poolside", "s-1")
+
+	desktopCtx := methods.WithClientOrigin(ctx, methods.PrimaryClientOrigin)
+	phoneCtx := methods.WithClientOrigin(ctx, "remote:device-1/conn-1")
+
+	// Both surfaces view the conversation, then the phone navigates away:
+	// the desktop still watches, so a completing turn is not unread.
+	_, err := server.SetConversationViewState(desktopCtx, &methods.ACPNavSetConversationViewStateParams{
+		AgentServer: "poolside", SessionID: "s-1", Active: true,
+	}, nil)
+	require.NoError(t, err)
+	_, err = server.SetConversationViewState(phoneCtx, &methods.ACPNavSetConversationViewStateParams{
+		AgentServer: "poolside", SessionID: "s-1", Active: true,
+	}, nil)
+	require.NoError(t, err)
+	_, err = server.SetConversationViewState(phoneCtx, &methods.ACPNavSetConversationViewStateParams{
+		AgentServer: "poolside", SessionID: "s-1", Active: false,
+	}, nil)
+	require.NoError(t, err)
+
+	require.NoError(t, server.CompletePrompt(ctx, nil, "poolside", "s-1"))
+	state, err := server.List(ctx, &methods.ACPNavListParams{}, nil)
+	require.NoError(t, err)
+	require.Len(t, state.Conversations, 1)
+	require.Nil(t, state.Conversations[0].LiveStatus)
+
+	// The desktop stops watching too: now a completing turn goes unread.
+	_, err = server.SetConversationViewState(desktopCtx, &methods.ACPNavSetConversationViewStateParams{
+		AgentServer: "poolside", SessionID: "s-1", Active: false,
+	}, nil)
+	require.NoError(t, err)
+	require.NoError(t, server.CompletePrompt(ctx, nil, "poolside", "s-1"))
+	state, err = server.List(ctx, &methods.ACPNavListParams{}, nil)
+	require.NoError(t, err)
+	require.NotNil(t, state.Conversations[0].LiveStatus)
+	require.True(t, state.Conversations[0].LiveStatus.Unread)
+}
+
+func TestClearClientViewStateStopsSuppressingUnread(t *testing.T) {
+	ctx := context.Background()
+	server := newTestServer(t, ctx)
+	upsertTestConversation(t, ctx, server, "poolside", "s-1")
+
+	phoneCtx := methods.WithClientOrigin(ctx, "remote:device-1/conn-1")
+	_, err := server.SetConversationViewState(phoneCtx, &methods.ACPNavSetConversationViewStateParams{
+		AgentServer: "poolside", SessionID: "s-1", Active: true,
+	}, nil)
+	require.NoError(t, err)
+
+	// While the phone watches, completing a turn stays read.
+	require.NoError(t, server.CompletePrompt(ctx, nil, "poolside", "s-1"))
+	state, err := server.List(ctx, &methods.ACPNavListParams{}, nil)
+	require.NoError(t, err)
+	require.Nil(t, state.Conversations[0].LiveStatus)
+
+	// The phone's socket drops without an inactive report.
+	server.ClearClientViewState("remote:device-1/conn-1")
+	require.NoError(t, server.CompletePrompt(ctx, nil, "poolside", "s-1"))
+	state, err = server.List(ctx, &methods.ACPNavListParams{}, nil)
+	require.NoError(t, err)
+	require.NotNil(t, state.Conversations[0].LiveStatus)
+	require.True(t, state.Conversations[0].LiveStatus.Unread)
+}
+
+func TestViewStateResetDropsEarlierEntries(t *testing.T) {
+	ctx := context.Background()
+	server := newTestServer(t, ctx)
+	upsertTestConversation(t, ctx, server, "poolside", "s-1")
+	upsertTestConversation(t, ctx, server, "poolside", "s-2")
+
+	desktopCtx := methods.WithClientOrigin(ctx, methods.PrimaryClientOrigin)
+	_, err := server.SetConversationViewState(desktopCtx, &methods.ACPNavSetConversationViewStateParams{
+		AgentServer: "poolside", SessionID: "s-1", Active: true,
+	}, nil)
+	require.NoError(t, err)
+
+	// The webview reloads: its first report resets and re-registers only s-2.
+	_, err = server.SetConversationViewState(desktopCtx, &methods.ACPNavSetConversationViewStateParams{
+		AgentServer: "poolside", SessionID: "s-2", Active: true, Reset: true,
+	}, nil)
+	require.NoError(t, err)
+
+	require.NoError(t, server.CompletePrompt(ctx, nil, "poolside", "s-1"))
+	require.NoError(t, server.CompletePrompt(ctx, nil, "poolside", "s-2"))
+	state, err := server.List(ctx, &methods.ACPNavListParams{}, nil)
+	require.NoError(t, err)
+	require.Len(t, state.Conversations, 2)
+	for _, conversation := range state.Conversations {
+		switch conversation.SessionID {
+		case "s-1":
+			require.NotNil(t, conversation.LiveStatus)
+			require.True(t, conversation.LiveStatus.Unread)
+		case "s-2":
+			require.Nil(t, conversation.LiveStatus)
+		}
+	}
+}
+
 func newTestServer(t *testing.T, ctx context.Context) *Server {
 	t.Helper()
 	store, err := Open(ctx, filepath.Join(t.TempDir(), "acpnav.db"))

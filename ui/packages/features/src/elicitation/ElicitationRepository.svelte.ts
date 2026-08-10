@@ -1,5 +1,5 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { poolsideAcpApprovalsRespond, type ACPApproval } from "@poolsideai/helperapi";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -7,14 +7,14 @@ import type { FieldValue } from "./types";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /** Legacy (host-RPC-delivered) elicitations resolve a local promise. */
+  resolve?: (response: ACPElicitationOutput) => void;
+  /**
+   * Store-backed elicitations (reconciled from the helper's approval store)
+   * answer through poolside/acp/approvals/respond instead; removal arrives
+   * with the next didChange push.
+   */
+  approval?: { agentServer: string; sessionId: string; kind: "elicitation"; id: string };
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -97,6 +97,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (visibleInChat(entry.request, sessionId, agentServer)) {
         this.resolve(elicitationId, { action: "decline" });
       }
+    }
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -114,80 +117,77 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Reconcile helper-pushed elicitation approvals: the pending map's
+   * store-backed entries are fully replaced on every push, so an elicitation
+   * answered on any surface disappears here too, and reconnect re-delivery is
+   * idempotent. Legacy promise-backed entries are preserved.
+   */
+  reconcileApprovals(pending: ACPApproval[]): void {
     this.approvalsRevision++;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const next = new Map<string, PendingElicitation>();
+    for (const [id, entry] of this.pendingByElicitationId) {
+      if (!entry.approval) next.set(id, entry);
+    }
+    for (const approval of pending) {
+      if (approval.kind !== "elicitation" || !approval.elicitation) continue;
+      const existing = this.pendingByElicitationId.get(approval.id);
+      if (existing?.approval) {
+        next.set(approval.id, existing);
+        continue;
+      }
+      const request = {
+        ...approval.elicitation,
+        sessionId: approval.sessionId,
+        agentServer: approval.agentServer,
+      } as ACPElicitationParams;
+      next.set(approval.id, {
+        request,
+        approval: {
+          agentServer: approval.agentServer,
+          sessionId: approval.sessionId,
+          kind: "elicitation",
+          id: approval.id,
+        },
+      });
+      if (approval.sessionId) {
+        this.conversationStatus.markWaitingForUser({
+          type: "elicitation",
+          sessionId: approval.sessionId as SessionId,
+          agentServer: approval.agentServer,
+        });
+      }
+    }
     // Clear waiting status for store-backed entries that vanished. Their
     // drafts go too: the helper no longer holds the request, so it was
     // answered — here or on another surface — and will not be asked again.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    for (const [id, entry] of this.pendingByElicitationId) {
+      if (!entry.approval || next.has(id)) continue;
       this.draftsByElicitationId.delete(id);
+      if (entry.request.sessionId != null && entry.request.agentServer != null) {
+        this.conversationStatus.clearWaitingForUser(
+          entry.request.sessionId as SessionId,
+          entry.request.agentServer,
+        );
+      }
+    }
+    if (!sameEntries(this.pendingByElicitationId, next)) {
+      this.pendingByElicitationId = next;
+    }
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (entry.approval) {
+      // Answer through the helper; the entry is removed optimistically and
+      // authoritative removal arrives with the next didChange push. A losing
+      // race answer reports already_resolved, which lands on the same removal.
       const approvalsRevision = this.approvalsRevision;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      void poolsideAcpApprovalsRespond({
+        ...entry.approval,
+        action: response.action as "accept" | "decline" | "cancel",
+        ...(response.content ? { content: response.content } : {}),
       })
         .then(({ outcome }) => {
           if (outcome === "invalid") {
@@ -203,7 +203,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           console.error("acp: elicitation respond failed", error);
           this.restoreStoreBackedEntry(elicitationId, entry, approvalsRevision);
         });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -214,7 +214,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     // authoritative immediately; store-backed ones drop their draft in the
     // response handler above.
     if (!entry.approval) this.draftsByElicitationId.delete(elicitationId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    entry.resolve?.(response);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -243,7 +243,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.pendingByElicitationId = next;
   }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 function visibleInChat(
   request: ACPElicitationParams,
   sessionId: SessionId | null,
@@ -257,10 +257,10 @@ function visibleInChat(
   return request.agentServer == null || request.agentServer === agentServer;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function sameEntries(a: Map<string, PendingElicitation>, b: Map<string, PendingElicitation>) {
+  if (a.size !== b.size) return false;
+  for (const [id, entry] of a) {
+    if (b.get(id) !== entry) return false;
+  }
+  return true;
+}

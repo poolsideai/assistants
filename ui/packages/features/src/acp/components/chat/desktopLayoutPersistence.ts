@@ -1,7 +1,7 @@
 import type { SerializedSplitsState, SplitNode, TabID } from "@poolsideai/splits";
 import type { AssistantTerminalPlacement } from "../../features/AssistantTerminalRepository.svelte";
 import { subagentKeyProvidesTranscript } from "../../subagents";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { readDesktopFilesTreePrefs } from "./desktopFilesTreePrefs";
 import {
   stableDesktopSplitsKey,
   type DesktopSplitsEntry,
@@ -65,10 +65,10 @@ export type PersistedDesktopTabDescriptor =
       cwd?: string;
     }
   | {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      /**
+       * Legacy: the task review panel is gone. Still parsed so old layouts
+       * load; restore turns these tabs into a files tab in its changes view.
+       */
       kind: "review";
       selectedVersionId?: string;
     }
@@ -78,21 +78,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   | {
       kind: "files";
       rootPath: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      /** Sidebar subview at capture time; "changes" restores in review mode. */
+      viewMode?: "tree" | "changes";
     }
   | {
       kind: "github";
       worktreePath: string;
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | {
+      /**
+       * Legacy: the standalone Changes panel is gone. Still parsed so old
+       * layouts load; restore turns these into a files tab in changes view.
+       */
+      kind: "changes";
+      worktreePath: string;
+    }
   | {
       kind: "file";
       path: string;
@@ -378,9 +378,9 @@ function persistedDescriptorForDesktopTab(
       return {
         kind: "files",
         rootPath: descriptor.rootPath,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // The tree keeps its subview in per-worktree prefs; capture it so a
+        // layout saved while reviewing changes restores in changes mode.
+        viewMode: readDesktopFilesTreePrefs(descriptor.rootPath)?.viewMode,
       };
     case "github":
       return {
@@ -395,7 +395,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         line: descriptor.line,
         column: descriptor.column,
       };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    case "diff":
       // Worktree only: the diff content is a live helper session that the
       // panel re-opens on restore, and the last targeted file is a moment-
       // in-time detail that should not yank the restored view around. Like
@@ -568,21 +568,21 @@ function normalizePersistedDescriptor(value: unknown): PersistedDesktopTabDescri
     case "trajectory":
       return { kind: "trajectory" };
     case "files":
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (typeof value.rootPath !== "string") return undefined;
+      return {
+        kind: "files",
+        rootPath: value.rootPath,
+        viewMode:
+          value.viewMode === "changes" || value.viewMode === "tree" ? value.viewMode : undefined,
+      };
     case "github":
       return typeof value.worktreePath === "string"
         ? { kind: "github", worktreePath: value.worktreePath }
         : undefined;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    case "changes":
+      return typeof value.worktreePath === "string"
+        ? { kind: "changes", worktreePath: value.worktreePath }
+        : undefined;
     case "file":
       if (typeof value.path !== "string") return undefined;
       if (value.cwd !== undefined && typeof value.cwd !== "string") return undefined;

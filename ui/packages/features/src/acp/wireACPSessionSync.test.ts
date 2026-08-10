@@ -55,30 +55,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     stop();
   });
 
+  it("does not clear session when deleted session belongs to another agent server", () => {
+    const emitter = new EventTarget();
+    const session = {
+      sessionId: "s-123",
+      sessionAgentServer: "poolside",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    };
+
+    const stop = wireACPSessionSync({
+      emitter,
+      session,
+    });
+
+    emitter.dispatchEvent(
+      new CustomEvent(ACP_SESSION_DELETE_EVENT, {
+        detail: { sessionId: "s-123", agentServer: "other" },
+      }),
+    );
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    stop();
+  });
+
   it("does not clear session when current session is null", () => {
     const emitter = new EventTarget();
     const session = {

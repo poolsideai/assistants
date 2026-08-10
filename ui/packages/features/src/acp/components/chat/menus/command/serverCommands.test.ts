@@ -109,85 +109,85 @@ describe("sortedServerCommandEntries", () => {
     ]);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("ranks exact command name matches above weaker alphabetical matches", () => {
+    const entries = visibleServerCommandEntries(
+      [
+        { name: "alpha", description: "Configure alpha settings" },
+        { name: "configure", description: "Configure the assistant" },
+        { name: "beta", description: "Configure beta settings" },
+        { name: "code-review", description: "Review the current diff for correctness bugs" },
+        {
+          name: "weak-description",
+          description: "Contains c o n f i g u r e only as scattered letters",
+        },
+        { name: "qa", description: "Systematically QA a web application" },
+      ],
+      "configure",
+    );
+
+    expect(entries.map(({ command }) => command.name)).toEqual(["configure", "alpha", "beta"]);
+  });
+
+  it("ranks direct name matches ahead of description matches", () => {
     const entries = visibleServerCommandEntries(
       [
         { name: "batch", description: "Run parallel work" },
         { name: "usage", description: "Contains batch only in the description" },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        { name: "batch-runner", description: "Run batches" },
         { name: "debug", description: "Enable debug logging" },
       ],
       "bat",
     );
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(entries.map(({ command }) => command.name)).toEqual(["batch", "batch-runner", "usage"]);
+  });
+
+  it("keeps prefix and word-boundary name matches ahead of fuzzy name matches", () => {
+    const entries = visibleServerCommandEntries(
+      [
+        { name: "repository-update-notifier", description: "Notify about repository updates" },
+        { name: "test-runner", description: "Run tests" },
+        { name: "run", description: "Run a command" },
+      ],
+      "run",
+    );
+
+    expect(entries.map(({ command }) => command.name)).toEqual([
+      "run",
+      "test-runner",
+      "repository-update-notifier",
+    ]);
+  });
+
+  it("uses alphabetic order only as a final tie-breaker within the same match tier", () => {
+    const entries = visibleServerCommandEntries(
+      [
+        { name: "zebra-config", description: "Configure zebra" },
+        { name: "alpha-config", description: "Configure alpha" },
+        { name: "beta-config", description: "Configure beta" },
+      ],
+      "config",
+    );
+
+    expect(entries.map(({ command }) => command.name)).toEqual([
+      "alpha-config",
+      "beta-config",
+      "zebra-config",
+    ]);
+  });
+
+  it("limits filtered command results after relevance sorting", () => {
+    const commands = [
+      { name: "configure", description: "Configure the assistant" },
+      ...Array.from({ length: 40 }, (_, index) => ({
+        name: `command-${String(index).padStart(2, "0")}`,
+        description: "Configure something else",
+      })),
+    ];
+
+    const entries = visibleServerCommandEntries(commands, "configure");
+
+    expect(entries).toHaveLength(30);
+    expect(entries[0].command.name).toBe("configure");
   });
 });

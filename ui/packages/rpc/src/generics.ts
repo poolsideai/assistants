@@ -57,10 +57,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function isUserConfigInvalidError(e: unknown): e is RPCError & { code: number } {
+  return isRPCError(e) && "code" in e && e.code === 1423;
+}
+
 /**
  * Error is returned to a RPC request when an error has happened
  */

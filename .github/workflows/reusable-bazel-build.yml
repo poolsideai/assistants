@@ -64,6 +64,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      embed_mobile_webui:
+        description: "Build the mobile-remote UI bundle and copy it into the helper's webui embed dir before the Bazel build (poolside-helper only)"
+        type: boolean
+        required: false
+        default: false
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -126,32 +131,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      # The helper serves the mobile-remote UI from a bundle embedded at Go
+      # compile time (pkg/poolside-helper/internal/handler/remoteaccess/webui,
+      # //go:embed via a glob'd embedsrcs). Only placeholders are committed, so
+      # a release build must produce the bundle and copy it in BEFORE Bazel
+      # compiles the binary — otherwise released helpers serve the "no mobile
+      # UI bundle" fallback page to paired phones.
+      - name: Setup pnpm for mobile UI embed
+        if: inputs.embed_mobile_webui
+        uses: ./.github/actions/ui-setup
+        with:
+          pnpm_install_args: "--filter @poolsideai/mobile-remote..."
+
+      - name: Embed mobile-remote UI bundle
+        if: inputs.embed_mobile_webui
+        shell: bash
+        env:
+          # The mobile-remote vite build (~6k modules) exceeds Node's default
+          # ~2GB heap on the macos-latest runner.
+          NODE_OPTIONS: "--max-old-space-size=4096"
+        run: pnpm --filter @poolsideai/mobile-remote embed
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

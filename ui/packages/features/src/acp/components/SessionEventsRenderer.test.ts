@@ -1,7 +1,7 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import SessionEventsRendererHarness from "./SessionEventsRenderer.test.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { GroupedItem } from "./SessionEventsState.svelte";
 
 describe("SessionEventsRenderer", () => {
   it("renders a visible boundary with both ACP agent icons", () => {
@@ -188,12 +188,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(container.querySelector("[data-steer-message]")).toBeInTheDocument();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("does not render the copy action while the response is streaming", () => {
     render(SessionEventsRendererHarness, {
       props: {
         events: [],
         isPrompting: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        items: [agentMessageItem(0, "Still working.")],
       },
     });
 
@@ -315,7 +315,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function agentMessageItem(index: number, text: string): Extract<GroupedItem, { kind: "event" }> {
   return {
     id: `event-${index}`,
     kind: "event",
@@ -328,7 +328,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   };
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function userMessageItem(index: number): Extract<GroupedItem, { kind: "event" }> {
   return {
     id: `event-${index}`,
     kind: "event",

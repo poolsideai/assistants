@@ -1,15 +1,15 @@
 <script lang="ts">
   import Icon from "@poolsideai/components/icon";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { KeyboardShortcutsSection } from "../../keybindings";
   import BadgedIcon from "./BadgedIcon.svelte";
   import { appState } from "../hostAdapter";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import DesktopArchivedChatsSection from "./DesktopArchivedChatsSection.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import DesktopGitHubConnectorSection from "./DesktopGitHubConnectorSection.svelte";
   import DesktopPreferencesSection from "./DesktopPreferencesSection.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import DesktopRemoteAccessSection from "./DesktopRemoteAccessSection.svelte";
   import LocalInferenceSettingsSection from "./LocalInferenceSettingsSection.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import VoiceRecognitionSettingsSection from "./VoiceRecognitionSettingsSection.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import DesktopSettingsPanelFrame from "./settings/DesktopSettingsPanelFrame.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -21,8 +21,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   } from "./settings/settingsSections";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // "all" stacks every section on one page. The section prop renders one
+  // settings section while the page-level left nav controls switching sections.
   // sectionNav=false suppresses that left nav for hosts too narrow to fit it
   // (the IDE sidebar); the header then names the section itself.
   interface Props {
@@ -40,20 +40,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     desktopFrame?: boolean;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let {
+    centerHeader = false,
+    sidebarWidth = 260,
+    section = "all",
     availableSections = DESKTOP_SETTINGS_SECTIONS,
     sectionNav = true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onSectionChange,
     onShowConnectors,
     onShowChat,
     activeConversationId = null,
     onActiveConversationIdChange,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onDone,
     desktopFrame = false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }: Props = $props();
   let isDesktop = $derived($appState.environment.assistantHost === "desktop");
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   let heading = $derived(SETTINGS_HEADINGS[section]);
@@ -102,8 +102,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {:else if sectionName === "remote"}
+        <DesktopRemoteAccessSection />
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -123,14 +123,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     {/if}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {#if isDesktop}
       {@render settingsSection("archived")}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {@render settingsSection("remote")}
+    {/if}
   {:else if section === "preferences"}
+    {#if isDesktop}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {/if}
   {:else if section === "shortcuts"}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   {:else if section === "models"}
@@ -139,7 +139,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     {@render settingsSection("voice")}
   {:else if section === "connectors"}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {:else if section === "github"}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   {:else if section === "agents"}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -147,10 +147,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     {#if isDesktop}
       {@render settingsSection("archived")}
     {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {:else if section === "remote"}
+    {#if isDesktop}
+      {@render settingsSection("remote")}
+    {/if}
   {/if}
 {/snippet}
 
@@ -212,9 +212,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     <div class="flex min-h-0 flex-1">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {#if showSectionNav}
         <aside class="border-psx-border bg-psx-panel w-[232px] shrink-0 border-r p-2">
           <nav class="flex flex-col gap-1" aria-label="Settings sections">
             {#each availableSections as item}
@@ -269,6 +269,6 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </div>
   </section>
 {/if}

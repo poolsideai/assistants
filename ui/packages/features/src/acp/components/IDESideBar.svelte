@@ -23,7 +23,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import ContextMenu, { type ContextMenuItem } from "./sidebar/ContextMenu.svelte";
   import HistoryOverlay from "./sidebar/HistoryOverlay.svelte";
   import { sidebarOpensViewLabel, sidebarRenameLabel } from "./sidebar/menuLabels";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import RenameDialog from "./sidebar/RenameDialog.svelte";
   import ConfirmationDialog from "./ui/ConfirmationDialog.svelte";
   import { getOptionalACPConnectionPoolContext } from "../connectionPoolContext";
   import ACPLogCaptureConfirmation from "./sidebar/ACPLogCaptureConfirmation.svelte";
@@ -89,12 +89,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let showingHistory = $state(false);
   let restoredHistorySessionKeys = $state(new Set<string>());
   let navSessions = $state<ACPConversationSummary[]>([]);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let contextMenu = $state<{
+    x: number;
+    y: number;
     actions: ContextMenuItem[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } | null>(null);
+  let renameTarget = $state<{ id: string; name: string } | null>(null);
   let acpLogCaptureTarget = $state<ACPLogCaptureTarget | null>(null);
   let deleteConversationTarget = $state<{
     session: ACPConversationSummary;
@@ -224,17 +224,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   }
 
+  // Opens an archived conversation as a read-only transcript without
+  // restoring it, falling back to the current workspace folder when the
+  // session's original directory no longer exists. The history overlay stays
+  // open so the user can keep browsing and open other conversations.
+  async function openHistorySessionReadOnly(session: ACPConversationSummary) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      readOnly: true,
+      fallbackCwds: [acpProtocolCwd(currentWorkspaceFolders), "/"],
+    });
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     sessionId: string | null,
     agentServer: string,
@@ -290,12 +290,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       { label: "Cancel", onClick: () => undoArchiveSession(session.id) },
     );
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      session.id,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    );
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -324,22 +324,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     restoredHistorySessionKeys = updated;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function handleDeleteHistorySession(session: ACPConversationSummary, event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!session.sessionId) return;
+    const agentServer = getSessionAgentServer(session);
+    history.deleteSession(session.sessionId, agentServer);
+    const updated = new Set(restoredHistorySessionKeys);
+    updated.delete(historySessionKey(session, getSessionAgentServer));
+    restoredHistorySessionKeys = updated;
+    await conversations.deleteSession(session.sessionId, agentServer);
+  }
+
+  async function handleDeleteSession(session: ACPConversationSummary, event?: Event) {
+    event?.preventDefault();
+    event?.stopPropagation();
+    const agentServer = getSessionAgentServer(session);
     // Marked exiting so the row plays the same slide-out as an archive; the
     // finally re-reveals it if the delete failed.
     setConversationExiting(session.id, true);
@@ -357,30 +357,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }
     } finally {
       setConversationExiting(session.id, false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  }
+
   function openContextMenu(event: MouseEvent, actions: ContextMenuItem[]) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    event.preventDefault();
+    event.stopPropagation();
+    window.getSelection()?.removeAllRanges();
+    contextMenu = {
+      x: event.clientX,
+      y: event.clientY,
+      actions,
+    };
+  }
+
+  function openSessionContextMenu(session: ACPConversationSummary, event: MouseEvent) {
+    const canDelete = !session.sessionId || sidebar.canDeleteSession(session);
+    openContextMenu(event, [
+      {
         name: sidebarRenameLabel("Conversation"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        icon: "pencil",
+        callback: () => {
+          renameTarget = { id: session.id, name: session.title || "Untitled Conversation" };
+        },
+      },
       acpLogCaptureMenuAction(
         acpConnectionPool?.debug?.capture,
         {
@@ -400,36 +400,36 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         },
       },
       { kind: "separator" },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {
         name: "Archive Conversation",
+        icon: "archive",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      },
+      {
         name: sidebarOpensViewLabel("Delete Conversation"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        icon: "trash",
+        disabled: !canDelete,
         callback: () => {
           deleteConversationTarget = {
             session,
             name: session.title || "Untitled Conversation",
           };
         },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      },
+    ]);
+  }
+
+  async function submitRename(value: string) {
+    const target = renameTarget;
+    if (!target) return;
+    renameTarget = null;
+    try {
+      await conversations.renameConversation(target.id, value);
+    } catch (error) {
+      console.error("Failed to rename ACP conversation", error);
+    }
+  }
+
   function setCollapsed(nextCollapsed: boolean) {
     if (!collapsible) return;
     onCollapsedChange(nextCollapsed);
@@ -542,9 +542,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           expanded
           visibleLimit={visibleSessions.length}
           onToggleExpanded={() => {}}
+          onArchiveSession={handleArchiveRowSession}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          onSessionContextMenu={openSessionContextMenu}
           {isSessionExiting}
         />
       {/if}
@@ -559,15 +559,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         state={history.state}
         sessionCount={history.sessions.length}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        reconciling={history.reconciling}
+        listFailures={history.listFailures}
         {visibleNavSessionForHistorySession}
         onBack={() => (showingHistory = false)}
         onOpenRestoredHistorySession={openRestoredHistorySession}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        onOpenHistorySessionReadOnly={openHistorySessionReadOnly}
         onArchiveHistorySession={handleArchiveHistorySession}
         onRestoreHistorySession={restoreHistorySession}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        onDeleteHistorySession={handleDeleteHistorySession}
       />
     {/if}
 
@@ -601,18 +601,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   </aside>
 {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 <ConversationPreview />
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#if contextMenu}
+  <ContextMenu
+    x={contextMenu.x}
+    y={contextMenu.y}
+    actions={contextMenu.actions}
+    onClose={() => (contextMenu = null)}
+  />
+{/if}
+
 {#if deleteConversationTarget}
   <ConfirmationDialog
     destructive
@@ -629,15 +629,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   />
 {/if}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#if renameTarget}
+  <RenameDialog
+    title="Rename conversation"
+    label="Name"
+    value={renameTarget.name}
+    onCancel={() => (renameTarget = null)}
+    onRename={submitRename}
+  />
+{/if}
 
 {#if acpLogCaptureTarget}
   <ACPLogCaptureConfirmation

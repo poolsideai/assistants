@@ -12,7 +12,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 } from "@poolsideai/features/acp";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { ACPApproval } from "@poolsideai/helperapi";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -21,22 +21,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   type LocalInferenceDidChangeParams,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type {
+  ActiveFileContext,
+  AssistantTerminalTab,
   AssistantTerminalUpdate,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  Configuration,
+  Keybindings,
+  Language,
+} from "@poolsideai/rpc";
+import type {
+  Assistant,
+  AssistantMessage,
   JSONRPCNotifyBatchResult,
+} from "@poolsideai/rpc/assistant";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { type AppStore } from "../store";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
@@ -72,7 +72,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     readonly acpTransport: ACPTransport,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     readonly assistantTerminals: AssistantTerminalEventSink,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    readonly acpRepo?: ACPSessionRepository,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     readonly acpProjectRepo?: ACPProjectRepository,
@@ -150,13 +150,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Helper-owned pending approvals (permission prompts + elicitations)
+  // changed: reconcile the complete pushed set. This is how approval cards
+  // appear, and how they disappear once answered on ANY surface.
+  acpApprovalsDidChange(params: { pending: unknown[] }): void {
+    this.acpRepo?.reconcileApprovals((params.pending ?? []) as ACPApproval[]);
+  }
+
   // The user's MCP connector store changed — possibly on another surface or in
   // another app instance sharing it. Re-list the store (so any open connectors
   // UI reflects it) and re-inject the set into every live agent session.
@@ -176,6 +176,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (context.homeDirectory != null) {
         newState.homeDirectory = context.homeDirectory;
+      }
+      if (context.defaultCwd != null) {
+        newState.defaultCwd = context.defaultCwd;
       }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -222,34 +225,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  acpAgentServerDidExit(params: { agentServer: string; error?: string }) {
+    this.acpTransport.disconnect?.(params.agentServer);
+    this.acpRepo?.handleAgentServerDidExit(params.agentServer, params.error);
+  }
+
+  assistantTerminalDidOpen(tab: AssistantTerminalTab): void {
     this.assistantTerminals.terminalDidOpen(tab);
   }
 
   assistantTerminalDidUpdate(params: AssistantTerminalUpdate): void {
     this.assistantTerminals.terminalDidUpdate(params);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  assistantTerminalDidWrite(params: { terminalId: string; data: string }): void {
     this.assistantTerminals.terminalDidWrite(params.terminalId, params.data);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  assistantTerminalDidExit(params: { terminalId: string; exitCode?: number }): void {
     this.assistantTerminals.terminalDidExit(params.terminalId, params.exitCode);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  assistantTerminalDidClose(params: { terminalId: string }): void {
     this.assistantTerminals.terminalDidClose(params.terminalId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   jsonrpcNotify(params: AnyMessage) {
     this.acpTransport.receive(params);
   }

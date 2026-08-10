@@ -1,75 +1,75 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package acpnav
+
+import (
+	"context"
+	"os"
+	"path/filepath"
+	"runtime"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
+
+func TestAssistantConfigAgentServerStoreSetAndList(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "poolside", "assistant.json")
+	require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o755))
+	require.NoError(t, os.WriteFile(path, []byte(`{"other_setting":true}`), 0o644))
+	store := NewAssistantConfigAgentServerStore(path)
+
+	defaultAgentServer := "claude"
+	require.NoError(t, store.SetAgentServers(ctx, methods.ACPAgentServers{
+		"claude": {
+			Command: "npx",
+			Args:    []string{"-y", "@zed-industries/claude-code-acp"},
+			Env: map[string]string{
+				"ANTHROPIC_API_KEY": "test",
+			},
+			DefaultConfigOptions: map[string]string{
+				"permission_mode": "default",
+			},
+		},
+		"default": {
+			Command: "pool",
+			Args:    []string{"acp"},
+		},
 	}, &defaultAgentServer, nil))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	agentServers, err := store.ListAgentServers(ctx)
+	require.NoError(t, err)
+	require.Equal(t, methods.ACPAgentServerConfig{
+		Type:    "custom",
+		Command: "pool",
+		Args:    []string{"acp"},
+	}, agentServers["poolside"])
+	require.Equal(t, methods.ACPAgentServerConfig{
+		Type:    "custom",
+		Command: "npx",
+		Args:    []string{"-y", "@zed-industries/claude-code-acp"},
+		Env: map[string]string{
+			"ANTHROPIC_API_KEY": "test",
+		},
+		DefaultConfigOptions: map[string]string{
+			"permission_mode": "default",
+		},
+	}, agentServers["claude"])
+
+	gotDefault, err := store.GetDefaultAgentServer(ctx)
+	require.NoError(t, err)
+	require.Equal(t, "claude", gotDefault)
+
+	data, err := os.ReadFile(path)
+	require.NoError(t, err)
 	require.Contains(t, string(data), `"$schema": "`+assistantConfigSchemaURL+`"`)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.Contains(t, string(data), `"other_setting": true`)
+	require.Contains(t, string(data), `"agent_servers"`)
+	require.Contains(t, string(data), `"default_agent_server": "claude"`)
+}
+
 func TestAssistantConfigAgentServerStorePinnedConfigOptionsRoundTrip(t *testing.T) {
 	ctx := context.Background()
 	path := filepath.Join(t.TempDir(), "poolside", "assistant.json")
@@ -241,394 +241,394 @@ func TestAssistantConfigAgentServerStoreIdentifiesMalformedConfig(t *testing.T) 
 	require.True(t, IsAssistantConfigParseError(err))
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestAssistantConfigAgentServerStoreRegistryEntry(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "poolside", "assistant.json")
+	store := NewAssistantConfigAgentServerStore(path)
+
+	require.NoError(t, store.SetAgentServers(ctx, methods.ACPAgentServers{
+		"codex-acp": {
+			Type:    "registry",
+			Command: "npx",
+			Args:    []string{"-y", "@zed-industries/codex-acp@0.16.0"},
+			DefaultConfigOptions: map[string]string{
+				"mode": "full-access",
+			},
+		},
 	}, nil, nil))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	data, err := os.ReadFile(path)
+	require.NoError(t, err)
+	require.Contains(t, string(data), `"type": "registry"`)
+	require.NotContains(t, string(data), `"command"`)
+	require.NotContains(t, string(data), `"binary"`)
+
+	agentServers, err := store.ListAgentServers(ctx)
+	require.NoError(t, err)
+	require.Equal(t, methods.ACPAgentServerConfig{
+		Type: "registry",
+		DefaultConfigOptions: map[string]string{
+			"mode": "full-access",
+		},
+	}, agentServers["codex-acp"])
+
+	require.NoError(t, store.RecordInstalledRegistryAgentServer(ctx, "codex-acp", methods.ACPAgentServerConfig{
+		Type:    "registry",
+		Command: "npx",
+		Args:    []string{"-y", "@zed-industries/codex-acp@0.16.0"},
+		DefaultConfigOptions: map[string]string{
+			"mode": "full-access",
+		},
+	}))
+
+	agentServers, err = store.ListAgentServers(ctx)
+	require.NoError(t, err)
+	require.Equal(t, methods.ACPAgentServerConfig{
+		Type:    "registry",
+		Command: "npx",
+		Args:    []string{"-y", "@zed-industries/codex-acp@0.16.0"},
+		DefaultConfigOptions: map[string]string{
+			"mode": "full-access",
+		},
+	}, agentServers["codex-acp"])
+}
+
+func TestAssistantConfigAgentServerStoreRegistryBinaryRequiresLocalCache(t *testing.T) {
+	ctx := context.Background()
+	dir := t.TempDir()
+	t.Setenv("HOME", filepath.Join(dir, "home"))
+	t.Setenv("XDG_CACHE_HOME", filepath.Join(dir, "cache"))
+	path := filepath.Join(dir, "poolside", "assistant.json")
+	store := NewAssistantConfigAgentServerStore(path)
+
+	target, err := acpregistry.BinaryTarget(runtime.GOOS, runtime.GOARCH)
+	require.NoError(t, err)
+	archive := "https://example.com/codex-binary.tgz"
+	cfg := methods.ACPAgentServerConfig{
+		Type: "registry",
+		Binary: map[string]methods.ACPAgentServerBinaryDistribution{
+			target: {
+				Archive: archive,
+				Cmd:     "./codex-acp",
+				Args:    []string{"serve"},
+			},
+		},
+		DefaultConfigOptions: map[string]string{
+			"mode": "full-access",
+		},
+	}
 	require.NoError(t, store.SetAgentServers(ctx, methods.ACPAgentServers{"codex-acp": cfg}, nil, nil))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.NoError(t, store.RecordInstalledRegistryAgentServer(ctx, "codex-acp", cfg))
+
+	agentServers, err := store.ListAgentServers(ctx)
+	require.NoError(t, err)
+	require.Equal(t, methods.ACPAgentServerConfig{
+		Type: "registry",
+		DefaultConfigOptions: map[string]string{
+			"mode": "full-access",
+		},
+	}, agentServers["codex-acp"])
+
 	root, err := acpregistry.BinaryInstallRoot("codex-acp", archive, "")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.NoError(t, err)
+	require.NoError(t, os.MkdirAll(root, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "codex-acp"), []byte("#!/bin/sh\n"), 0o755))
+
+	agentServers, err = store.ListAgentServers(ctx)
+	require.NoError(t, err)
+	require.Equal(t, cfg, agentServers["codex-acp"])
+}
+
+func TestAssistantConfigAgentServerStoreRepairsInstalledRegistryCommand(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "poolside", "assistant.json")
+	store := NewAssistantConfigAgentServerStore(path)
+
+	require.NoError(t, store.SetAgentServers(ctx, methods.ACPAgentServers{
+		"codex-acp": {
+			Type: "registry",
+			DefaultConfigOptions: map[string]string{
+				"mode": "full-access",
+			},
+		},
 	}, nil, nil))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	require.NoError(t, store.RepairInstalledRegistryAgentServers(ctx, func(ctx context.Context, name string) (methods.ACPAgentServerConfig, error) {
+		if name != "codex-acp" {
+			return methods.ACPAgentServerConfig{}, nil
+		}
+		return methods.ACPAgentServerConfig{
+			Type:    "registry",
+			Command: "npx",
+			Args:    []string{"-y", "@zed-industries/codex-acp@0.16.0"},
+		}, nil
+	}))
+
+	agentServers, err := store.ListAgentServers(ctx)
+	require.NoError(t, err)
+	require.Equal(t, methods.ACPAgentServerConfig{
+		Type:    "registry",
+		Command: "npx",
+		Args:    []string{"-y", "@zed-industries/codex-acp@0.16.0"},
+		DefaultConfigOptions: map[string]string{
+			"mode": "full-access",
+		},
+	}, agentServers["codex-acp"])
+
+	data, err := os.ReadFile(assistantRegistryInstallsPath(path))
+	require.NoError(t, err)
+	require.Contains(t, string(data), `"codex-acp"`)
+	require.Contains(t, string(data), `"command": "npx"`)
+}
+
+func TestAssistantConfigAgentServerStoreRepairResolvesWithoutHoldingLock(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "poolside", "assistant.json")
+	store := NewAssistantConfigAgentServerStore(path)
+
+	require.NoError(t, store.SetAgentServers(ctx, methods.ACPAgentServers{
+		"codex-acp": {Type: "registry"},
 	}, nil, nil))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	require.NoError(t, store.RepairInstalledRegistryAgentServers(ctx, func(ctx context.Context, name string) (methods.ACPAgentServerConfig, error) {
+		_, err := store.ListAgentServers(ctx)
+		require.NoError(t, err)
+		if name != "codex-acp" {
+			return methods.ACPAgentServerConfig{}, nil
+		}
+		return methods.ACPAgentServerConfig{
+			Type:    "registry",
+			Command: "npx",
+			Args:    []string{"-y", "@zed-industries/codex-acp@0.16.0"},
+		}, nil
+	}))
+
+	agentServers, err := store.ListAgentServers(ctx)
+	require.NoError(t, err)
+	require.Equal(t, "npx", agentServers["codex-acp"].Command)
+}
+
+func TestAssistantConfigAgentServerStoreRepairsInstalledRegistryBinary(t *testing.T) {
+	ctx := context.Background()
+	dir := t.TempDir()
+	t.Setenv("HOME", filepath.Join(dir, "home"))
+	t.Setenv("XDG_CACHE_HOME", filepath.Join(dir, "cache"))
+	path := filepath.Join(dir, "poolside", "assistant.json")
+	store := NewAssistantConfigAgentServerStore(path)
+
+	target, err := acpregistry.BinaryTarget(runtime.GOOS, runtime.GOARCH)
+	require.NoError(t, err)
+	archive := "https://example.com/poolside-binary.tgz"
+	resolved := methods.ACPAgentServerConfig{
+		Type: "registry",
+		Binary: map[string]methods.ACPAgentServerBinaryDistribution{
+			target: {
+				Archive: archive,
+				Cmd:     "./poolside-acp",
+				Args:    []string{"serve"},
+			},
+		},
+	}
 	root, err := acpregistry.BinaryInstallRoot("poolside", archive, "")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.NoError(t, err)
+	require.NoError(t, os.MkdirAll(root, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "poolside-acp"), []byte("#!/bin/sh\n"), 0o755))
+
 	require.NoError(t, store.SetAgentServers(ctx, methods.ACPAgentServers{"poolside": {Type: "registry"}}, nil, nil))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.NoError(t, store.RepairInstalledRegistryAgentServers(ctx, func(context.Context, string) (methods.ACPAgentServerConfig, error) {
+		return resolved, nil
+	}))
+
+	agentServers, err := store.ListAgentServers(ctx)
+	require.NoError(t, err)
+	require.Equal(t, resolved, agentServers["poolside"])
+}
+
+func TestAssistantConfigAgentServerStoreRepairsImplicitPoolsideRegistryBinary(t *testing.T) {
+	ctx := context.Background()
+	dir := t.TempDir()
+	t.Setenv("HOME", filepath.Join(dir, "home"))
+	t.Setenv("XDG_CACHE_HOME", filepath.Join(dir, "cache"))
+	path := filepath.Join(dir, "poolside", "assistant.json")
+	store := NewAssistantConfigAgentServerStore(path)
+
+	target, err := acpregistry.BinaryTarget(runtime.GOOS, runtime.GOARCH)
+	require.NoError(t, err)
+	archive := "https://example.com/poolside-binary.tgz"
+	resolved := methods.ACPAgentServerConfig{
+		Type: "registry",
+		Binary: map[string]methods.ACPAgentServerBinaryDistribution{
+			target: {
+				Archive: archive,
+				Cmd:     "./poolside-acp",
+				Args:    []string{"serve"},
+			},
+		},
+	}
 	root, err := acpregistry.BinaryInstallRoot("poolside", archive, "")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.NoError(t, err)
+	require.NoError(t, os.MkdirAll(root, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "poolside-acp"), []byte("#!/bin/sh\n"), 0o755))
+
 	require.NoError(t, store.SetAgentServers(ctx, methods.ACPAgentServers{"claude": {Command: "npx"}}, nil, nil))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.NoError(t, store.RepairInstalledRegistryAgentServers(ctx, func(_ context.Context, name string) (methods.ACPAgentServerConfig, error) {
+		require.Equal(t, "poolside", name)
+		return resolved, nil
+	}))
+
+	data, err := os.ReadFile(assistantRegistryInstallsPath(path))
+	require.NoError(t, err)
+	require.Contains(t, string(data), `"poolside"`)
+	require.Contains(t, string(data), `"archive": "https://example.com/poolside-binary.tgz"`)
+}
+
+func TestAssistantConfigAgentServerStoreDoesNotRepairCustomPoolside(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "poolside", "assistant.json")
+	store := NewAssistantConfigAgentServerStore(path)
+
 	require.NoError(t, store.SetAgentServers(ctx, methods.ACPAgentServers{"poolside": {Command: "custom-pool"}}, nil, nil))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.NoError(t, store.RepairInstalledRegistryAgentServers(ctx, func(context.Context, string) (methods.ACPAgentServerConfig, error) {
+		t.Fatal("custom poolside should not be repaired as a registry agent server")
+		return methods.ACPAgentServerConfig{}, nil
+	}))
+
+	_, err := os.Stat(assistantRegistryInstallsPath(path))
+	require.ErrorIs(t, err, os.ErrNotExist)
+}
+
+func TestAssistantConfigAgentServerStoreRepairSkipsMissingRegistryBinary(t *testing.T) {
+	ctx := context.Background()
+	dir := t.TempDir()
+	t.Setenv("HOME", filepath.Join(dir, "home"))
+	t.Setenv("XDG_CACHE_HOME", filepath.Join(dir, "cache"))
+	path := filepath.Join(dir, "poolside", "assistant.json")
+	store := NewAssistantConfigAgentServerStore(path)
+
+	target, err := acpregistry.BinaryTarget(runtime.GOOS, runtime.GOARCH)
+	require.NoError(t, err)
 	require.NoError(t, store.SetAgentServers(ctx, methods.ACPAgentServers{"poolside": {Type: "registry"}}, nil, nil))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.NoError(t, store.RepairInstalledRegistryAgentServers(ctx, func(context.Context, string) (methods.ACPAgentServerConfig, error) {
+		return methods.ACPAgentServerConfig{
+			Type: "registry",
+			Binary: map[string]methods.ACPAgentServerBinaryDistribution{
+				target: {
+					Archive: "https://example.com/poolside-binary.tgz",
+					Cmd:     "./poolside-acp",
+				},
+			},
+		}, nil
+	}))
+
+	agentServers, err := store.ListAgentServers(ctx)
+	require.NoError(t, err)
+	require.Equal(t, methods.ACPAgentServerConfig{Type: "registry"}, agentServers["poolside"])
+	_, err = os.Stat(assistantRegistryInstallsPath(path))
+	require.ErrorIs(t, err, os.ErrNotExist)
+}
+
+func TestAssistantConfigAgentServerStoreSeedAgentServersIfNeeded(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "poolside", "assistant.json")
+	store := NewAssistantConfigAgentServerStore(path)
+
+	require.NoError(t, store.SeedAgentServersIfNeeded(ctx, methods.ACPAgentServers{
+		"claude": {Command: "npx"},
+	}))
+	require.NoError(t, store.SeedAgentServersIfNeeded(ctx, methods.ACPAgentServers{
+		"gemini": {Command: "node"},
+	}))
+
+	agentServers, err := store.ListAgentServers(ctx)
+	require.NoError(t, err)
+	require.Contains(t, agentServers, "claude")
+	require.NotContains(t, agentServers, "gemini")
+}
+
+func TestAssistantConfigAgentServerStoreMigratesFromDB(t *testing.T) {
+	ctx := context.Background()
+	dir := t.TempDir()
+	dbStore, err := Open(ctx, filepath.Join(dir, "acpnav.db"))
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, dbStore.Close()) })
+
+	defaultAgentServer := "claude"
+	require.NoError(t, dbStore.SetAgentServers(ctx, methods.ACPAgentServers{
+		"claude": {Command: "npx"},
+		"poolside": {
+			Command: "{{SELF}}",
+			DefaultConfigOptions: map[string]string{
+				"mode": "auto",
+			},
+		},
 	}, &defaultAgentServer, nil))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	assistantConfigPath := filepath.Join(dir, "poolside", "assistant.json")
+	store := NewAssistantConfigAgentServerStore(assistantConfigPath)
+	require.NoError(t, store.MigrateFromDB(ctx, dbStore))
+
+	agentServers, err := store.ListAgentServers(ctx)
+	require.NoError(t, err)
+	require.Equal(t, methods.ACPAgentServerConfig{Type: "custom", Command: "npx"}, agentServers["claude"])
+	require.Equal(t, methods.ACPAgentServerConfig{
+		Type:    "custom",
+		Command: "{{SELF}}",
+		DefaultConfigOptions: map[string]string{
+			"mode": "auto",
+		},
+	}, agentServers["poolside"])
+	gotDefault, err := store.GetDefaultAgentServer(ctx)
+	require.NoError(t, err)
+	require.Equal(t, "claude", gotDefault)
+
+	data, err := os.ReadFile(assistantConfigPath)
+	require.NoError(t, err)
+	require.Contains(t, string(data), `"command": "{{SELF}}"`)
+
+	dbAgentServers, err := dbStore.ListAgentServers(ctx)
+	require.NoError(t, err)
+	require.Empty(t, dbAgentServers)
+}
+
+func TestAssistantConfigAgentServerStoreMigratesFromDBWithoutOverwritingAssistantConfig(t *testing.T) {
+	ctx := context.Background()
+	dir := t.TempDir()
+	dbStore, err := Open(ctx, filepath.Join(dir, "acpnav.db"))
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, dbStore.Close()) })
+
+	dbDefaultAgentServer := "claude"
+	require.NoError(t, dbStore.SetAgentServers(ctx, methods.ACPAgentServers{
+		"claude": {Command: "npx"},
+		"gemini": {Command: "node-from-db"},
 	}, &dbDefaultAgentServer, nil))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	assistantConfigPath := filepath.Join(dir, "poolside", "assistant.json")
+	store := NewAssistantConfigAgentServerStore(assistantConfigPath)
+	poolDefaultAgentServer := "gemini"
+	require.NoError(t, store.SetAgentServers(ctx, methods.ACPAgentServers{
+		"gemini":    {Command: "node-from-pool"},
+		"codex-acp": {Type: "registry"},
 	}, &poolDefaultAgentServer, nil))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.NoError(t, store.MigrateFromDB(ctx, dbStore))
+
+	agentServers, err := store.ListAgentServers(ctx)
+	require.NoError(t, err)
+	require.Equal(t, methods.ACPAgentServerConfig{Type: "custom", Command: "npx"}, agentServers["claude"])
+	require.Equal(t, methods.ACPAgentServerConfig{Type: "custom", Command: "node-from-pool"}, agentServers["gemini"])
+	require.Equal(t, methods.ACPAgentServerConfig{
+		Type: "registry",
+	}, agentServers["codex-acp"])
+	gotDefault, err := store.GetDefaultAgentServer(ctx)
+	require.NoError(t, err)
+	require.Equal(t, "gemini", gotDefault)
+
+	data, err := os.ReadFile(assistantConfigPath)
+	require.NoError(t, err)
+	require.Contains(t, string(data), `"codex-acp"`)
+	require.Contains(t, string(data), `"type": "registry"`)
+
+	dbAgentServers, err := dbStore.ListAgentServers(ctx)
+	require.NoError(t, err)
+	require.Empty(t, dbAgentServers)
+}

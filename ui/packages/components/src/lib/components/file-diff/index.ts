@@ -1,10 +1,10 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { parsePatchFiles, type FileDiffMetadata, type ParsedPatch } from "@pierre/diffs";
 export {
   default as DiffCodeView,
   type DiffCodeViewItem,
   type DiffCodeViewScrollBehavior,
 } from "./DiffCodeView.svelte";
 export { warmDiffWorkerPool } from "./diffWorkerPool.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export { default as FileCodeView } from "./FileCodeView.svelte";
+export { default as PatchDiff } from "./PatchDiff.svelte";
+export type { GitGutterDecorations, GitGutterRange } from "./types.js";

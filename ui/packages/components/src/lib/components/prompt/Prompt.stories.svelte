@@ -74,7 +74,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
     await expect(canvas.getByTestId("prompt-suggestion")).toHaveTextContent("to send");
     await expect(canvas.getByTestId("prompt-suggestion")).toHaveAccessibleName(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "Suggested prompt: Run the focused tests. Enter sends; Tab or Right Arrow edits",
     );
     expect(canvas.queryByText("Ask poolside something...")).not.toBeInTheDocument();
 
@@ -125,25 +125,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 </Story>
 
 <Story
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  name="Suggested Prompt — Click Focuses Without Accepting"
   args={{
     suggestion: "Open the changed files",
     onSuggestionAccepted: fn(),
   }}
   play={async ({ canvas, userEvent, args }) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const promptInput = canvas.getByTestId("prompt-input");
+    const suggestion = canvas.getByTestId("prompt-suggestion");
+    const rect = suggestion.getBoundingClientRect();
+    const clickTarget = document.elementFromPoint(rect.left + 1, rect.top + rect.height / 2);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(clickTarget).not.toBeNull();
+    expect(promptInput.contains(clickTarget)).toBe(true);
+    await userEvent.click(clickTarget as Element);
+
+    await expect(promptInput).toHaveFocus();
+    await expect(promptInput).toHaveTextContent("");
+    expect(args.onSuggestionAccepted).not.toHaveBeenCalled();
+    await expect(suggestion).toHaveTextContent("Open the changed files");
   }}
 >
   {@render form()}

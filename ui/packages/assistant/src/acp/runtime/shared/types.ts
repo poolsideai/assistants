@@ -1,51 +1,51 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type {
+  ACPConnectionPool as ACPConnectionPoolType,
+  ACPConversationRepository,
+  ACPProjectRepository,
+  ACPSessionRepository,
+  Notifier,
+  setACPAgentRegistryContext,
+  setACPAgentServersContext,
+} from "@poolsideai/features/acp";
+import type { KeybindingService } from "@poolsideai/features/keybindings";
+import type { HostMessageSender } from "../../../lib/rpc/client";
+import type { WebviewRPCListener, WebViewRPCResponseSender } from "../../../lib/rpc/server";
 import type { PoolsideInitialState } from "../../../lib/store";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { Repositories } from "./Repositories.svelte";
+
+export type Target = "sidebar-only" | "chat-only" | "desktop";
+
+export interface RuntimeProps {
+  target: Target;
+  rpcWebViewResponseHandler: WebViewRPCResponseSender;
+  rpcHostRequestHandler: HostMessageSender;
+  webviewRpcListener?: WebviewRPCListener;
   initialState?: PoolsideInitialState;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  notifier?: Notifier;
+  onACPConnectionPoolReady?: (pool: ACPConnectionPoolType) => void;
+  onACPAttentionCountChange?: (count: number) => void;
+  repositories?: Repositories | (() => Repositories);
+  skipCoreEffects?: boolean;
+}
+
+export type TargetProps = Omit<RuntimeProps, "target">;
+
+export interface Runtime {
+  target: Target;
+  acpRepo: ACPSessionRepository;
+  acpRegistry: ReturnType<typeof setACPAgentRegistryContext>;
+  acpAgentServers: ReturnType<typeof setACPAgentServersContext>;
+  acpProjectRepo: ACPProjectRepository;
+  acpConversationRepo: ACPConversationRepository;
+  activeConversationId: string | null;
+  isDraggingFile: boolean;
+  hasFileContext: boolean;
+  keybindings: KeybindingService;
+  handleGlobalKeydown(event: KeyboardEvent): void;
+  handleWindowFocus(): void;
+  handleWindowBlur(): void;
+  handleDragOver(event: DragEvent): void;
+  handleDragLeave(event: DragEvent): void;
+  handleDrop(): void;
   setIsDragging(value: boolean): void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

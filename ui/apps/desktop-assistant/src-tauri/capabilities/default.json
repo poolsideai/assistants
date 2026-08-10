@@ -5,16 +5,16 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "core:app:allow-set-app-theme",
     "core:event:default",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "core:webview:allow-set-webview-zoom",
+    "core:window:allow-set-badge-count",
+    "core:window:allow-set-theme",
     "core:window:allow-start-dragging",
     "dialog:allow-ask",
     "dialog:allow-message",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "dialog:allow-open",
+    "dialog:allow-save",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

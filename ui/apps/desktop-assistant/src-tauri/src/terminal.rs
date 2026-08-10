@@ -1,58 +1,58 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+use std::{
+    collections::HashMap,
+    env,
+    io::{Read, Write},
+    path::Path,
     sync::{
         atomic::{AtomicU64, Ordering},
         Arc, Mutex,
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    thread,
+    time::{SystemTime, UNIX_EPOCH},
+};
+
+use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
+use serde::{Deserialize, Serialize};
+use tauri::{async_runtime, AppHandle, Emitter, Manager, State};
+
 use crate::terminal_shell_integration::zsh_terminal_env;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const TERMINAL_DID_OPEN_EVENT: &str = "poolside:assistant-terminal-did-open";
 const TERMINAL_DID_UPDATE_EVENT: &str = "poolside:assistant-terminal-did-update";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const TERMINAL_DID_WRITE_EVENT: &str = "poolside:assistant-terminal-did-write";
+const TERMINAL_DID_EXIT_EVENT: &str = "poolside:assistant-terminal-did-exit";
+const TERMINAL_DID_CLOSE_EVENT: &str = "poolside:assistant-terminal-did-close";
+const MAX_TERMINAL_BUFFER_BYTES: usize = 200_000;
 const MAX_TERMINAL_METADATA_TEXT_BYTES: usize = 512;
 const MAX_PENDING_OSC_BYTES: usize = 4096;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+#[derive(Default)]
+pub struct TerminalState {
+    terminals: tauri::async_runtime::Mutex<HashMap<String, TerminalRecord>>,
+}
+
+struct TerminalRecord {
+    tab: AssistantTerminalTab,
+    master: Box<dyn MasterPty + Send>,
+    writer: Arc<Mutex<Box<dyn Write + Send>>>,
+    child: Arc<Mutex<Box<dyn Child + Send + Sync>>>,
+    buffer: Arc<Mutex<String>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AssistantTerminalTab {
+    id: String,
+    title: String,
+    cwd: String,
+    worktree_path: String,
+    created_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    exit_code: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    buffer: Option<String>,
+}
+
 #[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum AssistantTerminalCommandMode {
@@ -60,13 +60,13 @@ pub enum AssistantTerminalCommandMode {
     NonInteractive,
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct TerminalWritePayload {
+    terminal_id: String,
+    data: String,
+}
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct TerminalUpdatePayload {
@@ -77,45 +77,45 @@ struct TerminalUpdatePayload {
     cwd: Option<String>,
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct TerminalExitPayload {
+    terminal_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    exit_code: Option<i32>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct TerminalClosePayload {
+    terminal_id: String,
+}
+
+#[tauri::command]
+pub async fn list_assistant_terminals(
+    state: State<'_, TerminalState>,
+    worktree_path: String,
+) -> Result<Vec<AssistantTerminalTab>, String> {
+    let terminals = state.terminals.lock().await;
+    Ok(terminals
+        .values()
+        .filter(|record| record.tab.worktree_path == worktree_path)
+        .map(tab_with_buffer)
+        .collect())
+}
+
+#[tauri::command]
+pub async fn create_assistant_terminal(
+    app: AppHandle,
+    state: State<'_, TerminalState>,
+    worktree_path: String,
+    command: Option<String>,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     command_mode: Option<AssistantTerminalCommandMode>,
     cwd: Option<String>,
     cols: Option<u16>,
     rows: Option<u16>,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+) -> Result<AssistantTerminalTab, String> {
     let id = next_terminal_id();
     // A restored layout may ask for the directory the shell was last in; prefer
     // it when it still exists, otherwise the worktree root, otherwise nothing
@@ -125,47 +125,47 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         .or_else(|| {
             Some(worktree_path.clone()).filter(|path| !path.is_empty() && Path::new(path).exists())
         });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let title = {
+        let terminals = state.terminals.lock().await;
+        let count = terminals
+            .values()
+            .filter(|record| record.tab.worktree_path == worktree_path)
+            .count();
+        format!("Terminal {}", count + 1)
+    };
+    let tab = AssistantTerminalTab {
+        id: id.clone(),
+        title,
         // Report the directory we intend to start in, falling back to the
         // worktree root even when neither path exists on disk yet.
         cwd: spawn_cwd.clone().unwrap_or_else(|| worktree_path.clone()),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        worktree_path: worktree_path.clone(),
+        created_at: created_at_millis().to_string(),
+        exit_code: None,
+        buffer: None,
+    };
+
+    let pty_system = native_pty_system();
     // Spawn at the size the caller measured from the pane that will display the
     // terminal, so the shell paints its first prompt at the correct width and
     // no compensating clear (with its visible `^L` flash) is needed. Callers
     // without a measurable pane (e.g. command runners) fall back to 80x24.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let pair = pty_system
+        .openpty(PtySize {
             rows: rows.filter(|&rows| rows > 0).unwrap_or(24),
             cols: cols.filter(|&cols| cols > 0).unwrap_or(80),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            pixel_width: 0,
+            pixel_height: 0,
+        })
+        .map_err(|error| error.to_string())?;
+    let reader = pair
+        .master
+        .try_clone_reader()
+        .map_err(|error| error.to_string())?;
+    let mut writer = pair
+        .master
+        .take_writer()
+        .map_err(|error| error.to_string())?;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -184,10 +184,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     } = shell;
     let mut shell_command = CommandBuilder::new(program);
     shell_command.args(args);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    shell_command.env("TERM", "xterm-256color");
+    shell_command.env("COLORTERM", "truecolor");
+    shell_command.env("FORCE_COLOR", "1");
+    shell_command.env("PROMPT_EOL_MARK", "");
     // The inherited $SHELL can be stale (launchd replays the login-time
     // value), and command tabs may run a POSIX fallback rather than the login
     // shell itself. Either way programs inside the terminal — including the
@@ -222,77 +222,77 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
     if let Some(ref dir) = spawn_cwd {
         shell_command.cwd(dir);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    let child = pair
+        .slave
+        .spawn_command(shell_command)
+        .map_err(|error| error.to_string())?;
+    drop(pair.slave);
+
     if write_startup_command {
         let command = startup_command.unwrap_or_default();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        writer
+            .write_all(format!("{}\n", command.trim_end()).as_bytes())
+            .map_err(|error| error.to_string())?;
+        writer.flush().map_err(|error| error.to_string())?;
+    }
+
+    let child = Arc::new(Mutex::new(child));
+    let writer = Arc::new(Mutex::new(writer));
+    let output_buffer = Arc::new(Mutex::new(String::new()));
+    {
+        let mut terminals = state.terminals.lock().await;
+        terminals.insert(
+            id.clone(),
+            TerminalRecord {
+                tab: tab.clone(),
+                master: pair.master,
+                writer: writer.clone(),
+                child: child.clone(),
+                buffer: output_buffer.clone(),
+            },
+        );
+    }
+
+    spawn_reader(app.clone(), id.clone(), reader, child, output_buffer);
+    let _ = app.emit(TERMINAL_DID_OPEN_EVENT, tab.clone());
+    Ok(tab)
+}
+
+#[tauri::command]
+pub async fn write_assistant_terminal(
+    state: State<'_, TerminalState>,
+    terminal_id: String,
+    data: String,
+) -> Result<(), String> {
+    let terminals = state.terminals.lock().await;
+    let record = terminals
+        .get(&terminal_id)
+        .ok_or_else(|| "Terminal not found".to_string())?;
+    let mut writer = record.writer.lock().map_err(|error| error.to_string())?;
+    writer
+        .write_all(data.as_bytes())
+        .map_err(|error| error.to_string())?;
+    writer.flush().map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub async fn clear_assistant_terminal(
+    state: State<'_, TerminalState>,
+    terminal_id: String,
+) -> Result<(), String> {
+    let terminals = state.terminals.lock().await;
+    let record = terminals
+        .get(&terminal_id)
+        .ok_or_else(|| "Terminal not found".to_string())?;
+    // Drop the replay buffer so the cleared state is permanent, not just visual.
+    if let Ok(mut buffer) = record.buffer.lock() {
+        buffer.clear();
+    }
+    // Ask a live shell to clear its screen and reprint the prompt (Ctrl+L). The
+    // redraw flows back through the normal reader, repopulating the now-empty
+    // buffer with just the fresh prompt. Skip if the shell already exited.
+    if record.tab.exit_code.is_none() {
         let writer = record.writer.clone();
         // Duplicate the master fd for the poll task: it may outlive this
         // record (terminal deleted mid-wait), and a raw fd number could be
@@ -316,10 +316,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 let _ = writer.flush();
             }
         });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    Ok(())
+}
+
 /// Duplicates the master PTY fd so the deferred-clear task can inspect it
 /// without racing terminal deletion: the dup keeps this PTY's termios
 /// reachable even after the record's own fd closes, so a reused fd number
@@ -377,145 +377,145 @@ fn pty_in_canonical_mode(fd: i32) -> Option<bool> {
     Some(termios.c_lflag & libc::ICANON != 0)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#[tauri::command]
+pub async fn resize_assistant_terminal(
+    state: State<'_, TerminalState>,
+    terminal_id: String,
+    cols: u16,
+    rows: u16,
+) -> Result<(), String> {
+    let terminals = state.terminals.lock().await;
+    let record = terminals
+        .get(&terminal_id)
+        .ok_or_else(|| "Terminal not found".to_string())?;
+    record
+        .master
+        .resize(PtySize {
+            rows,
+            cols,
+            pixel_width: 0,
+            pixel_height: 0,
+        })
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub async fn delete_assistant_terminal(
+    app: AppHandle,
+    state: State<'_, TerminalState>,
+    terminal_id: String,
+) -> Result<(), String> {
+    let mut terminals = state.terminals.lock().await;
+    if let Some(record) = terminals.remove(&terminal_id) {
+        kill_record(&record)?;
+        emit_close(&app, &terminal_id);
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn close_assistant_terminals_for_worktree(
+    app: AppHandle,
+    state: State<'_, TerminalState>,
+    worktree_path: String,
+) -> Result<(), String> {
+    close_matching(app, state, |record| {
+        record.tab.worktree_path == worktree_path
+    })
+    .await
+}
+
+#[tauri::command]
+pub async fn close_assistant_terminals_for_project(
+    app: AppHandle,
+    state: State<'_, TerminalState>,
+    project_path: String,
+) -> Result<(), String> {
+    let prefix = format!("{}/", project_path.trim_end_matches('/'));
+    close_matching(app, state, |record| {
+        record.tab.worktree_path == project_path || record.tab.worktree_path.starts_with(&prefix)
+    })
+    .await
+}
+
+async fn close_matching(
+    app: AppHandle,
+    state: State<'_, TerminalState>,
+    predicate: impl Fn(&TerminalRecord) -> bool,
+) -> Result<(), String> {
+    let mut terminals = state.terminals.lock().await;
+    let ids = terminals
+        .iter()
+        .filter_map(|(id, record)| predicate(record).then_some(id.clone()))
+        .collect::<Vec<_>>();
+    for id in ids {
+        if let Some(record) = terminals.remove(&id) {
+            kill_record(&record)?;
+            emit_close(&app, &id);
+        }
+    }
+    Ok(())
+}
+
+fn kill_record(record: &TerminalRecord) -> Result<(), String> {
+    let mut child = record.child.lock().map_err(|error| error.to_string())?;
+    let _ = child.kill();
+    Ok(())
+}
+
+fn spawn_reader(
+    app: AppHandle,
+    terminal_id: String,
+    mut reader: Box<dyn Read + Send>,
+    child: Arc<Mutex<Box<dyn Child + Send + Sync>>>,
+    output_buffer: Arc<Mutex<String>>,
+) {
+    thread::spawn(move || {
+        let mut buffer = [0_u8; 8192];
         let mut metadata_parser = TerminalMetadataParser::default();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        loop {
+            match reader.read(&mut buffer) {
+                Ok(0) => break,
+                Ok(size) => {
+                    let data = String::from_utf8_lossy(&buffer[..size]).to_string();
                     if let Some(update) = metadata_parser.process(&data) {
                         apply_terminal_metadata_update(&app, &terminal_id, update);
                     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                    append_terminal_buffer(&output_buffer, &data);
+                    let _ = app.emit(
+                        TERMINAL_DID_WRITE_EVENT,
+                        TerminalWritePayload {
+                            terminal_id: terminal_id.clone(),
+                            data,
+                        },
+                    );
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::Interrupted => {}
+                Err(_) => break,
+            }
+        }
+        let exit_code = child
+            .lock()
+            .ok()
+            .and_then(|mut child| child.wait().ok())
+            .map(|status| status.exit_code() as i32);
+        {
+            let state = app.state::<TerminalState>();
+            let mut terminals = async_runtime::block_on(state.terminals.lock());
+            if let Some(record) = terminals.get_mut(&terminal_id) {
+                record.tab.exit_code = exit_code;
+            }
+        }
+        let _ = app.emit(
+            TERMINAL_DID_EXIT_EVENT,
+            TerminalExitPayload {
+                terminal_id,
+                exit_code,
+            },
+        );
+    });
+}
+
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 struct TerminalMetadataUpdate {
     title: Option<String>,
@@ -701,44 +701,44 @@ fn apply_terminal_metadata_update(
     }
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+fn tab_with_buffer(record: &TerminalRecord) -> AssistantTerminalTab {
+    let mut tab = record.tab.clone();
+    tab.buffer = record.buffer.lock().ok().map(|buffer| buffer.clone());
+    tab
+}
+
+fn append_terminal_buffer(buffer: &Arc<Mutex<String>>, data: &str) {
+    let Ok(mut buffer) = buffer.lock() else {
+        return;
+    };
+    buffer.push_str(data);
+    if buffer.len() <= MAX_TERMINAL_BUFFER_BYTES {
+        return;
+    }
+
+    let mut trim_to = buffer.len() - MAX_TERMINAL_BUFFER_BYTES;
+    while trim_to < buffer.len() && !buffer.is_char_boundary(trim_to) {
+        trim_to += 1;
+    }
+    buffer.drain(..trim_to);
+}
+
+fn emit_close(app: &AppHandle, terminal_id: &str) {
+    let _ = app.emit(
+        TERMINAL_DID_CLOSE_EVENT,
+        TerminalClosePayload {
+            terminal_id: terminal_id.to_string(),
+        },
+    );
+}
+
+struct ShellSpec {
+    program: String,
+    args: Vec<String>,
     write_startup_command: bool,
     use_zsh_integration: bool,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 /// Chooses the program and argv for a terminal tab. `login_shell` is the
 /// user's shell resolved from the user database (`shell_env::login_shell`);
 /// it is ignored on Windows, where cmd/PowerShell run commands natively.
@@ -747,7 +747,7 @@ fn shell_for_terminal(
     command: Option<&str>,
     command_mode: AssistantTerminalCommandMode,
 ) -> ShellSpec {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if cfg!(windows) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -770,22 +770,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 use_zsh_integration: false,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if let Ok(comspec) = env::var("COMSPEC") {
+            return ShellSpec {
+                program: comspec,
+                args: vec!["/Q".to_string()],
                 write_startup_command: false,
                 use_zsh_integration: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            };
+        }
+        return ShellSpec {
+            program: "powershell.exe".to_string(),
+            args: vec!["-NoLogo".to_string()],
             write_startup_command: false,
             use_zsh_integration: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        };
+    }
+
     // Terminal commands are POSIX by cross-host contract: `runCommandAndWait`
     // wraps them in a POSIX done-marker (`commandWithDoneMarker` in
     // AssistantTerminalRepository.svelte.ts), and raw startup commands follow
@@ -799,10 +799,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     } else {
         login_shell
     };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let shell_name = Path::new(&program)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or_default();
     let use_zsh_integration = cfg!(target_os = "macos") && shell_name == "zsh";
 
     // Keep this shell→argv mapping in sync with `assistantTerminalCommandLaunch`
@@ -828,18 +828,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     // Interactive login shells, matching what Terminal.app and iTerm2 spawn
     // (fish parses grouped short flags like getopt, so `-il` is safe there).
     let args = if shell_name == "bash" || shell_name == "zsh" || shell_name == "fish" {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        vec!["-il".to_string()]
+    } else {
+        vec!["-i".to_string()]
+    };
     ShellSpec {
         program,
         args,
         write_startup_command: command.is_some(),
         use_zsh_integration,
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 /// Shells known to parse the POSIX done-marker wrapper delivered with
 /// command terminals. Keep in sync with `POSIX_SHELLS` in
 /// ui/apps/vscode-assistant/src/extension/rpc/assistantTerminalCommand.ts.
@@ -851,12 +851,12 @@ fn is_posix_shell(shell: &str) -> bool {
     matches!(name, "bash" | "dash" | "sh" | "zsh")
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+fn created_at_millis() -> u128 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|duration| duration.as_millis())
+        .unwrap_or_default()
+}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 // A timestamp alone is not unique: terminals created in the same millisecond
 // (e.g. several tabs restored from a saved layout at once) would collide and
@@ -874,7 +874,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    fn command_terminals_start_interactive_shell() {
         let shell = shell_for_terminal(
             "/bin/zsh".to_string(),
             Some("pnpm clean\nexit"),
@@ -882,7 +882,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         );
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        assert_eq!(shell.args, vec!["-il".to_string()]);
         assert!(shell.write_startup_command);
         assert_eq!(shell.use_zsh_integration, cfg!(target_os = "macos"));
     }

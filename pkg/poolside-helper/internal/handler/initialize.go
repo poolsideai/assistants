@@ -5,7 +5,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"os"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	"runtime/trace"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -144,8 +144,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -196,25 +196,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 		}, nil)
 	}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func acpNavDB() (string, error) {
+	if dbPath := os.Getenv("POOLSIDE_ACP_NAV_DB_PATH"); dbPath != "" {
+		return dbPath, nil
+	}
+
+	poolsideCache, err := filesystem.PoolsideCacheDir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(poolsideCache, fmt.Sprintf("%s.db", acpnav.DBName)), nil
+}
+
+func (h *PoolsideHandler) ensureACPNavStore(ctx context.Context) error {
+	var assistantConfigStore *acpnav.AssistantConfigAgentServerStore
 	assistantConfigUsable := true
 	if !h.acpNavHandler.HasStore() {
 		acpNavDBName, err := acpNavDB()
@@ -231,7 +231,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			return err
 		}
 		h.acpNavHandler.SetStore(acpNavStore)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		assistantConfigStore = acpnav.NewAssistantConfigAgentServerStore(acpnav.AssistantConfigPath())
 		h.acpNavHandler.SetAgentServerStore(assistantConfigStore)
 		if err := initializePhase(ctx, "agent_config_migration", func() error { return assistantConfigStore.MigrateFromDB(ctx, acpNavStore) }); err != nil {
 			if !acpnav.IsAssistantConfigParseError(err) {
@@ -239,8 +239,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			}
 			assistantConfigUsable = false
 			slog.Warn("assistant config is malformed; continuing with fallback agent configuration", "err", err)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		}
+	}
 	if assistantConfigUsable {
 		if err := initializePhase(ctx, "agent_config_seed", func() error {
 			return h.acpNavHandler.SeedAgentServersIfNeeded(ctx, toMethodsAgentServers(h.config.ACPAgentServers))
@@ -251,13 +251,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			assistantConfigUsable = false
 			slog.Warn("assistant config is malformed; continuing with fallback agent configuration", "err", err)
 		}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
 	if assistantConfigUsable && assistantConfigStore != nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		repairACPRegistryAgentServerInstalls(ctx, assistantConfigStore)
+	}
+	return nil
+}
+
 // initializePhase makes the readiness boundary observable without changing its
 // ordering. Schema/config migration and seeding are required; install repair is
 // already asynchronous and must not be mistaken for blocking initialization.
@@ -276,32 +276,32 @@ func initializePhase(ctx context.Context, name string, work func() error) error 
 	return err
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func repairACPRegistryAgentServerInstalls(ctx context.Context, store *acpnav.AssistantConfigAgentServerStore) {
+	if ctx == nil {
+		ctx = context.Background()
+	} else {
+		ctx = context.WithoutCancel(ctx)
+	}
+	goroutine.WithRecover(func() {
+		repairCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		if err := store.RepairInstalledRegistryAgentServers(repairCtx, resolveACPRegistryAgentServerConfig); err != nil {
+			slog.Warn("failed to repair installed ACP registry agent server state", "err", err)
+		}
+	})
 }
 
 func (h *PoolsideHandler) SetACPNavAgentServers(ctx context.Context, req *methods.ACPNavSetAgentServersParams, gCtx *glsp.Context) (methods.ACPNavAgentServersState, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	before := h.activeACPAgentServers(ctx)
 	state, err := h.acpNavHandler.SetAgentServers(ctx, req, gCtx)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if err != nil {
 		return methods.ACPNavAgentServersState{}, err
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
 	state = h.agentServersForHost(state)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	after := toProxyAgentServers(state.AgentServers)
+	if err := h.acpProxyHandler.StopChangedAgentServers(before, after); err != nil {
+		slog.Warn("failed to stop changed ACP agent subprocesses after agent server update", "err", err)
+	}
 	return state, nil
 }
 
@@ -316,22 +316,22 @@ func (h *PoolsideHandler) CheckACPNavAgentRuntimes(_ context.Context, _ *methods
 	}, nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (h *PoolsideHandler) InstallACPNavAgentServer(ctx context.Context, req *methods.ACPNavInstallAgentServerParams, _ *glsp.Context) (methods.ACPNavInstallAgentServerOutput, error) {
+	if len(req.Config.Binary) == 0 {
+		if err := h.acpNavHandler.RecordInstalledRegistryAgentServer(ctx, req.AgentServer, req.Config); err != nil {
+			return methods.ACPNavInstallAgentServerOutput{}, err
+		}
+		return methods.ACPNavInstallAgentServerOutput{Installed: true}, nil
+	}
+	if _, _, _, err := acpproxy.PrepareRegistryBinary(ctx, req.AgentServer, toProxyAgentServerBinaries(req.Config.Binary)); err != nil {
+		return methods.ACPNavInstallAgentServerOutput{}, err
+	}
+	if err := h.acpNavHandler.RecordInstalledRegistryAgentServer(ctx, req.AgentServer, req.Config); err != nil {
+		return methods.ACPNavInstallAgentServerOutput{}, err
+	}
+	return methods.ACPNavInstallAgentServerOutput{Installed: true}, nil
+}
+
 func (h *PoolsideHandler) activeACPAgentServers(ctx context.Context) map[string]acpproxy.AgentServerConfig {
 	if h.acpNavHandler != nil && h.acpNavHandler.HasStore() {
 		agentServers, err := h.acpNavHandler.AgentServers(ctx)
@@ -339,7 +339,7 @@ func (h *PoolsideHandler) activeACPAgentServers(ctx context.Context) map[string]
 			state := h.agentServersForHost(methods.ACPNavAgentServersState{AgentServers: agentServers})
 			return toProxyAgentServers(state.AgentServers)
 		}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		slog.Warn("failed to load ACP agent servers from assistant config; falling back to config", "err", err)
 	}
 	state := h.agentServersForHost(methods.ACPNavAgentServersState{
 		AgentServers: toMethodsAgentServers(h.config.ACPAgentServers),
@@ -350,75 +350,75 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 func toMethodsAgentServers(agentServers map[string]acpproxy.AgentServerConfig) methods.ACPAgentServers {
 	converted := methods.ACPAgentServers{}
 	for name, cfg := range agentServers {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		converted[name] = toMethodsAgentServerConfig(cfg)
 	}
 	return converted
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func resolveACPRegistryAgentServerConfig(ctx context.Context, agentServer string) (methods.ACPAgentServerConfig, error) {
+	cfg, err := acpproxy.RegistryAgentServerConfig(ctx, agentServer)
+	if err != nil {
+		return methods.ACPAgentServerConfig{}, err
+	}
+	return toMethodsAgentServerConfig(cfg), nil
+}
+
+func toMethodsAgentServerConfig(cfg acpproxy.AgentServerConfig) methods.ACPAgentServerConfig {
+	return methods.ACPAgentServerConfig{
+		Type:                 cfg.Type,
+		Command:              cfg.Command,
+		Args:                 cfg.Args,
+		Env:                  cfg.Env,
+		Binary:               toMethodsAgentServerBinaries(cfg.Binary),
+		DefaultConfigOptions: cfg.DefaultConfigOptions,
+	}
+}
+
 func toProxyAgentServers(agentServers methods.ACPAgentServers) map[string]acpproxy.AgentServerConfig {
 	converted := map[string]acpproxy.AgentServerConfig{}
 	for name, cfg := range agentServers {
 		converted[name] = acpproxy.AgentServerConfig{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			Type:                 cfg.Type,
 			Command:              cfg.Command,
 			Args:                 cfg.Args,
 			Env:                  cfg.Env,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			Binary:               toProxyAgentServerBinaries(cfg.Binary),
 			DefaultConfigOptions: cfg.DefaultConfigOptions,
 		}
 	}
 	return converted
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func toMethodsAgentServerBinaries(binaries map[string]acpproxy.AgentServerBinaryDistribution) map[string]methods.ACPAgentServerBinaryDistribution {
+	if len(binaries) == 0 {
+		return nil
+	}
+	converted := map[string]methods.ACPAgentServerBinaryDistribution{}
+	for target, binary := range binaries {
+		converted[target] = methods.ACPAgentServerBinaryDistribution{
+			Archive: binary.Archive,
 			SHA256:  binary.SHA256,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			Cmd:     binary.Cmd,
+			Args:    binary.Args,
+			Env:     binary.Env,
+		}
+	}
+	return converted
+}
+
+func toProxyAgentServerBinaries(binaries map[string]methods.ACPAgentServerBinaryDistribution) map[string]acpproxy.AgentServerBinaryDistribution {
+	if len(binaries) == 0 {
+		return nil
+	}
+	converted := map[string]acpproxy.AgentServerBinaryDistribution{}
+	for target, binary := range binaries {
+		converted[target] = acpproxy.AgentServerBinaryDistribution{
+			Archive: binary.Archive,
 			SHA256:  binary.SHA256,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			Cmd:     binary.Cmd,
+			Args:    binary.Args,
+			Env:     binary.Env,
+		}
+	}
+	return converted
+}

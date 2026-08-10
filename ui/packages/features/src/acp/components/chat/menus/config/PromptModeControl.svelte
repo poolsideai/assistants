@@ -1,6 +1,6 @@
+<script lang="ts">
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import ModeControl from "./ModeControl.svelte";
   import { promptConfigKind, type PromptModeKind } from "./configOptions";
 
   interface Props {
@@ -14,9 +14,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   let { kind = "mode" }: Props = $props();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const chatSession = getACPChatSessionScope();
+
   const wanted = $derived(
     kind === "mode" || chatSession.collaborationModeSurface === "picker" ? kind : null,
   );
@@ -25,9 +25,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   // trigger and the context (@) trigger.
   const option = $derived(
     wanted ? chatSession.configOptions.find((o) => promptConfigKind(o) === wanted) : undefined,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
+</script>
+
 {#if option}
   <ModeControl {option} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{/if}

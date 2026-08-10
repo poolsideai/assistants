@@ -11,7 +11,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   try {
     const stat = await vscode.workspace.fs.stat(uri);
     if (stat.type === vscode.FileType.Directory) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } catch (_e) {
     return;
   }
 

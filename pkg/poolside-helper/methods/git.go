@@ -1,15 +1,15 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package methods
+
+const gitMethodPrefix = "poolside/git/"
+
+const (
+	// GitStatusMethod returns the working-tree status (branch, staged,
+	// unstaged, and untracked changes) for a worktree path. It backs the
+	// desktop Changes panel.
+	GitStatusMethod = gitMethodPrefix + "status"
+	// GitDiffFileMethod returns the unified diff for a single file, either
+	// staged or unstaged.
+	GitDiffFileMethod = gitMethodPrefix + "diffFile"
 	// GitDiffOpenMethod opens a bounded, incrementally-readable diff snapshot.
 	GitDiffOpenMethod = gitMethodPrefix + "diffOpen"
 	// GitDiffListMethod reads the next page of file summaries from a snapshot.
@@ -23,102 +23,102 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	GitDiffStatsMethod = gitMethodPrefix + "diffStats"
 	// GitDiffCloseMethod releases a diff snapshot and its running git commands.
 	GitDiffCloseMethod = gitMethodPrefix + "diffClose"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// GitStageMethod stages one or more paths (git add).
+	GitStageMethod = gitMethodPrefix + "stage"
+	// GitUnstageMethod unstages one or more paths (git restore --staged).
+	GitUnstageMethod = gitMethodPrefix + "unstage"
+	// GitDiscardMethod discards working-tree changes for one or more paths
+	// (git restore, or deletion for untracked files).
+	GitDiscardMethod = gitMethodPrefix + "discard"
+	// GitCommitMethod commits the staged changes with a message.
+	GitCommitMethod = gitMethodPrefix + "commit"
+)
+
+// GitFileChange describes a single changed file in the working tree or index.
+type GitFileChange struct {
+	// Path is repo-relative, using forward slashes.
+	Path string `json:"path"`
+	// OrigPath is set for renames/copies: the previous repo-relative path.
+	OrigPath string `json:"origPath,omitempty"`
+	// Status is "modified", "added", "deleted", "renamed", "copied",
+	// "typechange", "untracked", "unmerged", or "unknown".
+	Status string `json:"status"`
+}
+
+// GitStatusOutput is the working-tree summary backing the Changes panel. All
+// mutating git methods return the refreshed status so the UI needs a single
+// round trip per action.
+type GitStatusOutput struct {
+	// IsRepo is false when the path is not inside a git work tree; all other
+	// fields are zero values in that case.
+	IsRepo bool `json:"isRepo"`
+	// GitMissing is true when IsRepo is false because the git binary is not
+	// installed, so the UI can say so instead of "not a repository".
+	GitMissing bool `json:"gitMissing,omitempty"`
+	// Branch is the checked-out branch, or empty when detached.
+	Branch   string `json:"branch"`
+	Detached bool   `json:"detached"`
+	// Upstream is the remote tracking branch (e.g. "origin/main"), or empty
+	// when none is configured.
+	Upstream string `json:"upstream,omitempty"`
+	// Ahead/Behind are relative to the upstream, when one is configured.
+	Ahead      int             `json:"ahead"`
+	Behind     int             `json:"behind"`
+	Staged     []GitFileChange `json:"staged"`
+	Unstaged   []GitFileChange `json:"unstaged"`
+	Untracked  []GitFileChange `json:"untracked"`
+	StashCount int             `json:"stashCount"`
+	// Additions/Deletions are total changed lines versus HEAD (staged +
 	// unstaged + untracked, binary files excluded) for +n/−n summaries.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	Additions int `json:"additions"`
+	Deletions int `json:"deletions"`
+}
+
+type GitStatusParams struct {
+	Path string `json:"path"`
+}
+
+func (p GitStatusParams) MethodName() string { return GitStatusMethod }
+func (p GitStatusParams) Description() string {
+	return "Return the git working-tree status for a worktree path"
+}
+
+type GitDiffFileParams struct {
+	Path string `json:"path"`
+	// File is the repo-relative path of the file to diff.
+	File string `json:"file"`
+	// Staged selects the index-vs-HEAD diff instead of worktree-vs-index.
+	Staged bool `json:"staged,omitempty"`
+	// Untracked renders the whole file as an addition (for files git does not
+	// track yet). Ignored when Staged is true.
+	Untracked bool `json:"untracked,omitempty"`
+	// Head selects the HEAD-vs-worktree diff (staged + unstaged combined),
+	// e.g. for editor gutter decorations. Takes precedence over Staged.
+	Head bool `json:"head,omitempty"`
+}
+
+func (p GitDiffFileParams) MethodName() string { return GitDiffFileMethod }
+func (p GitDiffFileParams) Description() string {
+	return "Return the unified diff for a single file in a worktree"
+}
+
+type GitDiffFileOutput struct {
+	// Patch is the raw unified diff text; empty when the file has no changes.
+	Patch string `json:"patch"`
+	// Binary is true when git reports the file as binary (no textual patch).
+	Binary bool `json:"binary"`
+	// HasContents is true when OldContent/NewContent carry the full before and
+	// after file contents. The diff viewer uses them to expand collapsed
+	// unmodified lines. Omitted for binary or oversized files.
+	HasContents bool `json:"hasContents,omitempty"`
+	// OldContent is the full base-side file content (HEAD for staged diffs,
+	// the index for worktree diffs, empty for untracked files).
+	OldContent string `json:"oldContent,omitempty"`
+	// NewContent is the full result-side file content (the index for staged
+	// diffs, the worktree file otherwise).
+	NewContent string `json:"newContent,omitempty"`
+}
+
 // GitDiffScope selects which worktree changes a diff snapshot contains.
 type GitDiffScope string
 
@@ -277,46 +277,46 @@ func (p GitDiffCloseParams) Description() string {
 
 type GitDiffCloseOutput struct{}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type GitStageParams struct {
+	Path string `json:"path"`
+	// Files are repo-relative paths to stage.
+	Files []string `json:"files"`
+}
+
+func (p GitStageParams) MethodName() string { return GitStageMethod }
+func (p GitStageParams) Description() string {
+	return "Stage files in a worktree (git add)"
+}
+
+type GitUnstageParams struct {
+	Path  string   `json:"path"`
+	Files []string `json:"files"`
+}
+
+func (p GitUnstageParams) MethodName() string { return GitUnstageMethod }
+func (p GitUnstageParams) Description() string {
+	return "Unstage files in a worktree (git restore --staged)"
+}
+
+type GitDiscardParams struct {
+	Path string `json:"path"`
+	// Files are repo-relative tracked paths to restore from the index.
+	Files []string `json:"files,omitempty"`
+	// UntrackedFiles are repo-relative untracked paths to delete.
+	UntrackedFiles []string `json:"untrackedFiles,omitempty"`
+}
+
+func (p GitDiscardParams) MethodName() string { return GitDiscardMethod }
+func (p GitDiscardParams) Description() string {
+	return "Discard working-tree changes for files in a worktree"
+}
+
+type GitCommitParams struct {
+	Path    string `json:"path"`
+	Message string `json:"message,omitempty"`
+}
+
+func (p GitCommitParams) MethodName() string { return GitCommitMethod }
+func (p GitCommitParams) Description() string {
+	return "Commit the staged changes in a worktree"
+}

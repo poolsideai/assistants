@@ -34,7 +34,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     string,
     Pick<ACPConversationLiveStatus, "working" | "waitingForUser">
   >();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private remoteStatusRevision = $state(0);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -85,15 +85,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         { working, waitingForUser },
       );
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.remoteStatusRevision += 1;
+  }
+
+  get hasWorkingConversation(): boolean {
+    void this.remoteStatusRevision;
+    return (
+      Object.values(this.statuses).some((status) => status.working) ||
+      [...this.remoteStatuses.values()].some((status) => status.working)
+    );
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   hasWorkingConversationForAgent(agentServer: string): boolean {

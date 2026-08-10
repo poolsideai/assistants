@@ -2,16 +2,16 @@ package acpproxy
 
 import (
 	"bufio"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"context"
 	"encoding/json"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	"fmt"
 	"io"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"os"
+	"os/exec"
 	"path/filepath"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"strings"
 	"testing"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
@@ -55,9 +55,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		assert.Equal(t, acpsdk.ProtocolVersion(99), req.ProtocolVersion)
 		require.NotNil(t, req.Meta)
 		assert.Equal(t, "test", req.Meta["feature"])
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		require.NotNil(t, req.ClientInfo)
+		assert.Equal(t, "assistant-ui", req.ClientInfo.Name)
+		assert.True(t, req.ClientCapabilities.Terminal)
 		// Elicitation is helper-owned, so it is advertised even for surfaces
 		// that do not declare it themselves.
 		require.NotNil(t, req.ClientCapabilities.Elicitation)
@@ -76,48 +76,48 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 		require.NotNil(t, req.ClientCapabilities.Elicitation)
 		assert.NotNil(t, req.ClientCapabilities.Elicitation.Url)
+	})
+}
+
+func TestMarkExited(t *testing.T) {
+	t.Run("clears active process state", func(t *testing.T) {
+		cmd := &exec.Cmd{}
+		proc := &process{
+			cmd:      cmd,
+			conn:     &acpsdk.ClientSideConnection{},
+			initResp: &acpsdk.InitializeResponse{ProtocolVersion: acpsdk.ProtocolVersionNumber},
+			session:  "s1",
+			stdin:    nopWriteCloser{},
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+		}
+
+		require.True(t, proc.markExited(cmd))
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+		assert.Nil(t, proc.cmd)
+		assert.Nil(t, proc.conn)
+		assert.Nil(t, proc.initResp)
+		assert.Empty(t, proc.session)
+		assert.Nil(t, proc.stdin)
+	})
+
+	t.Run("ignores stale process exit", func(t *testing.T) {
+		activeCmd := &exec.Cmd{}
+		staleCmd := &exec.Cmd{}
+		conn := &acpsdk.ClientSideConnection{}
+		proc := &process{
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		}
+
+		require.False(t, proc.markExited(staleCmd))
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		assert.Same(t, activeCmd, proc.cmd)
+		assert.Same(t, conn, proc.conn)
+	})
+}
+
 func TestMarkDisconnected(t *testing.T) {
 	t.Run("clears the process when its active connection closes", func(t *testing.T) {
 		cmd := &exec.Cmd{}
@@ -609,61 +609,61 @@ func TestResumeSessionLockedConfigProbeFallback(t *testing.T) {
 	})
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type nopWriteCloser struct{}
+
+func (nopWriteCloser) Write(p []byte) (int, error) { return len(p), nil }
+func (nopWriteCloser) Close() error                { return nil }
+
+func TestScanForAuthUpdates(t *testing.T) {
+	t.Run("forwards auth update notifications", func(t *testing.T) {
+		input := strings.Join([]string{
+			`{"jsonrpc":"2.0","method":"session/update","params":{"ignored":true}}`,
+			`{"jsonrpc":"2.0","method":"authenticate/update","params":{"authUri":"https://example.com/device","message":"Sign in"}}`,
+			`{"jsonrpc":"2.0","id":1,"method":"authenticate/update","params":{"ignored":true}}`,
+			`not json`,
+		}, "\n")
+
+		var gotMethod string
+		var gotParams any
+		scanForAuthUpdates("qwen", strings.NewReader(input), func(_ context.Context, method string, params any) {
+			gotMethod = method
+			gotParams = params
+		})
+
+		assert.Equal(t, authenticateUpdateMethod, gotMethod)
+		params, ok := gotParams.(map[string]any)
+		require.True(t, ok)
+		assert.Equal(t, "https://example.com/device", params["authUri"])
+		assert.Equal(t, "Sign in", params["message"])
+	})
+
+	t.Run("uses empty params when omitted", func(t *testing.T) {
+		var gotParams any
+		scanForAuthUpdates("qwen", strings.NewReader(`{"jsonrpc":"2.0","method":"authenticate/update"}`), func(_ context.Context, _ string, params any) {
+			gotParams = params
+		})
+
+		params, ok := gotParams.(map[string]any)
+		require.True(t, ok)
+		assert.Empty(t, params)
+	})
+
+	t.Run("continues past large non-auth messages", func(t *testing.T) {
+		largeImageUpdate := `{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"s1","update":{"sessionUpdate":"agent_message_chunk","content":{"type":"image","mimeType":"image/png","data":"` +
+			strings.Repeat("a", 2*1024*1024) +
+			`"}}}}`
+		authUpdate := `{"jsonrpc":"2.0","method":"authenticate/update","params":{"message":"Sign in"}}`
+		input := largeImageUpdate + "\n" + authUpdate + "\n"
+
+		var gotParams any
+		scanForAuthUpdates("codex-acp", strings.NewReader(input), func(_ context.Context, _ string, params any) {
+			gotParams = params
+		})
+
+		params, ok := gotParams.(map[string]any)
+		require.True(t, ok)
+		assert.Equal(t, "Sign in", params["message"])
+	})
 }
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -691,7 +691,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	})
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -800,32 +800,46 @@ func TestPromptCleanupDoesNotDeleteReplacementProcessCancel(t *testing.T) {
 	}
 }
 
+func TestNormalizeAgentServers(t *testing.T) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		servers := NormalizeAgentServers(map[string]AgentServerConfig{
+			"echo": {
+				Command: "node",
+				Args:    []string{"echo-acp.mjs"},
+			},
+		})
+
+		assert.Equal(t, AgentServerConfig{
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		}, servers[DefaultAgentServerName])
 		assert.NotContains(t, servers, LocalAgentServerName)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		assert.NotContains(t, servers, LegacyDefaultAgentServerName)
+		assert.Equal(t, AgentServerConfig{
+			Command: "node",
+			Args:    []string{"echo-acp.mjs"},
+		}, servers["echo"])
+	})
+
 	t.Run("preserves explicitly configured local server", func(t *testing.T) {
 		servers := NormalizeAgentServers(map[string]AgentServerConfig{
 			LocalAgentServerName: {Type: "local"},
 		})
 
 		assert.Equal(t, AgentServerConfig{Type: "local"}, servers[LocalAgentServerName])
+	})
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+		servers := NormalizeAgentServers(map[string]AgentServerConfig{
+			DefaultAgentServerName: {
+				Command: "pool",
+				Args:    []string{"custom-acp"},
+			},
+		})
+
+		assert.Equal(t, AgentServerConfig{
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+		}, servers[DefaultAgentServerName])
 	})
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -845,36 +859,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	t.Run("treats legacy default as Poolside alias", func(t *testing.T) {
+		servers := NormalizeAgentServers(map[string]AgentServerConfig{
+			LegacyDefaultAgentServerName: {
+				Command: "pool",
+				Args:    []string{"custom-acp"},
+			},
+		})
+
+		assert.Equal(t, DefaultAgentServerName, NormalizeAgentServerName(""))
+		assert.Equal(t, DefaultAgentServerName, NormalizeAgentServerName(LegacyDefaultAgentServerName))
+		assert.Contains(t, servers, DefaultAgentServerName)
+		assert.NotContains(t, servers, LegacyDefaultAgentServerName)
+	})
+}
+
+func TestBuildProcessEnv(t *testing.T) {
 	t.Run("uses user shell PATH before app PATH", func(t *testing.T) {
 		withUserShellEnvProvider(t, func() []string {
 			return []string{"PATH=" + pathList("/shell/bin", "/usr/bin")}
@@ -948,56 +948,56 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		assert.Contains(t, pathDirs, asdfBin)
 	})
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	t.Run("uses poolside npm cache for npx agent servers", func(t *testing.T) {
 		withUserShellEnvProvider(t, func() []string {
 			return nil
 		})
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		t.Setenv(npmConfigCacheEnvKey, "/broken-lower-cache")
+		t.Setenv(npmConfigCacheEnvKeyUpper, "/broken-upper-cache")
+
+		env, err := buildProcessEnv(startConfig{
+			binary: "npx",
+		})
+		require.NoError(t, err)
+
+		expectedCacheDir, err := poolsideNPMCacheDir()
+		require.NoError(t, err)
+		assert.Equal(t, expectedCacheDir, lastEnvValue(env, npmConfigCacheEnvKey))
+		assert.Empty(t, lastEnvValue(env, npmConfigCacheEnvKeyUpper))
+	})
+
+	t.Run("preserves configured npm cache for npx agent servers", func(t *testing.T) {
 		withUserShellEnvProvider(t, func() []string {
 			return nil
 		})
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		t.Setenv(npmConfigCacheEnvKey, "/shell-cache")
+
+		env, err := buildProcessEnv(startConfig{
+			binary: "npx",
+			env: map[string]string{
+				npmConfigCacheEnvKey: "/agent-cache",
+			},
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, "/agent-cache", lastEnvValue(env, npmConfigCacheEnvKey))
+	})
+
+	t.Run("does not add npm cache for non-npx agent servers", func(t *testing.T) {
 		withUserShellEnvProvider(t, func() []string {
 			return nil
 		})
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		t.Setenv(npmConfigCacheEnvKey, "")
+
+		env, err := buildProcessEnv(startConfig{
+			binary: "node",
+		})
+		require.NoError(t, err)
+
+		assert.Empty(t, lastEnvValue(env, npmConfigCacheEnvKey))
+	})
+}
+
 func TestResolveExecutablePath(t *testing.T) {
 	t.Run("uses provided env PATH", func(t *testing.T) {
 		dir := t.TempDir()
@@ -1025,6 +1025,18 @@ func TestResolveExecutablePath(t *testing.T) {
 
 		assert.Empty(t, resolved)
 		assert.Error(t, err)
+	})
+}
+
+func TestPoolsideNPMCacheDir(t *testing.T) {
+	t.Run("falls back to temp dir when user cache is unavailable", func(t *testing.T) {
+		t.Setenv("HOME", "")
+		t.Setenv("XDG_CACHE_HOME", "")
+
+		cacheDir, err := poolsideNPMCacheDir()
+		require.NoError(t, err)
+
+		assert.Equal(t, filepath.Join(os.TempDir(), "poolside", "acp", "npm"), cacheDir)
 	})
 }
 
@@ -1193,42 +1205,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestPruneBrokenNpxCache(t *testing.T) {
+	cacheDir := t.TempDir()
+	brokenDir := filepath.Join(cacheDir, "_npx", "broken")
+	goodDir := filepath.Join(cacheDir, "_npx", "good")
+	require.NoError(t, os.MkdirAll(filepath.Join(brokenDir, "node_modules"), 0o755))
+	require.NoError(t, os.MkdirAll(goodDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(goodDir, "package.json"), []byte("{}"), 0o644))
+
+	require.NoError(t, pruneBrokenNpxCache(cacheDir))
+
+	assert.NoDirExists(t, brokenDir)
+	assert.DirExists(t, goodDir)
+}
+
+func lastEnvValue(env []string, key string) string {
+	var value string
+	for _, entry := range env {
+		entryKey, entryValue, ok := strings.Cut(entry, "=")
+		if ok && entryKey == key {
+			value = entryValue
+		}
+	}
+	return value
+}
 
 func withUserShellEnvProvider(t *testing.T, provider func() []string) {
 	t.Helper()

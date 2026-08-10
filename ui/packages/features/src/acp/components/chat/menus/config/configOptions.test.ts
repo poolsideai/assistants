@@ -1,94 +1,94 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { SessionConfigOption, SessionConfigSelectOption } from "@agentclientprotocol/sdk";
+import { describe, expect, it } from "vitest";
+import {
+  booleanCurrentValue,
+  configIcon,
   configValueAppearance,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  effortBars,
   effortValueName,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  fastToggleState,
   hasValueDescriptions,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  isFastConfigOption,
+  modeAppearance,
   modeIconClass,
   orderClaudeModelValues,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  promptConfigKind,
   valueDescription,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+} from "./configOptions";
+
+function select(id: string, category?: string): SessionConfigOption {
+  return {
+    id,
+    type: "select",
+    name: id,
+    category,
+    currentValue: "a",
+    options: [{ value: "a", name: "a" }],
+  } as SessionConfigOption;
+}
+
+function onOffSelect(id: string, name: string, currentValue: string): SessionConfigOption {
+  return {
+    id,
+    type: "select",
+    name,
+    currentValue,
+    options: [
+      { value: "on", name: "On" },
+      { value: "off", name: "Off" },
+    ],
+  } as SessionConfigOption;
+}
+
+function boolean(id: string, currentValue = false): SessionConfigOption {
+  return { id, type: "boolean", name: id, currentValue } as SessionConfigOption;
+}
+
+function selectWith(
+  id: string,
+  category: string,
+  currentValue: string,
+  values: SessionConfigSelectOption[],
+): SessionConfigOption {
+  return {
+    id,
+    type: "select",
+    name: id,
+    category,
+    currentValue,
+    options: values,
+  } as SessionConfigOption;
+}
+
+function values(...vals: string[]): SessionConfigSelectOption[] {
+  return vals.map((value) => ({ value, name: value }));
+}
+
+describe("promptConfigKind", () => {
+  it("classifies by semantic category", () => {
+    expect(promptConfigKind(select("x", "model"))).toBe("model");
+    expect(promptConfigKind(select("x", "mode"))).toBe("mode");
+    expect(promptConfigKind(select("x", "thought_level"))).toBe("effort");
+  });
+
+  it("falls back to id/name keywords when category is missing", () => {
+    expect(promptConfigKind(select("model"))).toBe("model");
+    expect(promptConfigKind(select("mode"))).toBe("mode");
+    expect(promptConfigKind(select("effort"))).toBe("effort");
+    // Unknown agents with descriptive ids still classify.
+    expect(promptConfigKind(select("permission_mode"))).toBe("mode");
+    expect(promptConfigKind(select("approvalMode"))).toBe("mode");
+    expect(promptConfigKind(select("reasoning_effort"))).toBe("effort");
+    expect(promptConfigKind(select("thought_level"))).toBe("effort");
+    expect(promptConfigKind(select("chat_model"))).toBe("model");
     // Mistral Vibe and Goose ship a bare "thinking" id/name for the same
     // reasoning-depth control ("thinking_effort" already matched via the
     // "effort" token, and camelCase splitting means "thinkingEffort" does
     // too — this covers the bare word).
     expect(promptConfigKind(select("thinking"))).toBe("effort");
     expect(promptConfigKind(onOffSelect("level", "Thinking", "off"))).toBe("effort");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
   it("keeps the collaboration mode apart from the approval mode", () => {
     // Codex and Poolside give the option different ids, and both names carry
     // the "mode" token — only the category tells the two selectors apart.
@@ -107,30 +107,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(promptConfigKind(select("agent_mode"))).toBe("mode");
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("treats fast-named boolean options as a fast toggle", () => {
+    expect(promptConfigKind(boolean("fast_mode"))).toBe("fast");
+    // Unrelated booleans stay unclassified (generic config menu only).
+    expect(promptConfigKind(boolean("verbose_logging"))).toBeNull();
     // Booleans only ever classify as "fast" (checked first); a "thinking"
     // boolean has no effort magnitude to render, so it stays unclassified
     // rather than picking up the new "thinking" effort token.
     expect(promptConfigKind(boolean("thinking"))).toBeNull();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  it("treats an on/off select named fast as a fast toggle", () => {
+    expect(promptConfigKind(onOffSelect("fast", "Fast mode", "off"))).toBe("fast");
+  });
+
+  it("returns null for unrecognized selects so they stay in the config menu", () => {
+    // A non-exact category alone must not classify (Claude puts fast mode and
+    // other tuning under "model_config").
+    expect(promptConfigKind(select("temperature", "model_config"))).toBeNull();
+    // Keywords match whole tokens: "fast"/"mode" inside a word don't count.
+    expect(promptConfigKind(onOffSelect("breakfast", "Breakfast", "off"))).toBeNull();
+    expect(promptConfigKind(select("commodel_x"))).toBeNull();
+  });
+});
+
 describe("valueDescription", () => {
   it("returns the agent's description of a value", () => {
     expect(
@@ -218,52 +218,52 @@ describe("orderClaudeModelValues", () => {
   });
 });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+describe("isFastConfigOption", () => {
+  it("matches fast-named booleans and on/off selects", () => {
+    expect(isFastConfigOption(boolean("fast"))).toBe(true);
+    expect(isFastConfigOption(boolean("fast_mode"))).toBe(true);
+    expect(isFastConfigOption(onOffSelect("fast", "Fast mode", "off"))).toBe(true);
+  });
+
+  it("rejects non-fast booleans and fast-named selects without an on/off pair", () => {
+    expect(isFastConfigOption(boolean("anything"))).toBe(false);
+    expect(isFastConfigOption(select("fast"))).toBe(false);
+  });
+});
+
+describe("fastToggleState", () => {
+  it("reads a boolean directly", () => {
+    expect(fastToggleState(boolean("fast", true))).toMatchObject({ isBoolean: true, isOn: true });
+  });
+
+  it("maps a select's on/off values", () => {
+    expect(fastToggleState(onOffSelect("fast", "Fast mode", "on"))).toMatchObject({
+      isBoolean: false,
+      isOn: true,
+      canToggle: true,
+      onValue: "on",
+      offValue: "off",
+    });
+    expect(fastToggleState(onOffSelect("fast", "Fast mode", "off")).isOn).toBe(false);
+  });
+});
+
+describe("configIcon", () => {
+  it("uses the bolt icon for fast options", () => {
+    expect(configIcon(boolean("fast"))).toBe("bolt");
+    expect(configIcon(onOffSelect("fast", "Fast mode", "off"))).toBe("bolt");
+  });
+
+  it("maps recognized select categories to their icons", () => {
+    expect(configIcon(select("x", "mode"))).toBe("plan");
+    expect(configIcon(select("x", "model"))).toBe("sparkles");
+    expect(configIcon(select("x", "thought_level"))).toBe("wand");
+    expect(configIcon(select("permission_mode"))).toBe("plan");
+    expect(configIcon(select("temperature"))).toBe("config");
+  });
+});
+
+describe("modeAppearance", () => {
   const modes = [
     // Poolside
     { name: "Always ask", value: "read-only", category: "normal", icon: "ask" },
@@ -312,19 +312,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
       expect(appearance.category, mode.name).toBe(mode.category);
       expect(appearance.icon, mode.name).toBe(mode.icon);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  });
+
   it("colours only Dangerous mode icons, leaving Auto neutral", () => {
     const dangerous = modeAppearance(
       selectWith("mode", "mode", "full-access", values("full-access")),
     );
     const auto = modeAppearance(selectWith("mode", "mode", "auto", values("auto")));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     expect(modeIconClass(dangerous)).toContain("rose");
     expect(modeIconClass(auto)).toBe("");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
   it("uses display names to distinguish agents that reuse the same wire value", () => {
     const poolside = selectWith("mode", "mode", "read-only", [
       { value: "read-only", name: "Always ask" },
@@ -335,23 +335,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     expect(modeAppearance(poolside)).toMatchObject({ category: "normal", icon: "ask" });
     expect(modeAppearance(codex)).toMatchObject({ category: "restricted", icon: "block" });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
   it("gives unknown modes a neutral generic icon without guessing a category", () => {
     const appearance = modeAppearance(
       selectWith("mode", "mode", "something-new", values("something-new")),
     );
     expect(appearance).toEqual({ category: null, icon: "config" });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
 });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 describe("configValueAppearance", () => {
   it("preserves category icons for non-mode config values", () => {
     expect(configValueAppearance(select("model", "model"), "a")).toEqual({
       icon: "sparkles",
       category: null,
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
 
   it("pairs the collaboration modes' plan and build glyphs", () => {
     const poolside = selectWith("agent_mode", "collaboration_mode", "build", [
@@ -377,39 +377,39 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     ]);
     expect(configValueAppearance(option, "review")).toEqual({ category: null, icon: "config" });
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+});
+
+describe("effortBars", () => {
+  it("separates the default entry as auto and keeps magnitudes as bars", () => {
+    const option = selectWith(
+      "effort",
+      "thought_level",
+      "default",
+      values("default", "low", "medium", "high", "xhigh", "max"),
+    );
+    const bars = effortBars(option);
+    expect(bars).not.toBeNull();
+    expect(bars?.levels.map((l) => l.value)).toEqual(["low", "medium", "high", "xhigh", "max"]);
     expect(bars?.levels.map((l) => l.name)).toEqual(["Low", "Medium", "High", "Extra High", "Max"]);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(bars?.levels.map((l) => l.filled)).toEqual([1, 2, 3, 4, 5]);
+    expect(bars?.total).toBe(5);
+    expect(bars?.auto?.value).toBe("default");
     expect(bars?.auto?.name).toBe("Default");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(bars?.isAuto).toBe(true);
+    expect(bars?.activeFilled).toBeNull();
+  });
+
+  it("locates the active magnitude", () => {
+    const option = selectWith(
+      "effort",
+      "thought_level",
+      "high",
+      values("default", "low", "medium", "high", "xhigh", "max"),
+    );
+    expect(effortBars(option)?.activeFilled).toBe(3);
+    expect(effortBars(option)?.isAuto).toBe(false);
+  });
+
   it("uses signal bars for Claude models that do not support xhigh", () => {
     const option = selectWith(
       "effort",
@@ -425,43 +425,43 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(bars?.isAuto).toBe(true);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("sorts levels ascending by depth and gives none zero bars", () => {
+    const option = selectWith(
+      "thought_level",
+      "thought_level",
+      "xhigh",
+      values("default", "xhigh", "high", "medium", "low", "minimal", "none"),
+    );
+    const bars = effortBars(option);
+    expect(bars?.levels.map((l) => l.value)).toEqual([
+      "none",
+      "minimal",
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+    ]);
+    // "none" lights zero bars and doesn't count toward the total.
+    expect(bars?.levels.map((l) => l.filled)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(bars?.total).toBe(5);
+    expect(bars?.activeFilled).toBe(5);
+  });
+
+  it("handles a set with no default entry", () => {
+    const option = selectWith(
+      "reasoning_effort",
+      "thought_level",
+      "medium",
+      values("low", "medium", "high", "xhigh"),
+    );
+    const bars = effortBars(option);
+    expect(bars?.total).toBe(4);
     expect(bars?.levels.map((l) => l.name)).toEqual(["Light", "Medium", "High", "Extra High"]);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(bars?.auto).toBeNull();
+    expect(bars?.activeFilled).toBe(2);
+    expect(bars?.isAuto).toBe(false);
+  });
+
   it("uses signal bars and the requested labels for current Codex effort options", () => {
     const option = selectWith(
       "reasoning_effort",
@@ -498,60 +498,60 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(effortValueName(option)).toBe("Ultra");
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("matches a known range by display names when values are opaque", () => {
+    const option = selectWith("effort", "thought_level", "auto", [
+      { value: "auto", name: "Automatic" },
+      { value: "1", name: "Low" },
+      { value: "2", name: "Medium" },
+      { value: "3", name: "High" },
+      { value: "4", name: "Xhigh" },
+    ]);
+    const bars = effortBars(option);
+    expect(bars?.levels.map((l) => l.name)).toEqual(["Low", "Medium", "High", "Xhigh"]);
+    expect(bars?.auto?.value).toBe("auto");
+    expect(bars?.isAuto).toBe(true);
+  });
+
+  it("returns null when an unrecognized level is present, even next to known ones", () => {
+    // A future "superDuperMegaReasoning" level → render the list as given.
+    const option = selectWith(
+      "effort",
+      "thought_level",
+      "low",
+      values("low", "medium", "high", "xhigh", "superDuperMegaReasoning"),
+    );
+    expect(effortBars(option)).toBeNull();
+  });
+
+  it("returns null when known values don't form a known range", () => {
+    // A subset (or superset) of a known range is not a known range.
+    expect(
+      effortBars(selectWith("effort", "thought_level", "low", values("low", "high"))),
+    ).toBeNull();
+    expect(
+      effortBars(
+        selectWith(
+          "effort",
+          "thought_level",
+          "low",
+          values("none", "minimal", "low", "medium", "high", "xhigh", "max"),
+        ),
+      ),
+    ).toBeNull();
+  });
+
+  it("returns null for non-effort options", () => {
+    expect(effortBars(selectWith("model", "model", "a", values("a")))).toBeNull();
+  });
+});
+
+describe("booleanCurrentValue", () => {
+  it("reads the current value of a boolean option", () => {
+    expect(booleanCurrentValue(boolean("fast", true))).toBe(true);
+    expect(booleanCurrentValue(boolean("fast", false))).toBe(false);
+  });
+
+  it("returns false for non-boolean options", () => {
+    expect(booleanCurrentValue(select("model", "model"))).toBe(false);
+  });
+});

@@ -134,34 +134,34 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#snippet renderItem(item: SessionEventGroupItem, headerClass?: string, itemClass?: string)}
+  <Boundary name={`ACPToolGroupItem:${item.index}`}>
+    {#snippet failed(_error, _reset)}
+      <div
+        class="border-psx-border bg-psx-editor-background text-psx-foreground-secondary shadow-low dark:shadow-low-dark self-start rounded-lg border px-2.5 py-2 text-xs"
+      >
+        <span>This grouped tool event could not be rendered.</span>
+      </div>
+    {/snippet}
+
+    {#if item.event.eventKind === "tool_call"}
+      <ToolCall event={item.event} {headerClass} {workspaceFolders} />
+    {:else if item.event.eventKind === "agent_message"}
+      <div class={["box-border w-full min-w-0 max-w-full", itemClass]}>
+        <AgentMessage event={item.event} />
+      </div>
+    {:else if item.event.eventKind === "agent_thought"}
+      <div class={["box-border w-full min-w-0 max-w-full", itemClass]}>
+        <AgentThought event={item.event} complete />
+      </div>
     {:else if item.event.eventKind === "user_message"}
       <div class={["box-border w-full min-w-0 max-w-full", itemClass]}>
         <UserMessage event={item.event} />
       </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {/if}
+  </Boundary>
+{/snippet}
+
 <!--
   While the fold is open the trigger pins to the top of the transcript and the
   rule pins just under it, so the summary stays readable through contents that
@@ -256,8 +256,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           {@render renderItem(item)}
         {/each}
       </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </div>
+  {/if}
 </div>
 
 <style>

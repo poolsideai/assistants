@@ -6,8 +6,8 @@
   <string>icon</string>
   <key>UIDesignRequiresCompatibility</key>
   <false/>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Poolside uses the microphone to transcribe your voice into the prompt.</string>
   <key>CFBundleURLTypes</key>
   <array>
     <dict>

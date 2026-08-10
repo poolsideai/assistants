@@ -143,10 +143,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     --desktop-splits-tab-top-margin: 6px;
     --desktop-splits-shadow-gutter: 6px;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /* Keep the settings card's soft, layered lift aligned with the chat pane. */
     --desktop-splits-pane-shadow:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 6px rgba(0, 0, 0, 0.025),
+      0 0.5px 2px rgba(0, 0, 0, 0.05);
     --desktop-splits-panel-top-inset: max(
       0px,
       calc(var(--desktop-splits-tab-top-margin) - var(--desktop-splits-shadow-gutter))
@@ -182,7 +182,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --desktop-splits-pane-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 6px rgba(0, 0, 0, 0.2);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   .desktop-settings-frame {

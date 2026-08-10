@@ -14,7 +14,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       isWorktree: false,
       collapsed: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      displayOrder: 0,
       createdAt: minutesAgo(60 * 24 * 3),
       updatedAt: minutesAgo(15),
     },
@@ -24,7 +24,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       isWorktree: true,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       collapsed: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      displayOrder: 0,
       createdAt: minutesAgo(60 * 24),
       updatedAt: minutesAgo(15),
     },
@@ -34,7 +34,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       isWorktree: true,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       collapsed: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      displayOrder: 0,
       createdAt: minutesAgo(60 * 12),
       updatedAt: minutesAgo(120),
     },
@@ -44,7 +44,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       isWorktree: true,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       collapsed: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      displayOrder: 0,
       createdAt: minutesAgo(4),
       updatedAt: minutesAgo(4),
       busy: "creating",
@@ -55,7 +55,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       isWorktree: true,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       collapsed: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      displayOrder: 0,
       createdAt: minutesAgo(5),
       updatedAt: minutesAgo(5),
       busy: "running_setup",
@@ -66,7 +66,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       isWorktree: true,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       collapsed: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      displayOrder: 0,
       createdAt: minutesAgo(6),
       updatedAt: minutesAgo(6),
       busy: "tearing_down",
@@ -77,7 +77,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       isWorktree: true,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       collapsed: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      displayOrder: 0,
       createdAt: minutesAgo(7),
       updatedAt: minutesAgo(7),
       busy: "deleting",
@@ -87,7 +87,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       name: "poolside-books-api-demo",
       isWorktree: false,
       collapsed: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      displayOrder: 1,
       createdAt: minutesAgo(60 * 24 * 10),
       updatedAt: minutesAgo(60 * 6),
     },

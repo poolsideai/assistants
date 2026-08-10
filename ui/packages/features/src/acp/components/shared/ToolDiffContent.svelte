@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { PatchDiff } from "@poolsideai/components/file-diff";
+  import Icon from "@poolsideai/components/icon";
   import type { ToolCallDiffContent } from "../../types";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import Tooltip from "../ui/Tooltip.svelte";
   import CopyToClipboard from "../ui/CopyToClipboard.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { diffLayoutPreference } from "./diffLayoutPreference.svelte";
 
   interface Props {
     diff: ToolCallDiffContent;
@@ -56,9 +56,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<!-- Rendered with the shared pierre-based PatchDiff (same renderer as the
+     desktop Diff tab) so diffs look identical everywhere in the app. The
+     surrounding ToolRoot Diff context still carries the header stats. -->
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   {#if renderDiff}
     <PatchDiff
@@ -73,23 +73,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       Preparing diff…
     </div>
   {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div class="absolute right-3 top-3 flex items-center gap-1">
+    <Tooltip placement="top" gutter={8}>
+      {#snippet label()}{diffLayoutPreference.current === "split"
+          ? "Unified view"
+          : "Side-by-side view"}{/snippet}
+      <button
+        type="button"
         class="text-psx-icon hover:bg-psx-menu-hover-background flex h-6 w-6 items-center justify-center rounded-md"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        aria-pressed={diffLayoutPreference.current === "split"}
+        aria-label={diffLayoutPreference.current === "split"
+          ? "Switch to unified diff view"
+          : "Switch to side-by-side diff view"}
+        onclick={() => diffLayoutPreference.toggle()}
+      >
+        <Icon name="compare" size={14} />
+      </button>
+    </Tooltip>
     <CopyToClipboard text={newContent} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </div>
 __POOL_SYNTHETIC_IMPORT_BASELINE__

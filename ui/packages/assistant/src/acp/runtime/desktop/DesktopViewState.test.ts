@@ -1,62 +1,62 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { describe, expect, it } from "vitest";
 import { DesktopViewState, isSettingsView } from "./DesktopViewState.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+describe("DesktopViewState", () => {
   it("accepts Voice Recognition as a settings route", () => {
     expect(isSettingsView("voice")).toBe(true);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("routes between desktop panel views", () => {
+    const state = new DesktopViewState();
+
+    expect(state.view).toBe("chat");
+    expect(state.projectSettingsPath).toBeNull();
+
+    state.showSettings();
+    expect(state.view).toBe("settings");
+
+    state.showConnectors();
+    expect(state.view).toBe("connectors");
+
+    state.showAgents();
+    expect(state.view).toBe("agents");
+
+    state.showSettingsSection("shortcuts");
+    expect(state.view).toBe("shortcuts");
+
     state.showArchived();
     expect(state.view).toBe("archived");
 
     state.showVoice();
     expect(state.view).toBe("voice");
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    state.showProjectSettings("/repo");
+    expect(state.view).toBe("project-settings");
+    expect(state.projectSettingsPath).toBe("/repo");
+
     state.showProjectSettings();
     expect(state.view).toBe("project-settings");
     expect(state.projectSettingsPath).toBeNull();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    state.showChat();
+    expect(state.view).toBe("chat");
+  });
+
   it("expands the sidebar when entering settings views", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const state = new DesktopViewState();
+
+    state.setSidebarCollapsed(true);
+    state.showSettings();
+
     expect(state.view).toBe("settings");
     expect(state.sidebarCollapsed).toBe(false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     state.setSidebarCollapsed(true);
     state.showProjectSettings("/repo");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     expect(state.view).toBe("project-settings");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(state.sidebarCollapsed).toBe(false);
+  });
 
   it("keeps the sidebar expanded while settings views are active", () => {
     const state = new DesktopViewState();
@@ -92,4 +92,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     state.setSidebarCollapsed(true);
     expect(state.sidebarCollapsed).toBe(true);
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+});

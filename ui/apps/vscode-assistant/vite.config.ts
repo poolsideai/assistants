@@ -125,7 +125,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       },
     },
     server: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      port: parseInt(process.env.VITE_DEV_PORT || "5173", 10),
       strictPort: true,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       headers: {

@@ -1,7 +1,7 @@
 <script lang="ts">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { Snippet } from "svelte";
   import PromptConfigControls from "./menus/config/PromptConfigControls.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   interface Props {
     onInterrupt?: () => void;
     onSubmit?: (value: string) => void;
@@ -9,25 +9,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     disabled?: boolean;
     draftKey?: string | null;
     showConfigControls?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    promptBanners?: Snippet;
+    promptCommandItems?: Snippet;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let {
+    onInterrupt,
     onSubmit,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    submitDisabled = false,
     disabled = false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    draftKey = null,
     showConfigControls = true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    promptBanners,
+    promptCommandItems,
+  }: Props = $props();
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<div data-testid="prompt-mock-root">
+  {@render promptBanners?.()}
+  {@render promptCommandItems?.()}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   <div data-testid="prompt-config-controls-visibility">
     {showConfigControls ? "visible" : "hidden"}
@@ -42,11 +42,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     aria-disabled={disabled}
     contenteditable={disabled ? "false" : "true"}
   ></div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <button type="button" onclick={onInterrupt}>Stop</button>
   <button
     type="button"
     aria-label="Submit"
     disabled={disabled || submitDisabled}
     onclick={() => onSubmit?.("hello")}>Submit</button
   >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</div>

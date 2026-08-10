@@ -1,12 +1,12 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  DeleteSecretOutput,
+  DeleteSecretParams,
+  GetSecretOutput,
+  GetSecretParams,
+  ListSecretsOutput,
+  ListSecretsParams,
+  UpsertSecretOutput,
+  UpsertSecretParams,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -24,8 +24,8 @@ export interface Host {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   getFileContents(path: string): Promise<AttachedFile | undefined>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  getFileIconDefinition(iconName: string): Promise<string | undefined>;
+  getImageFileData(path: string): Promise<ImageFileData | undefined>;
   getPromptContext: () => Promise<PromptContextFacet[]>;
   getUrlContents(url: string): Promise<AttachedUrl | undefined>;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -34,24 +34,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   jsonrpcNotify(methodName: string, params: object): Promise<void>;
   openExternalURL: (url: string) => void;
+  openFile: (path: string, line?: number, column?: number) => void;
+  /**
+   * Reveals the host editor's native source-control (git) view. Backs the
+   * conversation "Review" bar on VS Code, which has no in-webview changes
+   * view. A no-op on hosts without a native SCM view (desktop has its own
+   * changes view; mobile has none yet) — those never call it.
+   */
+  revealSourceControl(): void;
+  selectProjectFolder(): Promise<ProjectFolder | undefined>;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  saveTextFile(options: SaveTextFileOptions): Promise<string | undefined>;
+  openWorkspace(path: string): Promise<void>;
+  addFolderToWorkspace(path: string): Promise<void>;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   openSettings(setting?: string): void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  openTerminal(command?: string, cwd?: string): void;
+  listAssistantTerminals(worktreePath: string): Promise<AssistantTerminalTab[]>;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -67,25 +67,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     cols?: number,
     rows?: number,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  deleteAssistantTerminal(terminalId: string): Promise<void>;
+  writeAssistantTerminal(terminalId: string, data: string): Promise<void>;
+  clearAssistantTerminal(terminalId: string): Promise<void>;
+  resizeAssistantTerminal(terminalId: string, cols: number, rows: number): Promise<void>;
+  closeAssistantTerminalsForWorktree(worktreePath: string): Promise<void>;
+  closeAssistantTerminalsForProject(projectPath: string): Promise<void>;
   ready(): void;
   reportError(error: ErrorObject): void;
   reportEvent(name: TelemetryEventInputEventType, data: TelemetryEventInputMetadata): void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  setACPAgentServers(agentServers: ACPAgentServers, defaultAgentServer?: string): Promise<void>;
   openAcpChat(opts: OpenAcpChatOptions): Promise<void>;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   updateAcpChatPanelMetadata(metadata: AcpChatPanelMetadata): void;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  upsertSecret(upsertSecretParams: UpsertSecretParams): Promise<UpsertSecretOutput>;
+  deleteSecret(deleteSecretParams: DeleteSecretParams): Promise<DeleteSecretOutput>;
+  listSecrets(listSecretsParams: ListSecretsParams): Promise<ListSecretsOutput>;
+  getSecret(getSecretParams: GetSecretParams): Promise<GetSecretOutput>;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
@@ -98,8 +98,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   warning = "warning",
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export const INFO_MESSAGE_EVENT = "poolside:info-message";
+
 /**
  * HostClient is the interface which should be implemented to communicate with the RPC Host process
  */
@@ -118,30 +118,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   cursorLine?: number;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export interface ImageFileData {
+  data: string;
+  mimeType: string;
+  path: string;
+}
+
+export interface SaveTextFileOptions {
+  contents: string;
+  defaultFileName?: string;
+  title?: string;
+  filters?: Array<{
+    name: string;
+    extensions: string[];
+  }>;
+}
+
 export interface ActiveFileContext {
   workspaces: WorkspaceFolder[];
   // Resolved by the host so webviews can render paths relative to the actual
   // user profile without guessing from a platform-specific path shape.
   homeDirectory?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Working directory the assistant should use when no folder is open.
+  // Computed by the host (e.g. extension) since only it can resolve $HOME.
+  defaultCwd?: string;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
@@ -152,31 +152,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   content: string;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export interface ACPAgentServerConfig {
   type?: "custom" | "registry" | "local";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  binary?: Record<string, ACPAgentServerBinaryDistribution>;
+  default_config_options?: Record<string, string>;
   /**
    * Config option ids whose default the user pinned explicitly. Pinned keys
    * keep their `default_config_options` value: the last-used auto-follow
    * skips them until they are unpinned.
    */
   pinned_config_options?: string[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+export interface ACPAgentServerBinaryDistribution {
+  archive: string;
   sha256?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  cmd: string;
+  args?: string[];
+  env?: Record<string, string>;
+}
+
+export type ACPAgentServers = Record<string, ACPAgentServerConfig>;
+
 /**
  * OpenAcpChatOptions controls the host's `openAcpChat` RPC.
  *
@@ -194,10 +194,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   sessionTitle?: string;
   cwd?: string;
   workingDirectories?: string[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /** Open the conversation for inspection only (archived conversations). */
+  readOnly?: boolean;
+  /** Cwds to retry session/load with when `cwd` no longer exists. */
+  fallbackCwds?: string[];
 }
 
 export interface AcpChatPanelMetadata {
@@ -232,19 +232,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  // boolean only feature flags, matching the server-side features.
+  // These are pre-processed to allow us to specify full "poolside.boolFeatures.foo"
+  // keys, but end up with a single object, where all non-booleans are dropped.
+  // VSCode only currently
+  boolFeatures?: {
+    [name: string]: boolean;
+  };
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  agentServers?: ACPAgentServers;
   acpAgentServers?: ACPAgentServers;
 }
 
@@ -254,11 +254,11 @@ export interface WorkspaceFolder {
   index: number;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export interface ProjectFolder {
+  path: string;
+  name: string;
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -275,16 +275,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 export type AssistantTerminalCommandMode = "interactive" | "nonInteractive";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export interface AssistantTerminalTab {
+  id: string;
+  title: string;
+  cwd: string;
+  worktreePath: string;
+  createdAt: string;
+  exitCode?: number;
+  buffer?: string;
+}
+
 export interface AssistantTerminalUpdate {
   terminalId: string;
   title?: string;
@@ -326,16 +326,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  /** Exact query text to use when drilling into this row. */
+  navigationPath?: string;
+  /** Virtual rows are UI navigation targets, not real files to insert/open. */
+  virtualKind?: "workspace-folder";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /** A user-friendly form of the path (e.g. `~/Documents/x` or workspace-relative)
+   *  computed by the server based on how the query was phrased. Used for chip
+   *  tooltips so users see the same shape they typed.
+   */
+  displayPath?: string;
 }
 
 export interface CodeSymbolResponse {
@@ -392,7 +392,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  iconDefinitions?: Record<string, string>; // iconName -> SVG/img string
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

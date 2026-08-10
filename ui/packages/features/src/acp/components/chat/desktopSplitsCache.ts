@@ -32,10 +32,10 @@ export type DesktopTabDescriptor =
       kind: "files";
       rootPath: string;
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | {
+      kind: "github";
+      worktreePath: string;
+    }
   | {
       kind: "file";
       path: string;
@@ -43,18 +43,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       line?: number;
       column?: number;
       openToken: number;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  | {
+      /**
+       * Singleton all-files git diff viewer. At most one diff tab exists per
+       * layout: opening a diff refocuses the existing tab (optionally
+       * scrolling to a requested file).
+       */
+      kind: "diff";
+      worktreePath: string;
+      /** File to scroll into view when the tab is (re)targeted. */
+      relativePath?: string;
+      openToken: number;
     };
 
 export interface TerminalCreateOptions {
@@ -92,10 +92,10 @@ export type RestorableDesktopTabDescriptor =
       kind: "files";
       rootPath: string;
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | {
+      kind: "github";
+      worktreePath: string;
+    }
   | {
       kind: "file";
       path: string;

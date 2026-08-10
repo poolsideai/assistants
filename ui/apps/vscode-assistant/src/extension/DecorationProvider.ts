@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { POOLSIDE } from "./extensionIdentity";
 
 /**
  * DecorationProvider is used to set green line background highlights for inserted lines
@@ -24,7 +24,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   // Applies highlights to any currently visible editors
   async applyInserts() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    for (const editor of vscode.window.visibleTextEditors) {
       const fsPath = editor.document.uri.fsPath;
       const ranges = this.insertLocations.get(editor.document.uri.fsPath);
       if (!ranges) continue;
@@ -46,7 +46,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       this.insertDecorations.set(editor.document.uri.fsPath, [decoration, innerDecoration]);
 
       const hoverMessage = new vscode.MarkdownString(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        `$(${POOLSIDE}-roundel) Edited by poolside`,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       );
 
@@ -67,7 +67,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   deleteAllInserts() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    for (const [path, _] of this.insertDecorations) {
       this.deleteInserts(path);
     }
   }

@@ -2,15 +2,15 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import base, { mergeConfigs } from "@poolsideai/vite-config";
 import { defineConfig, type Plugin } from "vite";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+// Mirror spoolside's portsForSlot (ui/packages/spoolside/src/worktree/shared.ts)
+// so each worktree's dev server and helper get distinct ports.
+const slot = Number(process.env.POOLSIDE_WORKTREE_SLOT ?? "0") || 0;
+const devPort = 5179 + slot * 10;
+const remotePort = Number(process.env.POOLSIDE_REMOTE_PORT ?? "0") || 8737 + slot * 10;
+
 const appDir = path.dirname(fileURLToPath(import.meta.url));
 
 // Inline the apple-touch-icon as a data URI so iOS never has to fetch it over
@@ -30,35 +30,35 @@ function inlineAppleTouchIcon(): Plugin {
   };
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export default defineConfig((env) =>
+  mergeConfigs(base(env), {
+    clearScreen: false,
     plugins: [inlineAppleTouchIcon()],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    server: {
+      port: devPort,
+      strictPort: true,
+      proxy: {
+        // When the browser talks to Vite directly, proxy the API to the
+        // helper so cookies stay same-origin. (The primary dev flow is the
+        // inverse: the helper proxies UI traffic here — see
+        // remoteaccess/server.go devServerHandler.)
+        "/api": {
+          target: process.env.POOLSIDE_REMOTE_API ?? `http://127.0.0.1:${remotePort}`,
+          ws: true,
+        },
+      },
+    },
+    build: {
+      // No sourcemaps: embed-webui.mjs copies dist/ wholesale into the
+      // helper's go:embed dir, so .map files would ship inside every released
+      // helper binary — and generating them is what pushed the release build
+      // past Node's default heap.
+      sourcemap: false,
+      rollupOptions: {
+        input: {
+          main: "index.html",
+        },
+      },
+    },
+  }),
+);

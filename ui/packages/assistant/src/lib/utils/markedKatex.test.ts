@@ -138,14 +138,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  it("should parse LaTeX followed by a semicolon", async () => {
+    const input = "you'd need $N \\geq 100$; at $p = 0.40$ you're fine";
+    const result = await marked(input);
+
+    expect(result).toContain("katex");
+    expect((result.match(/katex/g) || []).length).toBeGreaterThanOrEqual(2);
+    expect(result).toContain("≥");
+    expect(result).not.toMatch(/\$N \\geq 100\$/);
+  });
 __POOL_SYNTHETIC_IMPORT_BASELINE__

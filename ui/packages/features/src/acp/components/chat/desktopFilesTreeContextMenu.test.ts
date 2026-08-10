@@ -19,7 +19,7 @@ describe("desktop file tree context menu", () => {
       "Open in Terminal",
       "---",
       "Add File to Chat",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "Review Diff...",
       "---",
       "Cut",
       "Copy",
@@ -110,79 +110,79 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(submenuLabels(spec)).toEqual(["In-app viewer", "Code"]);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("builds the changes-list menu with discard and move to trash", () => {
+    const spec = buildDesktopFileTreeContextMenuSpec(
+      changesRequest({ staged: false, deleted: false, added: false }),
+      false,
+    );
+
+    expect(labels(spec)).toEqual([
+      "Open File",
       "Open in…",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "---",
+      "Stage",
+      "Discard Local Changes…",
+      "---",
+      "Add File to Chat",
+      "Reveal in Finder",
+      "Open in Terminal",
+      "---",
+      "Copy Path",
+      "Copy Relative Path",
+      "---",
+      "Move to Trash",
+    ]);
+  });
+
+  it("offers discard for staged files too", () => {
+    const spec = buildDesktopFileTreeContextMenuSpec(
+      changesRequest({ staged: true, deleted: false, added: false }),
+      false,
+    );
+
+    expect(labels(spec)).toContain("Unstage");
+    expect(action(spec, "gitDiscard")).toEqual(
+      expect.objectContaining({ label: "Discard Local Changes…", enabled: true }),
+    );
+  });
+
+  it("disables discard for added and untracked files", () => {
+    const spec = buildDesktopFileTreeContextMenuSpec(
+      changesRequest({ staged: false, deleted: false, added: true }),
+      false,
+    );
+
+    expect(action(spec, "gitDiscard")).toEqual(expect.objectContaining({ enabled: false }));
+    expect(action(spec, "delete")).toEqual(
+      expect.objectContaining({ label: "Move to Trash", enabled: true }),
+    );
+  });
+
+  it("disables move to trash for deleted files", () => {
+    const spec = buildDesktopFileTreeContextMenuSpec(
+      changesRequest({ staged: false, deleted: true, added: false }),
+      false,
+    );
+
+    expect(action(spec, "delete")).toEqual(expect.objectContaining({ enabled: false }));
+  });
+
+  it("enables view diff only for files with git changes", () => {
+    const changedFile = buildDesktopFileTreeContextMenuSpec(
+      { ...request("file"), item: { kind: "file", hasGitChanges: true } },
+      false,
+    );
+    const cleanFile = buildDesktopFileTreeContextMenuSpec(request("file"), false);
+    const changedDirectory = buildDesktopFileTreeContextMenuSpec(
+      { ...request("directory"), item: { kind: "directory", hasGitChanges: true } },
+      false,
+    );
+
+    expect(viewDiff(changedFile)).toEqual(expect.objectContaining({ enabled: true }));
+    expect(viewDiff(cleanFile)).toEqual(expect.objectContaining({ enabled: false }));
+    expect(viewDiff(changedDirectory)).toEqual(expect.objectContaining({ enabled: false }));
+  });
+
   function request(kind: "directory" | "file"): DesktopFileTreeContextMenuRequest {
     return {
       requestId: "request-1",
@@ -202,31 +202,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     };
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function changesRequest(changesContext: {
+    staged: boolean;
+    deleted: boolean;
+    added: boolean;
+  }): DesktopFileTreeContextMenuRequest {
+    const base = request("file");
+    return {
+      ...base,
+      item: { kind: "file", hasGitChanges: true, changesContext },
+    };
+  }
+
+  function action(
+    spec: DesktopFileTreeContextMenuSpecItem[],
+    action: DesktopFileTreeContextMenuAction,
+  ): DesktopFileTreeContextMenuSpecItem | undefined {
+    return spec.find((item) => item.kind === "action" && item.action === action);
+  }
+
+  function viewDiff(
+    spec: DesktopFileTreeContextMenuSpecItem[],
+  ): DesktopFileTreeContextMenuSpecItem | undefined {
+    return spec.find((item) => item.kind === "action" && item.action === "viewDiff");
+  }
+
   function labels(spec: DesktopFileTreeContextMenuSpecItem[]): string[] {
     return spec.map((item) => {
       if (item.kind === "separator") return "---";

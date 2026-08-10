@@ -2,7 +2,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { SessionEventsState, type ToolActivityMode } from "../components/SessionEventsState.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { buildSubagentTranscriptIndex } from "../subagents";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -36,7 +36,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     private readonly useSubagentTranscriptTabs = false,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.timelineState = new SessionEventsState({
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         return scope.timelineEvents;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -53,7 +53,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   // Grouped transcript rows.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private readonly timelineState: SessionEventsState;
   private readonly subagentState = $derived.by(() => {
     const codexTurnActive = this.isPrompting || this.isSending || this.isRemoteWorking;
     return buildSubagentTranscriptIndex(this.events, this.turns, {
@@ -232,7 +232,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return this.useSubagentTranscriptTabs ? this.subagents.topLevelTurns : this.turns;
   }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return this.timelineState.grouped;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   // Tool expand/collapse choices; must reach the renderer alongside
   // timelineItems so pins feed the fold logic that produced them.
@@ -283,17 +283,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const session = this.session;
+    if (!session) return [];
+    // Include requests that arrived while this conversation had no live
+    // session on this surface (broadcast prompts held unbound); opening the
+    // conversation must surface them inline like any other approval.
+    const unbound = session.sessionId
+      ? this.repo.unboundPermissionRequestsFor(session.sessionId, session.agentServer)
+      : [];
+    return unbound.length
+      ? [...session.pendingPermissionRequests, ...unbound]
+      : session.pendingPermissionRequests;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

@@ -1,7 +1,7 @@
 import { basename, normalize } from "@poolsideai/lib/path";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { get, writable, type Updater, type Writable } from "svelte/store";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { DesktopOpenerInfo } from "./desktopOpeners";
 
 export interface Capabilities {
   header: boolean;
@@ -34,7 +34,7 @@ export interface Environment {
   assistantVersion: string;
   operatingSystem?: string;
   desktopInstance?: DesktopInstanceInfo;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  desktopFileOpenerId?: string;
   desktopCodeFontFamily?: string;
   desktopCodeFontSize?: number;
   desktopTerminalFontFamily?: string;
@@ -43,7 +43,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   desktopFullscreen?: boolean;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   desktopSteerWithEnter?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  desktopOpeners?: DesktopOpenerInfo[];
   capabilities: Capabilities;
 }
 
@@ -56,7 +56,7 @@ export interface ACPHostState {
   homeDirectory?: string;
   defaultCwd: string;
   isHelperSupported: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  isEditorFocused?: boolean;
 }
 
 export type AppState = ACPHostState;
@@ -86,7 +86,7 @@ const initialACPHostState: ACPHostState = {
   homeDirectory: "",
   defaultCwd: "",
   isHelperSupported: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  isEditorFocused: true,
 };
 
 let activeStore: Writable<AppState> = writable(initialACPHostState);

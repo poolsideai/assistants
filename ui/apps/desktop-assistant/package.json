@@ -21,7 +21,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "check:format": "prettier . --check --cache --ignore-path .gitignore --ignore-path ../../.gitignore --ignore-path .prettierignore",
     "check:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' './isolation/**/*.{js,mjs,cjs,ts,tsx,svelte}'",
     "check:types": "svelte-check --tsconfig tsconfig.check.json --fail-on-warnings --compiler-warnings \"state_referenced_locally:ignore,a11y_no_static_element_interactions:ignore\"",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "dev": "pnpm download:binaries && tauri dev",
     "dev:web": "pnpm build:isolation && vite --host 127.0.0.1",
     "download:binaries": "node scripts/copy-helper.mjs",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -39,22 +39,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   },
   "prettier": "@poolsideai/prettier-config",
   "dependencies": {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@iconify-json/vscode-icons": "^1.2.50",
     "@poolsideai/assistant": "workspace:*",
     "@poolsideai/components": "workspace:*",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@poolsideai/helperapi": "workspace:*",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@poolsideai/lib": "workspace:*",
     "@poolsideai/rpc": "workspace:*",
     "@tauri-apps/api": "2",
+    "@tauri-apps/plugin-dialog": "2",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "dom-accessibility-api": "0.6.3",
+    "html-to-image": "^1.11.13",
+    "tauri-plugin-screenshots-api": "^2.2.0",
+    "vscode-icons-js": "^11.6.1"
   },
   "devDependencies": {
     "@poolsideai/eslint-config": "workspace:*",

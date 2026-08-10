@@ -7,7 +7,7 @@
   import { InfoMessageType } from "@poolsideai/rpc";
   import Icon from "@poolsideai/components/icon";
   import * as Prompt from "@poolsideai/components/prompt";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { flushSync, onDestroy, onMount, type ComponentProps, type Snippet } from "svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -21,10 +21,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import CommandMenu from "./menus/command/CommandMenu.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import ConfigValueMenus from "./menus/config/ConfigValueMenus.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import PromptConfigControls from "./menus/config/PromptConfigControls.svelte";
   import PlanModeIndicator from "./PlanModeIndicator.svelte";
   import GoalIndicator from "./GoalIndicator.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import PromptModeControl from "./menus/config/PromptModeControl.svelte";
   import { AcpSlashCommand } from "./menus/command/commands";
   import {
     AGENT_CONFIG_OPTION_ID,
@@ -41,9 +41,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import SecretEditMenu from "../../prompt/menus/secrets/SecretEditMenu.svelte";
   import DesktopFilePromptChipInserter from "./DesktopFilePromptChipInserter.svelte";
   import PastedAttachments from "./PastedAttachments.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import DictationWaveform from "./speech/DictationWaveform.svelte";
+  import SpeechButton from "./speech/SpeechButton.svelte";
+  import { voiceInputStore } from "./speech/voiceInputStore.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -62,15 +62,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   interface Props extends ComponentProps<typeof Prompt.Root> {
     onConfigureAgents?: () => void;
     onInterrupt?: () => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onNewConversation?: () => void | Promise<void>;
     onSubmit?: (value: string) => void;
     submitDisabled?: boolean;
     disabled?: boolean;
     draftKey?: string | null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    promptBanners?: Snippet;
+    promptCommandItems?: Snippet;
+    promptMenus?: Snippet;
+    footerLeading?: Snippet;
     desktopFilePromptChipTarget?: boolean;
     showConfigControls?: boolean;
     /** Focus the editor once it mounts (e.g. a freshly opened conversation). */
@@ -80,15 +80,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let {
     onConfigureAgents,
     onInterrupt,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onNewConversation,
     onSubmit,
     submitDisabled = false,
     disabled = false,
     draftKey = null,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    promptBanners,
+    promptCommandItems,
+    promptMenus,
+    footerLeading,
     desktopFilePromptChipTarget = true,
     showConfigControls = true,
     autofocus = false,
@@ -108,16 +108,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const registry = getACPAgentRegistryRepo();
   const keybindings = getKeybindingService();
   const isTurnActive = $derived(chatSession.isPrompting || chatSession.isRemoteWorking);
   const steerWithEnter = $derived(
     chatSession.canSteerPrompt && $appState.environment.desktopSteerWithEnter === true,
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const currentAgentServer = $derived(
+    chatSession.sessionAgentServer ?? chatSession.activeAgentServer ?? DEFAULT_AGENT_SERVER,
+  );
+  const currentAgentName = $derived(getAgentName(registry, currentAgentServer));
   // The local agent with no downloaded model has nothing to serve a prompt
   // with, so the composer locks rather than letting a send fail opaquely. The
   // config controls in the footer stay interactive — the user can still switch
@@ -138,18 +138,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       localInferenceModelMissing(localInference.state),
   );
   const resolvedDisabled = $derived(disabled || localModelMissing);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const resolvedSubmitDisabled = $derived(
+    Boolean(
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         localModelMissing ||
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        (chatSession.isPrompting && !chatSession.canEnqueuePrompt) ||
+        // A turn started on another surface is running: sending would be
+        // rejected by the helper (one turn per conversation), and the local
+        // enqueue machinery can't flush after a turn it didn't start.
+        chatSession.isRemoteWorking,
+    ),
+  );
   let prompt: Prompt.Root;
   let pastedAttachments = $state<
     | {
@@ -163,88 +163,88 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   );
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  // The phone composer is a single-line pill (see mobile-remote app.css): the
+  // field fills the row and the footer shrinks to the compose actions, leaving
+  // no room for config controls there. They move to a slim accessory strip
+  // above the pill instead.
+  const isMobile = $derived($appState.environment.assistantHost === "mobile");
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   $effect(() => {
     if (!isTurnActive || !onInterrupt) return;
     return keybindings?.register("interrupt", onInterrupt);
   });
 
   // Progressive overflow handling for the footer: when the leading (slash/mode)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // and trailing (config + actions) clusters would collide, the consolidated
+  // config trigger is hidden until they fit. Measured against actual geometry
+  // rather than width breakpoints, so it adapts to any agent/model label length.
+  // Mobile is exempt: its config controls live in the accessory strip.
+  let leadingClusterEl = $state<HTMLElement>();
+  let trailingClusterEl = $state<HTMLElement>();
+  let configHiddenCount = $state(0);
+  const MAX_CONFIG_HIDDEN = 1;
+  const CLUSTER_MIN_GAP = 12;
+  const DRAFT_SIDEBAR_PREVIEW_DEBOUNCE_MS = 1000;
+  let draftSidebarPreviewTimer: ReturnType<typeof setTimeout> | undefined;
+  let pendingDraftSidebarPreview:
+    | {
+        conversationId: string;
+        value: string;
+        updateTitle: boolean;
+      }
+    | undefined;
+
+  function clustersOverlap(): boolean {
+    if (!leadingClusterEl || !trailingClusterEl) return false;
+    const leadingRight = leadingClusterEl.getBoundingClientRect().right;
+    const trailingLeft = trailingClusterEl.getBoundingClientRect().left;
+    return leadingRight + CLUSTER_MIN_GAP > trailingLeft;
+  }
+
+  function reflowFooter(): void {
+    if (!leadingClusterEl || !trailingClusterEl) return;
+    // Hide controls while the clusters would collide.
+    while (configHiddenCount < MAX_CONFIG_HIDDEN && clustersOverlap()) {
+      configHiddenCount += 1;
+      flushSync();
+    }
+    // Reveal controls again while the next one still fits.
+    while (configHiddenCount > 0) {
+      configHiddenCount -= 1;
+      flushSync();
+      if (clustersOverlap()) {
+        configHiddenCount += 1;
+        flushSync();
+        break;
+      }
+    }
+  }
+
+  $effect(() => {
+    if (isMobile) return;
+    const footer = leadingClusterEl?.parentElement;
+    if (!footer) return;
+    const observer = new ResizeObserver(() => reflowFooter());
+    observer.observe(footer);
+    return () => observer.disconnect();
+  });
+
+  // Re-fit when the control set or label widths change (agent/model/mode names,
+  // the agent dropdown appearing on send) without a footer resize.
+  $effect(() => {
+    if (isMobile) return;
+    void chatSession.configOptions;
+    void chatSession.canChangeAgent;
+    void currentAgentName;
+    const frame = requestAnimationFrame(() => reflowFooter());
+    return () => cancelAnimationFrame(frame);
+  });
 
   async function sendPrompt(value: string, { sendNow = false } = {}): Promise<void> {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     const content = promptContent(value);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    clearDraftSidebarPreview();
     const conversationId = chatSession.pendingConversationId ?? chatSession.conversationId;
     if (conversationId) {
       // Chats use the latest submitted user message as their sidebar label.
@@ -264,13 +264,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         return;
       }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        text: value,
+        content,
+        cwd: activeSessionCwd,
+      });
       if (sendNow) onInterrupt?.();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return;
+    }
     const newSessionMeta = isClaudeAgent(registry, currentAgentServer)
       ? enableClaudeSessionFeatures()
       : undefined;
@@ -309,10 +309,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   function handleCommand(command: AcpSlashCommand) {
     switch (command) {
       case AcpSlashCommand.new: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (onNewConversation) {
+          void onNewConversation();
+          break;
+        }
         const cwd = activeSessionCwd;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -328,7 +328,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }
 
       case AcpSlashCommand.load: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        void loadACPConversation();
         break;
       }
 
@@ -353,13 +353,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     if (matchingConfigOption) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (matchingConfigOption.type === "boolean") {
+        void chatSession.setBooleanConfigOption(
+          matchingConfigOption.id,
+          !matchingConfigOption.currentValue,
+        );
+        return true;
+      }
       setTimeout(() => pushPromptMenu(configMenuValue(matchingConfigOption.id)), 0);
       return true;
     }
@@ -417,52 +417,52 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function scheduleDraftSidebarPreview(
+    conversationId: string,
+    value: string,
+    { updateTitle }: { updateTitle: boolean },
+  ): void {
+    pendingDraftSidebarPreview = { conversationId, value, updateTitle };
+    if (draftSidebarPreviewTimer) {
+      clearTimeout(draftSidebarPreviewTimer);
+    }
+    draftSidebarPreviewTimer = setTimeout(() => {
+      draftSidebarPreviewTimer = undefined;
+      const next = pendingDraftSidebarPreview;
+      pendingDraftSidebarPreview = undefined;
+      if (next) applyDraftSidebarPreview(next);
+    }, DRAFT_SIDEBAR_PREVIEW_DEBOUNCE_MS);
+  }
+
+  function clearDraftSidebarPreview(): void {
+    if (draftSidebarPreviewTimer) {
+      clearTimeout(draftSidebarPreviewTimer);
+      draftSidebarPreviewTimer = undefined;
+    }
+    pendingDraftSidebarPreview = undefined;
+  }
+
+  function flushDraftSidebarPreview(): void {
+    if (draftSidebarPreviewTimer) {
+      clearTimeout(draftSidebarPreviewTimer);
+      draftSidebarPreviewTimer = undefined;
+    }
+    const next = pendingDraftSidebarPreview;
+    pendingDraftSidebarPreview = undefined;
+    if (next) applyDraftSidebarPreview(next);
+  }
+
+  function applyDraftSidebarPreview(next: NonNullable<typeof pendingDraftSidebarPreview>): void {
+    if (chatSession.isSending) return;
+    if (next.updateTitle) {
+      conversations.setDraftTitle(next.conversationId, next.value);
+    } else {
+      conversations.setDraftPromptPresence(next.conversationId, next.value.trim().length > 0);
+    }
+  }
+
+  onDestroy(flushDraftSidebarPreview);
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -478,7 +478,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function loadACPConversation(): Promise<void> {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "application/json,.json";
@@ -503,44 +503,44 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   let capabilities = $derived($appState.environment.capabilities);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let supportsSymbolsMenu = $derived(
+    capabilities.fileContext && $appState.environment.assistantHost !== "desktop",
+  );
   let draftPrompt = $derived(draftKey ? (draftPrompts.get(draftKey) ?? "") : "");
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Dictation lands in this prompt: the text present when recording started
+  // is kept, and the transcript is appended after it once transcription ends.
+  let dictationBase = "";
+  let voicePhase = $derived(voiceInputStore.phase);
+
+  function joinDictation(text: string): string {
+    return dictationBase ? `${dictationBase} ${text}` : text;
+  }
+
+  $effect(() =>
+    voiceInputStore.registerSink({
+      onDictationStart: () => {
+        dictationBase = promptValue.trimEnd();
+      },
+      onDictationEnd: (text) => {
+        if (text) {
+          const value = joinDictation(text);
+          // restore replaces the editor content and focuses it, but it
+          // suppresses the editor's value-change callback (it exists for
+          // programmatic draft swaps). Run the draft handler ourselves so the
+          // dictated text counts as composed input — otherwise the next
+          // dictation would read a stale base and overwrite this one.
+          prompt?.restore(value);
+          handleDraftPromptChange(value);
+        }
+      },
+    }),
+  );
+
   function handleDraftPromptChange(value: string): void {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -554,9 +554,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      scheduleDraftSidebarPreview(draftConversationId, value, { updateTitle: true });
+    } else if (chatSession.conversationId && !chatSession.isSending) {
+      scheduleDraftSidebarPreview(chatSession.conversationId, value, { updateTitle: false });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (!draftKey) return;
     if (value) {
@@ -600,7 +600,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 >
   <DesktopFilePromptChipInserter enabled={desktopFilePromptChipTarget} />
   <PastedAttachments bind:this={pastedAttachments} enabled={desktopFilePromptChipTarget} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {@render promptBanners?.()}
   <ConfigValueMenus {onConfigureAgents} />
 
   <Prompt.Menu.Root {...acpMenus.command}>
@@ -632,21 +632,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {#if supportsSymbolsMenu}
+      <Prompt.Menu.Root {...menus.symbols}>
+        <SymbolsMenu />
+      </Prompt.Menu.Root>
+    {/if}
   {/if}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {@render promptMenus?.()}
+
   {#if isMobile && (chatSession.configOptions.length > 0 || chatSession.goal)}
     <!-- Accessory strip above the pill composer: permission mode (with the
          plan chip beside it) leading, the consolidated agent/model/options
          trigger trailing. The pill's shrunken footer (see mobile-remote
          app.css) has no room for them. -->
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div class="flex min-w-0 items-center justify-between gap-2 px-1 pb-1" data-size="xs">
       <div class="flex min-w-0 items-center gap-1">
         <PromptModeControl />
         <PromptModeControl kind="collaboration" />
@@ -661,28 +661,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       >
         <PromptConfigControls />
       </div>
+    </div>
+  {/if}
+
+  <div
+    class="dictation-scope"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    class:dictation-recording={voicePhase === "recording"}
+    class:dictation-transcribing={voicePhase === "transcribing"}
+  >
+    <Prompt.Form.Root>
+      <Prompt.Form.Field.Root>
+        <Prompt.Form.Field.Editor.Root id="prompt-editor">
           <Prompt.Form.Field.Editor.Suggestion />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <Prompt.Form.Field.Editor.Placeholder>
             {#if localModelMissing}
               No model available
             {:else}
               Ask {currentAgentName} something...
             {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          </Prompt.Form.Field.Editor.Placeholder>
+        </Prompt.Form.Field.Editor.Root>
+      </Prompt.Form.Field.Root>
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -691,33 +691,33 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
              collaboration-mode agent is planning — the plan chip. The slash
              trigger is sized to match the mode control (h-7) so the row keeps
              an even rhythm. -->
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <div class="flex min-w-0 items-center gap-1" data-size="xs" bind:this={leadingClusterEl}>
+          <Prompt.Menu.Trigger
+            appearance="ghost"
+            value={acpMenus.command.value}
             class="!text-psx-icon !m-0 flex !size-7 items-center justify-center rounded-md"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          >
+            <Icon name="slash" />
+          </Prompt.Menu.Trigger>
+          {#if !isMobile}
+            <PromptModeControl />
             <PromptModeControl kind="collaboration" />
             <PlanModeIndicator />
             <GoalIndicator />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          {/if}
+          {@render footerLeading?.()}
+        </div>
+
+        {#if voicePhase === "recording"}
+          <DictationWaveform />
+        {/if}
+
+        <!-- Trailing cluster: agent, model, fast mode, effort, then compose
+             actions. Config controls collapse (see reflowFooter) when tight;
+             min-w-0 lets the config trigger's label truncate on narrow
+             (mobile) footers instead of pushing the send button off-screen. -->
+        <div class="flex min-w-0 items-center gap-0.5" data-size="xs" bind:this={trailingClusterEl}>
+          {#if !isMobile}
             <div
               class="prompt-config-controls-visibility flex min-w-0"
               class:prompt-config-controls-hidden={!showConfigControls}
@@ -726,34 +726,34 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             >
               <PromptConfigControls hiddenCount={configHiddenCount} />
             </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          {/if}
+          <div class="ml-1 flex shrink-0 items-center gap-1">
             <SpeechButton disabled={resolvedDisabled} />
             {#if isTurnActive}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              {#if chatSession.canEnqueuePrompt && hasPromptContent}
                 <ActivePromptSubmit
                   canSteerPrompt={chatSession.canSteerPrompt}
                   {steerWithEnter}
                   oncontextmenu={openPromptSubmitContextMenu}
                 />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              {/if}
               <Prompt.Form.SubmitButton
                 icon="stop"
                 label="Stop"
                 title={withShortcut("Stop", "interrupt")}
                 onclick={onInterrupt}
               />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            {:else}
+              <Prompt.Form.Submit icon="submit-solid" />
+            {/if}
+          </div>
         </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </Prompt.Form.Footer>
+    </Prompt.Form.Root>
+  </div>
 </Prompt.Root>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+<style lang="postcss">
   .prompt-config-controls-visibility {
     opacity: 1;
     transition: opacity 180ms ease-out;
@@ -765,10 +765,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     opacity: 0;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .dictation-scope {
+    display: contents;
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     /* ChatPane publishes the composer's text size so the elicitation form
@@ -785,34 +785,34 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /* While dictating, the prompt box carries the accent color (red reads as an
+     error) and the footer waveform shows speech being heard; transcribing
+     settles into a steady glow until the final text lands. Targets the form
+     element Prompt.Form.Root renders. */
+  .dictation-scope.dictation-recording :global(form) {
+    border-color: color-mix(in srgb, var(--color-psx-focus) 70%, transparent);
+    animation: dictation-breathe 1.8s ease-in-out infinite;
+  }
+
+  .dictation-scope.dictation-transcribing :global(form) {
+    border-color: var(--color-psx-focus);
+    box-shadow: 0 0 10px 1px color-mix(in srgb, var(--color-psx-focus) 30%, transparent);
+    transition: box-shadow 300ms ease;
+  }
+
+  @keyframes dictation-breathe {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-psx-focus) 25%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 14px 3px color-mix(in srgb, var(--color-psx-focus) 40%, transparent);
+    }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .prompt-config-controls-visibility {
       transition-duration: 0ms;
     }
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</style>

@@ -44,51 +44,51 @@
   }
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import type { SessionConfigOption, SessionConfigSelectOption } from "@agentclientprotocol/sdk";
+  import type { Snippet } from "svelte";
+  import Icon from "@poolsideai/components/icon";
+  import { fuzzyScore } from "@poolsideai/components/assistant-ui";
+  import { Dropdown, DropdownItem, DropdownSeparator } from "../../../ui";
+  import MobileSelectSheet, { type MobileSelectOption } from "../../../ui/MobileSelectSheet.svelte";
   import { presentNativeMenu } from "../../../ui/menuSpec";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { appState } from "../../../../hostAdapter";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { supportsNativeMenus } from "../../desktopContextMenu";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import {
     configValueAppearance,
     hasValueDescriptions,
     modeIconClass,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    optionGroups,
+    promptConfigKind,
     shouldPersistConfigSelection,
     valueDescription,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    type SelectOptionGroup,
+  } from "./configOptions";
   import DefaultStarButton from "./DefaultStarButton.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  interface Props {
+    option: SessionConfigOption;
+    placement?: "bottom-start" | "bottom-end" | "top-start" | "top-end";
+    // When set, replaces the default pill trigger (used by the compact
     // promptbox controls: mode icon and label, plain model text, effort bars).
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    trigger?: Snippet<[{ open: boolean }]>;
+    triggerClass?: string;
+    triggerLabel?: string;
+  }
+
+  let { option, placement = "bottom-start", trigger, triggerClass, triggerLabel }: Props = $props();
+
+  const repo = getACPSessionRepo();
+  const chatSession = getACPChatSessionScope();
+
+  const groups = $derived(optionGroups(option));
+  const optionCount = $derived(groups.reduce((count, group) => count + group.options.length, 0));
   // Only widen the menu when there is subtext to fit: agents that describe
   // nothing keep the standard, tighter list.
   const describedValues = $derived(hasValueDescriptions(groups.flatMap((group) => group.options)));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   // The DOM Dropdown's panel widths (w-[450px] wide / w-[300px] standard).
   // The native menu takes the matching value as its minimum width so
   // sublabels wrap at the same measure instead of the menu growing to the
@@ -97,25 +97,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const DROPDOWN_STANDARD_W = 300;
   const nativeMinWidth = $derived(describedValues ? DROPDOWN_WIDE_W : DROPDOWN_STANDARD_W);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // On the phone the floating dropdown is replaced by the standard bottom
+  // sheet: hover-anchored popups are unergonomic on touch and overflow small
+  // viewports.
+  const isMobile = $derived($appState.environment.assistantHost === "mobile");
+  let sheetOpen = $state(false);
+
   // macOS desktop presents the picker as an OS-native menu; every other
   // desktop-class host keeps the DOM dropdown.
   const isNative = $derived(supportsNativeMenus($appState.environment));
   let nativeTriggerButton: HTMLButtonElement | undefined = $state();
   let nativeOpen = $state(false);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const sheetOptions = $derived.by<MobileSelectOption[]>(() => {
+    // Flatten groups into one list (the sheet has no group headers); de-dupe
+    // by value so a value appearing in more than one group keys once.
+    const seen = new Set<string>();
+    return groups
+      .flatMap((group) => group.options)
+      .filter((value) => (seen.has(value.value) ? false : (seen.add(value.value), true)))
       .map((value) => {
         const appearance = configValueAppearance(option, value.value);
         return {
@@ -127,44 +127,44 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           selected: option.type === "select" && value.value === option.currentValue,
         };
       });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  // With no search, model lists surface the selected entry at the top (their
+  // order carries no meaning, unlike mode or effort lists).
+  function hoistSelected(source: SelectOptionGroup[]): SelectOptionGroup[] {
+    if (option.type !== "select" || promptConfigKind(option) !== "model") return source;
+    return source.map((group) => {
+      const index = group.options.findIndex((value) => value.value === option.currentValue);
+      if (index <= 0) return group;
+      return {
+        name: group.name,
+        options: [
+          group.options[index],
+          ...group.options.slice(0, index),
+          ...group.options.slice(index + 1),
+        ],
+      };
+    });
+  }
+
+  // While searching, rank each group's items by match quality (prefix and
+  // substring hits before scattered-letter fuzzy hits) so the best match sits
+  // at the top, where Enter selects.
+  function rankedGroups(query: string): SelectOptionGroup[] {
+    if (!query) return hoistSelected(groups);
+    return groups.map((group) => ({
+      name: group.name,
+      options: group.options
+        .map((value) => ({ value, score: fuzzyScore(query, value.name) }))
+        .filter(
+          (entry): entry is { value: SessionConfigSelectOption; score: number } =>
+            entry.score !== null,
+        )
+        .sort((a, b) => b.score - a.score)
+        .map((entry) => entry.value),
+    }));
+  }
+
   // A pressed star means PINNED: the option's default is fixed to that value
   // and the last-used auto-follow leaves it alone until unpinned.
   function isPinnedDefault(value: string): boolean {
@@ -195,26 +195,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }));
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function selectedValueNameConfirmed(): string {
+    if (option.type !== "select") return "";
+    const selected = groups
+      .flatMap((group) => group.options)
+      .find((value) => value.value === option.currentValue);
+    return selected?.name ?? option.currentValue;
+  }
+
+  const label = $derived.by(() => {
+    if (option.type !== "select") return "";
+    const pending = chatSession.pendingConfigOption(option.id);
+    if (pending && !pending.error) {
+      const pendingName =
+        groups.flatMap((group) => group.options).find((value) => value.value === pending.value)
+          ?.name ?? pending.value;
+      return `Switching to ${pendingName}...`;
+    }
+    return selectedValueNameConfirmed();
+  });
+
   const triggerValue = $derived.by(() => {
     if (option.type !== "select") return "";
     const pending = chatSession.pendingConfigOption(option.id);
@@ -223,18 +223,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const triggerAppearance = $derived(configValueAppearance(option, triggerValue));
   const triggerIconClass = $derived(modeIconClass(triggerAppearance));
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function selectConfigOption(value: string): Promise<void> {
+    try {
+      await chatSession.setConfigOption(option.id, value);
+    } catch (error) {
+      console.error("Failed to set ACP session config option", error);
+    }
+  }
+
   // Star clicks: pinning fixes the default to `value`; unpinning keeps the
   // value but lets the last-used auto-follow overwrite it again.
   async function setPinnedDefault(value: string, pinned: boolean): Promise<void> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    try {
       if (pinned) {
         await repo.agents.setPinnedDefaultConfigOption(
           chatSession.activeAgentServer,
@@ -254,7 +254,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           clearValue: !shouldPersistConfigSelection(option),
         });
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } catch (error) {
       console.error("Failed to update pinned ACP config option", error);
     }
   }
@@ -288,46 +288,46 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (id !== undefined) void selectConfigOption(id);
     } finally {
       nativeOpen = false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  }
+</script>
+
+{#if isMobile}
+  {#if trigger}
+    <button
+      type="button"
+      aria-label={triggerLabel ?? `${option.name}: ${label}`}
+      class={triggerClass ??
+        "focus:outline-psx-focus flex min-w-0 max-w-full items-center rounded-md focus-visible:outline-2 active:outline-0"}
+      onclick={() => (sheetOpen = true)}
+    >
+      {@render trigger({ open: sheetOpen })}
+    </button>
+  {:else}
+    <button
+      type="button"
+      aria-label={triggerLabel ?? `${option.name}: ${label}`}
+      class="text-psx-foreground-secondary shadow-low focus:outline-psx-focus dark:shadow-low-dark bg-psx-chrome relative flex min-w-0 max-w-full items-center gap-0.5 truncate rounded-xl py-1 pl-2 pr-1 text-sm transition-all focus-visible:outline-2 active:outline-0"
+      onclick={() => (sheetOpen = true)}
+    >
       <Icon
         name={triggerAppearance.icon}
         size={14}
         class={["shrink-0", triggerIconClass]}
         aria-hidden="true"
       />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <span class="truncate">{label}</span>
+      <Icon name="chevron" aria-hidden="true" />
+    </button>
+  {/if}
+  {#if sheetOpen}
+    <MobileSelectSheet
+      title={option.name}
+      options={sheetOptions}
+      onSelect={(value) => void selectConfigOption(value)}
+      onClose={() => (sheetOpen = false)}
+    />
+  {/if}
 {:else if isNative}
   <!-- Trigger-only rendering: same visuals as the DOM branch, with the menu
        itself presented by the OS. -->
@@ -366,41 +366,41 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       <Icon name="chevron" aria-hidden="true" />
     </button>
   {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{:else}
+  <Dropdown
     icon={triggerAppearance.icon}
     iconClass={triggerIconClass}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {label}
+    {placement}
+    {trigger}
+    {triggerClass}
+    triggerLabel={triggerLabel ?? `${option.name}: ${label}`}
+    searchable={optionCount > 5}
+    searchPlaceholder="Search {option.name} options..."
     wide={describedValues}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  >
+    {#snippet children({ query }: { query: string })}
       {#each selectRowGroups(rankedGroups(query)) as group, groupIndex (group.name ?? option.id)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <DropdownSeparator label={group.name} index={groupIndex} />
         {#each group.rows as row (row.value)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          {#snippet accessories()}
             <DefaultStarButton
               label="Use {row.label} by default"
               pressed={row.pinnedDefault}
               onPress={() => void setPinnedDefault(row.value, !row.pinnedDefault)}
             />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          {/snippet}
+          <DropdownItem
             icon={row.icon}
             iconClass={row.iconClass}
             label={row.label}
             description={row.description}
             selected={row.selected}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            {accessories}
             onclick={() => selectConfigOption(row.value)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          />
+        {/each}
+      {/each}
+    {/snippet}
+  </Dropdown>
+{/if}

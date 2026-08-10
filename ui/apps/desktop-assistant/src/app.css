@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "@poolsideai/tailwind-config/vscode.css";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 @import "@poolsideai/tailwind-config";
 @import "@poolsideai/assistant/theme.css";
 @import "@poolsideai/assistant/syntax-theme.css";
@@ -10,24 +10,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 @source "../../../packages/features";
 @source "../../../packages/web-components";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/* Powerline/Nerd Font for the integrated terminal so prompt glyphs render. */
 @font-face {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  font-family: "JetBrainsMono Nerd Font Mono";
   /* swap: terminal text renders immediately in the fallback mono instead of
      staying invisible for up to 3s while the 2.5MB TTF loads. */
   font-display: swap;
   font-style: normal;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  font-weight: 400;
   src: url("/fonts/JetBrainsMonoNerdFontMono-Regular.woff2") format("woff2");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+@font-face {
+  font-family: "JetBrainsMono Nerd Font Mono";
   /* swap: terminal text renders immediately in the fallback mono instead of
      staying invisible for up to 3s while the 2.5MB TTF loads. */
   font-display: swap;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  font-style: normal;
+  font-weight: 700;
   src: url("/fonts/JetBrainsMonoNerdFontMono-Bold.woff2") format("woff2");
 }
 
@@ -648,12 +648,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+ * shadow reads a step too heavy, so pull the radius and opacity in. Desktop
+ * panes define their animation fallback beside the matching SVG filter.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    0 2px 8px rgb(0 0 0 / 4%), 0 1px 4px rgb(0 0 0 / 2%), 0 0.5px 2px rgb(0 0 0 / 4%);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

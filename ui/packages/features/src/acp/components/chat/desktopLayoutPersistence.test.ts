@@ -27,7 +27,7 @@ describe("desktop layout persistence", () => {
     window.localStorage.clear();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("captures restorable descriptors without live terminal or file preview state", () => {
     const entry = createEntry("conversation-1");
     const chatTabId = entry.mainController.allTabIds[0]!;
     const terminalTabId = entry.mainController.createTab("Terminal", { icon: null })!;
@@ -184,36 +184,36 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(tabIdsForSplitNode(migratedLayout.surfaces.main.rootNode)).not.toContain(codexTabId);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("captures the files tree subview so changes mode round-trips", () => {
+    window.localStorage.setItem(
+      "poolside.desktop.filesTreePrefs.v1",
+      JSON.stringify({
+        version: 1,
+        worktrees: { "/repo": { viewMode: "changes", expandedDirectoryPaths: ["src"] } },
+      }),
+    );
+    const entry = createEntry("conversation-files");
+    const filesTabId = entry.mainController.createTab("Files", { icon: "folder-open" })!;
+    entry.descriptors[filesTabId] = { kind: "files", rootPath: "/repo" };
+
+    const layout = captureDesktopSplitsLayout(entry, {
+      rightSidebarVisible: false,
+      bottomPanelVisible: false,
+    })!;
+    expect(layout.descriptors[filesTabId]).toEqual({
+      kind: "files",
+      rootPath: "/repo",
+      viewMode: "changes",
+    });
+
+    writeStoredDesktopLayout("conversation-files", layout);
+    expect(readStoredDesktopLayout("conversation-files")?.descriptors[filesTabId]).toEqual({
+      kind: "files",
+      rootPath: "/repo",
+      viewMode: "changes",
+    });
+  });
+
   it("writes, reads, and renames persisted conversation layouts", () => {
     const layout = captureDesktopSplitsLayout(createEntry("draft"), {
       rightSidebarVisible: false,

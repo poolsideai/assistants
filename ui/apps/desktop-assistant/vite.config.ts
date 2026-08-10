@@ -7,7 +7,7 @@ export default defineConfig((env) =>
     clearScreen: false,
     plugins: [startupBudget()],
     server: {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      port: Number(process.env.VITE_DEV_PORT ?? 5177),
       strictPort: true,
     },
     build: {

@@ -16,22 +16,22 @@ import (
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/approvals"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 )
 
 func TestSessionUpdate(t *testing.T) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	got := make(chan struct {
+		method string
+		params any
+	}, 1)
 
 	c := &acpClient{
 		notify: func(_ context.Context, method string, params any) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			got <- struct {
+				method string
+				params any
+			}{method: method, params: params}
 		},
 	}
 
@@ -39,10 +39,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	err := c.SessionUpdate(context.Background(), params)
 
 	require.NoError(t, err)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.NoError(t, c.waitForSessionUpdates(context.Background()))
+	gotNotification := <-got
+	assert.Equal(t, acpsdk.ClientMethodSessionUpdate, gotNotification.method)
+	assert.Equal(t, params, gotNotification.params)
 }
 
 func TestHandleClaudeSDKMessage(t *testing.T) {
@@ -297,105 +297,105 @@ func TestSanitizeSessionTitle(t *testing.T) {
 	}
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func permissionRequestFixture() acpsdk.RequestPermissionRequest {
+	return acpsdk.RequestPermissionRequest{
+		SessionId: "s1",
+		ToolCall:  acpsdk.ToolCallUpdate{ToolCallId: "tc-1"},
+		Options: []acpsdk.PermissionOption{
+			{OptionId: "opt-1", Kind: "allow_once", Name: "Allow"},
+			{OptionId: "opt-2", Kind: "reject_once", Name: "Deny"},
+		},
+	}
+}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestRequestPermission(t *testing.T) {
+	t.Run("resolves with the first valid surface answer", func(t *testing.T) {
+		store := approvals.NewStore()
+		pushed := make(chan []methods.ACPApproval, 8)
+		store.SetNotifier(func(pending []methods.ACPApproval) { pushed <- pending })
+		c := &acpClient{agentServer: "poolside", handler: &Handler{approvals: store}}
+
+		type result struct {
+			resp acpsdk.RequestPermissionResponse
+			err  error
 		}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		done := make(chan result, 1)
+		go func() {
+			resp, err := c.RequestPermission(context.Background(), permissionRequestFixture())
+			done <- result{resp, err}
+		}()
+
+		// Registration pushes the grown pending set to every surface.
+		pending := <-pushed
+		require.Len(t, pending, 1)
+		assert.Equal(t, "permission", pending[0].Kind)
+		assert.Equal(t, "tc-1", pending[0].ID)
+		assert.Equal(t, "s1", pending[0].SessionID)
+
+		out := store.Respond(methods.ACPApprovalsRespondParams{
+			AgentServer:   "poolside",
+			SessionID:     "s1",
+			Kind:          methods.ACPApprovalKindPermission,
+			ID:            "tc-1",
+			OptionID:      "opt-1",
+			OverrideRules: []string{"tool:allow"},
 		})
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		assert.Equal(t, methods.ACPApprovalOutcomeAccepted, out.Outcome)
+
+		got := <-done
+		require.NoError(t, got.err)
+		require.NotNil(t, got.resp.Outcome.Selected)
+		assert.Equal(t, acpsdk.PermissionOptionId("opt-1"), got.resp.Outcome.Selected.OptionId)
 		assert.Equal(
 			t,
 			[]string{"tool:allow"},
 			got.resp.Outcome.Selected.Meta[acphelpers.MetaKeyPermissionOverrideRules],
 		)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		// Resolution pushes the shrunken set so every other surface drops it.
+		assert.Empty(t, <-pushed)
 	})
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	t.Run("returns cancelled when the agent abandons the request", func(t *testing.T) {
+		store := approvals.NewStore()
+		pushed := make(chan []methods.ACPApproval, 8)
+		store.SetNotifier(func(pending []methods.ACPApproval) { pushed <- pending })
+		c := &acpClient{agentServer: "poolside", handler: &Handler{approvals: store}}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		ctx, cancel := context.WithCancel(context.Background())
+		done := make(chan acpsdk.RequestPermissionResponse, 1)
+		go func() {
+			resp, _ := c.RequestPermission(ctx, permissionRequestFixture())
+			done <- resp
+		}()
+		require.Len(t, <-pushed, 1)
+
+		cancel()
+		resp := <-done
+		assert.Equal(t, acpsdk.NewRequestPermissionOutcomeCancelled(), resp.Outcome)
+		// Abandonment removes the entry and pushes the empty set.
+		assert.Empty(t, <-pushed)
+	})
+
+	t.Run("returns cancelled without a configured store", func(t *testing.T) {
+		c := &acpClient{}
+		resp, err := c.RequestPermission(context.Background(), permissionRequestFixture())
+		require.NoError(t, err)
 		assert.Equal(t, acpsdk.NewRequestPermissionOutcomeCancelled(), resp.Outcome)
 	})
 }
 
 func TestHandleExtensionMethodElicitationUsesRequestSessionIDForLiveStatus(t *testing.T) {
 	sink := &recordingLiveStatusSink{}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	store := approvals.NewStore()
+	pushed := make(chan []methods.ACPApproval, 8)
+	store.SetNotifier(func(pending []methods.ACPApproval) { pushed <- pending })
 	c := &acpClient{
 		agentServer: "poolside",
 		activeSession: func() acpsdk.SessionId {
 			return acpsdk.SessionId("active-session")
 		},
 		liveStatus: sink,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		handler:    &Handler{approvals: store},
 	}
 
 	raw, err := json.Marshal(methods.ACPElicitationParams{
@@ -409,40 +409,40 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	})
 	require.NoError(t, err)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	type result struct {
+		out any
+		err error
+	}
+	done := make(chan result, 1)
+	go func() {
+		out, handleErr := c.HandleExtensionMethod(context.Background(), acphelpers.ExtensionMethodElicitation, raw)
+		done <- result{out, handleErr}
+	}()
+
+	// The elicitation is registered as helper-owned state with the request's
+	// session id and agent server attached.
+	pending := <-pushed
+	require.Len(t, pending, 1)
+	assert.Equal(t, methods.ACPApprovalKindElicitation, pending[0].Kind)
+	assert.Equal(t, "call-1", pending[0].ID)
+	assert.Equal(t, "request-session", pending[0].SessionID)
+	assert.Equal(t, "poolside", pending[0].AgentServer)
+
+	out := store.Respond(methods.ACPApprovalsRespondParams{
+		AgentServer: "poolside",
+		SessionID:   "request-session",
+		Kind:        methods.ACPApprovalKindElicitation,
+		ID:          "call-1",
+		Action:      string(methods.ElicitationActionDecline),
+	})
+	assert.Equal(t, methods.ACPApprovalOutcomeAccepted, out.Outcome)
+
+	got := <-done
+	require.NoError(t, got.err)
+	elicitationOut, ok := got.out.(methods.ACPElicitationOutput)
+	require.True(t, ok)
+	assert.Equal(t, methods.ElicitationActionDecline, elicitationOut.Action)
+	// Live status marks waiting on the REQUEST session id, then clears it.
 	assert.Equal(t, []string{"request-session", "request-session"}, sink.sessionIDs)
 }
 
@@ -711,18 +711,18 @@ func TestReadTextFile(t *testing.T) {
 		assert.Equal(t, content, resp.Content)
 	})
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	t.Run("rejects oversized full file content", func(t *testing.T) {
+		c := &acpClient{
+			readFile: func(_ context.Context, _ protocol.DocumentURI) ([]byte, error) {
+				return make([]byte, maxReadTextFileResponseBytes+1), nil
+			},
+		}
+
+		_, err := c.ReadTextFile(context.Background(), acpsdk.ReadTextFileRequest{Path: "/tmp/large.txt"})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "file is too large to read without a line range")
+	})
+
 	t.Run("returns error when readFile fails", func(t *testing.T) {
 		c := &acpClient{
 			readFile: func(_ context.Context, _ protocol.DocumentURI) ([]byte, error) {
@@ -806,24 +806,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		require.NoError(t, err)
 		assert.Equal(t, "a\nb", resp.Content)
 	})
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	t.Run("rejects oversized ranged response", func(t *testing.T) {
+		c := &acpClient{
+			readFile: func(_ context.Context, _ protocol.DocumentURI) ([]byte, error) {
+				return append(make([]byte, maxReadTextFileResponseBytes+1), '\n'), nil
+			},
+		}
+
+		line := 1
+		limit := 1
+		_, err := c.ReadTextFile(context.Background(), acpsdk.ReadTextFileRequest{
+			Path:  "/tmp/large.txt",
+			Line:  &line,
+			Limit: &limit,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "read_text_file response is too large")
+	})
 }
 
 type recordingLiveStatusSink struct {
@@ -855,10 +855,10 @@ func (s *recordingLiveStatusSink) UpdateConversationTitle(_ context.Context, _ *
 	return nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (s *recordingLiveStatusSink) BindConversationSession(context.Context, *glsp.Context, string, string, string, string) error {
+	return nil
+}
+
 func TestWriteTextFile(t *testing.T) {
 	t.Run("rejects relative path", func(t *testing.T) {
 		c := &acpClient{}

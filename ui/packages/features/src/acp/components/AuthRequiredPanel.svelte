@@ -12,18 +12,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /**
+     * Method the user has launched. Login finishes outside this panel (terminal
+     * TUI, browser), so while set the login buttons give way to a manual
+     * "I'm logged in" confirmation and a "Try again" escape back to them.
+     */
+    attemptedMethodId?: string | null;
+    /** The "I'm logged in" re-verification probe is running. */
+    confirmInProgress?: boolean;
     /** Brand colour class for the agent glyph (see agentPickerIconProps). */
     iconClass?: string;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     onRetry: (methodId: string) => void;
+    onConfirmLoggedIn?: () => void;
+    onTryAgain?: () => void;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -32,15 +34,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    attemptedMethodId = null,
+    confirmInProgress = false,
     iconClass = "text-psx-icon",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     onRetry,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onConfirmLoggedIn,
+    onTryAgain,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -73,31 +73,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       </h2>
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {#if methods.length > 0 && attemptedMethodId !== null}
+      <!-- A login attempt is underway outside the panel; let the user confirm
+           completion (re-verified with a probe) or fall back to the buttons. -->
+      <div class="flex shrink-0 flex-wrap items-center justify-end gap-2 self-center">
+        <button
+          type="button"
+          disabled={confirmInProgress}
+          onclick={() => onTryAgain?.()}
+          class="text-psx-foreground-primary outline-hidden focus-visible:outline-psx-focus rounded-sm text-xs hover:underline focus-visible:outline-2 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Try again
+        </button>
+        <button
+          type="button"
+          disabled={confirmInProgress}
+          onclick={() => onConfirmLoggedIn?.()}
+          class="bg-psx-button-primary-background text-psx-button-primary-foreground hover:bg-psx-button-primary-hover-background outline-hidden focus-visible:outline-psx-focus flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs focus-visible:outline-2 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {#if confirmInProgress}
+            <Spinner size={12} />
+          {/if}
+          <span>I'm logged in</span>
+        </button>
+      </div>
+    {:else if methods.length > 0}
       <div class="flex shrink-0 flex-wrap items-center justify-end gap-2 self-center">
         {#each methods as method (method.id)}
           {#if method.type === "terminal" && pendingTerminalAuthMethodId === method.id}

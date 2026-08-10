@@ -1,106 +1,106 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import vscodeIconsUrl from "@iconify-json/vscode-icons/icons.json?url";
+import type { FileIconTheme } from "@poolsideai/rpc";
+import iconThemeData from "vscode-icons-js/data/generated/icons.json";
+import languageData from "vscode-icons-js/data/static/languages-vscode.json";
+
+type IconifyIcon = {
+  body: string;
+  width?: number;
+  height?: number;
+};
+
+type IconifyCollection = {
+  icons: Record<string, IconifyIcon>;
+};
+
+type VSCodeIconDefinition = {
+  iconPath: string;
+};
+
+type VSCodeIconThemeData = {
+  iconDefinitions: Record<string, VSCodeIconDefinition>;
+  fileExtensions: Record<string, string>;
+  fileNames: Record<string, string>;
+  folderNames: Record<string, string>;
+  languageIds: Record<string, string>;
+};
+
+type VSCodeLanguageData = Record<string, { extensions?: string[] }>;
+
+const vscodeIconTheme = iconThemeData as unknown as VSCodeIconThemeData;
+const vscodeLanguageData = languageData as unknown as VSCodeLanguageData;
 const macOSFolderIconName = "_folder_macos";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+let vscodeIconsPromise: Promise<IconifyCollection> | undefined;
+
+export const VSCODE_FILE_ICON_THEME: FileIconTheme = {
+  file: "_file",
   folder: macOSFolderIconName,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  fileExtensions: {
+    ...languageExtensionIcons(),
+    ...vscodeIconTheme.fileExtensions,
     // The VS Code language list bundled by vscode-icons-js omits Svelte.
     svelte: vscodeIconTheme.languageIds.svelte,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  },
+  fileNames: vscodeIconTheme.fileNames,
   // Keep folders visually consistent instead of using the theme's named variants.
   folderNames: {},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  languageIds: vscodeIconTheme.languageIds,
+};
+
+export async function getVSCodeFileIconDefinition(iconDefinitionName: string) {
   if (iconDefinitionName === macOSFolderIconName) return macOSFolderIcon;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const definition = vscodeIconTheme.iconDefinitions[iconDefinitionName];
+  if (!definition) return;
+
+  const icons = await loadVSCodeIcons();
+  const icon = icons.icons[iconName(definition.iconPath)];
+  if (!icon) return;
+
+  return renderIconifyIcon(icon);
+}
+
+async function loadVSCodeIcons(): Promise<IconifyCollection> {
+  vscodeIconsPromise ??= fetch(vscodeIconsUrl).then(async (response) => {
+    if (!response.ok) {
+      throw new Error(`Unable to load VS Code file icons: ${response.status}`);
+    }
+
+    return (await response.json()) as IconifyCollection;
+  });
+  return vscodeIconsPromise;
+}
+
+function languageExtensionIcons(): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(vscodeLanguageData).flatMap(([languageId, language]) => {
+      const icon = vscodeIconTheme.languageIds[languageId];
+      if (!icon) return [];
+
+      return (language.extensions ?? []).map((extension) => [extension.replace(/^\./, ""), icon]);
+    }),
+  );
+}
+
+function iconName(path: string): string {
+  return (
+    path
+      .split("/")
+      .pop()
+      ?.replace(/\.svg$/, "")
+      .replaceAll("_", "-") ?? ""
+  );
+}
+
+function renderIconifyIcon(icon: IconifyIcon): string {
+  const width = icon.width ?? 32;
+  const height = icon.height ?? 32;
+  return `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">${normalizeIconColor(icon.body)}</svg>`;
+}
+
+function normalizeIconColor(body: string): string {
+  return body.replaceAll("#755838", "#6aa6b8");
+}
 
 const macOSFolderIcon = `<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
   <defs>

@@ -19,26 +19,26 @@
 <Story name="Running" args={{ isPrompting: true }} />
 
 <Story name="Completed" />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+<Story
+  name="LongTitle"
+  args={{
+    isPrompting: true,
+    plan: {
+      entries: [
+        {
+          content: "Inspect the existing ACP transport implementation across helper and UI",
+          priority: "high",
+          status: "completed",
+        },
+        {
+          content:
+            "Refactor the ACP transcript rendering pipeline to support streaming plan updates with extremely long entry titles that should truncate",
+          priority: "high",
+          status: "in_progress",
+        },
+        { content: "Add Storybook coverage", priority: "medium", status: "pending" },
+      ],
+    },
+  }}
+/>

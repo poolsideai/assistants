@@ -3,7 +3,7 @@ import {
   ACP_PENDING_CONVERSATION_AGENT_EVENT,
   ACP_SESSION_NEW_EVENT,
   ACP_SESSION_TITLE_EVENT,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACP_SESSION_TURN_EVENT,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
@@ -33,7 +33,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     },
   ) => Promise<unknown>;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  touchSession?: (conversationId: string) => void;
 }
 
 interface ACPHistorySyncOptions {
@@ -128,12 +128,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const handleSessionTurn = (event: Event) => {
+    const { conversationId } = (event as CustomEvent<{ conversationId: string }>).detail;
+    if (!conversationId) return;
+    history.touchSession?.(conversationId);
+  };
+
   const handleSessionTitle = (event: Event) => {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       event as CustomEvent<ACPSessionEventDetail & { title: string }>
@@ -172,13 +172,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   };
 
   emitter.addEventListener(ACP_SESSION_NEW_EVENT, handleSessionNew);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  emitter.addEventListener(ACP_SESSION_TURN_EVENT, handleSessionTurn);
   emitter.addEventListener(ACP_SESSION_TITLE_EVENT, handleSessionTitle);
   emitter.addEventListener(ACP_PENDING_CONVERSATION_AGENT_EVENT, handlePendingConversationAgent);
 
   return () => {
     emitter.removeEventListener(ACP_SESSION_NEW_EVENT, handleSessionNew);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    emitter.removeEventListener(ACP_SESSION_TURN_EVENT, handleSessionTurn);
     emitter.removeEventListener(ACP_SESSION_TITLE_EVENT, handleSessionTitle);
     emitter.removeEventListener(
       ACP_PENDING_CONVERSATION_AGENT_EVENT,

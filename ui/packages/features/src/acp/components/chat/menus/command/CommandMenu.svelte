@@ -7,7 +7,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { menus } from "../../../../prompt/menus/menus";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { agentName, selectedAgentServer } from "../config/agentConfig";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { DEFAULT_AGENT_SERVER } from "../../../../agentServers";
   import type { AcpSlashCommand } from "./commands";
   import { AcpSlashCommand as LocalCommand } from "./commands";
   import {
@@ -28,12 +28,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     visibleServerCommandEntries,
   } from "./serverCommands";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { Snippet } from "svelte";
   import { slashCommandIcon } from "../../goalPresentation";
 
   interface Props {
     onCommand?: (command: AcpSlashCommand) => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    promptCommandItems?: Snippet;
     fallbackSkills?: AvailableCommand[];
   }
 
@@ -41,23 +41,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   const registry = getACPAgentRegistryRepo();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const { close, search } = Prompt.getMenus();
 
+  type SelectSessionConfigOption = SessionConfigOption & {
+    type: "select";
+    currentValue: string;
+  };
+
+  type BooleanSessionConfigOption = SessionConfigOption & {
+    type: "boolean";
+    currentValue: boolean;
+  };
+
+  const selectOptions = $derived(
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      (option): option is SelectSessionConfigOption => option.type === "select",
+    ),
+  );
   // A build/plan switch is driven locally: the synthetic /plan toggles both
   // ways instantly, while an agent's own plan command needs a prompt round
   // trip (and Codex's only turns plan on). Agents offering more collaboration
@@ -75,55 +75,55 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         !(planIsLocal && promptConfigKind(option) === "collaboration"),
     ),
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const booleanOptions = $derived(
+    chatSession.configOptions.filter(
+      (option): option is BooleanSessionConfigOption => option.type === "boolean",
+    ),
+  );
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function booleanSubtitle(option: BooleanSessionConfigOption): string {
+    const pending = chatSession.pendingConfigOption(option.id);
+    if (pending && !pending.error) {
+      return pending.value === "true" ? "Turning on..." : "Turning off...";
+    }
+    return option.currentValue ? "On" : "Off";
+  }
+
+  async function toggleBoolean(option: BooleanSessionConfigOption): Promise<void> {
+    try {
+      await chatSession.setBooleanConfigOption(option.id, !option.currentValue);
+    } catch (error) {
+      console.error("Failed to set ACP session config option", error);
+    }
+  }
+
+  const skillCommands = $derived(
     visibleServerCommandEntries(
       resolvedSkillCommands(chatSession.availableCommands, fallbackSkills),
       $search,
     ),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     chatSession.availableCommands.filter(
       (command) => !isSkillCommand(command) && !(planIsLocal && command.name === "plan"),
     ),
   );
+  const visibleCommandEntries = $derived(visibleServerCommandEntries(otherCommands, $search));
+  const isPoolsideServer = $derived(selectedAgentServer(chatSession) === DEFAULT_AGENT_SERVER);
+
+  // When the agent publishes its own "plan" command it shows up in the
+  // Commands section, so the local plan/build toggle would list "plan" twice.
+  const hasServerPlanCommand = $derived(
+    chatSession.availableCommands.some((command) => command.name === "plan"),
+  );
+
+  function configSubtitle(option: SelectSessionConfigOption): string {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (!pending) return selectedValueName(option);
+    const target = selectedValueName({ ...option, currentValue: pending.value });
+    if (pending.error) return `Failed to switch to ${target}`;
+    return `Switching to ${target}...`;
+  }
 
   function commandSubtitle(command: AvailableCommand): string {
     if (command.name !== "goal" || !chatSession.goal) return command.description;
@@ -220,7 +220,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         {@const appearance = configValueAppearance(option, option.currentValue)}
         <Prompt.Menu.Popup.Item
           title={option.id}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          subtitle={configSubtitle(option)}
           icon={appearance.icon}
           keywords={[option.name]}
         >
@@ -228,32 +228,32 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         </Prompt.Menu.Popup.Item>
       {/each}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {#each booleanOptions as option (option.id)}
+        <Prompt.Menu.Popup.Item
+          title={option.id}
+          subtitle={booleanSubtitle(option)}
+          icon={configIcon(option)}
+          keywords={[option.name]}
+        >
+          <Prompt.Actions.Action onAction={() => void toggleBoolean(option)} />
+        </Prompt.Menu.Popup.Item>
+      {/each}
+
+      {#if isPoolsideServer}
+        <Prompt.Menu.Popup.Item
+          title="secrets"
+          subtitle="Create or delete secrets, and control which the agent can use"
+          icon="key"
+          keywords={["secret", "secrets"]}
+        >
+          <Prompt.Actions.Push
+            menu={menus.secrets.value}
+            onPush={() => onCommand?.(LocalCommand.secrets)}
+          />
+        </Prompt.Menu.Popup.Item>
+      {/if}
+
+      {@render promptCommandItems?.()}
     </Prompt.Menu.Popup.Section>
 
     {#if skillCommands.length > 0}
@@ -263,10 +263,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       </Prompt.Menu.Popup.Section>
     {/if}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {#if visibleCommandEntries.length > 0}
       <Prompt.Menu.Popup.Separator />
       <Prompt.Menu.Popup.Section title="Commands">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {#each visibleCommandEntries as { command, key } (key)}
           {@const commandName = command.name}
           <Prompt.Menu.Popup.Item
             title={commandName}

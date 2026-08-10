@@ -1,23 +1,23 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
   import { onDestroy, type Snippet } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import {
+    ACPMCPSettingsRepositoryWriter,
     getUserMCPServersRepo,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    type ACPSessionRepository,
+  } from "@poolsideai/features/acp";
+
+  interface Props {
+    children: Snippet;
+    acp?: ACPSessionRepository | null;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-  let stopConnectorRefresh: (() => void) | undefined;
+  }
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  let stopConnectorRefresh: (() => void) | undefined;
+
+  if (acp) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -40,9 +40,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         console.error("Failed to refresh ACP sessions after connector changes", error);
       });
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
 
   onDestroy(() => stopConnectorRefresh?.());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
+{@render children()}

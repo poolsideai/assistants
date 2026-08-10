@@ -1,7 +1,7 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script module lang="ts">
+  const githubTooltipIdEncoder = new TextEncoder();
+</script>
+
 <script lang="ts">
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import Icon from "@poolsideai/components/icon";
@@ -16,9 +16,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import RenamableLabel from "./RenamableLabel.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { githubDotColorClass, githubStatusSummary } from "../../github/githubStatus";
+  import GithubWorktreeTooltip from "./GithubWorktreeTooltip.svelte";
+  import { withShortcut } from "../../../keybindings";
   import { reorderable } from "@poolsideai/dnd";
   import { suppressContextMenu } from "./contextMenuHelpers";
   import ReorderDragPreview from "./ReorderDragPreview.svelte";
@@ -47,21 +47,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onAddWorktree: (project: { path: string }) => void | Promise<void>;
     onOpenWorkspace: (path: string) => void | Promise<void>;
     onRemoveWorktree: (path: string) => void | Promise<void>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onArchiveSession: (session: ACPConversationSummary, event: MouseEvent) => void | Promise<void>;
+    onArchiveSessionNow: (
+      session: ACPConversationSummary,
+      event: MouseEvent,
+    ) => void | Promise<void>;
+    onProjectContextMenu: (project: ACPNavProject, event: MouseEvent) => void;
+    onWorktreeContextMenu: (worktree: ACPNavProject, event: MouseEvent) => void;
+    onSessionContextMenu: (session: ACPConversationSummary, event: MouseEvent) => void;
     isSessionExiting?: (session: ACPConversationSummary) => boolean;
     // True while a row is flying out, so empty-state copy holds back until the
     // animation finishes instead of showing under the leaving row.
     rowExitAnimating?: boolean;
     sessionShortcutHint?: (session: ACPConversationSummary) => string | undefined;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onReorderWorktrees: (parentPath: string, from: number, to: number) => void | Promise<void>;
+    onWorktreeDragActiveChange: (active: boolean) => void;
   }
 
   let {
@@ -82,20 +82,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onAddWorktree,
     onOpenWorkspace,
     onRemoveWorktree,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onArchiveSession,
+    onArchiveSessionNow,
+    onProjectContextMenu,
+    onWorktreeContextMenu,
+    onSessionContextMenu,
     isSessionExiting,
     rowExitAnimating = false,
     sessionShortcutHint,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onReorderWorktrees,
+    onWorktreeDragActiveChange,
   }: Props = $props();
 
   const sidebar = getAcpSidebarController();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const github = getACPGithubRepo();
   const worktreeReorderMotion = new ReorderMotion(
     () => worktrees,
     (worktree) => worktree.path,
@@ -135,9 +135,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let hasProjectContent = $derived(
     projectSessions.length !== 0 || worktrees.length !== 0 || showEmptyProjectConversations,
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  let projectName = $derived(project.nickname || project.name);
+
   // Worktrees only make sense in a git repo. Undefined (status not loaded
   // yet) keeps the button enabled so it doesn't flash disabled on startup.
   let projectIsGitRepo = $derived(github.isRepoFor(project.path) !== false);
@@ -158,15 +158,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return onReorderWorktrees(project.path, from, to);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function displayName(item: ACPNavProject): string {
+    return item.nickname || item.name;
+  }
+
+  function githubTooltipAnchorId(path: string): string {
+    const bytes = githubTooltipIdEncoder.encode(path);
+    const encodedPath = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+    return `github-worktree-tooltip-${encodedPath}`;
+  }
 </script>
 
 <section role="group" aria-label={projectName} class="group/project rounded-[8px]">
@@ -304,11 +304,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           </div>
         {/if}
 
+        <div
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        >
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -398,7 +398,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                  : ""}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -418,11 +418,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
                 >
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+                    class={[
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                    ]}
+                  >
                     {#if sidebar.isRenamingWorkspace("worktree", worktree.path)}
                       <!-- py compensates for the input's border box so the row keeps its height. -->
                       <div class="flex min-w-0 flex-1 items-center gap-2 px-0 py-[5px] text-left">
@@ -620,7 +620,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        </div>
 
         {#if worktreeReorderMotion.preview}
           {@const preview = worktreeReorderMotion.preview}

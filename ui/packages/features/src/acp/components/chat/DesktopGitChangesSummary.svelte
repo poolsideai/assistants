@@ -1,36 +1,36 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import Icon from "@poolsideai/components/icon";
+  import { slide } from "svelte/transition";
+  import { cubicInOut } from "svelte/easing";
+  import DiffLineCount from "./DiffLineCount.svelte";
+  import GitBranchTrackingLabel from "./GitBranchTrackingLabel.svelte";
+
+  /**
    * Git-backed repository summary at the bottom of a desktop conversation.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+   * Purely driven by `git status` (via DesktopGitChangesState in the chat
    * pane) — no task/version system involvement. The branch button opens the
    * files sidebar in its changes (review) view, while the diff-stat badges
    * open the Diff tab. Action names are exposed as tooltips rather than
    * visible labels:
    * [icon] branch › upstream ............................... [+n][-n]
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+   */
+  interface Props {
+    /** Changed files (staged + unstaged + untracked). */
+    files: number;
     /** Total added lines vs HEAD, with untracked text files as full additions. */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    additions: number;
+    /** Total deleted lines vs HEAD (git numstat). */
+    deletions: number;
+    /** Checked-out branch label ("(detached)" when HEAD is detached). */
+    branch: string;
+    /** Remote tracking branch (e.g. "origin/main"); empty when none. */
+    upstream?: string;
     /** Match the translucent sidebar popover when floating over the desktop transcript. */
     desktop?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onReview: () => void;
+    onOpenDiff: () => void;
+  }
+
   let {
     files,
     additions,
@@ -41,8 +41,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onReview,
     onOpenDiff,
   }: Props = $props();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
 <div
   data-testid="desktop-git-changes-summary"
   class={[
@@ -57,7 +57,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     title="Stage and Commit..."
     style:cursor="default"
     onclick={() => onReview()}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  >
     {#if branch}
       <GitBranchTrackingLabel {branch} {upstream} />
     {:else}
@@ -65,20 +65,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     {/if}
   </button>
   {#if files > 0 && (additions > 0 || deletions > 0)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <button
+      type="button"
+      class="changes-summary-diff-stats"
+      title="Review Diff..."
       style:cursor="default"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      onclick={() => onOpenDiff()}
+    >
       <DiffLineCount count={additions} type="addition" size="xs" />
       <DiffLineCount count={deletions} type="deletion" size="xs" />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </button>
   {/if}
 </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+<style>
   .desktop-tinted-glass {
     background: color-mix(in srgb, var(--psx-menu-hover-background) 70%, transparent);
   }
@@ -87,25 +87,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
      which otherwise collapses their button below the branch button's height
      even when both buttons declare the same padding. */
   .changes-summary-branch-button,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .changes-summary-diff-stats {
+    display: inline-flex;
+    align-items: center;
     box-sizing: border-box;
     height: 24px;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    padding: 2px 5px;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    font: inherit;
+    text-align: left;
+  }
+
   .changes-summary-branch-button:hover,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .changes-summary-diff-stats:hover {
+    background: var(--psx-chrome-hover);
+    filter: brightness(1.15);
+  }
+
   /* The visible branch name is the Stage and Commit affordance. The action
      name stays in the tooltip so the compact bar only shows repository state. */
   .changes-summary-branch-button {
@@ -124,5 +124,5 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     margin-right: -4px;
     margin-left: auto;
     font-size: 10px;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+</style>

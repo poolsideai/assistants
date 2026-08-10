@@ -6,7 +6,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { onDestroy, onMount, tick } from "svelte";
   import { appState } from "../hostAdapter";
   import type { WorkspaceFolder } from "@poolsideai/rpc";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { poolsideRemoteAccessStatus } from "@poolsideai/helperapi";
   import { rpc } from "../hostRpc";
   import {
     activeBinding,
@@ -20,10 +20,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import {
     ACP_DESKTOP_CONVERSATIONS_EVENT,
     ACP_DESKTOP_PROJECTS_EVENT,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    compareWorktreesByDisplayOrder,
     dedupeConversationSummaries,
     isACPChatConversation,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    worktreeBlocksUI,
     type ACPConversationSummary,
     type ACPConversationsState,
     type ACPNavProject,
@@ -36,7 +36,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { workspacePathFitsWorkspaceFolders } from "../workspacePaths";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { githubPRActionLabel } from "../github/githubStatus";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import {
     CONVERSATION_SHORTCUT_LIMIT,
@@ -92,18 +92,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   interface Props {
     collapsed: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    currentView:
+      | "chat"
+      | "agents"
+      | "settings"
+      | "shortcuts"
       | "models"
       | "voice"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      | "connectors"
+      | "github"
       | "archived"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      | "remote"
+      | "project-settings";
     width?: number;
     minWidth?: number;
     maxWidth?: number;
@@ -113,17 +113,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onCollapsedChange: (collapsed: boolean) => void;
     onResizeStart?: (event: MouseEvent) => void;
     onWidthChange?: (width: number) => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onNewConversation: (cwd?: string) => string | null | void | Promise<string | null | void>;
     onNewChat?: () => string | null | void | Promise<string | null | void>;
     onShowSettings: () => void;
     onShowShortcuts?: () => void;
     onShowModels?: () => void;
     onShowVoice?: () => void;
     onShowConnectors?: () => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onShowGithub?: () => void;
     onShowAgents?: () => void;
     onShowArchived?: () => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onShowRemote?: () => void;
     onShowProjectSettings: (path?: string | null) => void;
     onShowChat: () => void;
     currentWorkspaceFolders: WorkspaceFolder[];
@@ -176,10 +176,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onShowModels,
     onShowVoice,
     onShowConnectors,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onShowGithub,
     onShowAgents,
     onShowArchived,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onShowRemote,
     onShowProjectSettings,
     onShowChat,
     currentWorkspaceFolders,
@@ -193,15 +193,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const agentUpdates = getACPAgentUpdateRepo();
   const acpConnectionPool = getOptionalACPConnectionPoolContext();
   const projects = getACPProjectRepo();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const github = getACPGithubRepo();
   const worktrees = getACPWorktreeRepo();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const abortControllers = new Map<string, AbortController>();
   const sidebar = setAcpSidebarController({
     onShowChat,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onNewConversation: async (cwd?: string) => {
+      await expandCollapsedWorkspace(cwd);
+      return await onNewConversation(cwd);
+    },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -234,8 +234,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let conversationSearchOpen = $state(false);
   let conversationSearchInitialQuery = $state("");
   let conversationSearchOpenToken = $state(0);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // True while a worktree drag is in progress (in any project section).
+  let worktreeDragActive = $state(false);
   let chatsSectionCollapsed = $state(false);
   let projectsSectionCollapsed = $state(false);
   let expandedSessionGroups = $state(new Set<string>());
@@ -293,29 +293,29 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       activeConversationSection,
     ),
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  // GitHub status polling: a stable key over the visible project/worktree paths
+  // so we only re-fetch when the set of paths changes (not on every busy/order
+  // mutation of navProjects). github.start() additionally polls on an interval
+  // and on window focus; see AcpGithubRepository.
+  let githubPathsKey = $derived(
+    navProjects
+      .map((project) => project.path)
+      .sort()
+      .join("\n"),
+  );
+  $effect(() => {
+    const key = githubPathsKey;
+    if (!key) return;
+    void github.refresh(key.split("\n"));
+  });
+
+  let activeWorkspaceLabel = $derived.by(() => {
+    const desktopWorktreeName = $appState.environment.desktopInstance?.worktreeName?.trim();
+    if (!desktopWorktreeName) return null;
+    const activeProject = spoolsideWorktreeProject(desktopWorktreeName);
+    return activeProject ? projectDisplayName(activeProject) : desktopWorktreeName;
+  });
   let activeWorkspaceColor = $derived(
     $appState.environment.desktopInstance?.color?.trim() || undefined,
   );
@@ -522,38 +522,38 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       currentView === "shortcuts" ||
       currentView === "models" ||
       currentView === "voice" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      currentView === "github" ||
       currentView === "agents" ||
       currentView === "archived" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      currentView === "remote" ||
       currentView === "project-settings",
   );
   let sidebarView: DesktopSidebarView = $derived(settingsViewActive ? "settings" : "main");
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Poll the helper for connected remote-access devices so the sidebar can
+  // surface active phone connections. The status call is cheap; any failure
+  // (e.g. remote access unavailable) just keeps the indicator hidden.
+  let connectedRemoteDevices = $state(0);
+  $effect(() => {
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const status = await poolsideRemoteAccessStatus();
+        if (!cancelled) {
+          connectedRemoteDevices = (status.devices ?? []).filter((d) => d.connected).length;
+        }
+      } catch {
+        if (!cancelled) connectedRemoteDevices = 0;
+      }
+    };
+    void poll();
+    const timer = setInterval(() => void poll(), 10_000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  });
+
   function sidebarToggleTitle(): string {
     const label = collapsed ? "Show sidebar" : "Hide sidebar";
     const hint = shortcutHint("toggleLeftPanel");
@@ -569,22 +569,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       exitingWorktreePaths = nextExitingWorktreePaths;
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // A worktree drag derives its (frozen) list from `navProjects` via
+    // worktreesFor(); rebuilding navProjects mid-drag would shift rows under the
+    // pointer while createReorderable holds the drag's start index, persisting
+    // the wrong order. Freeze the whole snapshot until the drag ends — the
+    // optimistic reorder + server notification reconcile afterwards.
+    if (worktreeDragActive) return;
     navProjects = [...state.projects];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // While a project drag is in progress, `rootProjects` reflects the live
+    // (optimistic) order. Rebuilding it from a background state event mid-drag
+    // would reset that order; handleReorderProjects reconciles on drop.
     if (projectReorderMotion.active) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    rootProjects = rootProjectsFromNav();
+  }
+
+  function rootProjectsFromNav(): ACPNavProject[] {
+    return navProjects.filter((project) => !project.isWorktree);
   }
 
   function applyConversationState(state: ACPConversationsState) {
@@ -614,9 +614,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       void projects.refresh();
       void conversations.refresh();
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    github.start(() => (githubPathsKey ? githubPathsKey.split("\n") : []));
     return () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      github.stop();
       projects.emitter.removeEventListener(ACP_DESKTOP_PROJECTS_EVENT, handleProjectState);
       conversations.emitter.removeEventListener(
         ACP_DESKTOP_CONVERSATIONS_EVENT,
@@ -629,7 +629,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     };
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  onDestroy(() => {
     sidebar.destroy();
     heldModifierHint.destroy();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -640,8 +640,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     for (const path of exitingWorktreePaths) {
       sidebarToasts.dismiss(worktreeDeleteToastId(path));
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
   function getSessionAgentServer(session: { agentServer?: string }): string {
     return sidebar.getSessionAgentServer(session);
   }
@@ -659,7 +659,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   function isProjectCollapsed(project: ACPNavProject): boolean {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return project.collapsed;
   }
 
   function worktreesFor(projectPath: string) {
@@ -667,24 +667,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       .filter(
         (project) => project.parentPath === projectPath && !exitingWorktreePaths.has(project.path),
       )
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      .sort(compareWorktreesByDisplayOrder);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function projectDisplayName(project: ACPNavProject): string {
+    return project.nickname || project.name;
+  }
+
+  function spoolsideWorktreeProject(worktreeName: string): ACPNavProject | null {
+    let match: ACPNavProject | null = null;
+    for (const project of navProjects) {
+      if (!project.isWorktree || project.name !== worktreeName) continue;
+      if (!match || project.path.length > match.path.length) {
+        match = project;
+      }
+    }
+    return match;
+  }
+
   function shouldShowProjectContent(project: ACPNavProject): boolean {
     return searchQuery.trim() !== "" || !isProjectCollapsed(project);
   }
@@ -716,9 +716,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function handleNewSession(cwd?: string, event?: Event): Promise<string | null> {
     projectsSectionCollapsed = false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return await sidebar.newConversation(cwd, event);
   }
 
   function shouldInterruptSelectedSession(sessionId: string | null, agentServer: string): boolean {
@@ -755,18 +755,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     await conversations.refresh();
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function handleRenameProject(path: string, name: string) {
+    await projects.renameProject(path, name);
+  }
+
   function handleProjectSettings(path: string) {
     onShowProjectSettings(path);
   }
 
   function conversationArchiveToastId(conversationId: string): string {
     return `conversation-archive:${conversationId}`;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   function worktreeDeleteToastId(path: string): string {
     return `worktree-delete:${path}`;
   }
@@ -791,8 +791,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     else next.delete(path);
     exitingWorktreePaths = next;
     if (exiting) rowExitAnimation.hold();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   function isConversationSelected(session: ACPConversationSummary): boolean {
     const agentServer = getSessionAgentServer(session);
     return (
@@ -825,14 +825,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     sidebarToasts.updateProgressToast(worktreeDeleteToastId(path), "Running teardown script", {
       kind: "indeterminate",
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const busy = projects.getWorktreeBusy(path);
+    if (busy === "creating" || busy === "running_setup") {
+      projects.requestDelete(path);
+      abortControllers.get(path)?.abort();
       // handleAddWorktree owns the in-flight operation and reveals the row
       // again if its cleanup fails.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return;
+    }
     const worktreeSessions = navSessions.filter((session) => session.cwd === path);
     const activeWorktreeSession = selectedSessionInWorkspace(path);
     try {
@@ -857,8 +857,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       worktreeSelectionRollbacks.delete(path);
       await restoreSelectionIfUnchanged(selectionRollback);
       return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+
     worktreeSelectionRollbacks.delete(path);
     sidebarToasts.dismiss(worktreeDeleteToastId(path));
     // Teardown can outlive a sidebar navigation; only clear if this worktree is still active.
@@ -878,7 +878,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function handleRemoveWorktree(path: string) {
     const activeWorktreeSession = selectedSessionInWorkspace(path);
     const sessionToCancel =
       activeWorktreeSession &&
@@ -911,8 +911,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       path,
       () => void performRemoveWorktree(path, sessionToCancel, selectionRollback),
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   function undoRemoveWorktree(path: string) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     sidebarToasts.dismiss(worktreeDeleteToastId(path));
@@ -920,63 +920,63 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const selectionRollback = worktreeSelectionRollbacks.get(path);
     worktreeSelectionRollbacks.delete(path);
     void restoreSelectionIfUnchanged(selectionRollback);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   async function handleAddWorktree(project: { path: string }) {
     let pendingPath = "";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let controller: AbortController | undefined;
+    let firstConversationId: string | null = null;
+    let firstConversationPath: string | null = null;
     let deleteCleanupFailed = false;
     try {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      await expandCollapsedWorkspace(project.path);
       const prepared = await worktrees.prepareWorktree(project.path);
       if (!prepared) return;
       pendingPath = projects.addPendingWorktree(prepared, "creating");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      controller = new AbortController();
+      abortControllers.set(pendingPath, controller);
       if (!isLoading) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        firstConversationId = await handleNewSession(prepared.path);
+        const firstConversation = firstConversationId
+          ? conversations.sessions.find((session) => session.id === firstConversationId)
+          : null;
+        if (firstConversationId) {
+          firstConversationPath = firstConversation?.cwd ?? prepared.path;
+        }
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (controller.signal.aborted) {
+        await worktrees.discardPreparedWorktree(pendingPath);
+        await projects.refresh();
+        await conversations.refresh();
+        return;
+      }
+      const created = await worktrees.createWorktree(
+        project.path,
+        prepared,
+        (kind) => projects.setWorktreeBusy(prepared.path, kind),
+        controller.signal,
+        { terminalLayoutKey: firstConversationId },
       );
       await projects.refresh();
       await conversations.refresh();
       const createdPath = created?.path;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (createdPath && (controller.signal.aborted || projects.isDeleteRequested(pendingPath))) {
+        await worktrees.removeWorktree(createdPath, (kind) =>
+          projects.setWorktreeBusy(pendingPath, kind),
+        );
+        await projects.refresh();
+        await conversations.refresh();
+        return;
+      }
       if (
         createdPath &&
         shouldCreateConversationAfterWorktreeCreation({
           createdPath,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          firstConversationPath,
           isLoading,
         })
       ) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        await onNewConversation(createdPath);
       }
     } catch (error) {
       console.error("Failed to create ACP worktree", error);
@@ -1005,10 +1005,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         );
       }
     } finally {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (pendingPath) {
         const deletionRequested = projects.isDeleteRequested(pendingPath);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        abortControllers.delete(pendingPath);
+        projects.clearWorktreeBusy(pendingPath);
         setWorktreeExiting(pendingPath, false);
         if (deletionRequested && !deleteCleanupFailed) {
           sidebarToasts.dismiss(worktreeDeleteToastId(pendingPath));
@@ -1020,7 +1020,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             await restoreSelectionIfUnchanged(selectionRollback);
           }
         }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
     }
   }
 
@@ -1080,91 +1080,91 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return section === "chats" ? "Chats" : "Projects";
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function toggleProjectCollapsed(project: ACPNavProject) {
+    await projects.setProjectCollapsed(project.path, !project.collapsed);
+  }
+
+  // Creating a conversation or worktree inside a collapsed project/worktree
+  // would otherwise leave the new row invisible; expand the target node first.
+  // Best-effort: expansion is cosmetic, so a failed collapse update must not
+  // block the creation itself.
+  async function expandCollapsedWorkspace(path?: string) {
+    if (!path) return;
     projectsSectionCollapsed = false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const node = navProjects.find((project) => project.path === path);
+    if (!node?.collapsed) return;
+    try {
+      await projects.setProjectCollapsed(path, false);
+    } catch (error) {
+      console.error("Failed to expand workspace before creation", error);
+    }
+  }
+
+  async function handleReorderProjects(from: number, to: number) {
+    // `previous` is the pre-drop order; it doubles as the revert target and as
+    // the source for reconciling any background changes that arrived mid-drag.
+    const previous = rootProjectsFromNav();
+    const next = moveItem(rootProjects, from, to);
+    rootProjects = next;
+    try {
+      await projects.reorderProjects(next.map((project) => project.path));
+    } catch (error) {
+      rootProjects = previous;
+      rpc.showInfoMessage(
+        formatError(error, {
+          prefix: "Failed to reorder projects",
+        }),
+        InfoMessageType.error,
+      );
+    }
+  }
+
+  async function handleReorderWorktrees(parentPath: string, from: number, to: number) {
+    const next = moveItem(worktreesFor(parentPath), from, to);
+    const previous = navProjects;
+    // Optimistically apply the new order by stamping display_order; worktreesFor
+    // re-sorts by it. The server notification reconciles the canonical state.
+    const orderByPath = new Map(next.map((worktree, index) => [worktree.path, index]));
+    navProjects = navProjects.map((project) =>
+      orderByPath.has(project.path)
+        ? { ...project, displayOrder: orderByPath.get(project.path) ?? project.displayOrder }
+        : project,
+    );
+    try {
+      await projects.reorderWorktrees(
+        parentPath,
+        next.map((worktree) => worktree.path),
+      );
+    } catch (error) {
+      navProjects = previous;
+      rpc.showInfoMessage(
+        formatError(error, {
+          prefix: "Failed to reorder worktrees",
+        }),
+        InfoMessageType.error,
+      );
+    }
   }
 
   async function handleOpenWorkspace(path: string) {
     await rpc.openWorkspace(path);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function handleOpenGithubPullRequest(path: string) {
+    const links = await github.links(path);
+    if (links.prUrl) rpc.openExternalURL(links.prUrl);
+  }
+
+  async function handleOpenGithubRepository(path: string) {
+    const links = await github.links(path);
+    if (links.repoUrl) rpc.openExternalURL(links.repoUrl);
+  }
+
   async function handleAddFolderToWorkspace(path: string) {
     await rpc.addFolderToWorkspace(path);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function performArchiveSession(
     workspacePath: string,
     sessionId: string | null,
     agentServer: string,
@@ -1203,9 +1203,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return { conversationId: session.id, replacementConversationId };
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function handleArchiveSession(session: ACPConversationSummary, event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
     const agentServer = getSessionAgentServer(session);
     const sessionToCancel = shouldInterruptSelectedSession(session.sessionId, agentServer)
       ? activeSession
@@ -1224,35 +1224,35 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        void performArchiveSession(
+          session.cwd,
+          session.sessionId,
           agentServer,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
           sessionToCancel,
           selectionRollback,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  function handleArchiveSessionNow(session: ACPConversationSummary, event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
     const agentServer = getSessionAgentServer(session);
     const sessionToCancel = shouldInterruptSelectedSession(session.sessionId, agentServer)
       ? activeSession
       : null;
     const selectionRollback = switchToFreshDraftIfSelected(session);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    void performArchiveSession(
+      session.cwd,
+      session.sessionId,
       agentServer,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      session.id,
       sessionToCancel,
       selectionRollback,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    );
+  }
+
   function undoArchiveSession(conversationId: string) {
     conversationArchiveCountdown.cancel(conversationId);
     sidebarToasts.dismiss(conversationArchiveToastId(conversationId));
@@ -1260,21 +1260,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const selectionRollback = conversationSelectionRollbacks.get(conversationId);
     conversationSelectionRollbacks.delete(conversationId);
     void restoreSelectionIfUnchanged(selectionRollback);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  async function handleDeleteSession(session: ACPConversationSummary, event?: Event) {
+    event?.preventDefault();
+    event?.stopPropagation();
+    const agentServer = getSessionAgentServer(session);
+    const selectedByKey = activeConversationId === session.id;
+    const shouldInterrupt = shouldInterruptSelectedSession(session.sessionId, agentServer);
+    const shouldSelectReplacement =
+      Boolean(selectedByKey) ||
+      sidebar.isSelectedSession(session.sessionId, session.id, agentServer) ||
+      shouldInterrupt;
+    const replacementSession = shouldSelectReplacement
       ? nextSessionInGroup(session.cwd, session.id)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      : undefined;
     // Marked exiting so the row plays the same slide-out as an archive; the
     // finally re-reveals it if the delete failed.
     setConversationExiting(session.id, true);
@@ -1284,7 +1284,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }
       await conversations.deleteConversation(session.id, session.sessionId, agentServer);
       if (!shouldSelectReplacement) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
       if (replacementSession) {
         await sidebar.openSession(replacementSession, replacementSession.cwd);
         return;
@@ -1292,9 +1292,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       onActiveConversationIdChange?.(null);
     } finally {
       setConversationExiting(session.id, false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  }
+
   /**
    * Converts sidebar menu items into system-menu items and a
    * callback map keyed by id.  Disabled items produce `enabled: false`.
@@ -1327,17 +1327,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   function openContextMenu(event: MouseEvent, actions: ContextMenuItem[]) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    event.preventDefault();
+    event.stopPropagation();
+    window.getSelection()?.removeAllRanges();
     const position = { x: event.clientX, y: event.clientY };
     const { items, callbacks } = actionsToSystemMenu(actions);
     void showDesktopSystemContextMenu(items, position).then((id) => {
       if (id === undefined) return;
       callbacks.get(id)?.();
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   function projectMenuActions(project: ACPNavProject): ContextMenuItem[] {
     const openActions: ContextMenuAction[] = [];
     if (canOpenWorkspace) {
@@ -1357,16 +1357,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       });
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (github.supportedFor(project.path)) {
       openActions.push({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        name: "Open GitHub Repository",
+        icon: "github",
+        callback: () => handleOpenGithubRepository(project.path),
+      });
+    }
+
     return [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {
         name: "New Conversation",
         icon: "new",
         accelerator: nativeMenuAccelerator("newConversation"),
@@ -1398,7 +1398,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       { kind: "separator" },
       {
         name: sidebarInlineRenameLabel("Project"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        icon: "pencil",
         callback: () => {
           sidebar.beginRename({ kind: "project", path: project.path }, (name) =>
             handleRenameProject(project.path, name),
@@ -1414,48 +1414,48 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       {
         name: sidebarOpensViewLabel("Delete Project"),
         icon: "trash",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        callback: () => {
           removeProjectTarget = { path: project.path, name: projectDisplayName(project) };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        },
+      },
     ];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  function openProjectContextMenu(project: ACPNavProject, event: MouseEvent) {
+    openContextMenu(event, projectMenuActions(project));
+  }
+
+  function openWorktreeContextMenu(worktree: ACPNavProject, event: MouseEvent) {
+    const blocked =
+      worktree.deleteRequested === true ||
+      (worktree.busy !== undefined && worktreeBlocksUI(worktree.busy));
+    const canDelete =
+      worktree.deleteRequested !== true &&
+      (worktree.busy === undefined ||
+        worktree.busy === "creating" ||
+        worktree.busy === "running_setup");
     const actions: ContextMenuItem[] = [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {
+        name: "New Conversation",
+        icon: "new",
         accelerator: nativeMenuAccelerator("newConversation"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        disabled: sidebar.isLoading || blocked,
+        callback: async () => {
+          await handleNewSession(worktree.path);
+        },
+      },
+    ];
+
+    if (github.supportedFor(worktree.path)) {
+      actions.push({
+        name: githubPRActionLabel(github.statusFor(worktree.path)),
+        icon: "git-branch",
+        disabled: blocked,
+        callback: () => handleOpenGithubPullRequest(worktree.path),
+      });
+    }
+
+    actions.push(
       { kind: "separator" },
       {
         name: "Copy Worktree Path",
@@ -1476,41 +1476,41 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         },
       },
       { kind: "separator" },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {
         name: sidebarInlineRenameLabel("Worktree"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        icon: "pencil",
+        callback: () => {
           sidebar.beginRename({ kind: "worktree", path: worktree.path }, (name) =>
             handleRenameProject(worktree.path, name),
           );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        },
+      },
       { kind: "separator" },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {
         name: sidebarOpensViewLabel("Delete Worktree"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        icon: "trash",
+        disabled: !canDelete,
         callback: () => {
           deleteWorktreeTarget = { path: worktree.path, name: projectDisplayName(worktree) };
         },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      },
+    );
+
+    openContextMenu(event, actions);
+  }
+
+  function openSessionContextMenu(session: ACPConversationSummary, event: MouseEvent) {
+    const canDelete = !session.sessionId || sidebar.canDeleteSession(session);
+    openContextMenu(event, [
+      {
         name: sidebarInlineRenameLabel("Conversation"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        icon: "pencil",
+        callback: () => {
           sidebar.beginRename({ kind: "conversation", id: session.id }, async (name) => {
             await conversations.renameConversation(session.id, name);
           });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        },
+      },
       acpLogCaptureMenuAction(
         acpConnectionPool?.debug?.capture,
         {
@@ -1530,25 +1530,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         },
       },
       { kind: "separator" },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {
         name: "Archive Conversation",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        icon: "archive",
+        callback: () => handleArchiveSession(session, event),
+      },
+      {
         name: sidebarOpensViewLabel("Delete Conversation"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        icon: "trash",
+        disabled: !canDelete,
         callback: () => {
           deleteConversationTarget = {
             session,
             name: session.title || "Untitled Conversation",
           };
         },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      },
+    ]);
+  }
+
   function openConversationSearch(initialQuery = "") {
     conversationSearchInitialQuery = initialQuery;
     conversationSearchOpenToken += 1;
@@ -1575,18 +1575,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       case "connectors":
         onShowConnectors?.();
         break;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "github":
+        onShowGithub?.();
+        break;
       case "agents":
         onShowAgents?.();
         break;
       case "archived":
         onShowArchived?.();
         break;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "remote":
+        onShowRemote?.();
+        break;
     }
   }
 
@@ -1666,20 +1666,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       <div
         class="desktop-sidebar-header flex h-12 shrink-0 items-center gap-1 border-b border-transparent pr-2"
         data-tauri-drag-region="deep"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      >
+        {#if activeWorkspaceLabel}
+          <div
             class={[
               "flex h-[22px] min-w-0 items-center rounded-[7px] text-[13px]/[16px]",
               activeWorkspaceColor ? "px-2 font-normal text-white" : "text-psx-foreground-primary",
             ]}
             style:background-color={activeWorkspaceColor}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            title={activeWorkspaceLabel}
+          >
             <span class="min-w-0 truncate">{activeWorkspaceLabel}</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          </div>
+        {/if}
+      </div>
 
       <div class="flex shrink-0 flex-col gap-0.5 pb-2 pl-1.5 pt-0.5">
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1690,24 +1690,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+          onclick={() => {
+            void handleNewSession();
+          }}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {#if connectedRemoteDevices > 0}
+          <SidebarNavButton
             icon="remote-access"
             statusDot="connected"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            label={connectedRemoteDevices === 1
+              ? "1 device connected"
+              : `${connectedRemoteDevices} devices connected`}
             title="Open Remote Access Settings"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            selected={currentView === "remote"}
+            onclick={() => onShowRemote?.()}
+          />
+        {/if}
+
         <SidebarNavButton
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

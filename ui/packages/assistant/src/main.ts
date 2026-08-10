@@ -2,16 +2,16 @@
 
 import { warmDiffWorkerPool } from "@poolsideai/components/file-diff";
 import { enableAcpTranscriptBatching } from "@poolsideai/features/acp";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type { MobileSpoolsideInstance, MobileSpoolsideSlot } from "@poolsideai/features/acp";
+export { default as ChatOnlyPanel } from "./acp/ChatOnlyPanel.svelte";
+export { default as DesktopPanel } from "./acp/DesktopPanel.svelte";
+export type { MobileAppearance, MobileThemePreference } from "./acp/mobile/appearance";
 export type { MobileHostStatus } from "./acp/mobile/hostStatus";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type { MobileNavigation, MobileRoute, MobileView } from "./acp/mobile/navigation";
+export { default as MobilePanel } from "./acp/MobilePanel.svelte";
+export type { TargetProps } from "./acp/runtime/CoreRuntime.svelte";
+export { default as SidebarOnlyPanel } from "./acp/SidebarOnlyPanel.svelte";
+export type { WebviewRPCListener } from "./lib/rpc";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 /**
  * Initialize shared runtime behavior before booting an app surface.

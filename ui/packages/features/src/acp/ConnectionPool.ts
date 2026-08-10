@@ -46,7 +46,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   private pendingMessages = new Map<string, AnyMessage[]>();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private pendingConnects = new Map<string, Promise<ACPServerConnection>>();
   // Bumped by disconnect/restart; a connect handshake that started under an
   // older generation initialized a process instance that no longer exists,
   // so its result must not be cached.
@@ -157,7 +157,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           this.pendingConnects.delete(server);
         }
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
     throw new Error(`ACP connection to ${server} kept restarting; giving up`);
   }
 
@@ -207,9 +207,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (isLegacyACPTaskDidChangeMessage(message)) {
+      // The task/checkpoint system is removed; ignore any notifications a
+      // not-yet-updated helper still emits.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -233,6 +233,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  async sendRequest(payload: BridgedACPMessage): Promise<unknown> {
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Helper-initiated requests (permission prompts are broadcast to every
+    // connected surface) can arrive before anything here has opened this
+    // agent's connection — e.g. the phone sitting on the conversation list.
+    // Connect lazily so the prompt can be handled instead of erroring back.
+    const connection = this.connections.get(agentServer) ?? (await this.connect(agentServer));
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -241,21 +248,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+const LEGACY_ACP_TASK_DID_CHANGE_METHOD = "poolside/acpTask/didChange";
+
+function isLegacyACPTaskDidChangeMessage(message: AnyMessage): boolean {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    (message as { method?: unknown }).method === LEGACY_ACP_TASK_DID_CHANGE_METHOD
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

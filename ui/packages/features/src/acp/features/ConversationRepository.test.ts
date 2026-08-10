@@ -1,7 +1,7 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { ACP_DESKTOP_CONVERSATIONS_EVENT, ACP_SESSION_CLOSE_EVENT } from "../navTypes";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -471,76 +471,76 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  it("does not emit conversation state when draft prompt presence is unchanged", () => {
+    const repo = new ACPConversationRepositoryWriter();
+    repo.replaceConversations([
+      {
+        ...navConversation("conversation-1", DEFAULT_AGENT_SERVER, "session-1"),
+        title: "Existing title",
+      },
+    ]);
+    const emitted = vi.fn();
+    repo.emitter.addEventListener(ACP_DESKTOP_CONVERSATIONS_EVENT, emitted);
+
+    repo.setDraftPromptPresence("conversation-1", true);
+    repo.setDraftPromptPresence("conversation-1", true);
+    repo.setDraftPromptPresence("conversation-1", true);
+
+    expect(emitted).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not emit conversation state when a draft title preview is unchanged", () => {
+    const repo = new ACPConversationRepositoryWriter();
+    repo.replaceConversations([
+      { ...navConversation("draft-1", DEFAULT_AGENT_SERVER), title: "New conversation" },
+    ]);
+    const emitted = vi.fn();
+    repo.emitter.addEventListener(ACP_DESKTOP_CONVERSATIONS_EVENT, emitted);
+
+    repo.setDraftTitle("draft-1", "Draft title");
+    repo.setDraftTitle("draft-1", "Draft title");
+    repo.setDraftTitle("draft-1", "Draft title");
+
+    expect(emitted).toHaveBeenCalledTimes(1);
+  });
+
+  it("applies a draft title preview recorded before the conversation appears", () => {
+    const repo = new ACPConversationRepositoryWriter();
+    const emitted = vi.fn();
+    repo.emitter.addEventListener(ACP_DESKTOP_CONVERSATIONS_EVENT, emitted);
+
+    repo.setDraftTitle("draft-1", "Queued draft");
+    expect(emitted).not.toHaveBeenCalled();
+
+    repo.replaceConversations([
+      { ...navConversation("draft-1", DEFAULT_AGENT_SERVER), title: "New conversation" },
+    ]);
+
+    expect(repo.sessions[0]?.title).toBe("Queued draft");
+    expect(repo.sessions[0]?.draftPromptPresent).toBe(true);
+    expect(emitted).toHaveBeenCalledTimes(1);
+  });
+
+  it("applies draft prompt presence recorded before the conversation appears", () => {
+    const repo = new ACPConversationRepositoryWriter();
+    const emitted = vi.fn();
+    repo.emitter.addEventListener(ACP_DESKTOP_CONVERSATIONS_EVENT, emitted);
+
+    repo.setDraftPromptPresence("conversation-1", true);
+    expect(emitted).not.toHaveBeenCalled();
+
+    repo.replaceConversations([
+      {
+        ...navConversation("conversation-1", DEFAULT_AGENT_SERVER, "session-1"),
+        title: "Existing title",
+      },
+    ]);
+
+    expect(repo.sessions[0]?.title).toBe("Existing title");
+    expect(repo.sessions[0]?.draftPromptPresent).toBe(true);
+    expect(emitted).toHaveBeenCalledTimes(1);
+  });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

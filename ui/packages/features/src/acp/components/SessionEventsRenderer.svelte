@@ -2,13 +2,13 @@
   import type { SessionEvent } from "../types";
   import { Boundary } from "@poolsideai/components/boundary";
   import { VirtualList } from "@poolsideai/components/virtual-list";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import {
+    SessionEventsState,
     setToolCallExpansionContext,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    type GroupedItem,
+    type ToolActivityMode,
     type ToolCallExpansionState,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } from "./SessionEventsState.svelte";
   import AgentMessage from "./events/AgentMessage.svelte";
   import AgentThought from "./events/AgentThought.svelte";
   import ModeChange from "./events/ModeChange.svelte";
@@ -28,7 +28,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   interface Props {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    items?: GroupedItem[];
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -117,11 +117,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 
   type RenderItem = {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    item: GroupedItem;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   };
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function agentMessageText(item: GroupedItem): string {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -152,8 +152,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    for (const item of renderItems) {
+      const entry: RenderItem = { item };
       result.push(entry);
 
       if (item.kind === "event" && item.event.eventKind === "user_message" && !item.event.steer) {
@@ -215,7 +215,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   gap={10}
   {preserveScrollAnchor}
 >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {#snippet row(entry, _index)}
     {@const item = entry.item}
     <Boundary name={`ACPSessionEvent:${item.id}`}>
       {#snippet failed(_error, _reset)}
@@ -226,7 +226,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         </div>
       {/snippet}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {#if item.kind === "event_group"}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
           <!-- showRule: at most one rule per turn. An end-of-turn summary is
                always the turn's single fold, and so is compact mode's live

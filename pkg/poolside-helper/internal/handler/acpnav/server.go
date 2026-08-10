@@ -1,58 +1,58 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package acpnav
+
+import (
+	"context"
 	"crypto/sha256"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"database/sql"
 	"encoding/hex"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	"github.com/tliron/glsp"
+
 	"github.com/poolsideai/assistant/pkg/common/userconfig"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
+
+type Server struct {
+	store            *Store
+	agentServerStore AgentServerStore
 	stateFilter      func(methods.ACPNavState) methods.ACPNavState
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	mu               sync.Mutex
+	liveStatuses     map[string]methods.ACPNavConversationLiveStatus
+	// activeSessions tracks which conversations each client connection is
+	// currently viewing, keyed by client origin (methods.ClientOriginFromContext)
+	// then by live-status key. A conversation counts as watched — so a
+	// completing turn does not mark it unread — while ANY origin views it, and
+	// unread survives one surface closing a conversation another still shows.
+	activeSessions map[string]map[string]bool
+}
+
+type InstalledRegistryAgentServerStore interface {
+	RecordInstalledRegistryAgentServer(ctx context.Context, name string, cfg methods.ACPAgentServerConfig) error
+}
+
+func NewServer() *Server {
 	return &Server{
 		liveStatuses:   map[string]methods.ACPNavConversationLiveStatus{},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		activeSessions: map[string]map[string]bool{},
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func (s *Server) SetStore(store *Store) {
+	if s.store != nil {
+		_ = s.store.Close()
+	}
+	s.store = store
+	if s.agentServerStore == nil {
+		s.agentServerStore = store
+	}
+}
+
 func (s *Server) CreateChat(_ context.Context, req *methods.ACPNavCreateChatParams, _ *glsp.Context) (methods.ACPNavCreateChatOutput, error) {
 	sessionID := strings.TrimSpace(req.SessionID)
 	if sessionID == "" {
@@ -77,58 +77,58 @@ func chatStorageName(sessionID string) string {
 	return hex.EncodeToString(sum[:])
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (s *Server) SetAgentServerStore(store AgentServerStore) {
+	s.agentServerStore = store
+}
+
 func (s *Server) SetStateFilter(filter func(methods.ACPNavState) methods.ACPNavState) {
 	s.stateFilter = filter
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (s *Server) HasStore() bool {
+	return s.store != nil
+}
+
+func (s *Server) Close() error {
+	if s.store == nil {
+		return nil
+	}
+	return s.store.Close()
+}
+
+func (s *Server) List(ctx context.Context, _ *methods.ACPNavListParams, _ *glsp.Context) (methods.ACPNavState, error) {
+	if s.store == nil {
+		return methods.ACPNavState{}, sql.ErrConnDone
+	}
 	return s.listWithLiveStatus(ctx)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 func (s *Server) AgentServers(ctx context.Context) (methods.ACPAgentServers, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if s.agentServerStore == nil {
 		return nil, sql.ErrConnDone
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return s.agentServerStore.ListAgentServers(ctx)
 }
 
 func (s *Server) SeedAgentServersIfNeeded(ctx context.Context, agentServers methods.ACPAgentServers) error {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if s.agentServerStore == nil {
 		return sql.ErrConnDone
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return s.agentServerStore.SeedAgentServersIfNeeded(ctx, agentServers)
 }
 
 func (s *Server) ListAgentServers(ctx context.Context, _ *methods.ACPNavListAgentServersParams, _ *glsp.Context) (methods.ACPNavAgentServersState, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if s.agentServerStore == nil {
 		return methods.ACPNavAgentServersState{}, sql.ErrConnDone
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	agentServers, err := s.agentServerStore.ListAgentServers(ctx)
 	if err != nil {
 		return methods.ACPNavAgentServersState{}, err
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	defaultAgentServer, err := s.agentServerStore.GetDefaultAgentServer(ctx)
+	if err != nil {
+		return methods.ACPNavAgentServersState{}, err
+	}
 	defaultAgentServerPinned, err := s.agentServerStore.GetDefaultAgentServerPinned(ctx)
 	if err != nil {
 		return methods.ACPNavAgentServersState{}, err
@@ -141,20 +141,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
 
 func (s *Server) SetAgentServers(ctx context.Context, req *methods.ACPNavSetAgentServersParams, _ *glsp.Context) (methods.ACPNavAgentServersState, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if s.agentServerStore == nil {
 		return methods.ACPNavAgentServersState{}, sql.ErrConnDone
 	}
 	if err := s.agentServerStore.SetAgentServers(ctx, req.AgentServers, req.DefaultAgentServer, req.DefaultAgentServerPinned); err != nil {
 		return methods.ACPNavAgentServersState{}, err
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	agentServers, err := s.agentServerStore.ListAgentServers(ctx)
 	if err != nil {
 		return methods.ACPNavAgentServersState{}, err
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	defaultAgentServer, err := s.agentServerStore.GetDefaultAgentServer(ctx)
+	if err != nil {
+		return methods.ACPNavAgentServersState{}, err
+	}
 	defaultAgentServerPinned, err := s.agentServerStore.GetDefaultAgentServerPinned(ctx)
 	if err != nil {
 		return methods.ACPNavAgentServersState{}, err
@@ -164,283 +164,283 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		DefaultAgentServer:       defaultAgentServer,
 		DefaultAgentServerPinned: defaultAgentServerPinned,
 	}, nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func (s *Server) RecordInstalledRegistryAgentServer(ctx context.Context, name string, cfg methods.ACPAgentServerConfig) error {
+	recorder, ok := s.agentServerStore.(InstalledRegistryAgentServerStore)
+	if !ok {
+		return fmt.Errorf("ACP agent server store does not support registry install state")
+	}
+	return recorder.RecordInstalledRegistryAgentServer(ctx, name, cfg)
+}
+
+func (s *Server) GetConfigCache(ctx context.Context, req *methods.ACPNavGetConfigCacheParams, _ *glsp.Context) (methods.ACPNavConfigCacheState, error) {
+	if s.store == nil {
+		return methods.ACPNavConfigCacheState{}, sql.ErrConnDone
+	}
+	entry, err := s.store.GetConfigCache(ctx, req.AgentServer)
+	if err != nil {
+		return methods.ACPNavConfigCacheState{}, err
+	}
+	return methods.ACPNavConfigCacheState{Entry: entry}, nil
+}
+
+func (s *Server) UpsertConfigCache(ctx context.Context, req *methods.ACPNavUpsertConfigCacheParams, _ *glsp.Context) (methods.ACPNavConfigCacheState, error) {
+	if s.store == nil {
+		return methods.ACPNavConfigCacheState{}, sql.ErrConnDone
+	}
+	entry, err := s.store.UpsertConfigCache(ctx, *req)
+	if err != nil {
+		return methods.ACPNavConfigCacheState{}, err
+	}
+	return methods.ACPNavConfigCacheState{Entry: entry}, nil
+}
+
+func (s *Server) GetFileOpener(ctx context.Context, _ *methods.ACPNavGetFileOpenerParams, _ *glsp.Context) (methods.ACPNavFileOpenerState, error) {
+	if s.store == nil {
+		return methods.ACPNavFileOpenerState{}, sql.ErrConnDone
+	}
+	fileOpener, err := s.store.GetFileOpener(ctx)
+	if err != nil {
+		return methods.ACPNavFileOpenerState{}, err
+	}
+	return methods.ACPNavFileOpenerState{FileOpener: fileOpener}, nil
+}
+
+func (s *Server) SetFileOpener(ctx context.Context, req *methods.ACPNavSetFileOpenerParams, _ *glsp.Context) (methods.ACPNavFileOpenerState, error) {
+	if s.store == nil {
+		return methods.ACPNavFileOpenerState{}, sql.ErrConnDone
+	}
+	if err := s.store.SetFileOpener(ctx, req.FileOpener); err != nil {
+		return methods.ACPNavFileOpenerState{}, err
+	}
+	fileOpener, err := s.store.GetFileOpener(ctx)
+	if err != nil {
+		return methods.ACPNavFileOpenerState{}, err
+	}
+	return methods.ACPNavFileOpenerState{FileOpener: fileOpener}, nil
+}
+
+func (s *Server) GetGithubColorMode(ctx context.Context, _ *methods.ACPNavGetGithubColorModeParams, _ *glsp.Context) (methods.ACPNavGithubColorModeState, error) {
+	if s.store == nil {
+		return methods.ACPNavGithubColorModeState{}, sql.ErrConnDone
+	}
+	mode, err := s.store.GetGithubColorMode(ctx)
+	if err != nil {
+		return methods.ACPNavGithubColorModeState{}, err
+	}
+	return methods.ACPNavGithubColorModeState{ColorMode: mode}, nil
+}
+
+func (s *Server) SetGithubColorMode(ctx context.Context, req *methods.ACPNavSetGithubColorModeParams, _ *glsp.Context) (methods.ACPNavGithubColorModeState, error) {
+	if s.store == nil {
+		return methods.ACPNavGithubColorModeState{}, sql.ErrConnDone
+	}
+	if err := s.store.SetGithubColorMode(ctx, req.ColorMode); err != nil {
+		return methods.ACPNavGithubColorModeState{}, err
+	}
+	mode, err := s.store.GetGithubColorMode(ctx)
+	if err != nil {
+		return methods.ACPNavGithubColorModeState{}, err
+	}
+	return methods.ACPNavGithubColorModeState{ColorMode: mode}, nil
+}
+
+func (s *Server) GetKeybindings(ctx context.Context, _ *methods.ACPNavGetKeybindingsParams, _ *glsp.Context) (methods.ACPNavKeybindingsState, error) {
+	if s.store == nil {
+		return methods.ACPNavKeybindingsState{}, sql.ErrConnDone
+	}
+	keybindings, err := s.store.GetKeybindings(ctx)
+	if err != nil {
+		return methods.ACPNavKeybindingsState{}, err
+	}
+	return methods.ACPNavKeybindingsState{Keybindings: keybindings}, nil
+}
+
+func (s *Server) SetKeybindings(ctx context.Context, req *methods.ACPNavSetKeybindingsParams, _ *glsp.Context) (methods.ACPNavKeybindingsState, error) {
+	if s.store == nil {
+		return methods.ACPNavKeybindingsState{}, sql.ErrConnDone
+	}
+	if err := s.store.SetKeybindings(ctx, req.Keybindings); err != nil {
+		return methods.ACPNavKeybindingsState{}, err
+	}
+	keybindings, err := s.store.GetKeybindings(ctx)
+	if err != nil {
+		return methods.ACPNavKeybindingsState{}, err
+	}
+	return methods.ACPNavKeybindingsState{Keybindings: keybindings}, nil
+}
+
 func (s *Server) UpsertProject(ctx context.Context, req *methods.ACPNavUpsertProjectParams, gCtx *glsp.Context) (methods.ACPNavProject, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if s.store == nil {
+		return methods.ACPNavProject{}, sql.ErrConnDone
+	}
 	project, err := s.store.UpsertProject(ctx, *req)
 	if err != nil {
 		return methods.ACPNavProject{}, err
 	}
 	s.notifyDidChange(ctx, gCtx)
 	return project, nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 func (s *Server) SetProjectCollapsed(ctx context.Context, req *methods.ACPNavSetProjectCollapsedParams, gCtx *glsp.Context) (methods.ACPNavState, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if s.store == nil {
+		return methods.ACPNavState{}, sql.ErrConnDone
+	}
+	if err := s.store.SetProjectCollapsed(ctx, req.Path, req.Collapsed); err != nil {
+		return methods.ACPNavState{}, err
+	}
 	state, err := s.listWithLiveStatus(ctx)
 	if err != nil {
 		return methods.ACPNavState{}, err
 	}
 	s.notifyState(ctx, gCtx, state)
 	return state, nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func (s *Server) RenameProject(ctx context.Context, req *methods.ACPNavRenameProjectParams, gCtx *glsp.Context) (methods.ACPNavState, error) {
+	if s.store == nil {
+		return methods.ACPNavState{}, sql.ErrConnDone
+	}
+	if err := s.store.RenameProject(ctx, req.Path, req.Name); err != nil {
+		return methods.ACPNavState{}, err
+	}
+	state, err := s.listWithLiveStatus(ctx)
+	if err != nil {
+		return methods.ACPNavState{}, err
+	}
+	s.notifyState(ctx, gCtx, state)
+	return state, nil
+}
+
+func (s *Server) ReorderProjects(ctx context.Context, req *methods.ACPNavReorderProjectsParams, gCtx *glsp.Context) (methods.ACPNavState, error) {
+	if s.store == nil {
+		return methods.ACPNavState{}, sql.ErrConnDone
+	}
+	if err := s.store.ReorderProjects(ctx, req.Paths); err != nil {
+		return methods.ACPNavState{}, err
+	}
+	state, err := s.listWithLiveStatus(ctx)
+	if err != nil {
+		return methods.ACPNavState{}, err
+	}
+	s.notifyState(ctx, gCtx, state)
+	return state, nil
+}
+
+func (s *Server) ReorderWorktrees(ctx context.Context, req *methods.ACPNavReorderWorktreesParams, gCtx *glsp.Context) (methods.ACPNavState, error) {
+	if s.store == nil {
+		return methods.ACPNavState{}, sql.ErrConnDone
+	}
+	if err := s.store.ReorderWorktrees(ctx, req.ParentPath, req.Paths); err != nil {
+		return methods.ACPNavState{}, err
+	}
+	state, err := s.listWithLiveStatus(ctx)
+	if err != nil {
+		return methods.ACPNavState{}, err
+	}
+	s.notifyState(ctx, gCtx, state)
+	return state, nil
+}
+
+func (s *Server) GetProjectSettings(ctx context.Context, req *methods.ACPNavGetProjectSettingsParams, _ *glsp.Context) (methods.ACPNavProjectSettingsState, error) {
+	if s.store == nil {
+		return methods.ACPNavProjectSettingsState{}, sql.ErrConnDone
+	}
+	settings, err := s.store.GetProjectSettings(ctx, req.Path)
+	if err != nil {
+		return methods.ACPNavProjectSettingsState{}, err
+	}
+	return methods.ACPNavProjectSettingsState{Settings: settings}, nil
+}
+
 func (s *Server) SetProjectSettings(ctx context.Context, req *methods.ACPNavSetProjectSettingsParams, gCtx *glsp.Context) (methods.ACPNavProjectSettingsState, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if s.store == nil {
+		return methods.ACPNavProjectSettingsState{}, sql.ErrConnDone
+	}
+	settings, err := s.store.SetProjectSettings(ctx, *req)
+	if err != nil {
+		return methods.ACPNavProjectSettingsState{}, err
+	}
 	s.notifyDidChange(ctx, gCtx)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return methods.ACPNavProjectSettingsState{Settings: settings}, nil
+}
+
+func (s *Server) PrepareWorktree(ctx context.Context, req *methods.ACPNavPrepareWorktreeParams, _ *glsp.Context) (methods.ACPNavProject, error) {
+	if s.store == nil {
+		return methods.ACPNavProject{}, sql.ErrConnDone
+	}
+	return s.store.PrepareWorktree(ctx, req.ProjectPath)
+}
+
 func (s *Server) ReleasePreparedWorktree(_ context.Context, req *methods.ACPNavReleasePreparedWorktreeParams, _ *glsp.Context) (methods.ACPNavReleasePreparedWorktreeOutput, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if s.store == nil {
 		return methods.ACPNavReleasePreparedWorktreeOutput{}, sql.ErrConnDone
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
+	s.store.ReleasePreparedWorktree(req.Path)
 	return methods.ACPNavReleasePreparedWorktreeOutput{}, nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 func (s *Server) CreateWorktree(ctx context.Context, req *methods.ACPNavCreateWorktreeParams, gCtx *glsp.Context) (methods.ACPNavProject, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if s.store == nil {
+		return methods.ACPNavProject{}, sql.ErrConnDone
+	}
+	project, err := s.store.CreateWorktree(ctx, req.ProjectPath, req.WorktreeName)
+	if err != nil {
+		return methods.ACPNavProject{}, err
+	}
+	if !pathExists(project.Path) {
+		return methods.ACPNavProject{}, fmt.Errorf("created worktree path does not exist: %s", project.Path)
+	}
 	s.notifyDidChange(ctx, gCtx)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return project, nil
+}
+
 func (s *Server) RemoveProject(ctx context.Context, req *methods.ACPNavRemoveProjectParams, gCtx *glsp.Context) (methods.ACPNavState, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if s.store == nil {
+		return methods.ACPNavState{}, sql.ErrConnDone
+	}
+	if err := s.store.RemoveProject(ctx, req.Path); err != nil {
+		return methods.ACPNavState{}, err
+	}
 	state, err := s.listWithLiveStatus(ctx)
 	if err != nil {
 		return methods.ACPNavState{}, err
 	}
 	s.notifyState(ctx, gCtx, state)
 	return state, nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 func (s *Server) RemoveWorktree(ctx context.Context, req *methods.ACPNavRemoveWorktreeParams, gCtx *glsp.Context) (methods.ACPNavState, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if s.store == nil {
+		return methods.ACPNavState{}, sql.ErrConnDone
+	}
+	if err := s.store.RemoveWorktree(ctx, req.Path); err != nil {
+		return methods.ACPNavState{}, err
+	}
 	state, err := s.listWithLiveStatus(ctx)
 	if err != nil {
 		return methods.ACPNavState{}, err
 	}
 	s.notifyState(ctx, gCtx, state)
 	return state, nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 func (s *Server) UpsertConversation(ctx context.Context, req *methods.ACPNavUpsertConversationParams, gCtx *glsp.Context) (methods.ACPNavState, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if s.store == nil {
+		return methods.ACPNavState{}, sql.ErrConnDone
+	}
+	if err := s.store.UpsertConversation(ctx, req.Conversation); err != nil {
+		return methods.ACPNavState{}, err
+	}
 	state, err := s.listWithLiveStatus(ctx)
 	if err != nil {
 		return methods.ACPNavState{}, err
 	}
 	s.notifyState(ctx, gCtx, state)
 	return state, nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 func (s *Server) PrepareConversationHandoff(ctx context.Context, req *methods.ACPNavPrepareConversationHandoffParams, _ *glsp.Context) (methods.ACPNavConversationHandoffOutput, error) {
 	if s.store == nil {
 		return methods.ACPNavConversationHandoffOutput{}, sql.ErrConnDone
@@ -468,18 +468,18 @@ func (s *Server) GetConversationHistory(ctx context.Context, req *methods.ACPNav
 	return s.store.ConversationHistory(ctx, req.ConversationID)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// BindConversationSession writes the session id created for a conversation
+// and pushes the refreshed nav state to every surface. Invoked helper-side at
+// session/new time so conversation live status (keyed by session id) is
+// attachable before any turn can start.
+func (s *Server) BindConversationSession(ctx context.Context, gCtx *glsp.Context, conversationID, agentServer, sessionID, cwd string) error {
+	if s.store == nil {
+		return sql.ErrConnDone
+	}
+	if err := s.store.BindConversationSession(ctx, conversationID, agentServer, sessionID, cwd); err != nil {
+		return err
+	}
+	state, err := s.listWithLiveStatus(ctx)
 	if err != nil {
 		return err
 	}
@@ -498,13 +498,13 @@ func (s *Server) UpdateConversationTitle(ctx context.Context, gCtx *glsp.Context
 		return err
 	}
 	state, err := s.listWithLiveStatus(ctx)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if err != nil {
+		return err
+	}
+	s.notifyState(ctx, gCtx, state)
+	return nil
+}
+
 // BindConversationSessionHandoff atomically commits the frozen source leg and
 // points the stable conversation id at the target agent session. A handoff is
 // never visible durably in only one of those two states.
@@ -528,27 +528,12 @@ func (s *Server) BindConversationSessionHandoff(ctx context.Context, gCtx *glsp.
 }
 
 func (s *Server) RestoreConversation(ctx context.Context, req *methods.ACPNavRestoreConversationParams, gCtx *glsp.Context) (methods.ACPNavState, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-	state, err := s.listWithLiveStatus(ctx)
-	if err != nil {
+	if s.store == nil {
+		return methods.ACPNavState{}, sql.ErrConnDone
+	}
+	if err := s.store.RestoreConversation(ctx, req.Conversation); err != nil {
 		return methods.ACPNavState{}, err
 	}
-	s.notifyState(ctx, gCtx, state)
-	return state, nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-func (s *Server) ArchiveConversation(ctx context.Context, req *methods.ACPNavArchiveConversationParams, gCtx *glsp.Context) (methods.ACPNavState, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
 	state, err := s.listWithLiveStatus(ctx)
 	if err != nil {
 		return methods.ACPNavState{}, err
@@ -557,53 +542,68 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	return state, nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (s *Server) ArchiveConversation(ctx context.Context, req *methods.ACPNavArchiveConversationParams, gCtx *glsp.Context) (methods.ACPNavState, error) {
+	if s.store == nil {
+		return methods.ACPNavState{}, sql.ErrConnDone
+	}
+	if err := s.store.ArchiveConversation(ctx, req.WorkspacePath, req.ConversationID, req.AgentServer, req.SessionID); err != nil {
+		return methods.ACPNavState{}, err
+	}
+	state, err := s.listWithLiveStatus(ctx)
+	if err != nil {
+		return methods.ACPNavState{}, err
+	}
+	s.notifyState(ctx, gCtx, state)
+	return state, nil
+}
+
+func (s *Server) RenameConversation(ctx context.Context, req *methods.ACPNavRenameConversationParams, gCtx *glsp.Context) (methods.ACPNavState, error) {
+	if s.store == nil {
+		return methods.ACPNavState{}, sql.ErrConnDone
+	}
+	if err := s.store.RenameConversation(ctx, req.ConversationID, req.Nickname, req.Title); err != nil {
+		return methods.ACPNavState{}, err
+	}
+	state, err := s.listWithLiveStatus(ctx)
+	if err != nil {
+		return methods.ACPNavState{}, err
+	}
+	s.notifyState(ctx, gCtx, state)
+	return state, nil
+}
+
 func (s *Server) SetConversationViewState(ctx context.Context, req *methods.ACPNavSetConversationViewStateParams, gCtx *glsp.Context) (methods.ACPNavState, error) {
 	if s.store == nil {
 		return methods.ACPNavState{}, sql.ErrConnDone
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	origin := methods.ClientOriginFromContext(ctx)
+	key, hasKey := liveStatusKey(req.AgentServer, req.SessionID)
+	if !hasKey && !req.Reset {
 		return s.listWithLiveStatus(ctx)
 	}
 
 	statusChanged := false
 	s.mu.Lock()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if req.Reset {
+		delete(s.activeSessions, origin)
+	}
+	if hasKey {
+		if req.Active {
+			if s.activeSessions[origin] == nil {
+				s.activeSessions[origin] = map[string]bool{}
+			}
+			s.activeSessions[origin][key] = true
+			status := s.liveStatuses[key]
+			if status.Unread {
+				status.Unread = false
+				statusChanged = true
+				s.setLiveStatusLocked(key, status)
+			}
+		} else {
+			delete(s.activeSessions[origin], key)
+			if len(s.activeSessions[origin]) == 0 {
+				delete(s.activeSessions, origin)
+			}
 		}
 	}
 	s.mu.Unlock()
@@ -651,7 +651,7 @@ func (s *Server) CompletePrompt(ctx context.Context, gCtx *glsp.Context, agentSe
 		return nil
 	}
 	s.mu.Lock()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	active := s.sessionActiveLocked(key)
 	s.mu.Unlock()
 	return s.SetConversationLiveStatus(ctx, gCtx, agentServer, sessionID, ConversationLiveStatusPatch{
 		Working: Bool(false),
@@ -659,27 +659,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	})
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// ClearClientViewState forgets every conversation a client connection reported
+// as viewed. Called when a remote client disconnects so its view-state entries
+// stop suppressing unread marks. Purely bookkeeping: no visible status changes,
+// so nothing is notified.
+func (s *Server) ClearClientViewState(originID string) {
+	s.mu.Lock()
+	delete(s.activeSessions, originID)
+	s.mu.Unlock()
+}
+
+// sessionActiveLocked reports whether any client connection is viewing the
+// conversation. Callers must hold s.mu.
+func (s *Server) sessionActiveLocked(key string) bool {
+	for _, sessions := range s.activeSessions {
+		if sessions[key] {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *Server) ClearAgentServerInFlightStatus(ctx context.Context, gCtx *glsp.Context, agentServer string) error {
 	if s.store == nil {
 		return sql.ErrConnDone
@@ -808,20 +808,20 @@ func liveStatusKey(agentServer, sessionID string) (string, bool) {
 
 func liveStatusIsEmpty(status methods.ACPNavConversationLiveStatus) bool {
 	return !status.Working && !status.WaitingForUser && !status.Unread
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func (s *Server) DeleteConversation(ctx context.Context, req *methods.ACPNavDeleteConversationParams, _ *glsp.Context) (methods.ACPNavState, error) {
+	if s.store == nil {
+		return methods.ACPNavState{}, sql.ErrConnDone
+	}
+	var err error
+	if req.ConversationID != "" {
+		err = s.store.DeleteConversationByID(ctx, req.ConversationID)
+	} else {
+		err = s.store.DeleteConversationBySession(ctx, req.AgentServer, req.SessionID)
+	}
+	if err != nil {
+		return methods.ACPNavState{}, err
+	}
+	return s.store.List(ctx)
+}

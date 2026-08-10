@@ -16,7 +16,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 export * from "./aCPAgentServerConfigBinary";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPAgentServerParams";
 export * from "./aCPCloseSessionParams";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -30,8 +30,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 export * from "./aCPNavCheckAgentRuntimesParams";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavConfigCacheEntry";
+export * from "./aCPNavConfigCacheState";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 export * from "./aCPNavConversationHandoffOutput";
 export * from "./aCPNavConversationHistory";
@@ -40,56 +40,56 @@ export * from "./aCPNavConversationLiveStatus";
 export * from "./aCPNavCreateChatOutput";
 export * from "./aCPNavCreateChatParams";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavDeleteConversationParams";
 export * from "./aCPNavDidChangeParams";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavGetConfigCacheParams";
 export * from "./aCPNavGetConversationHistoryParams";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavGetProjectSettingsParams";
+export * from "./aCPNavInstallAgentServerOutput";
+export * from "./aCPNavInstallAgentServerParams";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 export * from "./aCPNavPrepareConversationHandoffParams";
+export * from "./aCPNavPrepareWorktreeParams";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavProjectSettings";
+export * from "./aCPNavProjectSettingsState";
 export * from "./aCPNavReleasePreparedWorktreeOutput";
+export * from "./aCPNavReleasePreparedWorktreeParams";
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavRenameConversationParams";
+export * from "./aCPNavRenameProjectParams";
+export * from "./aCPNavReorderProjectsParams";
+export * from "./aCPNavReorderWorktreesParams";
+export * from "./aCPNavRestoreConversationParams";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavSetProjectSettingsParams";
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPNavUpsertConfigCacheParams";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./aCPRenameSessionParams";
+export * from "./aCPRestartServerOutput";
 export * from "./aCPTurnEndedNotification";
 export * from "./closeSessionResponse";
 export * from "./codeDescription";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./deleteSecretOutput";
+export * from "./deleteSecretParams";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 export * from "./diagnostic";
 export * from "./diagnosticRelatedInformation";
 export * from "./getDiagnosticsOutput";
 export * from "./getDiagnosticsParams";
+export * from "./getSecretOutput";
+export * from "./getSecretParams";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./getUserConfigOutputSandboxConfig";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./listSecretsOutput";
+export * from "./listSecretsParams";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 export * from "./localInferenceCancelDownloadParams";
@@ -107,24 +107,24 @@ export * from "./localInferenceSetDefaultModelParams";
 export * from "./localInferenceState";
 export * from "./localInferenceUnloadModelParams";
 export * from "./location";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./mCPServerEntry";
+export * from "./mCPServerEntryEnv";
+export * from "./mCPServerEntryHeaders";
+export * from "./mCPServersAuthenticateOutput";
+export * from "./mCPServersAuthenticateParams";
+export * from "./mCPServersDeleteOutput";
+export * from "./mCPServersDeleteParams";
+export * from "./mCPServersListOutput";
+export * from "./mCPServersListParams";
+export * from "./mCPServersSetEnabledOutput";
+export * from "./mCPServersSetEnabledParams";
+export * from "./mCPServersSignOutOutput";
+export * from "./mCPServersSignOutParams";
+export * from "./mCPServersTestConfigParams";
+export * from "./mCPServersTestConnectionOutput";
+export * from "./mCPServersTestConnectionParams";
+export * from "./mCPServersUpsertOutput";
+export * from "./mCPServersUpsertParams";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -142,9 +142,9 @@ export * from "./searchFileVirtualKind";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 export * from "./searchSymbolDefinitionsParamsType";
+export * from "./secretSummary";
+export * from "./sessionRenameResponse";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./upsertSecretOutput";
+export * from "./upsertSecretParams";

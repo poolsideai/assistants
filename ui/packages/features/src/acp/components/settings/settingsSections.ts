@@ -1,15 +1,15 @@
 import type { IconName } from "@poolsideai/components/icon";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type DesktopSettingsSection =
+  | "preferences"
+  | "shortcuts"
   | "models"
   | "voice"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "connectors"
+  | "github"
+  | "agents"
   | "archived"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "remote";
 export type DesktopSettingsNavSection = DesktopSettingsSection | "project-settings";
 export type SettingsSection = "all" | DesktopSettingsSection;
 
@@ -21,9 +21,9 @@ export const DESKTOP_SETTINGS_SECTIONS = [
   "models",
   "voice",
   "shortcuts",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "github",
   "archived",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "remote",
 ] as const satisfies readonly DesktopSettingsSection[];
 
 export const DESKTOP_SETTINGS_NAV_SECTIONS = [
@@ -33,9 +33,9 @@ export const DESKTOP_SETTINGS_NAV_SECTIONS = [
   "models",
   "voice",
   "shortcuts",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "github",
   "archived",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "remote",
 ] as const satisfies readonly DesktopSettingsNavSection[];
 
 export const IDE_SETTINGS_SECTIONS = [
@@ -51,25 +51,25 @@ export const SETTINGS_HEADINGS: Record<SettingsSection, { title: string; subtitl
   },
   preferences: { title: "General", subtitle: "Appearance and API settings." },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  models: {
+    title: "On-Device Models",
     subtitle: "Install and choose local MLX models.",
   },
   voice: {
     title: "Voice Recognition",
     subtitle: "Install and choose local Whisper models for dictation.",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  },
   connectors: { title: "Connectors", subtitle: "MCP servers available to your agents." },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  github: { title: "GitHub", subtitle: "Pull-request awareness, status colors, and access." },
   agents: { title: "Agents", subtitle: "Choose and configure ACP agents and harnesses." },
   archived: {
     title: "Archived Chats",
     subtitle: "View, restore, or delete archived conversations.",
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  remote: {
     title: "Remote Access",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    subtitle: "Control this desktop from your phone over Tailscale.",
+  },
 };
 
 export const SETTINGS_NAV_ITEMS: Record<
@@ -82,7 +82,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   voice: { label: "Voice Recognition", icon: "microphone" },
   connectors: { label: "Connectors", icon: "mcp" },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  github: { label: "GitHub", icon: "github" },
   agents: { label: "Agents", icon: "sparkles" },
   archived: { label: "Archived Chats", icon: "archive" },
   remote: { label: "Remote Access", icon: "remote-access", pill: "Experimental" },

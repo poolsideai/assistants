@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { poolsideGitStatus, type GitStatusOutput } from "@poolsideai/helperapi";
 import { InfoMessageType } from "@poolsideai/rpc";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { tick } from "svelte";
@@ -21,18 +21,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  poolsideGitStatus: vi.fn(),
+}));
+
+// jsdom cannot host @pierre/diffs' shadow-DOM renderer; swap PatchDiff for a
+// stub that renders the new-side text so assertions still see diff content.
+vi.mock("@poolsideai/components/file-diff", async () => ({
+  PatchDiff: (await import("../shared/PatchDiff.mock.svelte")).default,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const gitStatusMock = vi.mocked(poolsideGitStatus);
   let resizeObserverCallbacks: ResizeObserverCallback[] = [];
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -63,8 +63,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     resizeObserverCallbacks = [];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    gitStatusMock.mockReset();
+    gitStatusMock.mockResolvedValue(gitStatus());
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -290,14 +290,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(sessionRepo.cancel).not.toHaveBeenCalled();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("renders an enqueued prompt above the session plan and git changes summary", async () => {
+    gitStatusMock.mockResolvedValue(
+      gitStatus({
+        staged: [{ path: "changed.ts", status: "modified" }],
+        additions: 2,
+        deletions: 1,
+      }),
+    );
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -324,13 +324,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const changesSummary = await screen.findByTestId("desktop-git-changes-summary");
     const overlays = enqueued.closest("[data-conversation-overlays]");
     expect(overlays).not.toBeNull();
     expect(overlays).toContainElement(plan);
     expect(overlays).toContainElement(changesSummary);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(enqueued.compareDocumentPosition(changesSummary)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   it("layers prompt menus above the desktop todo and review stack", async () => {
@@ -645,7 +645,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("keeps the empty-state heading but disables the prompt when the selected agent requires auth", () => {
     const sessionRepo = makeSessionRepo({
       isPrompting: false,
       events: [],
@@ -661,10 +661,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       },
     });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // The heading (with its agent picker) stays visible so the user can
     // switch to an agent they are logged in to; only the composer is disabled.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(screen.getByTestId("empty-state-container")).toBeInTheDocument();
+    expect(screen.getByText("Start a new conversation")).toBeInTheDocument();
     expect(screen.getByTestId("prompt-input")).toHaveAttribute("aria-disabled", "true");
     expect(screen.getByTestId("prompt-input")).toHaveAttribute("contenteditable", "false");
     expect(screen.getByRole("button", { name: "Submit" })).toBeDisabled();
@@ -1646,12 +1646,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Launching the flow swaps the login buttons for the manual confirmation
+    // pair: login completes outside the panel (terminal TUI / browser).
+    const tryAgainButton = await screen.findByRole("button", { name: "Try again" });
+    const confirmButton = screen.getByRole("button", { name: "I'm logged in" });
+    expect(screen.queryByRole("button", { name: "Login" })).not.toBeInTheDocument();
+    expect(tryAgainButton.nextElementSibling).toBe(confirmButton);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1661,19 +1661,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       undefined,
       undefined,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    // The confirmation pair appears as soon as the flow launches; the terminal
+    // write lands shortly after the terminal is created.
+    await waitFor(() => {
+      expect(hostMessageSender).toHaveBeenCalledWith("writeAssistantTerminal", [
+        "terminal-1",
+        "pool login\n",
+      ]);
+    });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // "Try again" restores the login buttons; relaunching writes to a fresh
+    // terminal and restarts the background poll.
+    await fireEvent.click(tryAgainButton);
+    await fireEvent.click(await screen.findByRole("button", { name: "Login" }));
     await waitFor(() => {
       expect(
         hostMessageSender.mock.calls.filter(([method]) => method === "writeAssistantTerminal"),
@@ -1691,67 +1691,67 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("re-verifies with a fresh probe when the user confirms an external login", async () => {
+    let authRequired = true;
+    const hostMessageSender = vi.fn((method: string) => {
+      if (method === "createAssistantTerminal") {
+        return Promise.resolve({
+          id: "terminal-1",
+          worktreePath: "/workspace",
+          createdAt: "2026-05-20T10:00:00Z",
+        });
+      }
+      return Promise.resolve(undefined);
+    });
+    initializeStatefulModule(hostMessageSender);
+    const sessionRepo = makeSessionRepo({
+      agents: {
+        // The adapter rejects programmatic authentication (e.g. Claude), so
+        // polling never resolves; only the manual confirmation can.
+        probeAuthentication: vi.fn().mockResolvedValue("failed"),
+        refreshCachedConfig: vi.fn().mockImplementation(async () => {
+          authRequired = false;
+        }),
+        authRequiredForAgent: vi.fn(() => authRequired),
+        authMethodsForAgent: vi.fn(() => [
+          {
+            type: "terminal",
+            id: "login",
+            name: "Login",
+            command: "claude",
+            args: ["/login"],
+          },
+        ]),
+      },
+    });
+
+    render(Harness, {
+      props: {
+        sessionRepo,
+        conversationRepo: makeConversationRepo(),
+      },
+    });
+
+    await fireEvent.click(screen.getByRole("button", { name: "Login" }));
+    await fireEvent.click(await screen.findByRole("button", { name: "I'm logged in" }));
+
+    await waitFor(() => {
+      expect(sessionRepo.agents.refreshCachedConfig).toHaveBeenCalledWith(
+        "poolside",
+        expect.any(String),
+        { fresh: true },
+      );
+    });
+    // The probe cleared auth-required, so the confirmation state resolves.
+    // (The mocked authRequiredForAgent is not reactive, so the panel itself
+    // stays mounted in this harness; the attempted state clearing — login
+    // buttons returning — is the observable part of the dismissal.)
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: "I'm logged in" })).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole("button", { name: "Login" })).toBeInTheDocument();
+  });
+
   it("reopens the browser auth URL when retrying authentication", async () => {
     const authUri = "https://auth.poolside.ai/device?code=example";
     const sessionRepo = makeSessionRepo({
@@ -2158,20 +2158,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+function gitStatus(overrides: Partial<GitStatusOutput> = {}): GitStatusOutput {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    isRepo: true,
+    branch: "main",
+    detached: false,
+    ahead: 0,
+    behind: 0,
+    staged: [],
+    unstaged: [],
+    untracked: [],
+    stashCount: 0,
+    additions: 0,
+    deletions: 0,
+    ...overrides,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -2205,7 +2205,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       probeAuthentication: vi.fn().mockResolvedValue("pending"),
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      clearNonSessionError: vi.fn(),
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -2286,8 +2286,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     handoffSession: vi.fn().mockResolvedValue(undefined),
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    unboundPermissionRequestsFor: vi.fn(() => []),
+    pendingApprovals: [],
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

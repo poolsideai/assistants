@@ -1,7 +1,7 @@
 import { render } from "@testing-library/svelte";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import SessionEventsRendererHarness from "./SessionEventsRenderer.test.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { GroupedItem } from "./SessionEventsState.svelte";
 import { VIRTUALIZE_THRESHOLD } from "./chat/threadVirtualization";
 
 // jsdom does not perform layout, so ResizeObserver callbacks never fire and
@@ -26,7 +26,7 @@ beforeAll(() => {
   });
 });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function makeItems(count: number): GroupedItem[] {
   return Array.from({ length: count }, (_, i) => ({
     id: `event-${i}`,
     kind: "event" as const,

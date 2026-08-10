@@ -1,13 +1,13 @@
 interface WorktreeConversationFallbackOptions {
   createdPath?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  firstConversationPath: string | null;
   isLoading: boolean;
 }
 
 export function shouldCreateConversationAfterWorktreeCreation({
   createdPath,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  firstConversationPath,
   isLoading,
 }: WorktreeConversationFallbackOptions): boolean {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return Boolean(createdPath && !isLoading && firstConversationPath !== createdPath);
 }

@@ -1,27 +1,27 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package acpregistry
+
+import (
 	"path/filepath"
 	"strings"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+)
+
+func TestBinaryTarget(t *testing.T) {
+	target, err := BinaryTarget("darwin", "arm64")
+	assert.NoError(t, err)
+	assert.Equal(t, "darwin-aarch64", target)
+
+	target, err = BinaryTarget("linux", "amd64")
+	assert.NoError(t, err)
+	assert.Equal(t, "linux-x86_64", target)
+
+	target, err = BinaryTarget("windows", "amd64")
+	assert.NoError(t, err)
+	assert.Equal(t, "windows-x86_64", target)
+}
 
 func TestAgentsCacheDirHonorsOverride(t *testing.T) {
 	override := t.TempDir()

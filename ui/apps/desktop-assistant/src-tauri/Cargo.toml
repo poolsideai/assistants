@@ -28,13 +28,13 @@ codegen-units = 1
 strip = "debuginfo"
 
 [dependencies]
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+base64 = "0.22.1"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 lsp-types = "0.97"
 notify = "8"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+portable-pty = "0.9"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -53,10 +53,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 tauri-plugin-opener = "2"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+tauri-plugin-screenshots = "2.2.0"
 tauri-plugin-shell = "2"
 tauri-plugin-window-state = "2"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Already in the dependency tree via Tauri; used for bounding helper round-trips
 # (see settings.rs file_opener_from_db) so reads/writes never block the UI, and
 # for awaiting native menu results from the main thread (see native_menu.rs).
 tokio = { version = "1", features = ["sync", "time"] }
@@ -80,15 +80,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+[target.'cfg(target_os = "macos")'.dependencies]
+# Used by src/desktop_notification.rs to send clickable, cancellable native notifications.
+mac-notification-sys = "0.6"
+# Used by src/dock.rs to set a per-worktree dock icon + dock-hover name at
 # runtime when launched under spoolside (see SPOOLSIDE_DOCK_ICON_COLOR / _APP_NAME),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# and by src/desktop_notification.rs for macOS notification activation interop.
+objc2 = "0.6"
+objc2-app-kit = { version = "0.3", default-features = false, features = [
   # Reads the user's macOS accent colour under both appearances so the webview
   # can follow it (see src/system_accent.rs).
   "NSAppearance",
@@ -116,7 +116,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   "NSFontDescriptor",
   "NSGraphics",
   "NSGraphicsContext",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "NSImage",
   "NSImageRep",
   "NSImageView",
   "NSMenu",
@@ -134,8 +134,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   "NSWorkspace",
   "block2",
   "objc2-core-foundation",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "std",
+] }
 objc2-foundation = { version = "0.3", features = [
   "NSArray",
   # Builds and measures the SELECTED pill's attributed string for the native

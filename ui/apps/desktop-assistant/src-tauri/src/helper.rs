@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    fs::{self, OpenOptions},
+    io::Write,
     path::{Path, PathBuf},
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering},
@@ -210,9 +210,9 @@ impl HelperState {
             let mut rx = {
                 let mut inner = self.inner.lock().await;
                 if inner.ready {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                    return inner.helper.clone().ok_or_else(|| {
+                        HelperJsonRpcError::transport("poolside-helper is not running")
+                    });
                 }
                 if let Some(error) = &inner.startup_error {
                     return Err(error.clone());
@@ -286,8 +286,8 @@ pub fn start_on_setup(app: &mut App) {
 
     async_runtime::spawn(async move {
         crate::startup_timing::mark("native.helperSpawnBegin");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if let Err(err) = start_helper(&app_handle, state).await {
+            eprintln!("failed to start poolside-helper: {err}");
         }
     });
 }
@@ -370,22 +370,22 @@ pub(crate) async fn send_helper_notification(
     helper.send_notification(method, params).await
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+pub(crate) async fn send_helper_request(
+    app_handle: &AppHandle,
+    method: &str,
+    params: Value,
+) -> Result<Value, HelperJsonRpcError> {
+    let state = app_handle.state::<HelperState>().inner().clone();
+    let helper = state.helper_when_ready().await?;
+
+    helper.send_request(method, params).await
+}
+
+#[tauri::command]
+pub async fn restart_helper(app_handle: AppHandle) -> Result<(), HelperJsonRpcError> {
+    let state = app_handle.state::<HelperState>().inner().clone();
+    append_helper_log(&app_handle, "\n--- restarting poolside-helper ---\n");
+    state.shutdown().await;
     start_helper_with_options(&app_handle, state, None).await
 }
 
@@ -410,13 +410,13 @@ pub async fn restart_helper_debug(
         }),
     )
     .await
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+#[tauri::command]
+pub fn helper_logs(app_handle: AppHandle, lines: Option<usize>) -> Result<String, String> {
+    read_helper_log_tail(&app_handle, lines.unwrap_or(500))
+}
+
 // Appends a webview startup-diagnostics line into the current helper session
 // log so webview state and helper activity interleave chronologically in one
 // file. Lines are capped and kept single-line so they cannot corrupt the log.
@@ -446,17 +446,17 @@ pub fn show_helper_logs(app_handle: AppHandle) -> Result<(), String> {
     open_helper_logs(&app_handle)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+pub fn open_helper_logs(app_handle: &AppHandle) -> Result<(), String> {
+    let path = helper_log_path(app_handle)?;
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|err| err.to_string())?;
+    }
+    if !path.exists() {
+        fs::write(&path, "poolside-helper log is empty.\n").map_err(|err| err.to_string())?;
+    }
+    tauri_plugin_opener::open_path(path, None::<&str>).map_err(|err| err.to_string())
+}
+
 #[tauri::command]
 pub async fn helper_jsonrpc_respond(
     app_handle: AppHandle,
@@ -470,16 +470,16 @@ pub async fn helper_jsonrpc_respond(
     if let Some(error) = error {
         helper.send_error_value(id, error.to_jsonrpc_value()).await
     } else {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        helper
             .send_response(id, result.unwrap_or(Value::Null))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            .await
+    }
+}
+
+async fn start_helper(
+    app_handle: &AppHandle,
+    state: HelperState,
+) -> Result<(), HelperJsonRpcError> {
     start_helper_with_options(app_handle, state, None).await
 }
 
@@ -489,35 +489,35 @@ async fn start_helper_with_options(
     debug: Option<HelperDebugOptions>,
 ) -> Result<(), HelperJsonRpcError> {
     match HelperProcess::spawn(app_handle, debug).await {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        Ok(helper) => {
+            state.set_starting(helper.clone()).await;
+            if let Err(err) = helper.initialize().await {
+                let message = format!("failed to initialize poolside-helper: {err}");
+                eprintln!("{message}");
+                append_helper_log(app_handle, &format!("{message}\n"));
+                state.mark_error(err.clone()).await;
+                helper.shutdown().await;
+                Err(err)
+            } else {
+                append_helper_log(app_handle, "--- poolside-helper started ---\n");
+                state.mark_ready().await;
                 crate::startup_timing::mark("native.helperReady");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                Ok(())
+            }
+        }
+        Err(err) => {
+            append_helper_log(
+                app_handle,
+                &format!("failed to start poolside-helper: {err}\n"),
+            );
+            state
+                .mark_error(HelperJsonRpcError::transport(err.clone()))
+                .await;
+            Err(HelperJsonRpcError::transport(err))
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct HelperDebugOptions {
     port: u16,
@@ -550,55 +550,55 @@ impl HelperCommandSpec {
         Self {
             program: "go".to_string(),
             args: ["run", "-tags=fts5", "./cmd/poolside-helper/..."]
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                .into_iter()
+                .map(str::to_string)
+                .collect(),
             cwd: repo_root(manifest_dir),
             sidecar: false,
             env: Self::development_env(manifest_dir),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
+    }
+
     fn development_env(manifest_dir: &Path) -> Vec<(String, String)> {
         let mut env = Self::remote_access_dev_env(manifest_dir);
         env.extend(Self::local_inference_dev_env(manifest_dir));
         env
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /// Dev builds serve the mobile-remote UI live: the helper proxies UI
+    /// traffic to its Vite dev server (slot-offset ports, mirroring
+    /// spoolside's portsForSlot) and falls back to the on-disk bundle, so UI
+    /// changes apply without re-embedding or restarting. Explicit env set by
+    /// the launcher wins.
+    fn remote_access_dev_env(manifest_dir: &Path) -> Vec<(String, String)> {
+        Self::remote_access_dev_env_with(manifest_dir, |name| std::env::var(name).ok())
+    }
+
+    fn remote_access_dev_env_with(
+        manifest_dir: &Path,
+        lookup: impl Fn(&str) -> Option<String>,
+    ) -> Vec<(String, String)> {
+        let mut env = Vec::new();
+        if lookup("POOLSIDE_REMOTE_DEV_SERVER").is_none() {
+            let slot = lookup("POOLSIDE_WORKTREE_SLOT")
+                .and_then(|v| v.parse::<u32>().ok())
+                .unwrap_or(0);
+            env.push((
+                "POOLSIDE_REMOTE_DEV_SERVER".to_string(),
+                format!("http://127.0.0.1:{}", 5179 + slot * 10),
+            ));
         }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if lookup("POOLSIDE_REMOTE_STATIC").is_none() {
+            if let Some(root) = repo_root(manifest_dir) {
+                env.push((
+                    "POOLSIDE_REMOTE_STATIC".to_string(),
+                    root.join("ui/apps/mobile-remote/dist")
+                        .to_string_lossy()
+                        .into_owned(),
+                ));
+            }
+        }
+        env
     }
 
     fn local_inference_dev_env(manifest_dir: &Path) -> Vec<(String, String)> {
@@ -658,14 +658,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             .collect(),
             cwd: repo_root(manifest_dir),
             sidecar: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            env: {
+                let mut env = vec![
+                    ("CGO_ENABLED".to_string(), "1".to_string()),
+                    ("CGO_CPPFLAGS".to_string(), "-w".to_string()),
+                ];
                 env.extend(Self::development_env(manifest_dir));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                env
+            },
         }
     }
 
@@ -722,7 +722,14 @@ fn file_exists_and_is_non_empty(path: &Path) -> bool {
     }
 }
 
+fn helper_log_path(app_handle: &AppHandle) -> Result<PathBuf, String> {
+    if let Ok(path) = std::env::var("POOLSIDE_DESKTOP_HELPER_LOG_FILE") {
+        return Ok(PathBuf::from(path));
+    }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        .path()
+        .app_log_dir()
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -764,51 +771,44 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+fn append_helper_log(app_handle: &AppHandle, message: &str) {
+    let Ok(path) = helper_log_path(app_handle) else {
+        eprintln!("failed to resolve poolside-helper log path");
+        return;
+    };
+    if let Some(parent) = path.parent() {
+        if let Err(err) = fs::create_dir_all(parent) {
+            eprintln!("failed to create poolside-helper log directory: {err}");
+            return;
+        }
+    }
+    match OpenOptions::new().create(true).append(true).open(&path) {
+        Ok(mut file) => {
+            if let Err(err) = file.write_all(message.as_bytes()) {
+                eprintln!("failed to write poolside-helper log: {err}");
+            }
+        }
+        Err(err) => eprintln!("failed to open poolside-helper log: {err}"),
+    }
+}
+
+fn read_helper_log_tail(app_handle: &AppHandle, lines: usize) -> Result<String, String> {
+    let path = helper_log_path(app_handle)?;
+    let content = match fs::read_to_string(path) {
+        Ok(content) => content,
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
+            return Ok("(no helper log files found)".to_string())
+        }
+        Err(err) => return Err(err.to_string()),
+    };
+
+    let all_lines = content.lines().collect::<Vec<_>>();
+    let start = all_lines.len().saturating_sub(lines);
+    Ok(all_lines[start..].join("\n"))
+}
+
 struct HelperProcess {
     app_handle: AppHandle,
     child: async_runtime::Mutex<Option<CommandChild>>,
@@ -898,8 +898,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             }),
         )
         .await?;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        self.send_notification(Initialized::METHOD, json!({}))
+            .await?;
         Ok(())
     }
 
@@ -938,11 +938,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             return Err(err);
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        let message = rx.recv().await.ok_or_else(|| {
+            HelperJsonRpcError::transport(format!(
+                "poolside-helper closed before responding to {method}"
+            ))
+        })?;
         if let Some(error) = message.get("error") {
             Err(HelperJsonRpcError::from_jsonrpc(error))
         } else {
@@ -950,11 +950,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         }
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    async fn send_notification(
+        &self,
+        method: &str,
+        params: Value,
+    ) -> Result<(), HelperJsonRpcError> {
         self.write_message(json!({
             "jsonrpc": "2.0",
             "method": method,
@@ -1043,10 +1043,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     async fn handle_server_request(&self, message: Value) {
         let id = message.get("id").cloned().unwrap_or(Value::Null);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        let method = message
+            .get("method")
+            .and_then(Value::as_str)
+            .unwrap_or_default();
         let result = match method {
             WorkspaceConfiguration::METHOD => Some(json!([])),
             WorkDoneProgressCreate::METHOD => Some(json!(null)),
@@ -1103,10 +1103,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
 
     async fn handle_server_notification(&self, message: Value) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        let method = message
+            .get("method")
+            .and_then(Value::as_str)
+            .unwrap_or_default();
 
         if should_forward_helper_notification(method) {
             let params = message.get("params").cloned().unwrap_or(Value::Null);
@@ -1320,17 +1320,17 @@ fn should_forward_helper_request(method: &str) -> bool {
     )
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Forward every poolside/* notification to the TS host (host.ts), which owns
+// the routing decision via the shared helper-notification table in
+// @poolsideai/rpc. A hand-maintained method list here silently dropped
+// notifications the webview needed (poolside/acp/serverDidExit never reached
+// the desktop webview); prefix forwarding makes an unrouted notification a
+// visible console.debug in ONE place instead of an invisible gap in two.
 fn should_forward_helper_notification(method: &str) -> bool {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    method.starts_with("poolside/")
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+async fn read_events(helper: Arc<HelperProcess>, mut rx: async_runtime::Receiver<CommandEvent>) {
     let mut framer = LspFramer::default();
     while let Some(event) = rx.recv().await {
         match event {
@@ -1346,19 +1346,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 }
             },
             CommandEvent::Stderr(bytes) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                let message = format!("poolside-helper: {}", String::from_utf8_lossy(&bytes));
+                eprint!("{message}");
+                append_helper_log(&helper.app_handle, &message);
             }
             CommandEvent::Error(err) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                let message = format!("poolside-helper process error: {err}\n");
+                eprint!("{message}");
+                append_helper_log(&helper.app_handle, &message);
             }
             CommandEvent::Terminated(payload) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                let message = format!("poolside-helper terminated: {payload:?}\n");
+                eprint!("{message}");
+                append_helper_log(&helper.app_handle, &message);
                 break;
             }
             _ => {}
@@ -1498,42 +1498,42 @@ mod tests {
             .env
             .iter()
             .any(|(name, value)| { name == MLX_SIDECAR_DISABLE_DEV_BUILD_ENV && value == "1" }));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // spec.env comes from remote_access_dev_env, which defers to any
+        // POOLSIDE_REMOTE_* already present in the ambient environment (as in
         // shells descended from a running desktop's helper), plus local
         // inference env, so the full contents are asserted only in the
         // controlled-lookup tests below.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+
+    #[test]
+    fn remote_access_dev_env_derives_slot_ports_and_respects_overrides() {
+        let manifest_dir = Path::new("/repo/ui/apps/desktop-assistant/src-tauri");
+
+        let env = HelperCommandSpec::remote_access_dev_env_with(manifest_dir, |name| match name {
+            "POOLSIDE_WORKTREE_SLOT" => Some("3".to_string()),
+            _ => None,
+        });
+        assert_eq!(
+            env,
+            vec![
+                (
+                    "POOLSIDE_REMOTE_DEV_SERVER".to_string(),
+                    "http://127.0.0.1:5209".to_string()
+                ),
+                (
+                    "POOLSIDE_REMOTE_STATIC".to_string(),
+                    "/repo/ui/apps/mobile-remote/dist".to_string()
+                ),
+            ]
+        );
+
+        // Launcher-provided env wins: nothing is injected on top of it.
+        let env = HelperCommandSpec::remote_access_dev_env_with(manifest_dir, |name| match name {
+            "POOLSIDE_REMOTE_DEV_SERVER" => Some("http://127.0.0.1:9999".to_string()),
+            "POOLSIDE_REMOTE_STATIC" => Some("/elsewhere".to_string()),
+            _ => None,
+        });
+        assert!(env.is_empty());
     }
 
     #[test]
@@ -1621,10 +1621,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         );
         assert_eq!(spec.cwd, Some(PathBuf::from("/repo")));
         assert!(!spec.sidecar);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Only the CGO entries are deterministic; the remote_access_dev_env
+        // tail depends on the ambient environment (see the development test).
         assert_eq!(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            spec.env[..2],
             vec![
                 ("CGO_ENABLED".to_string(), "1".to_string()),
                 ("CGO_CPPFLAGS".to_string(), "-w".to_string())
@@ -1653,20 +1653,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             "poolside/localInference/didChange"
         ));
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    #[test]
+    fn forwards_every_poolside_notification_and_nothing_else() {
+        // The TS host routes; this layer only guards against non-poolside
+        // traffic reaching the webview event bus.
         assert!(should_forward_helper_notification(
             "poolside/acp/serverDidExit"
         ));
         assert!(should_forward_helper_notification(
             "poolside/acpNav/didChange"
         ));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        assert!(!should_forward_helper_notification("window/logMessage"));
+        assert!(!should_forward_helper_notification(""));
+    }
 
     #[test]
     fn helper_notification_queue_is_bounded() {

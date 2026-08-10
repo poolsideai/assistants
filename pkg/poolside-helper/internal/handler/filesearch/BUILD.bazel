@@ -30,7 +30,7 @@ go_test(
     ],
     embed = [":filesearch"],
     deps = [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/poolside-helper/methods",
         "@com_github_stretchr_testify//assert",
         "@com_github_stretchr_testify//require",
     ],

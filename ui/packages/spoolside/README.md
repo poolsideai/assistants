@@ -20,10 +20,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+Use `spoolside webErrors` to inspect recent browser console errors and uncaught
+page errors from the active target. Add `--all` to include non-error console
+entries, `--limit N` to cap output, and `--clear` to reset the buffer.
 
 ## Debug And Profile
 

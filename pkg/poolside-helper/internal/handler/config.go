@@ -19,7 +19,7 @@ type ClientCapabilitiesConfig struct {
 
 	// Allow clients to add capabilities without requiring synchronized helper
 	// releases.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	_ struct{} `json:"-" additionalProperties:"true"`
 }
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -64,9 +64,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if change.ACPAgentServers != nil {
+		c.ACPAgentServers = *change.ACPAgentServers
+	}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

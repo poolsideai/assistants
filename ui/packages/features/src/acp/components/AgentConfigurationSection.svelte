@@ -27,10 +27,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    LOCAL_AGENT_SERVER,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { versionFromConfig } from "../agentVersions";
   import { LOCAL_AGENT_ROUNDEL_ICON_URL, LOCAL_AGENT_SYSTEM_ICON_URL } from "../localAgentIcon";
   import { agentPickerIconProps } from "./chat/menus/config/agentConfig";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -46,7 +46,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const ACP_PROTOCOL_URL = "https://agentclientprotocol.com";
   const CUSTOM_AGENT_CONFIGURATION_URL =
     "https://docs.poolside.ai/tools/poolside-assistant-desktop";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -83,12 +83,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    Object.keys(configuredAgentServers)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          name !== LOCAL_AGENT_SERVER &&
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -114,7 +114,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let poolsideUpdate = $derived(agentUpdates.updateFor(DEFAULT_AGENT_SERVER));
   let isDesktop = $derived($appState.environment.assistantHost === "desktop");
   let isBusy = $derived(busyAgentId != null || agentUpdates.busyAgentServer != null);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -139,15 +139,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return values.some((value) => value?.toLowerCase().includes(normalizedQuery));
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function sortRegistrySectionAgents(agents: ACPRegistryAgent[]): ACPRegistryAgent[] {
+    return [...agents].sort((left, right) => {
+      const leftInstalled = configuredRegistryIds.has(left.id);
+      const rightInstalled = configuredRegistryIds.has(right.id);
+      if (leftInstalled !== rightInstalled) return leftInstalled ? -1 : 1;
+      return left.name.localeCompare(right.name);
+    });
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -234,6 +234,32 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    // updateAgentServers() below refreshes the store configuredRegistryIds
+    // derives from, so re-reading the set after the save answers "is it
+    // configured now", not "was this an install" — capture that up front.
+    const wasConfigured = configuredRegistryIds.has(agent.id);
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (wasConfigured) {
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (!wasConfigured) {
+        // Pre-warm the just-installed agent in the background: the probe
+        // downloads/starts it, caches its config options, and learns whether
+        // it needs login — so first switch in chat is instant instead of a
+        // 10+ second blank dropdown.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -248,63 +274,47 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function agentCurrentVersionLabel(agent: ACPRegistryAgent): string {
+    const update = agentUpdates.updateFor(agent.id);
+    if (update?.kind === "install") return "Not installed";
+    // Prefer the version the agent itself reported (cached from its last
+    // initialize) over parsing it out of the configured package reference.
+    const currentVersion =
+      acp.agents.installedVersionFor(agent.id) ?? versionFromConfig(update?.currentConfig);
+    if (update && !currentVersion) return "Installed";
+    return formatAgentVersion(currentVersion ?? agent.version);
+  }
+
+  function agentNextVersionLabel(agent: ACPRegistryAgent): string | null {
+    const update = agentUpdates.updateFor(agent.id);
+    if (!update) return null;
     return formatAgentVersion(update.agent.version);
+  }
+
+  function formatAgentVersion(version: string): string {
+    return version.startsWith("v") ? version : `v${version}`;
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const update = agentUpdates.updateFor(agentId);
     if (update?.kind === "restart") {
       return agentUpdates.restartBlockedFor(agentId) ? "Restart when idle" : "Restart agent";
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (agentId === DEFAULT_AGENT_SERVER) {
       return update?.kind === "install" ? "Install Poolside Agent" : "Update Poolside Agent";
+    }
+    return update?.kind === "install" ? "Install" : "Update";
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+      saveError = errorMessage(error, "Failed to update the Poolside agent");
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -320,20 +330,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function openAssistantConfig(): Promise<void> {
+    saveError = null;
+    try {
       await openAssistantConfigFile();
+    } catch (error) {
+      saveError = errorMessage(error, "Failed to open assistant.json");
+    }
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -411,12 +416,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const config = resolvedAgentServers[name];
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -484,7 +484,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           <h3 class="text-psx-foreground-primary truncate text-[13px]/[18px] font-medium">
             Poolside Agent
           </h3>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          {#if bundledPoolsideAgent}
             {#if poolsideReleaseUrl}
               <button
                 type="button"
@@ -501,16 +501,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 {agentCurrentVersionLabel(bundledPoolsideAgent)}
               </span>
             {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            {#if agentNextVersionLabel(bundledPoolsideAgent)}
               <span class="text-psx-foreground-secondary shrink-0 text-xs">→</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              <span class="text-psx-vibrant shrink-0 text-sm">
+                {agentNextVersionLabel(bundledPoolsideAgent)}
+              </span>
+            {/if}
+            <span
               class="bg-psx-chrome text-psx-foreground-secondary shrink-0 rounded-full px-1.5 py-0.5 text-xs"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            >
+              {registryAgentDistributionLabel(bundledPoolsideAgent)}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -576,7 +576,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           </div>
         {/if}
       </article>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
       {#if isDesktop}
         <article class={`${catalogCardClass} flex min-w-0 cursor-default flex-col rounded-xl p-4`}>
           <div class="flex min-w-0 items-center gap-2">
@@ -718,7 +718,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        </span>
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -809,7 +809,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           </div>
         </div>
       {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </div>
     {@render likelyRequirements(requirements)}
     {#if runtimeWarning}
       <p class="text-psx-warning-foreground mt-1 flex items-start gap-1 text-[12px]/[16px]">
@@ -883,7 +883,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          </div>
           {#if command}
             <div class="mt-1.5 flex min-w-0 items-center gap-1">
               <span
@@ -920,10 +920,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           Run your own ACP agent by adding an entry to <code>assistant.json</code>.
         </p>
         {@render likelyRequirements(["ACP-compatible command and any credentials it needs"])}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </article>
     </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </div>
+</SettingsSection>
 
 {#if disableCandidate}
   {@const agent = disableCandidate}

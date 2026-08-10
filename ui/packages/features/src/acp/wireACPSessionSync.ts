@@ -7,7 +7,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 interface ACPSessionSyncTarget {
   sessionId: string | null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  sessionAgentServer?: string | null;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
@@ -29,17 +29,17 @@ export function wireACPSessionSync({
   sessions,
 }: ACPSessionSyncOptions): () => void {
   const handleSessionDelete = (event: Event) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const detail = (event as CustomEvent<string | { sessionId: string; agentServer?: string }>)
+      .detail;
     const deletedSessionId = typeof detail === "string" ? detail : detail.sessionId;
+    const deletedAgentServer = typeof detail === "string" ? undefined : detail.agentServer;
+    if (
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      session.sessionId === deletedSessionId &&
+      (!deletedAgentServer ||
+        !session.sessionAgentServer ||
+        session.sessionAgentServer === deletedAgentServer)
+    ) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   };

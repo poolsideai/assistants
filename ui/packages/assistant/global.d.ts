@@ -1,6 +1,6 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import type { Configuration, Keybindings, WorkspaceFolder } from "@poolsideai/rpc";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { Environment } from "./src/lib/store";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -15,7 +15,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     userSettings?: Configuration;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    environment?: Environment;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     homeDirectory?: string;
   };
@@ -38,8 +38,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         agentIconUrl?: string;
         cwd?: string;
         workingDirectories?: string[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        readOnly?: boolean;
+        fallbackCwds?: string[];
       }
     | undefined;
   var POOLSIDE_ASSISTANT_VIEW_MODE: "classic" | "acp-sidebar" | undefined;

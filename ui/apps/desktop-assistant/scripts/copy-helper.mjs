@@ -77,7 +77,7 @@ if (process.env.POOLSIDE_DESKTOP_LOCAL_MLX_SIDECAR === "1") {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+await installReleaseWhisperServer({ target, targetTriple });
 
 async function installBinary({
   binary,
@@ -266,39 +266,39 @@ function installLocalMLXSidecar({ targetTriple }) {
   console.log(`Installed poolside-mlx-sidecar as ${installedName} from local Swift build`);
 }
 
+async function installReleaseWhisperServer({ target, targetTriple }) {
+  const installedName = `poolside-whisper-server-${targetTriple}${target.extension}`;
+  if (!supportsWhisperServer(targetTriple)) {
+    installPlaceholderBinary({
+      installedName,
+      version: "unsupported",
+      reason: `whisper-server is not supported on ${targetTriple}`,
+    });
+    return;
+  }
+
+  try {
+    await installBinary({
+      binary: "poolside-whisper-server",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      archiveName: `poolside-whisper-server-${target.platform}-${target.arch}.tar.gz`,
+      extractedName: `poolside-whisper-server-${target.platform}-${target.arch}${target.extension}`,
+      installedName,
+    });
+  } catch (error) {
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    console.warn(
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    );
+    installPlaceholderBinary({
+      installedName,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+  }
+}
+
 function installPlaceholderBinary({ installedName, version, reason }) {
   const installedPath = join(binaryDir, installedName);
   writeFileSync(installedPath, "");
@@ -313,12 +313,12 @@ function supportsMLXSidecar(triple) {
   return triple === "aarch64-apple-darwin";
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Whisper-server release assets are only built for Apple Silicon today; other
+// targets get a placeholder and fall back to PATH/env resolution at runtime.
+function supportsWhisperServer(triple) {
+  return triple === "aarch64-apple-darwin";
+}
+
 function downloadGitHubReleaseAsset({ version, archiveName }) {
   execFileSync(
     "gh",

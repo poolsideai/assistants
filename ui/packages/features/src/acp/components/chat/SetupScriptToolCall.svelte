@@ -58,11 +58,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   {#if open}
     <div class="relative flex max-w-full flex-col">
       <div class="border-psx-border bg-psx-panel overflow-hidden rounded-md border">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <TerminalOutputView
+          buffer={output.output}
+          bufferStartOffset={output.outputStartOffset}
+          placeholder="No output yet"
+        />
       </div>
     </div>
   {/if}

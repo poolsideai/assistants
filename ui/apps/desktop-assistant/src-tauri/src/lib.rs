@@ -1,26 +1,26 @@
 mod app_icon;
 mod bundle_guard;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+mod desktop_notification;
+mod desktop_openers;
+mod dock;
 mod file_tree_context_menu;
 mod file_watcher;
 mod helper;
 mod native_dialog;
 mod native_menu;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+mod navigation;
 mod settings;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+mod shell_env;
 mod startup_timing;
 mod system_accent;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+mod terminal;
 #[cfg(unix)]
 mod terminal_locale;
 mod terminal_shell_integration;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 #[cfg(target_os = "macos")]
 mod window_chrome;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+mod window_state;
 
 use tauri::Emitter;
 
@@ -28,38 +28,38 @@ use tauri::Emitter;
 pub fn run() {
     startup_timing::mark("native.runBegin");
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Re-exec under a worktree-named hard link so the Dock-hover tooltip shows
+    // the worktree name (the tooltip follows the executable filename). Must be
+    // first: on success this replaces the process image.
+    dock::rename_executable_for_dock();
+
+    // Set the per-worktree dock/menu name before AppKit launches; once
+    // NSApplication caches the name it can't be changed.
+    dock::set_process_name();
+
+    // Finder launches provide launchd's minimal environment; recover the
+    // user's login-shell environment (PATH, EDITOR, ...) before anything —
+    // openers detection, the helper sidecar, terminals — reads or inherits it.
+    shell_env::apply_user_shell_env();
     startup_timing::mark("native.shellEnvApplied");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     let mut builder = tauri::Builder::default();
 
     #[cfg(desktop)]
     {
         builder = builder
             .plugin(tauri_plugin_single_instance::init(|_app, _argv, _cwd| {}))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            .plugin(window_state::plugin())
             .menu(settings::build_menu)
             .on_menu_event(|app, event| {
                 if event.id() == settings::OPEN_SETTINGS_MENU_ID {
                     if let Err(err) = app.emit(settings::OPEN_SETTINGS_PANEL_EVENT, ()) {
                         eprintln!("failed to open settings panel: {err}");
                     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                } else if event.id() == settings::OPEN_HELPER_LOGS_MENU_ID {
+                    if let Err(err) = helper::open_helper_logs(app) {
+                        eprintln!("failed to open helper logs: {err}");
+                    }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -144,23 +144,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         .plugin(tauri_plugin_dialog::init())
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        .plugin(tauri_plugin_screenshots::init())
         .plugin(tauri_plugin_shell::init())
         .manage(file_watcher::FileWatcherState::default())
         .manage(helper::HelperState::default())
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        .manage(terminal::TerminalState::default())
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         .invoke_handler(tauri::generate_handler![
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            desktop_notification::cancel_clickable_notification,
+            desktop_notification::send_clickable_notification,
             helper::helper_jsonrpc,
             helper::helper_jsonrpc_notify,
             helper::helper_jsonrpc_notification_batch_ack,
             helper::helper_jsonrpc_notification_bridge_ready,
             helper::helper_jsonrpc_respond,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            helper::helper_logs,
             helper::record_startup_diagnostic,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            helper::restart_helper,
             helper::restart_helper_debug,
             helper::show_helper_logs,
             native_dialog::show_confirm_dialog,
@@ -170,7 +170,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             navigation::open_changelog,
             navigation::open_third_party_licenses,
             settings::get_desktop_settings,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            settings::refresh_desktop_openers_cache,
             settings::take_pending_update_announcement,
             settings::set_desktop_theme_preference,
             settings::set_desktop_chat_preferences,
@@ -181,24 +181,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
             settings::set_desktop_app_icon_tint,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            settings::set_desktop_auto_install_updates,
             system_accent::get_system_accent_colors,
             bundle_guard::desktop_bundle_replaced,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
             updater::install_staged_desktop_update,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            settings::set_desktop_file_opener,
             settings::set_navigation_menu_enabled,
             settings::open_external_url,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            settings::check_file_exists,
+            settings::write_text_file,
+            settings::open_file,
+            settings::open_assistant_config_with_opener,
+            settings::open_path_with_opener,
             settings::read_text_file,
             settings::list_directory_tree,
             settings::list_directory_subtree,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            settings::get_image_file_data,
             file_tree_context_menu::file_url_pasteboard_has_files,
             file_tree_context_menu::reveal_path_in_finder,
             file_tree_context_menu::write_file_url_to_pasteboard,
@@ -207,14 +207,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             file_tree_context_menu::write_image_to_pasteboard,
             file_tree_context_menu::trash_path,
             file_tree_context_menu::paste_files_into_directory,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            terminal::list_assistant_terminals,
+            terminal::create_assistant_terminal,
+            terminal::write_assistant_terminal,
+            terminal::clear_assistant_terminal,
+            terminal::resize_assistant_terminal,
+            terminal::delete_assistant_terminal,
+            terminal::close_assistant_terminals_for_worktree,
+            terminal::close_assistant_terminals_for_project,
         ])
         .setup(|app| {
             startup_timing::mark("native.setupBegin");
@@ -230,18 +230,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            navigation::create_main_window(app)?;
             startup_timing::mark("native.windowCreated");
             settings::warm_boot_caches(app.handle());
 __POOL_SYNTHETIC_IMPORT_BASELINE__
             system_accent::observe_system_accent_changes(app.handle());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
             // Apply the per-worktree dock icon tint for spoolside launches.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            // Re-applied on RunEvent::Ready below so it survives the platform's
+            // own icon setup during launch.
             dock::set_dock_icon(app.handle());
             settings::apply_app_icon_tint_from_settings(app.handle());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
             helper::start_on_setup(app);
             Ok(())
         })
@@ -249,11 +249,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         .expect("error while running Poolside");
 
     app.run(|app_handle, event| match event {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        tauri::RunEvent::Ready => {
             startup_timing::mark("native.appReady");
             dock::set_dock_icon(app_handle);
             settings::apply_app_icon_tint_from_settings(app_handle);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
         tauri::RunEvent::ExitRequested { .. } => {
             helper::shutdown_from_run_event(app_handle);
         }
