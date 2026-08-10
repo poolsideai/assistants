@@ -1,5 +1,5 @@
 use tauri::{App, AppHandle, Emitter, Manager, Runtime, Url, WebviewUrl, WebviewWindowBuilder};
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 const MAIN_WINDOW_LABEL: &str = "main";
 const THIRD_PARTY_LICENSES_WINDOW_LABEL: &str = "third-party-licenses";
 const THIRD_PARTY_LICENSES_PAGE: &str = "third-party-licenses.html";
@@ -7,17 +7,17 @@ const THIRD_PARTY_LICENSES_DEEP_LINK_HOST: &str = "third-party-licenses";
 const CHANGELOG_WINDOW_LABEL: &str = "changelog";
 const CHANGELOG_PAGE: &str = "changelog.html";
 const CHANGELOG_DEEP_LINK_HOST: &str = "changelog";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 pub fn create_main_window<R: Runtime>(app: &mut App<R>) -> tauri::Result<()> {
     #[cfg_attr(not(target_os = "macos"), allow(unused_mut))]
     let mut window_config = app
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        .config()
+        .app
+        .windows
+        .iter()
+        .find(|window| window.label == MAIN_WINDOW_LABEL)
+        .expect("main window config is missing")
+        .clone();
 
     // The configured trafficLightPosition is tuned for Tahoe chrome; correct
     // it when the active chrome uses legacy standard-button metrics before the
@@ -25,11 +25,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     #[cfg(target_os = "macos")]
     crate::window_chrome::adjust_traffic_light_position(&mut window_config);
     let dev_url = app.config().build.dev_url.clone();
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Native webview zoom stays disabled: it scales the page with a CSS-zoom
+    // factor that breaks `position: fixed` popup positioning. Cmd +/−/0 are
+    // handled in the webview instead as a font-size zoom (see src/zoom.ts).
     let mut builder = WebviewWindowBuilder::from_config(app.handle(), &window_config)?
         // Wry does not expose frame/gesture information here. Navigation must
         // never launch an external application; trusted document click handlers
@@ -60,11 +60,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    crate::window_state::save_on_bounds_changes(&window);
+
     Ok(())
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 #[tauri::command]
 pub fn open_third_party_licenses(app_handle: AppHandle) -> Result<(), String> {
     open_third_party_licenses_window(&app_handle).map_err(|err| err.to_string())
@@ -252,27 +252,27 @@ fn is_allowed_navigation(url: &Url, dev_url: Option<&Url>) -> bool {
     // about:blank/srcdoc are needed for opaque sandboxed visualization frames.
     is_app_url(url, dev_url)
         || (url.scheme() == "about" && matches!(url.path(), "blank" | "srcdoc"))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+fn is_app_url(url: &Url, dev_url: Option<&Url>) -> bool {
     (url.scheme() == "tauri" && url.host_str() == Some("localhost") && url.port().is_none())
         || (matches!(url.scheme(), "http" | "https")
             && url.host_str() == Some("tauri.localhost")
             && url.port().is_none())
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        || dev_url.is_some_and(|dev_url| same_origin(url, dev_url))
+}
+
+fn same_origin(a: &Url, b: &Url) -> bool {
+    a.scheme() == b.scheme()
+        && a.host_str() == b.host_str()
+        && a.port_or_known_default() == b.port_or_known_default()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
     fn denies_external_and_unsupported_navigation() {
         for target in [
             "https://poolside.ai/docs",
@@ -293,9 +293,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 "{target}"
             );
         }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+
+    #[test]
     fn allows_app_and_sandbox_document_navigation() {
         for target in [
             "tauri://localhost/index.html",
@@ -309,15 +309,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 "{target}"
             );
         }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+
+    #[test]
     fn allows_only_the_dev_server_origin() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        let dev_url = Url::parse("http://localhost:5177").unwrap();
         assert!(is_allowed_navigation(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            &Url::parse("http://localhost:5177/settings").unwrap(),
+            Some(&dev_url),
+        ));
         for target in [
             "http://localhost:3000/docs",
             "https://localhost:5177",
@@ -328,7 +328,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 "{target}"
             );
         }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
 
     #[test]
     fn matches_changelog_deep_links() {
@@ -364,4 +364,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             &Url::parse("https://poolside.ai/legal/eula").unwrap(),
         ));
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

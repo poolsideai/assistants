@@ -32,18 +32,18 @@ export type SelectOptionGroup = {
 // may do without asking, and — when it offers more than a build/plan switch —
 // how it goes about the work.
 export type PromptModeKind = Extract<PromptConfigKind, "mode" | "collaboration">;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 export function configIcon(option: SessionConfigOption): IconName {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  switch (promptConfigKind(option)) {
     case "mode":
     case "collaboration":
       return "plan";
     case "model":
       return "sparkles";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    case "effort":
       return "wand";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    case "fast":
+      return "bolt";
     default:
       return "config";
   }
@@ -66,10 +66,10 @@ export function configValueAppearance(
   return { icon: configIcon(option), category: null };
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function booleanCurrentValue(option: SessionConfigOption): boolean {
+  return option.type === "boolean" ? option.currentValue : false;
+}
+
 // Poolside, Claude, and Codex use different names for the same permission
 // semantics. The category drives the icon and the selected Dangerous warning.
 export type ModeAppearance = ConfigValueAppearance;
@@ -84,17 +84,17 @@ const MODE_APPEARANCES: Record<ModeCategory, ModeAppearance> = {
 
 const ACCEPT_EDITS_MODE: ModeAppearance = { category: "normal", icon: "apply" };
 const UNKNOWN_MODE: ModeAppearance = { category: null, icon: "config" };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 // Dangerous glyphs stay red in both triggers and picker rows. The class is
 // applied directly to the icon so labels remain neutral.
 export function modeIconClass(appearance: ConfigValueAppearance): string {
   return appearance.category === "dangerous" ? "text-rose-700/75 dark:text-rose-400/80" : "";
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+function normalizeConfigValue(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]/g, "");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 // Resolve the current mode by both its display name and wire value. Display
 // names take precedence because they preserve distinctions such as Poolside's
 // "Always ask" versus Codex's "Read-only" even if an agent uses an opaque or
@@ -143,12 +143,12 @@ function modeValueAppearance(rawValue: string, displayName: string): ModeAppeara
     if (value === "default" || value === "alwaysask") {
       return MODE_APPEARANCES.normal;
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
 
   // New modes should remain visibly neutral until their semantics are known.
   return UNKNOWN_MODE;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 // Carrying out the work, as opposed to planning it: Poolside calls it "Build",
 // Codex "Default". It shares the command menu's plan/build glyph pair.
 const BUILD_MODE: ConfigValueAppearance = { category: null, icon: "code" };
@@ -275,78 +275,78 @@ const KNOWN_EFFORT_RANGES: readonly KnownEffortRange[] = [
   {
     values: ["low", "medium", "high", "xhigh"],
   }, // Other agents using the established four-level range
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+];
+
 const KNOWN_EFFORT_KEYS = new Set(KNOWN_EFFORT_RANGES.flatMap((range) => range.values));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const EFFORT_AUTO_KEYS = new Set(["default", "auto"]);
+
+export type EffortLevel = { value: string; name: string; filled: number };
+export type EffortBars = {
+  total: number; // bar count ("none" fills zero bars, so it adds none)
+  levels: EffortLevel[]; // magnitudes present, ascending
+  auto: { value: string; name: string } | null; // the agent's default/auto entry
+  activeFilled: number | null; // bars lit for the current value, null when auto
   activeValue: string | null; // visible value carrying the selected checkmark
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  isAuto: boolean; // current value is the auto/default entry
   valueNames: ReadonlyMap<string, string>; // wire value to user-facing label
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+};
+
+// Resolve an effort option into reception-style bars (used as the effort icons
+// in the config menu). Returns null unless the values match a known range.
+export function effortBars(option: SessionConfigOption): EffortBars | null {
+  if (promptConfigKind(option) !== "effort" || option.type !== "select") return null;
+  const values = optionGroups(option).flatMap((group) => group.options);
+  if (values.length === 0) return null;
+
   let autoEntry: SessionConfigSelectOption | null = null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const entries: { value: string; name: string; key: string }[] = [];
+  for (const value of values) {
+    const valueKey = normalizeConfigValue(value.value);
+    const nameKey = normalizeConfigValue(value.name);
+    if (EFFORT_AUTO_KEYS.has(valueKey) || EFFORT_AUTO_KEYS.has(nameKey)) {
       autoEntry = value;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      continue;
+    }
+    // Match by value, falling back to the display name (for agents whose
+    // values are opaque ids).
+    const key = KNOWN_EFFORT_KEYS.has(valueKey) ? valueKey : nameKey;
+    if (!KNOWN_EFFORT_KEYS.has(key)) return null;
+    entries.push({ value: value.value, name: value.name, key });
+  }
+  if (entries.length === 0) return null;
+
+  const keys = new Set(entries.map((entry) => entry.key));
+  if (keys.size !== entries.length) return null; // duplicate magnitudes
   const matched = KNOWN_EFFORT_RANGES.find(
     (range) =>
       (!range.optionIds || range.optionIds.includes(option.id)) &&
       range.values.length === keys.size &&
       range.values.every((key) => keys.has(key)),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
+  if (!matched) return null;
+
+  // "none" means zero effort and lights zero bars; every other level fills one
+  // more bar than the level below it.
   const visibleKeys = matched.levels ?? matched.values;
   const hasNone = visibleKeys[0] === "none";
   const total = hasNone ? visibleKeys.length - 1 : visibleKeys.length;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const byKey = new Map(entries.map((entry) => [entry.key, entry]));
   const levels = visibleKeys.map((key, index) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const entry = byKey.get(key) as (typeof entries)[number];
     return {
       value: entry.value,
       name: matched.names?.[key] ?? entry.name,
       filled: hasNone ? index : index + 1,
     };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  const current = normalizeConfigValue(option.currentValue);
   const auto = autoEntry
     ? { value: autoEntry.value, name: matched.autoName ?? autoEntry.name }
     : null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const isAuto = auto
+    ? normalizeConfigValue(auto.value) === current
+    : EFFORT_AUTO_KEYS.has(current);
   const activeKey = matched.activeAliases?.[current] ?? current;
   const activeLevel = levels.find(
     (level, index) =>
@@ -361,17 +361,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const targetLevel = targetIndex >= 0 ? levels[targetIndex] : null;
     if (aliasEntry && targetLevel) valueNames.set(aliasEntry.value, targetLevel.name);
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return {
+    total,
+    levels,
+    auto,
+    activeFilled: activeLevel ? activeLevel.filled : null,
     activeValue: isAuto ? (auto?.value ?? null) : (activeLevel?.value ?? null),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    isAuto,
     valueNames,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  };
+}
+
 export function effortValueName(option: SessionConfigOption, value?: string): string {
   const resolvedValue = value ?? (option.type === "select" ? option.currentValue : "");
   return (
@@ -393,15 +393,15 @@ export function optionGroups(option: SessionConfigOption): SelectOptionGroup[] {
 }
 
 export function selectedValueName(option: SessionConfigOption): string {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  return selectValueName(option, option.type === "select" ? option.currentValue : "");
+}
+
+export function selectValueName(option: SessionConfigOption, value: string): string {
   if (option.type !== "select") return "";
   const selected = optionGroups(option)
     .flatMap((group) => group.options)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    .find((candidate) => candidate.value === value);
+  return selected?.name ?? value;
 }
 
 function isSelectGroup(

@@ -24,9 +24,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     // ⌘1–9 hint shown in place of the time column while ⌘ is held.
     shortcutHint?: string;
     onOpen: () => void | Promise<void>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onArchive?: (event: MouseEvent) => void | Promise<void>;
+    onArchiveNow?: (event: MouseEvent) => void | Promise<void>;
+    onContextMenu?: (event: MouseEvent) => void;
   }
 
   let {
@@ -44,9 +44,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     unread = false,
     shortcutHint,
     onOpen,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onArchive,
+    onArchiveNow,
+    onContextMenu,
   }: Props = $props();
 
   const sidebar = getAcpSidebarController();
@@ -54,7 +54,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const showDraftIcon = $derived(session.draftPromptPresent === true);
   const updatedAtLabel = $derived(
     session.updatedAt ? formatRelativeTimeWithoutAgo(session.updatedAt) : null,
   );
@@ -151,16 +151,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           class="flex w-4 items-center justify-center group-focus-within:invisible group-hover:invisible"
           role="img"
           aria-label="Unread conversation"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        >
           <span class="block size-[7px] rounded-full" style="background: #3794ff;"></span>
         </span>
       {:else if updatedAtLabel && !desktop}
         <span
           class="text-psx-foreground-secondary block text-[13px]/[16px] group-focus-within:invisible group-hover:invisible"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        >
           {updatedAtLabel}
         </span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {/if}
       <div
         class="pointer-events-none absolute inset-y-0 -right-1 flex items-center justify-end gap-0.5 opacity-0 group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100"
       >
@@ -177,15 +177,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   {/if}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+<style lang="postcss">
+  .sidebar-agent-icon-slot {
+    display: inline-flex;
     width: var(--sidebar-agent-icon-slot-size, var(--sidebar-agent-icon-size));
     height: var(--sidebar-agent-icon-slot-size, var(--sidebar-agent-icon-size));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+  }
+</style>

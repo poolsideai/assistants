@@ -16,7 +16,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         fileIconPath: this.attrs.fileIconPath as string | undefined,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        tooltip: (this.attrs.tooltip as string | undefined) ?? this.attrs.value,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

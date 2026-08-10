@@ -1,7 +1,7 @@
 use std::{
     collections::{BTreeMap, HashSet},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    env,
+    fs::{self, OpenOptions},
     io::{ErrorKind, Write},
     path::{Path, PathBuf},
     process::{Command, Stdio},
@@ -9,14 +9,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 };
 
 use crate::app_icon::AppIconTint;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#[cfg(test)]
+use crate::desktop_openers::default_file_opener;
+use crate::desktop_openers::{
+    cached_detected_openers_or_default, default_file_opener_id, detected_openers,
     in_app_file_opener_id, open_directory_with_opener, open_file_with_selected_opener,
     refresh_detected_openers, DesktopFileOpener, DetectedOpeners,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+};
+use base64::{engine::general_purpose::STANDARD, Engine as _};
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 use serde::{Deserialize, Serialize};
 use tauri::{
@@ -26,7 +26,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const ASSISTANT_CONFIG_FILE_NAME: &str = "assistant.json";
 const ASSISTANT_CONFIG_SCHEMA_URL: &str = "https://poolside.ai/assets/schemas/assistant/v1.json";
 pub const SETTINGS_CHANGED_EVENT: &str = "poolside:desktop-settings-changed";
 pub const OPEN_SETTINGS_PANEL_EVENT: &str = "poolside:desktop-open-settings-panel";
@@ -52,7 +52,7 @@ pub const NAVIGATE_FORWARD_EVENT: &str = "poolside:desktop-navigate-forward";
 pub const OPEN_SETTINGS_MENU_ID: &str = "poolside-open-settings";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 pub const CHANGELOG_MENU_ID: &str = "poolside-changelog";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+pub const OPEN_HELPER_LOGS_MENU_ID: &str = "poolside-open-helper-logs";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -75,9 +75,9 @@ pub const NAVIGATE_FORWARD_MENU_ID: &str = "poolside-navigate-forward";
 
 const SETTINGS_FILE_NAME: &str = "settings.json";
 const MAX_TEXT_FILE_BYTES: u64 = 5 * 1024 * 1024;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Matches VS Code's binary sniff window: NUL bytes past this offset can occur
+// in legitimate source files (e.g. NUL used as a string-literal separator).
+const BINARY_SNIFF_BYTES: usize = 512;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 const MIN_CHAT_FONT_SIZE: u16 = 10;
 const MAX_CHAT_FONT_SIZE: u16 = 24;
@@ -92,17 +92,17 @@ const MIN_TERMINAL_FONT_SIZE: u16 = 8;
 const MAX_TERMINAL_FONT_SIZE: u16 = 24;
 const MAX_TERMINAL_FONT_FAMILY_LEN: usize = 200;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const ACP_NAV_GET_FILE_OPENER_METHOD: &str = "poolside/acpNav/getFileOpener";
+const ACP_NAV_SET_FILE_OPENER_METHOD: &str = "poolside/acpNav/setFileOpener";
 static CODE_FONT_FAMILIES: OnceLock<Vec<String>> = OnceLock::new();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+// Upper bound on how long a file-opener read may wait on the helper before
+// falling back to the default, so the UI is never gated on helper readiness.
+const FILE_OPENER_HELPER_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(3);
+// The user's preferred file opener is no longer stored here; it lives in the
+// ACP database owned by poolside-helper (see resolve_file_opener_id). A legacy
+// `fileOpenerId` key may still exist in older settings.json files and is
+// migrated on first read, then ignored.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DesktopSettings {
@@ -130,8 +130,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     app_icon_tint: AppIconTint,
     #[serde(default)]
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    #[serde(default = "default_auto_install_updates", alias = "autoUpdateOnLoad")]
+    auto_install_updates: bool,
     /// Last installed version announced by the post-update toast; None until
     /// the first launch records a baseline.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -157,12 +157,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DesktopSettingsResponse {
+    theme_preference: DesktopThemePreference,
     chat_font_size: u16,
     code_font_family: String,
     code_font_families: Vec<String>,
@@ -176,20 +176,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     app_icon_tint: AppIconTint,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    auto_install_updates: bool,
+    file_opener_id: String,
+    file_openers: Vec<DesktopFileOpener>,
+    desktop_openers: Vec<DesktopFileOpener>,
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImageFileData {
+    data: String,
+    mime_type: String,
+    path: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DesktopTextFile {
@@ -303,7 +303,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
             app_icon_tint: AppIconTint::Default,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            auto_install_updates: true,
             last_seen_changelog_version: None,
         }
     }
@@ -325,10 +325,10 @@ pub fn warm_boot_caches(app_handle: &AppHandle) {
 }
 
 #[tauri::command]
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+pub async fn get_desktop_settings(
+    app_handle: AppHandle,
     boot: Option<bool>,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+) -> Result<DesktopSettingsResponse, String> {
     crate::startup_timing::mark("native.settingsCmdBegin");
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     crate::startup_timing::mark("native.settingsRead");
@@ -356,42 +356,42 @@ fn strip_opener_icons(response: &mut DesktopSettingsResponse) {
     {
         opener.clear_icon();
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
 }
 
 #[tauri::command]
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+pub fn refresh_desktop_openers_cache(app_handle: AppHandle) {
+    refresh_openers_cache_on_load(app_handle);
+}
+
+pub fn refresh_openers_cache_on_load(app_handle: AppHandle) {
+    std::thread::spawn(move || {
+        let openers = match refresh_detected_openers(&app_handle) {
+            Ok(openers) => openers,
+            Err(err) => {
+                eprintln!("failed to refresh desktop openers cache: {err}");
+                return;
+            }
+        };
+        let settings = match read_settings(&app_handle) {
+            Ok(settings) => settings,
+            Err(err) => {
+                eprintln!("failed to read desktop settings after opener refresh: {err}");
+                return;
+            }
+        };
+        let file_opener_id = tauri::async_runtime::block_on(resolve_file_opener_id(&app_handle));
+        let response = settings_response_with_openers(settings, file_opener_id, openers);
+        if let Err(err) = app_handle.emit(SETTINGS_CHANGED_EVENT, response) {
+            eprintln!("failed to emit refreshed desktop openers: {err}");
+        }
+    });
+}
+
+#[tauri::command]
+pub async fn set_desktop_theme_preference(
     app_handle: AppHandle,
     theme_preference: DesktopThemePreference,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+) -> Result<DesktopSettingsResponse, String> {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 }
 
@@ -489,112 +489,112 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#[tauri::command]
+pub async fn set_desktop_auto_install_updates(
+    app_handle: AppHandle,
+    auto_install_updates: bool,
+) -> Result<DesktopSettingsResponse, String> {
+    let mut settings = read_settings(&app_handle)?;
+    settings.auto_install_updates = auto_install_updates;
+    write_and_emit_settings(&app_handle, settings).await
+}
+
+fn default_auto_install_updates() -> bool {
+    true
+}
+
+#[tauri::command]
+pub async fn set_desktop_file_opener(
+    app_handle: AppHandle,
+    file_opener_id: String,
+) -> Result<DesktopSettingsResponse, String> {
     let openers = detected_openers(&app_handle);
     let normalized = validate_file_opener_id(&file_opener_id, &openers.file_openers)?;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    persist_file_opener_in_db(&app_handle, &normalized).await?;
     write_cached_file_opener_id(&app_handle, &normalized);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let settings = read_settings(&app_handle)?;
+    let response = settings_response(&app_handle, settings, normalized);
+    app_handle
+        .emit(SETTINGS_CHANGED_EVENT, response.clone())
+        .map_err(|err| err.to_string())?;
+    Ok(response)
+}
+
 #[tauri::command]
 pub fn open_external_url(url: String) -> Result<(), String> {
     validate_external_url(&url)?;
     tauri_plugin_opener::open_url(url, None::<&str>).map_err(|err| err.to_string())
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#[tauri::command]
+pub fn check_file_exists(path: String) -> bool {
+    validate_file_path(&path)
+        .ok()
+        .and_then(|path| fs::metadata(path).ok())
+        .map(|metadata| metadata.is_file())
+        .unwrap_or(false)
+}
+
+#[tauri::command]
+pub fn write_text_file(path: String, contents: String) -> Result<(), String> {
+    let path = validate_file_path(&path)?;
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|err| err.to_string())?;
+    }
+    fs::write(path, contents).map_err(|err| err.to_string())
+}
+
+#[tauri::command]
+pub async fn open_file(
+    app_handle: AppHandle,
+    path: String,
+    line: Option<u32>,
+    column: Option<u32>,
+) -> Result<(), String> {
+    match validate_existing_open_path(&path)? {
+        ExistingOpenPath::File(path) => {
             let resolved_file_opener_id = resolve_file_opener_id_cached(&app_handle).await;
             let file_opener_id = if resolved_file_opener_id == in_app_file_opener_id() {
                 resolved_file_opener_id
             } else if should_open_with_default_app(&path) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                default_file_opener_id()
+            } else {
                 resolved_file_opener_id
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            };
             open_file_path_with_opener(&app_handle, &file_opener_id, &path, line, column)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
+        ExistingOpenPath::Directory(path) => {
+            open_directory_with_opener(&app_handle, &default_file_opener_id(), &path)
+        }
+    }
+}
+
+#[tauri::command]
+pub fn open_assistant_config_with_opener(
+    app_handle: AppHandle,
+    opener_id: String,
+) -> Result<(), String> {
+    let path = assistant_config_path()?;
+    ensure_assistant_config_file(&path)?;
+    let opener_id = if opener_id == in_app_file_opener_id() {
+        default_file_opener_id()
+    } else {
+        opener_id
+    };
+    open_file_path_with_opener(&app_handle, &opener_id, &path, None, None)
+}
+
+#[tauri::command]
+pub fn open_path_with_opener(
+    app_handle: AppHandle,
+    path: String,
+    opener_id: String,
+    line: Option<u32>,
+    column: Option<u32>,
+) -> Result<(), String> {
     match validate_existing_open_path(&path)? {
         ExistingOpenPath::File(path) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            open_file_path_with_opener(&app_handle, &opener_id, &path, line, column)
         }
         ExistingOpenPath::Directory(path) => {
             let opener_id = if opener_id == in_app_file_opener_id() {
@@ -607,58 +607,58 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+fn assistant_config_path() -> Result<PathBuf, String> {
+    if let Ok(path) = env::var("POOLSIDE_ASSISTANT_CONFIG_PATH") {
+        if !path.is_empty() {
+            return Ok(PathBuf::from(path));
+        }
+    }
+
+    let config_home = default_config_home()?;
+    Ok(config_home
+        .join("poolside")
+        .join(ASSISTANT_CONFIG_FILE_NAME))
+}
+
+fn default_config_home() -> Result<PathBuf, String> {
+    if let Ok(path) = env::var("XDG_CONFIG_HOME") {
+        if !path.is_empty() {
+            return Ok(PathBuf::from(path));
+        }
+    }
+    // Must resolve the same file as the helper's userconfig.Directory(),
+    // which uses Go's os.UserHomeDir: USERPROFILE on Windows, HOME elsewhere.
+    let home_var = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
+    if let Ok(path) = env::var(home_var) {
+        if !path.is_empty() {
+            return Ok(PathBuf::from(path).join(".config"));
+        }
+    }
+    Err("Unable to resolve config directory".to_string())
+}
+
+fn ensure_assistant_config_file(path: &Path) -> Result<(), String> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|err| err.to_string())?;
+    }
+    match OpenOptions::new().write(true).create_new(true).open(path) {
         Ok(mut file) => {
             let config = format!(
                 "{{\n  \"$schema\": \"{ASSISTANT_CONFIG_SCHEMA_URL}\",\n  \"agent_servers\": {{}}\n}}\n"
             );
             file.write_all(config.as_bytes()).map_err(|err| {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                // Drop the partially written file so a later attempt does not
+                // treat it as an already initialized config.
+                drop(file);
+                let _ = fs::remove_file(path);
+                err.to_string()
             })
         }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        Err(err) if err.kind() == ErrorKind::AlreadyExists => Ok(()),
+        Err(err) => Err(err.to_string()),
+    }
+}
+
 fn open_file_path_with_opener(
     app_handle: &AppHandle,
     opener_id: &str,
@@ -695,7 +695,7 @@ pub fn read_text_file(path: String) -> Result<DesktopTextFile, String> {
     }
 
     let bytes = fs::read(&file_path).map_err(|err| err.to_string())?;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if bytes[..bytes.len().min(BINARY_SNIFF_BYTES)].contains(&0) {
         return Err("Binary files cannot be opened in Poolside.".to_string());
     }
 
@@ -724,24 +724,24 @@ pub fn list_directory_subtree(
     let relative = validate_desktop_file_tree_relative_directory_path(&relative_path)?;
     validate_desktop_file_tree_subtree_directory(&root, &relative)?;
     build_desktop_file_tree_from(&root, &relative, include_git_ignored.unwrap_or(false))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+#[tauri::command]
+pub fn get_image_file_data(path: String) -> Result<Option<ImageFileData>, String> {
+    let mime_type = match image_mime_type(&path) {
+        Some(mime_type) => mime_type,
+        None => return Ok(None),
+    };
+    let file_path = validate_existing_file_path(&path)?;
+    let bytes = fs::read(&file_path).map_err(|err| err.to_string())?;
+
+    Ok(Some(ImageFileData {
+        data: STANDARD.encode(bytes),
+        mime_type: mime_type.to_string(),
+        path,
+    }))
+}
+
 pub fn build_menu<R: Runtime>(app_handle: &AppHandle<R>) -> tauri::Result<Menu<R>> {
     crate::startup_timing::mark("native.menuBuildBegin");
     let menu = Menu::default(app_handle)?;
@@ -753,16 +753,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     prepend_navigation_menu_items(app_handle, &view_menu)?;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    let helper_logs = MenuItem::with_id(
+        app_handle,
+        OPEN_HELPER_LOGS_MENU_ID,
+        "Poolside Helper Logs",
+        true,
+        None::<&str>,
+    )?;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     insert_file_menu(app_handle, &menu)?;
     insert_edit_menu(app_handle, &menu)?;
 
@@ -1210,17 +1210,17 @@ fn append_separator_if_needed<R: Runtime>(
     Ok(())
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+fn submenu_by_text<R: Runtime>(menu: &Menu<R>, text: &str) -> tauri::Result<Option<Submenu<R>>> {
+    for item in menu.items()? {
+        if let Some(submenu) = item.as_submenu() {
+            if submenu.text()? == text {
+                return Ok(Some(submenu.clone()));
+            }
+        }
+    }
+    Ok(None)
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     Ok(app_handle
         .path()
@@ -1368,18 +1368,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+async fn write_and_emit_settings(
     app_handle: &AppHandle,
     settings: DesktopSettings,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+) -> Result<DesktopSettingsResponse, String> {
     write_settings(app_handle, &settings)?;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let file_opener_id = resolve_file_opener_id(app_handle).await;
+    let response = settings_response(app_handle, settings, file_opener_id);
     app_handle
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        .emit(SETTINGS_CHANGED_EVENT, response.clone())
         .map_err(|err| err.to_string())?;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    Ok(response)
 }
 
 /// Restore the saved icon tint at launch. Called from both `setup` and
@@ -1479,111 +1479,111 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/// Reads the persisted file opener from the helper's ACP database, distinguishing
+/// three outcomes:
+/// - `Ok(Some(id))` — a value is stored,
+/// - `Ok(None)` — the DB is reachable but has no stored value,
+/// - `Err(())` — the read failed or timed out.
+///
+/// The caller must not treat a read error as "no value": doing so would let a
+/// transient timeout trigger the legacy migration and overwrite an existing DB
+/// choice with the stale settings.json value.
+///
+/// The helper round-trip is time-bounded so it never blocks the UI indefinitely:
+/// `get_desktop_settings` is awaited during webview bootstrap and `open_file`
+/// runs on every file open, and `helper_when_ready` would otherwise wait forever
+/// for a slow-to-start or hung helper.
+async fn file_opener_from_db(app_handle: &AppHandle) -> Result<Option<String>, ()> {
+    let request = crate::helper::send_helper_request(
+        app_handle,
+        ACP_NAV_GET_FILE_OPENER_METHOD,
+        serde_json::json!({}),
+    );
+    match tokio::time::timeout(FILE_OPENER_HELPER_TIMEOUT, request).await {
+        Ok(Ok(value)) => {
+            let id = value
+                .get("fileOpener")
+                .and_then(|opener| opener.as_str())
+                .unwrap_or_default()
+                .trim()
+                .to_string();
+            Ok((!id.is_empty()).then_some(id))
+        }
+        Ok(Err(err)) => {
+            eprintln!("failed to read file opener from helper: {err}");
+            Err(())
+        }
+        Err(_) => {
+            eprintln!("timed out reading file opener from helper");
+            Err(())
+        }
+    }
+}
+
+/// Persists the file opener id in the helper's ACP database. Time-bounded for
+/// the same reason as the read: this also runs on the bootstrap path via the
+/// legacy migration in resolve_file_opener_id, so an unbounded write would
+/// reintroduce the indefinite stall the read timeout prevents.
+async fn persist_file_opener_in_db(
+    app_handle: &AppHandle,
+    file_opener_id: &str,
+) -> Result<(), String> {
+    let request = crate::helper::send_helper_request(
+        app_handle,
+        ACP_NAV_SET_FILE_OPENER_METHOD,
+        serde_json::json!({ "fileOpener": file_opener_id }),
+    );
+    match tokio::time::timeout(FILE_OPENER_HELPER_TIMEOUT, request).await {
+        Ok(result) => result.map(|_| ()).map_err(|err| err.to_string()),
+        Err(_) => Err("timed out writing file opener to helper".to_string()),
+    }
+}
+
+/// Reads a legacy `fileOpenerId` value straight from settings.json so a one-time
+/// migration can move it into the ACP database.
+fn legacy_file_opener_id(app_handle: &AppHandle) -> Option<String> {
+    let path = settings_path(app_handle).ok()?;
+    let contents = fs::read_to_string(path).ok()?;
+    let value: serde_json::Value = serde_json::from_str(&contents).ok()?;
+    let id = value.get("fileOpenerId")?.as_str()?.trim().to_string();
+    if id.is_empty() {
+        None
+    } else {
+        Some(id)
+    }
+}
+
+/// Resolves the active file opener id. The ACP database is the source of truth;
+/// only when it is reachable and definitively empty is a legacy settings.json
+/// value migrated into it. A read error/timeout falls back to the default
+/// without migrating, so it can never overwrite an existing DB choice.
 ///
 /// Every authoritative resolution refreshes the local cache file that
 /// `resolve_file_opener_id_cached` serves, keeping the boot and file-open
 /// paths off the helper round-trip.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+async fn resolve_file_opener_id(app_handle: &AppHandle) -> String {
+    match file_opener_from_db(app_handle).await {
+        // A value is stored — use it.
         Ok(Some(id)) => {
             write_cached_file_opener_id(app_handle, &id);
             return id;
         }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Read failed or timed out — do not migrate; the picker and settings
         // panel re-read on mount once the helper is ready. Not cached either:
         // a transient failure must not pin the default.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        Err(()) => return default_file_opener_id(),
+        // DB is reachable and empty — fall through to the one-time migration.
+        Ok(None) => {}
+    }
+    if let Some(legacy) = legacy_file_opener_id(app_handle) {
+        if legacy != default_file_opener_id() {
+            if let Err(err) = persist_file_opener_in_db(app_handle, &legacy).await {
+                eprintln!("failed to migrate file opener to helper: {err}");
+            }
             write_cached_file_opener_id(app_handle, &legacy);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            return legacy;
+        }
+    }
     let id = default_file_opener_id_for_new_user(&detected_openers(app_handle));
     write_cached_file_opener_id(app_handle, &id);
     id
@@ -1639,20 +1639,20 @@ fn write_cached_file_opener_id(app_handle: &AppHandle, id: &str) {
             eprintln!("failed to write file opener cache: {err}");
         }
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+fn default_file_opener_id_for_new_user(openers: &DetectedOpeners) -> String {
+    if openers
+        .file_openers
+        .iter()
+        .any(|opener| opener.id == "editor")
+    {
+        "editor".to_string()
+    } else {
+        default_file_opener_id()
+    }
+}
+
 fn set_theme_preference(
     mut settings: DesktopSettings,
     theme_preference: DesktopThemePreference,
@@ -1722,49 +1722,49 @@ fn set_terminal_preferences(
     Ok(settings)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+fn validate_file_opener_id(
+    file_opener_id: &str,
+    openers: &[DesktopFileOpener],
+) -> Result<String, String> {
+    let normalized = file_opener_id.trim();
+    if normalized.is_empty() {
+        return Err("Please choose an application to open files".to_string());
+    }
+
+    if !openers.iter().any(|opener| opener.id == normalized) {
+        return Err("That file opener is no longer available".to_string());
+    }
+
+    Ok(normalized.to_string())
+}
+
+fn settings_response(
+    app_handle: &AppHandle,
+    settings: DesktopSettings,
+    file_opener_id: String,
+) -> DesktopSettingsResponse {
+    let detected = cached_detected_openers_or_default(app_handle);
+    settings_response_with_openers(settings, file_opener_id, detected)
+}
+
+fn settings_response_with_openers(
+    settings: DesktopSettings,
+    file_opener_id: String,
+    openers: DetectedOpeners,
+) -> DesktopSettingsResponse {
+    let file_openers = openers.file_openers;
+    let desktop_openers = openers.desktop_openers;
     let file_opener_id = if file_openers
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        .iter()
+        .any(|opener| opener.id == file_opener_id)
+    {
+        file_opener_id
+    } else {
+        default_file_opener_id()
+    };
+
+    DesktopSettingsResponse {
+        theme_preference: settings.theme_preference,
         chat_font_size: settings.chat_font_size,
         code_font_families: code_font_families_for_setting(&settings.code_font_family),
         code_font_family: settings.code_font_family,
@@ -1778,13 +1778,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         app_icon_tint: settings.app_icon_tint,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        auto_install_updates: settings.auto_install_updates,
+        file_opener_id,
+        file_openers,
+        desktop_openers,
+    }
+}
+
 fn normalize_chat_font_size(chat_font_size: u16) -> Result<u16, String> {
     if !(MIN_CHAT_FONT_SIZE..=MAX_CHAT_FONT_SIZE).contains(&chat_font_size) {
         return Err(format!(
@@ -2177,57 +2177,57 @@ fn validate_external_url(url: &str) -> Result<(), String> {
     }
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+fn validate_file_path(path: &str) -> Result<PathBuf, String> {
+    let trimmed = path.trim();
+    if trimmed.is_empty() {
+        return Err("Please enter a valid file path".to_string());
+    }
+
+    if let Ok(parsed) = Url::parse(trimmed) {
+        if parsed.scheme() != "file" {
+            return Err("Only file paths can be opened".to_string());
+        }
+        return parsed
+            .to_file_path()
+            .map_err(|_| "Please enter a valid file path".to_string());
+    }
+
+    Ok(PathBuf::from(trimmed))
+}
+
+fn validate_existing_file_path(path: &str) -> Result<PathBuf, String> {
+    let path = validate_file_path(path)?;
+    match fs::metadata(&path) {
+        Ok(metadata) if metadata.is_file() => Ok(path),
+        Ok(_) => Err("Only files can be opened".to_string()),
+        Err(err) => Err(err.to_string()),
+    }
+}
+
 pub(crate) enum ExistingOpenPath {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    File(PathBuf),
+    Directory(PathBuf),
+}
+
 pub(crate) fn validate_existing_open_path(path: &str) -> Result<ExistingOpenPath, String> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let path = validate_file_path(path)?;
+    match fs::metadata(&path) {
+        Ok(metadata) if metadata.is_file() => Ok(ExistingOpenPath::File(path)),
+        Ok(metadata) if metadata.is_dir() => Ok(ExistingOpenPath::Directory(path)),
+        Ok(_) => Err("Only files and directories can be opened".to_string()),
+        Err(err) => Err(err.to_string()),
+    }
+}
+
 pub(crate) fn validate_existing_directory_path(path: &str) -> Result<PathBuf, String> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let path = validate_file_path(path)?;
+    match fs::metadata(&path) {
+        Ok(metadata) if metadata.is_dir() => Ok(path),
+        Ok(_) => Err("Only directories can be opened".to_string()),
+        Err(err) => Err(err.to_string()),
+    }
+}
+
 fn validate_desktop_file_tree_relative_directory_path(
     relative_path: &str,
 ) -> Result<PathBuf, String> {
@@ -2353,12 +2353,12 @@ fn desktop_file_tree_children(
             Err(_) => continue,
         };
         let name = entry.file_name().to_string_lossy().to_string();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Git internals are never user content: hide the repo's .git directory
+        // (and the .git file of submodule/linked-worktree checkouts) at every
+        // level, matching VS Code's default `**/.git` exclude.
+        if name == ".git" {
+            continue;
+        }
         let child_relative_path = relative_directory.join(&name);
         let kind = if file_type.is_dir() && !file_type.is_symlink() {
             DesktopFileTreeEntryKind::Directory
@@ -2656,49 +2656,49 @@ fn should_open_with_default_app(path: &std::path::Path) -> bool {
                 | "webp"
                 // Documents commonly handled by preview apps.
                 | "pdf"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                // Audio.
+                | "aac"
+                | "aiff"
+                | "flac"
+                | "m4a"
+                | "mp3"
+                | "ogg"
+                | "opus"
+                | "wav"
+                | "wma"
+                // Video.
+                | "avi"
+                | "m4v"
+                | "mkv"
+                | "mov"
+                | "mp4"
+                | "mpeg"
+                | "mpg"
+                | "ogv"
+                | "webm"
+                | "wmv"
+        )
+    )
+}
+
+fn image_mime_type(path: &str) -> Option<&'static str> {
+    let file_path = validate_file_path(path).ok()?;
+    match file_path
+        .extension()
+        .and_then(|extension| extension.to_str())
+        .map(|extension| extension.to_ascii_lowercase())
+        .as_deref()
+    {
+        Some("bmp") => Some("image/bmp"),
+        Some("gif") => Some("image/gif"),
+        Some("jpeg") | Some("jpg") => Some("image/jpeg"),
+        Some("png") => Some("image/png"),
+        Some("svg") => Some("image/svg+xml"),
+        Some("webp") => Some("image/webp"),
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2821,59 +2821,59 @@ mod tests {
         assert!(validate_external_url("poolside://auth/callback").is_err());
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    #[test]
+    fn accepts_file_paths() {
+        assert_eq!(
+            validate_file_path("/tmp/poolside.txt").unwrap(),
+            PathBuf::from("/tmp/poolside.txt")
+        );
+    }
+
+    #[test]
+    fn accepts_file_urls() {
+        assert_eq!(
+            validate_file_path("file:///tmp/poolside.txt").unwrap(),
+            PathBuf::from("/tmp/poolside.txt")
+        );
+    }
+
+    #[test]
+    fn detects_image_mime_types() {
+        assert_eq!(image_mime_type("/tmp/poolside.PNG"), Some("image/png"));
+        assert_eq!(
+            image_mime_type("file:///tmp/poolside.svg"),
+            Some("image/svg+xml")
+        );
+        assert_eq!(image_mime_type("/tmp/poolside.txt"), None);
+    }
+
+    #[test]
+    fn opens_media_files_with_default_app() {
+        for path in [
+            "/tmp/poolside.PNG",
+            "/tmp/poolside.pdf",
+            "/tmp/poolside.MP3",
+            "/tmp/poolside.mov",
+        ] {
+            assert!(should_open_with_default_app(&PathBuf::from(path)), "{path}");
+        }
+    }
+
+    #[test]
+    fn keeps_source_files_on_configured_opener() {
+        for path in [
+            "/tmp/poolside.ts",
+            "/tmp/poolside.rs",
+            "/tmp/poolside.md",
+            "/tmp/Makefile",
+        ] {
+            assert!(
+                !should_open_with_default_app(&PathBuf::from(path)),
+                "{path}"
+            );
+        }
+    }
+
     #[test]
     fn text_file_command_reads_existing_utf8_file() {
         let path = std::env::temp_dir().join(format!(
@@ -2902,27 +2902,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         let _ = fs::remove_file(path);
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    #[test]
+    fn text_file_command_reads_utf8_file_with_late_nul_byte() {
+        let path = std::env::temp_dir().join(format!(
+            "poolside-text-file-command-{}-late-nul.ts",
+            std::process::id()
+        ));
+        let mut contents = "a".repeat(BINARY_SNIFF_BYTES);
+        contents.push_str("key\0separator");
+        fs::write(&path, &contents).unwrap();
+
+        let text_file = read_text_file(path.to_string_lossy().to_string()).unwrap();
+        assert_eq!(text_file.contents, contents);
+
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn rejects_non_file_urls_as_file_paths() {
+        assert!(validate_file_path("https://example.com/readme.md").is_err());
+    }
+
     #[test]
     fn defaults_missing_theme_preference_to_system() {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -3068,14 +3068,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     #[test]
     fn rejects_invalid_theme_preference() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        let result = serde_json::from_str::<DesktopSettings>(r#"{"themePreference":"sepia"}"#);
 
         assert!(result.is_err());
     }
 
     #[test]
     fn rejects_invalid_terminal_cursor_style() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        let result = serde_json::from_str::<DesktopSettings>(r#"{"terminalCursorStyle":"beam"}"#);
 
         assert!(result.is_err());
     }
@@ -3093,7 +3093,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         assert_eq!(updated.theme_preference, DesktopThemePreference::Light);
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -3263,73 +3263,73 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         assert!(is_generic_font_family("monospace"));
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    #[test]
+    fn file_opener_validation_rejects_empty_id() {
+        let file_openers = vec![default_file_opener()];
+
+        let result = validate_file_opener_id("   ", &file_openers);
+
+        assert_eq!(
+            result.unwrap_err(),
+            "Please choose an application to open files"
+        );
+    }
+
+    #[test]
+    fn file_opener_validation_rejects_unknown_id() {
+        let file_openers = vec![default_file_opener()];
+
+        let result = validate_file_opener_id("app:not-installed", &file_openers);
+
+        assert_eq!(
+            result.unwrap_err(),
+            "That file opener is no longer available"
+        );
+    }
+
+    #[test]
+    fn file_opener_validation_accepts_and_trims_known_id() {
+        let file_openers = vec![default_file_opener()];
+
+        let normalized =
+            validate_file_opener_id(&format!("  {}  ", default_file_opener_id()), &file_openers)
+                .unwrap();
+
+        assert_eq!(normalized, default_file_opener_id());
+    }
+
+    #[test]
+    fn helper_timeout_has_a_time_driver_in_tauri_runtime() {
+        // file_opener_from_db wraps the helper round-trip in tokio::time::timeout
+        // and runs both on async Tauri commands and via async_runtime::block_on
+        // (refresh_openers_cache_on_load). tokio's time driver must be present in
+        // that runtime or timeout/sleep would panic at runtime.
+        let timed_out = tauri::async_runtime::block_on(async {
+            tokio::time::timeout(std::time::Duration::from_millis(5), async {
+                tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            })
+            .await
+            .is_err()
+        });
+        assert!(timed_out);
+    }
+
+    #[test]
     fn response_resets_desktop_only_opener_selection() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        use crate::desktop_openers::test_opener;
+        let terminal = test_opener("terminal:dev.warp.Warp");
+        let openers = DetectedOpeners {
+            file_openers: vec![default_file_opener()],
+            desktop_openers: vec![default_file_opener(), terminal],
+        };
+        let settings = DesktopSettings {
+            theme_preference: DesktopThemePreference::System,
             ..DesktopSettings::default()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        };
+
+        let response =
+            settings_response_with_openers(settings, "terminal:dev.warp.Warp".to_string(), openers);
+
         assert_eq!(response.file_opener_id, default_file_opener_id());
     }
 
@@ -3346,22 +3346,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         let response = settings_response_with_openers(settings, in_app_file_opener_id(), openers);
 
         assert_eq!(response.file_opener_id, in_app_file_opener_id());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+
+    #[test]
+    fn response_falls_back_to_default_for_unknown_opener() {
+        let openers = DetectedOpeners {
+            file_openers: vec![default_file_opener()],
+            desktop_openers: vec![default_file_opener()],
+        };
+        let settings = DesktopSettings::default();
+
+        let response =
+            settings_response_with_openers(settings, "app:not-installed".to_string(), openers);
+
+        assert_eq!(response.file_opener_id, default_file_opener_id());
+    }
+
     #[test]
     fn strip_opener_icons_clears_both_lists_and_nothing_else() {
         use crate::desktop_openers::test_opener_with_icon;
@@ -3397,67 +3397,67 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         assert_eq!(stripped_json["fileOpenerId"], full_json["fileOpenerId"]);
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    #[test]
+    fn new_user_file_opener_prefers_editor_env_when_available() {
+        use crate::desktop_openers::test_opener;
+        let openers = DetectedOpeners {
+            file_openers: vec![default_file_opener(), test_opener("editor")],
+            desktop_openers: vec![default_file_opener()],
+        };
+
+        assert_eq!(default_file_opener_id_for_new_user(&openers), "editor");
+    }
+
+    #[test]
+    fn new_user_file_opener_falls_back_to_default_without_editor_env() {
+        let openers = DetectedOpeners {
+            file_openers: vec![default_file_opener()],
+            desktop_openers: vec![default_file_opener()],
+        };
+
+        assert_eq!(
+            default_file_opener_id_for_new_user(&openers),
+            default_file_opener_id()
+        );
+    }
+
+    #[test]
+    fn settings_ignores_legacy_file_opener_id() {
+        // Older settings.json files carried a `fileOpenerId`; it must parse
+        // without error now that the field lives in the ACP database.
+        let settings: DesktopSettings =
+            serde_json::from_str(r#"{"themePreference":"dark","fileOpenerId":"editor"}"#).unwrap();
+
+        assert_eq!(settings.theme_preference, DesktopThemePreference::Dark);
+    }
+
+    #[test]
+    fn rejects_non_directory_paths_for_directory_openers() {
+        assert!(validate_existing_directory_path("/definitely/not/a/poolside/dir").is_err());
+    }
+
+    #[test]
+    fn open_path_validation_accepts_existing_files_and_directories() {
+        let temp_root = std::env::temp_dir().join(format!(
+            "poolside-open-path-validation-{}",
+            std::process::id()
+        ));
+        let dir_path = temp_root.join("project");
+        let file_path = dir_path.join("README.md");
+        fs::create_dir_all(&dir_path).unwrap();
+        fs::write(&file_path, "test").unwrap();
+
+        match validate_existing_open_path(&file_path.to_string_lossy()).unwrap() {
+            ExistingOpenPath::File(path) => assert_eq!(path, file_path),
+            ExistingOpenPath::Directory(_) => panic!("expected file path"),
+        }
+        match validate_existing_open_path(&dir_path.to_string_lossy()).unwrap() {
+            ExistingOpenPath::Directory(path) => assert_eq!(path, dir_path),
+            ExistingOpenPath::File(_) => panic!("expected directory path"),
+        }
+
+        fs::remove_dir_all(temp_root).unwrap();
+    }
 
     #[test]
     fn desktop_file_tree_lists_sorted_relative_paths() {
@@ -3505,47 +3505,47 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         fs::remove_dir_all(temp_root).unwrap();
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    #[test]
+    fn desktop_file_tree_hides_git_internals() {
+        let temp_root = std::env::temp_dir().join(format!(
+            "poolside-file-tree-git-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(temp_root.join(".git")).unwrap();
+        fs::write(temp_root.join(".git").join("HEAD"), "ref: refs/heads/main").unwrap();
+        fs::write(temp_root.join("README.md"), "readme").unwrap();
+        // Submodule/linked-worktree checkouts have a .git *file* in subdirs.
+        let sub_path = temp_root.join("sub");
+        fs::create_dir_all(&sub_path).unwrap();
+        fs::write(sub_path.join(".git"), "gitdir: ../.git/modules/sub").unwrap();
+        fs::write(sub_path.join("main.rs"), "test").unwrap();
+
+        let tree = build_desktop_file_tree(&temp_root, false).unwrap();
+        assert_eq!(
+            tree.entries
+                .iter()
+                .map(|entry| entry.relative_path.clone())
+                .collect::<Vec<_>>(),
+            vec!["sub/".to_string(), "README.md".to_string()]
+        );
+
+        let subtree = build_desktop_file_tree_from(&temp_root, Path::new("sub"), false).unwrap();
+        assert_eq!(
+            subtree
+                .entries
+                .iter()
+                .map(|entry| entry.relative_path.clone())
+                .collect::<Vec<_>>(),
+            vec!["sub/main.rs".to_string()]
+        );
+
+        fs::remove_dir_all(temp_root).unwrap();
+    }
+
     #[test]
     fn desktop_file_tree_loads_one_directory_level_at_a_time() {
         let temp_root = std::env::temp_dir().join(format!(
@@ -3651,161 +3651,161 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         fs::remove_dir_all(temp_root).unwrap();
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    static CONFIG_ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    const CONFIG_ENV_VARS: [&str; 4] = [
+        "POOLSIDE_ASSISTANT_CONFIG_PATH",
+        "XDG_CONFIG_HOME",
+        "HOME",
+        "USERPROFILE",
+    ];
+
+    struct ConfigEnvGuard {
+        saved: Vec<(&'static str, Option<std::ffi::OsString>)>,
+    }
+
+    impl ConfigEnvGuard {
+        fn clear() -> Self {
+            let saved = CONFIG_ENV_VARS
+                .iter()
+                .map(|name| {
+                    let value = env::var_os(name);
+                    env::remove_var(name);
+                    (*name, value)
+                })
+                .collect();
+            Self { saved }
+        }
+    }
+
+    impl Drop for ConfigEnvGuard {
+        fn drop(&mut self) {
+            for (name, value) in self.saved.drain(..) {
+                match value {
+                    Some(value) => env::set_var(name, value),
+                    None => env::remove_var(name),
+                }
+            }
+        }
+    }
+
+    fn home_env_var() -> &'static str {
+        if cfg!(windows) {
+            "USERPROFILE"
+        } else {
+            "HOME"
+        }
+    }
+
+    #[test]
+    fn assistant_config_path_prefers_env_override() {
+        let _lock = CONFIG_ENV_LOCK
+            .lock()
+            .unwrap_or_else(|err| err.into_inner());
+        let _guard = ConfigEnvGuard::clear();
+
+        env::set_var("POOLSIDE_ASSISTANT_CONFIG_PATH", "/custom/assistant.json");
+        env::set_var("XDG_CONFIG_HOME", "/ignored");
+        assert_eq!(
+            assistant_config_path().unwrap(),
+            PathBuf::from("/custom/assistant.json")
+        );
+
+        // An empty override falls through to the regular resolution.
+        env::set_var("POOLSIDE_ASSISTANT_CONFIG_PATH", "");
+        assert_eq!(
+            assistant_config_path().unwrap(),
+            PathBuf::from("/ignored")
+                .join("poolside")
+                .join(ASSISTANT_CONFIG_FILE_NAME)
+        );
+    }
+
+    #[test]
+    fn assistant_config_path_uses_xdg_config_home() {
+        let _lock = CONFIG_ENV_LOCK
+            .lock()
+            .unwrap_or_else(|err| err.into_inner());
+        let _guard = ConfigEnvGuard::clear();
+
+        env::set_var("XDG_CONFIG_HOME", "/xdg-config");
+        env::set_var(home_env_var(), "/home/tester");
+        assert_eq!(
+            assistant_config_path().unwrap(),
+            PathBuf::from("/xdg-config")
+                .join("poolside")
+                .join(ASSISTANT_CONFIG_FILE_NAME)
+        );
+    }
+
+    #[test]
+    fn assistant_config_path_falls_back_to_home_config_directory() {
+        let _lock = CONFIG_ENV_LOCK
+            .lock()
+            .unwrap_or_else(|err| err.into_inner());
+        let _guard = ConfigEnvGuard::clear();
+
+        env::set_var(home_env_var(), "/home/tester");
+        assert_eq!(
+            assistant_config_path().unwrap(),
+            PathBuf::from("/home/tester")
+                .join(".config")
+                .join("poolside")
+                .join(ASSISTANT_CONFIG_FILE_NAME)
+        );
+
+        env::remove_var(home_env_var());
+        assert!(assistant_config_path().is_err());
+    }
+
+    #[test]
+    fn ensure_assistant_config_file_seeds_valid_empty_config() {
+        let temp_root = unique_temp_root("assistant-config-seed");
+        let path = temp_root.join("poolside").join(ASSISTANT_CONFIG_FILE_NAME);
+
+        ensure_assistant_config_file(&path).unwrap();
+
+        let content = fs::read_to_string(&path).unwrap();
+        let config: serde_json::Value = serde_json::from_str(&content).unwrap();
         assert_eq!(
             config.get("$schema").and_then(|value| value.as_str()),
             Some(ASSISTANT_CONFIG_SCHEMA_URL)
         );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        assert!(config
+            .get("agent_servers")
+            .is_some_and(|servers| servers.is_object()));
+
+        fs::remove_dir_all(temp_root).unwrap();
+    }
+
+    #[test]
+    fn ensure_assistant_config_file_preserves_existing_config() {
+        let temp_root = unique_temp_root("assistant-config-existing");
+        fs::create_dir_all(&temp_root).unwrap();
+        let path = temp_root.join(ASSISTANT_CONFIG_FILE_NAME);
+        let existing = r#"{"agent_servers":{"custom":{"command":"custom-agent"}}}"#;
+        fs::write(&path, existing).unwrap();
+
+        ensure_assistant_config_file(&path).unwrap();
+
+        assert_eq!(fs::read_to_string(&path).unwrap(), existing);
+        fs::remove_dir_all(temp_root).unwrap();
+    }
+
+    #[test]
+    fn ensure_assistant_config_file_failure_creates_no_file() {
+        let temp_root = unique_temp_root("assistant-config-failure");
+        fs::create_dir_all(&temp_root).unwrap();
+        let blocking_file = temp_root.join("blocker");
+        fs::write(&blocking_file, "not a directory").unwrap();
+        let path = blocking_file.join(ASSISTANT_CONFIG_FILE_NAME);
+
+        assert!(ensure_assistant_config_file(&path).is_err());
+        assert!(!path.exists());
+
+        fs::remove_dir_all(temp_root).unwrap();
+    }
+
     #[test]
     fn desktop_file_tree_parses_git_status_entries() {
         let context = DesktopFileTreeGitContext {

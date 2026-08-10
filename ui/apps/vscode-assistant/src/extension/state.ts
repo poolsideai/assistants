@@ -2,7 +2,7 @@ import * as os from "os";
 import * as vscode from "vscode";
 import packageJSON from "../../package.json";
 import { getPoolsideConfig } from "./configuration";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getDefaultCwd, getWorkspaces } from "./context";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -13,7 +13,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  terminalPanel: false,
   openWorkspace: true,
   addFolderToWorkspace: true,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -51,7 +51,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const defaultCwd = getDefaultCwd();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   const [keybindings, colorTheme, fileIconTheme] = await Promise.all([
     getInitialKeybindings(),
@@ -63,7 +63,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     homeDirectory: os.homedir(),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    defaultCwd,
     keybindings,
     colorTheme,
     fileIconTheme,

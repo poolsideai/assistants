@@ -1,19 +1,19 @@
 // Reactive MobileHostStatus implementation: main.ts mutates it (socket status
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// callbacks, the /api/me host name and spoolside worktree identity) and the
+// mounted shell re-renders.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { MobileHostStatus, MobileSpoolsideInstance } from "@poolsideai/assistant";
 
 export interface MutableHostStatus extends MobileHostStatus {
   name: string | null;
   connected: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  spoolside: MobileSpoolsideInstance | null;
 }
 
 export function createHostStatus(): MutableHostStatus {
   let name = $state<string | null>(null);
   let connected = $state(false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let spoolside = $state<MobileSpoolsideInstance | null>(null);
   return {
     get name() {
       return name;
@@ -27,11 +27,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     set connected(value) {
       connected = value;
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    get spoolside() {
+      return spoolside;
+    },
+    set spoolside(value) {
+      spoolside = value;
+    },
   };
 }

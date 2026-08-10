@@ -1,9 +1,9 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { fireEvent, render, screen, waitFor } from "@testing-library/svelte";
+import { userEvent } from "@testing-library/user-event";
+import { readable } from "svelte/store";
 import { beforeAll, describe, expect, it, vi } from "vitest";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import MarkdownBlock from "./MarkdownBlock.svelte";
+import type { MarkdownHostAdapter } from "./host.js";
 
 beforeAll(() => {
   vi.stubGlobal(
@@ -15,8 +15,8 @@ beforeAll(() => {
     })),
   );
 });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+describe("MarkdownBlock", () => {
   it("inserts ordinary Markdown before the initial Svelte flush can paint", () => {
     const { container } = render(MarkdownBlock, {
       props: { content: "Rendered without an empty intermediate frame." },
@@ -57,35 +57,35 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(afterTailGrowth[1]?.textContent).toContain("Second grows");
   });
 
+  it("opens markdown links that target workspace files", async () => {
+    const openFile = vi.fn();
+    const checkFileExists = vi.fn(async (path: string) => path === "/repo/docs/review.md");
+    const host: MarkdownHostAdapter = {
+      state: readable({
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        environment: { assistantHost: "desktop" },
+        workspaces: [{ path: "/repo" }],
+      }),
+      checkFileExists,
+      openFile,
+    };
+
+    render(MarkdownBlock, {
+      props: {
+        content: "[docs/review.md](docs/review.md)",
+        host,
+      },
+    });
+
+    const link = await screen.findByRole("button", { name: "Open file docs/review.md" });
+    await userEvent.click(link);
+
+    expect(checkFileExists).toHaveBeenCalledWith("/repo/docs/review.md");
+    expect(openFile).toHaveBeenCalledWith("/repo/docs/review.md", undefined, undefined, {
+      preferredEditor: false,
+    });
+  });
+
   it("renders quoted file paths in prose as file chips, swallowing the quotes", async () => {
     const openFile = vi.fn();
     const checkFileExists = vi.fn(async (path: string) => path === "/repo/src/main.ts");
@@ -210,162 +210,162 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("opens markdown file links in the preferred editor on platform-primary click", async () => {
+    const openFile = vi.fn();
+    const host: MarkdownHostAdapter = {
+      state: readable({
+        userSettings: {},
+        environment: { assistantHost: "desktop" },
+        workspaces: [{ path: "/repo" }],
+      }),
+      checkFileExists: vi.fn(async (path: string) => path === "/repo/docs/review.md"),
+      openFile,
+    };
+
+    render(MarkdownBlock, {
+      props: {
+        content: "[docs/review.md](docs/review.md:12:3)",
+        host,
+      },
+    });
+
+    const link = await screen.findByRole("button", { name: "Open file docs/review.md" });
+    await fireEvent.click(link, { ctrlKey: true });
+
+    expect(openFile).toHaveBeenCalledWith("/repo/docs/review.md", 12, 3, {
+      preferredEditor: true,
+    });
+  });
+
+  it("delegates markdown file link context menus to the host", async () => {
+    const showFileContextMenu = vi.fn();
+    const host: MarkdownHostAdapter = {
+      state: readable({
+        userSettings: {},
+        environment: { assistantHost: "desktop" },
+        workspaces: [{ path: "/repo" }],
+      }),
+      checkFileExists: vi.fn(async (path: string) => path === "/repo/docs/review.md"),
+      showFileContextMenu,
+    };
+
+    render(MarkdownBlock, {
+      props: {
+        content: "[docs/review.md](docs/review.md:12:3)",
+        host,
+      },
+    });
+
+    const link = await screen.findByRole("button", { name: "Open file docs/review.md" });
+    await userEvent.pointer({
+      keys: "[MouseRight]",
+      target: link,
+      coords: { clientX: 17, clientY: 23 },
+    });
+
+    expect(showFileContextMenu).toHaveBeenCalledWith({
+      path: "/repo/docs/review.md",
+      line: 12,
+      column: 3,
+      position: { x: 17, y: 23 },
+    });
+  });
+
+  it("uses custom markdown link text as the file link label", async () => {
+    const host: MarkdownHostAdapter = {
+      state: readable({
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+        environment: { assistantHost: "desktop" },
+        workspaces: [{ path: "/repo" }],
+      }),
+      checkFileExists: vi.fn(async (path: string) => path === "/repo/docs/review.md"),
+      openFile: vi.fn(),
+    };
+
+    render(MarkdownBlock, {
+      props: {
+        content: "[review notes](docs/review.md)",
+        host,
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Open file review notes" })).toBeInTheDocument();
+    });
+  });
+
+  it("previews image file chips on hover", async () => {
+    const imageData =
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
+    const getImageFileData = vi.fn(async (path: string) => ({
+      data: imageData,
+      mimeType: "image/png",
+      path,
+    }));
+    const host: MarkdownHostAdapter = {
+      state: readable({
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+        environment: { assistantHost: "desktop" },
+        workspaces: [{ path: "/repo" }],
+      }),
+      checkFileExists: vi.fn(async (path: string) => path === "/repo/assets/cat.png"),
+      getImageFileData,
+      openFile: vi.fn(),
+    };
+
+    render(MarkdownBlock, {
+      props: {
+        content: "[cat.png](assets/cat.png)",
+        host,
+      },
+    });
+
+    const chip = await screen.findByRole("button", { name: "Open file cat.png" });
+    await userEvent.hover(chip);
+
+    await waitFor(() => {
+      expect(getImageFileData).toHaveBeenCalledWith("/repo/assets/cat.png");
+    });
+    const preview = await screen.findByAltText("Preview of cat.png");
+    expect(preview).toHaveAttribute("src", `data:image/png;base64,${imageData}`);
     expect(preview).toHaveClass("block", "max-w-full");
     expect(preview.parentElement).toHaveClass("box-border", "max-w-80", "overflow-hidden");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  it("opens absolute markdown file links with encoded spaces and line numbers", async () => {
+    const decodedPath =
       "/Users/poolie/Library/Application Support/poolside/worktrees/pale-porthole/ui/packages/components/src/lib/components/markdown/RenderedMarkdown.svelte";
+    const encodedTarget = decodedPath.replace("Application Support", "Application%20Support");
+    const openFile = vi.fn();
+    const host: MarkdownHostAdapter = {
+      state: readable({
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        environment: { assistantHost: "desktop" },
+        workspaces: [
+          {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          },
+        ],
+      }),
+      checkFileExists: vi.fn(async (path: string) => path === decodedPath),
+      openFile,
+    };
+
+    render(MarkdownBlock, {
+      props: {
         content: `[RenderedMarkdown.svelte](${encodedTarget}:299)`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        host,
+      },
+    });
+
     const link = await screen.findByRole("button", { name: "Open file RenderedMarkdown.svelte" });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await userEvent.click(link);
+
+    expect(openFile).toHaveBeenCalledWith(decodedPath, 299, undefined, {
+      preferredEditor: false,
+    });
+  });
+
   it("preserves a settled code block while the streaming tail changes", async () => {
     const { container, rerender } = render(MarkdownBlock, {
       props: { content: "```js\nconst x = 1;\n```\n\nTail", streaming: true },
@@ -494,30 +494,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("preserves encoded literal percent escapes in markdown file links", async () => {
+    const openFile = vi.fn();
+    const host: MarkdownHostAdapter = {
+      state: readable({
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        environment: { assistantHost: "desktop" },
+        workspaces: [{ path: "/repo" }],
+      }),
+      checkFileExists: vi.fn(async (path: string) => path === "/repo/src/a%2Fb.ts"),
+      openFile,
+    };
+
+    render(MarkdownBlock, {
+      props: {
+        content: "[encoded percent](src/a%252Fb.ts)",
+        host,
+      },
+    });
+
+    const link = await screen.findByRole("button", { name: "Open file encoded percent" });
+    await userEvent.click(link);
+
+    expect(openFile).toHaveBeenCalledWith("/repo/src/a%2Fb.ts", undefined, undefined, {
+      preferredEditor: false,
+    });
+  });
+});

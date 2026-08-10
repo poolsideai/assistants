@@ -2,21 +2,21 @@ package acpproxy
 
 import (
 	"context"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"sync"
 
 	acpsdk "github.com/coder/acp-go-sdk"
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/approvals"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	"github.com/tliron/glsp"
 )
@@ -33,35 +33,35 @@ type requestFn func(ctx context.Context, method string, params any, result any) 
 // ReadFileFn reads a file by URI, returning unsaved editor content when available.
 type ReadFileFn func(ctx context.Context, uri protocol.DocumentURI) ([]byte, error)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const maxReadTextFileResponseBytes = 5 * 1024 * 1024
+
 // acpClient implements acpsdk.Client, handling callbacks from the ACP agent
 // subprocess. Notifications are forwarded to the VS Code extension as raw ACP types.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// lspNotifyFn sends a raw LSP notification to the VS Code extension,
+// bypassing the ACP JSON-RPC bridge.
+type lspNotifyFn func(ctx context.Context, method string, params any)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 type acpClient struct {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	notify        notifyFn
+	request       requestFn
+	readFile      ReadFileFn
+	lspNotify     lspNotifyFn
+	lspCall       lspCallFn
+	activeSession func() acpsdk.SessionId
+	liveStatus    LiveStatusSink
+	agentServer   string
+	gCtx          *glsp.Context
+	handler       *Handler
+
+	asyncNotifications asyncNotificationQueue
 }
 
 var _ acpsdk.Client = (*acpClient)(nil)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+var _ acpsdk.ExtensionMethodHandler = (*acpClient)(nil)
+
 // The SDK dispatches the unstable elicitation methods through runtime
 // interface assertions with exactly these signatures; a mismatch would report
 // method-not-found to the agent instead of failing to compile.
@@ -70,31 +70,31 @@ var _ interface {
 	UnstableCompleteElicitation(context.Context, acpsdk.UnstableCompleteElicitationNotification) error
 } = (*acpClient)(nil)
 
+// HandleExtensionMethod receives ACP extension notifications from the
+// pool acp subprocess and converts them to appropriate LSP notifications.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	switch method {
+	case acphelpers.ExtensionMethodShowMessage:
+		var notif acphelpers.ShowMessageNotification
+		if err := json.Unmarshal(params, &notif); err != nil {
+			slog.Error("acpproxy: failed to unmarshal show_message", "error", err)
+			return nil, nil
+		}
+		if c.lspNotify != nil {
+			msgType := showMessageType(notif.Type)
+			c.lspNotify(context.Background(), "window/showMessage", protocol.ShowMessageParams{
+				Type:    msgType,
+				Message: notif.Message,
+			})
+		}
+		return nil, nil
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 		resp, err := c.requestElicitation(ctx, req.ElicitationRequest)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		if err != nil {
 			return nil, err
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -121,11 +121,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		}
 		c.asyncNotifications.enqueue(c.routeClaudeSessionEvent, method, notif)
 		return nil, nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	default:
+		return nil, acpsdk.NewMethodNotFound(method)
+	}
+}
+
 func validClaudeSDKMessage(message methods.ACPClaudeSDKPromptMessage) bool {
 	switch message.Type {
 	case methods.ACPClaudeSDKPromptSuggestionType:
@@ -150,20 +150,20 @@ func validClaudeSDKMessage(message methods.ACPClaudeSDKPromptMessage) bool {
 	}
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func showMessageType(t string) protocol.MessageType {
+	switch t {
+	case "error":
+		return protocol.Error
+	case "warning":
+		return protocol.Warning
+	case "info":
+		return protocol.Info
+	default:
+		return protocol.Info
+	}
+}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (c *acpClient) SessionUpdate(_ context.Context, params acpsdk.SessionNotification) error {
 	// Observe Claude's result-boundary usage update before queueing the
 	// notification for UI delivery. The adapter can settle its original ACP
 	// prompt immediately after an injected steer while the continuation keeps
@@ -172,19 +172,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	if c.handler != nil {
 		c.handler.observeSessionUpdate(c.agentServer, string(params.SessionId), params.Update)
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	c.asyncNotifications.enqueue(c.routeSessionUpdate, acpsdk.ClientMethodSessionUpdate, params)
 	return nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// routeSessionUpdate delivers one agent session/update from the async queue.
+// Live updates go through the event sink: stamped with a sequence number,
+// buffered for resume, and fanned out to every client. Updates emitted while
+// a session/load is in flight are an unclassifiable mix of replay and live
+// traffic (pool acp interleaves them, see the mid-turn load probe), so they
+// go unstamped to only the loading client — replayed history must never reach
+// clients that already have the transcript.
+func (c *acpClient) routeSessionUpdate(ctx context.Context, method string, params any) {
+	notif, ok := params.(acpsdk.SessionNotification)
 	if ok {
 		c.persistSessionTitle(ctx, notif)
 	}
@@ -268,22 +268,22 @@ func (c *acpClient) routeSessionEvent(
 	params any,
 ) {
 	if c.handler == nil || c.handler.events == nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		c.notify(ctx, method, params)
+		return
+	}
+	events := c.handler.events
+	message := map[string]any{
+		"jsonrpc": "2.0",
+		"method":  method,
+		"params":  params,
+	}
+	if origin, scoped := c.handler.loadScopeFor(c.agentServer, sessionID); scoped {
+		events.NotifyClient(origin, methods.JSONRPCNotifyMethod, bridgeMessage(c.agentServer, message))
+		return
+	}
+	events.PublishSessionUpdate(c.agentServer, sessionID, "", false, message)
+}
+
 func (c *acpClient) persistSessionTitle(ctx context.Context, notif acpsdk.SessionNotification) {
 	update := notif.Update.SessionInfoUpdate
 	if update == nil || update.Title == nil || c.liveStatus == nil {
@@ -345,101 +345,101 @@ func sanitizeSessionTitle(title string) string {
 	return strings.TrimSpace(result)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (c *acpClient) waitForSessionUpdates(ctx context.Context) error {
+	return c.asyncNotifications.wait(ctx)
+}
+
+type asyncNotification struct {
+	notify notifyFn
+	method string
+	params any
+}
+
+type asyncNotificationQueue struct {
+	once sync.Once
+	mu   sync.Mutex
+	cond *sync.Cond
+
+	items   []asyncNotification
+	head    int
+	pending int
+}
+
+func (q *asyncNotificationQueue) init() {
+	q.cond = sync.NewCond(&q.mu)
+	go q.run()
+}
+
+func (q *asyncNotificationQueue) enqueue(notify notifyFn, method string, params any) {
+	if notify == nil {
+		return
+	}
+	q.once.Do(q.init)
+
+	q.mu.Lock()
+	q.items = append(q.items, asyncNotification{
+		notify: notify,
+		method: method,
+		params: params,
+	})
+	q.pending++
+	q.cond.Signal()
+	q.mu.Unlock()
+}
+
+func (q *asyncNotificationQueue) wait(ctx context.Context) error {
+	q.once.Do(q.init)
+
+	stopWake := make(chan struct{})
+	defer close(stopWake)
+	go func() {
+		select {
+		case <-ctx.Done():
+		case <-stopWake:
+			return
+		}
+		q.mu.Lock()
+		q.cond.Broadcast()
+		q.mu.Unlock()
+	}()
+
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	for q.pending > 0 {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		q.cond.Wait()
+	}
+	return nil
+}
+
+func (q *asyncNotificationQueue) run() {
+	for {
+		q.mu.Lock()
+		for q.head >= len(q.items) {
+			q.items = nil
+			q.head = 0
+			q.cond.Wait()
+		}
+		item := q.items[q.head]
+		q.items[q.head] = asyncNotification{}
+		q.head++
+		if q.head > 1024 && q.head*2 >= len(q.items) {
+			q.items = append([]asyncNotification(nil), q.items[q.head:]...)
+			q.head = 0
+		}
+		q.mu.Unlock()
+
+		item.notify(context.Background(), item.method, item.params)
+
+		q.mu.Lock()
+		q.pending--
+		q.cond.Broadcast()
+		q.mu.Unlock()
+	}
+}
+
 func (c *acpClient) RequestPermission(ctx context.Context, params acpsdk.RequestPermissionRequest) (acpsdk.RequestPermissionResponse, error) {
 	sessionID := string(params.SessionId)
 	if sessionID != "" && c.liveStatus != nil {
@@ -457,19 +457,19 @@ func (c *acpClient) RequestPermission(ctx context.Context, params acpsdk.Request
 			}
 		}()
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// The prompt is helper-owned state: register it in the approval store,
+	// which pushes the pending set to every surface and blocks until the first
+	// valid answer (or ctx cancellation) — no per-surface RPC race, no ghost
+	// prompts to dismiss.
+	store := c.approvalStore()
+	if store == nil {
 		return acpsdk.RequestPermissionResponse{
 			Outcome: acpsdk.NewRequestPermissionOutcomeCancelled(),
 		}, nil
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return store.RequestPermission(ctx, c.agentServer, params)
+}
+
 // UnstableCreateElicitation handles the standard (unstable) ACP
 // elicitation/create request, routing it through the same approval store as
 // the pool extension elicitation so every surface renders and answers it the
@@ -540,11 +540,11 @@ func (c *acpClient) requestElicitation(ctx context.Context, request methods.Elic
 	return resp, nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (c *acpClient) approvalStore() *approvals.Store {
+	if c.handler == nil {
+		return nil
+	}
+	return c.handler.approvals
 }
 
 func (c *acpClient) currentSessionID() string {
@@ -565,10 +565,10 @@ func (c *acpClient) ReadTextFile(ctx context.Context, params acpsdk.ReadTextFile
 		return acpsdk.ReadTextFileResponse{}, fmt.Errorf("read %s: %w", params.Path, err)
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if params.Line == nil && params.Limit == nil && len(b) > maxReadTextFileResponseBytes {
+		return acpsdk.ReadTextFileResponse{}, fmt.Errorf("file is too large to read without a line range: %s is %d bytes, max is %d bytes", params.Path, len(b), maxReadTextFileResponseBytes)
+	}
+
 	content := string(b)
 
 	if params.Line != nil || params.Limit != nil {
@@ -589,10 +589,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		content = strings.Join(lines[start:end], "\n")
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if len(content) > maxReadTextFileResponseBytes {
+		return acpsdk.ReadTextFileResponse{}, fmt.Errorf("read_text_file response is too large: %s would return %d bytes, max is %d bytes", params.Path, len(content), maxReadTextFileResponseBytes)
+	}
+
 	return acpsdk.ReadTextFileResponse{Content: content}, nil
 }
 

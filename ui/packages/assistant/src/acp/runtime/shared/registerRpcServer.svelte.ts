@@ -1,59 +1,59 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { setThemeContext } from "@poolsideai/components/providers";
+import { initializeACPHostRpc } from "@poolsideai/features/acp";
+import { onDestroy, onMount } from "svelte";
+
+import { initializeStatefulModule as initializeHostRpc, rpc } from "../../../lib/rpc/client";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { appState, type PoolsideInitialState } from "../../../lib/store";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { Repositories } from "./Repositories.svelte";
+import type { RuntimeProps } from "./types";
+
+interface RegisterRpcServerOptions {
+  props: RuntimeProps;
+  repositories: Repositories;
+  getActiveConversationId(): string | null;
+}
+
+// Initializes host/backend RPC and the theme context, then mounts the shared WebviewRPCServer.
+export function registerRpcServer({
+  props,
+  repositories,
+  getActiveConversationId,
+}: RegisterRpcServerOptions) {
   const initialState: PoolsideInitialState = props.initialState ?? window.POOLSIDE_INITIAL_STATE;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const theme = setThemeContext({
+    colorTheme: initialState?.colorTheme,
+    fileIconTheme: initialState?.fileIconTheme,
+    getFileIconDefinition: (iconName) => rpc.getFileIconDefinition(iconName),
+  });
+
+  initializeHostRpc(props.rpcHostRequestHandler);
+  initializeACPHostRpc(props.rpcHostRequestHandler);
+
+  let rpcServer: WebviewRPCServer | undefined;
+
+  onMount(() => {
+    rpcServer = new WebviewRPCServer(
+      props.webviewRpcListener ?? window,
+      props.rpcWebViewResponseHandler,
+      appState,
+      repositories.elicitation,
+      repositories.acpConnectionPool,
+      repositories.acpContextRepo,
       repositories.assistantTerminals,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      repositories.acpRepo.publicAPI(),
+      () => repositories.acpRepo.getSessionByConversationId(getActiveConversationId()),
+      theme,
+      repositories.acpProjectRepo,
+      repositories.acpConversationRepo,
       repositories.localInference,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    );
+
+    rpc.ready();
+    rpc.setWebviewFocus(document.hasFocus());
+  });
+
+  onDestroy(() => {
+    rpcServer?.dispose();
+  });
+}

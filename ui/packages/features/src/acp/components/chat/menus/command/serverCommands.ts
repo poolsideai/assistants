@@ -76,52 +76,52 @@ export function resolvedSlashCommandNames(
 const FILTERED_COMMAND_LIMIT = 30;
 const sortedEntriesCache = new WeakMap<ReadonlyArray<AvailableCommand>, ServerCommandEntry[]>();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const WORD_BOUNDARY_PATTERN = /[\s._/-]+/;
+
+function acronym(text: string): string {
+  return text
+    .split(WORD_BOUNDARY_PATTERN)
+    .filter(Boolean)
+    .map((word) => word[0])
+    .join("");
+}
+
+function isSubsequence(query: string, text: string): boolean {
+  let queryIndex = 0;
+  for (const char of text) {
+    if (char === query[queryIndex]) queryIndex += 1;
+    if (queryIndex === query.length) return true;
+  }
+  return false;
+}
+
+function hasWordPrefix(query: string, text: string): boolean {
+  return text
+    .split(WORD_BOUNDARY_PATTERN)
+    .filter(Boolean)
+    .some((word) => word.startsWith(query));
+}
+
+function commandSearchScore(command: AvailableCommand, query: string): number {
+  const name = command.name.toLocaleLowerCase();
+  const description = command.description?.toLocaleLowerCase() ?? "";
+  const nameAcronym = acronym(name);
+
+  if (name === query) return 1000;
+  if (name.startsWith(query)) return 900;
+  if (hasWordPrefix(query, name)) return 800;
+  if (name.includes(query)) return 700;
+  if (nameAcronym.startsWith(query)) return 650;
+  if (isSubsequence(query, name)) return 500;
+
+  if (description === query) return 300;
+  if (description.startsWith(query)) return 250;
+  if (hasWordPrefix(query, description)) return 220;
+  if (description.includes(query)) return 200;
+
+  return 0;
+}
+
 export function sortedServerCommandEntries(
   commands: ReadonlyArray<AvailableCommand>,
 ): ServerCommandEntry[] {
@@ -161,9 +161,9 @@ export function visibleServerCommandEntries(
   if (!query) return entries;
 
   return entries
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    .map((entry) => ({ entry, score: commandSearchScore(entry.command, query) }))
+    .filter(({ score }) => score > 0)
+    .sort((left, right) => right.score - left.score)
+    .map(({ entry }) => entry)
     .slice(0, FILTERED_COMMAND_LIMIT);
 }

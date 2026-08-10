@@ -1,17 +1,17 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import type { Plan } from "@agentclientprotocol/sdk";
+  import { DisplayProvider } from "@poolsideai/components/providers";
+  import SessionPlan from "./SessionPlan.svelte";
+
+  interface Props {
+    plan: Plan;
+    isPrompting?: boolean;
     desktop?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   let { plan, isPrompting = false, desktop = false }: Props = $props();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
+<DisplayProvider>
   <SessionPlan {plan} {isPrompting} {desktop} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</DisplayProvider>

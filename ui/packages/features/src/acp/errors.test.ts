@@ -129,24 +129,24 @@ describe("normalizeACPError", () => {
     const error = new ACPTransportNotConfiguredError();
     expect(normalizeACPError(error)).toBe(error);
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  it("normalizes ACP SDK RequestError instances with code and data", () => {
+    const requestError = Object.assign(new Error("could not open a new TTY"), {
+      name: "RequestError",
+      code: -32000,
+      data: { message: "Run `pool login` in a terminal to authenticate to Poolside." },
+    });
+
+    const error = normalizeACPError(requestError);
+
+    expect(error).toBeInstanceOf(ACPError);
+    expect(error).toMatchObject({
+      name: "ACPError",
+      message: "could not open a new TTY",
+      code: -32000,
+      data: { message: "Run `pool login` in a terminal to authenticate to Poolside." },
+    });
+  });
 });
 
 describe("toErrorResponse", () => {

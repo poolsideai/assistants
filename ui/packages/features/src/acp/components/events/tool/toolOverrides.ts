@@ -4,7 +4,7 @@ import { isSubagentTool } from "../../../subagents";
 import type { ToolCall } from "../../../types";
 import CuaReplToolCall from "./CuaReplToolCall.svelte";
 import ExecCommandToolCall from "./ExecCommandToolCall.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import FetchToolCall from "./FetchToolCall.svelte";
 import ImageGenerationToolCall from "./ImageGenerationToolCall.svelte";
 import McpToolCall from "./McpToolCall.svelte";
 import ReadImageToolCall from "./ReadImageToolCall.svelte";
@@ -14,7 +14,7 @@ import ViewImageToolCall from "./ViewImageToolCall.svelte";
 import WriteStdinToolCall from "./WriteStdinToolCall.svelte";
 import { isCuaReplToolCall } from "./cuaReplTool";
 import { isExecCommandToolCall } from "./execCommandTool";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { isFetchToolCall } from "./fetchTool";
 import { isImageGenerationToolCall } from "./imageGenerationTool";
 import { isMcpToolCallOverride } from "./mcpTool";
 import { isReadImageToolCall } from "./readImageTool";
@@ -51,11 +51,11 @@ export const toolOverrides: ToolOverride[] = [
     matches: isMcpToolCallOverride,
     component: McpToolCall,
   },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {
+    id: "acp.fetch",
+    matches: isFetchToolCall,
+    component: FetchToolCall,
+  },
   {
     id: "codex.image_generation",
     matches: isImageGenerationToolCall,

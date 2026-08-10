@@ -1,5 +1,5 @@
 <script lang="ts">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { Snippet } from "svelte";
   import type { SplitsController } from "./controller.js";
   import DefaultEmptyPane from "./DefaultEmptyPane.svelte";
   import {
@@ -14,7 +14,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     type TabTransferData,
     type TabPointerDragEvent,
   } from "./internal/drag.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import PaneShape from "./PaneShape.svelte";
   import TabBar from "./TabBar.svelte";
   import type { ContentViewLifecycle, PaneID, PaneState, Tab } from "./types.js";
 
@@ -37,7 +37,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     contentViewLifecycle: ContentViewLifecycle;
     content: Snippet<[Tab, PaneID]>;
     emptyPane?: Snippet<[PaneID]>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    usePaneShape: boolean;
     paneShapeAnimating: boolean;
   }
 
@@ -58,7 +58,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     contentViewLifecycle,
     content,
     emptyPane,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    usePaneShape,
     paneShapeAnimating,
   }: Props = $props();
 
@@ -290,22 +290,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<section
+  bind:this={paneElement}
+  class="splits-pane"
+  class:splits-pane-has-selected-tab={selectedTab !== undefined}
+  data-pane-id={pane.id}
+  data-version={version}
+>
+  {#if usePaneShape}
+    <PaneShape
+      paneId={pane.id}
+      tabId={pane.selectedTabId}
+      {version}
+      {paneElement}
+      {paneContentElement}
       animating={paneShapeAnimating}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    />
   {/if}
 
   <TabBar
@@ -391,28 +391,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     border-radius: var(--splits-pane-content-top-left-radius, 0)
       var(--splits-pane-content-top-right-radius, 0) var(--splits-pane-radius)
       var(--splits-pane-radius);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .splits-pane-has-selected-tab .splits-pane-content {
+    background: var(--splits-pane-content-background, transparent);
+    box-shadow: var(--splits-pane-content-shadow, none);
+  }
+
   /* The silhouette paints the selected tab and its panel as one surface.
      Set these on the tab itself so inherited inactive-pane theme overrides
      cannot bring back a second fill, outline, or shadow at the join. */
   .splits-pane:has(:global([data-pane-shape-ready])) :global(.splits-tab-selected) {
     --splits-active-tab-visual-background: transparent;
     --splits-active-tab-visual-border: transparent;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --splits-active-tab-shadow: none;
+    --splits-active-tab-corner-display: none;
+  }
+
+  .splits-pane:has(:global([data-pane-shape-ready])) .splits-pane-content {
+    background: transparent;
+    box-shadow: none;
   }
 
   .splits-pane:has(:global(.splits-tab-selected:not([data-splits-tab-index="0"])))

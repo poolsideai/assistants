@@ -1,9 +1,9 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import type { SessionConfigOption, SessionConfigSelectOption } from "@agentclientprotocol/sdk";
   import { mount, unmount, untrack } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { Attachment } from "svelte/attachments";
+  import Icon from "@poolsideai/components/icon";
+  import { fuzzyScore } from "@poolsideai/components/assistant-ui";
   import { LOCAL_AGENT_SERVER } from "../../../../agentServers";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -11,7 +11,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { getACPHandoffConfirmation } from "../../../../features/HandoffConfirmationContext";
   import { getLocalInferenceRepo } from "../../../../features/LocalInferenceRepository.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { appState, resolveSessionCwd } from "../../../../hostAdapter";
   import {
     formatLastPrompt,
     formatMemoryBytes,
@@ -20,80 +20,80 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   } from "../../../../localInferenceRuntime";
   import { localInferenceModelMissing } from "../../../../localInferenceModelOptions";
   import { pointerHeadedToRect, type Point } from "../../../../shared/safeTriangle";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { Spinner } from "@poolsideai/components/spinner";
   import { supportsNativeMenus } from "../../desktopContextMenu";
   import type { NativeMenuIcon } from "../../nativeMenuIcons";
   import { presentNativeMenu, type MenuSpecItem } from "../../../ui/menuSpec";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import MobileSelectSheet, { type MobileSelectOption } from "../../../ui/MobileSelectSheet.svelte";
+  import RegistryAgentIcon from "../../../RegistryAgentIcon.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { isAgentPickerOptionId } from "../menus";
   import Tooltip from "../../../ui/Tooltip.svelte";
   import { resolveCssColorToHex } from "../../nativeMenuTheme";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import {
     agentBrandTint,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    agentName,
     agentPickerIconProps,
     agentPickerIconUrl,
     agentPickerOverlayIconUrl,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    agentServerOptions,
     isClaudeAgent,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    selectedAgentServer,
+    shouldResetSessionForAgentSelection,
+  } from "./agentConfig";
   import DefaultStarButton from "./DefaultStarButton.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import EffortBarsIcon from "./EffortBarsIcon.svelte";
+  import {
+    booleanCurrentValue,
+    configIcon,
+    effortBars,
     effortValueName,
     fastToggleState,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    optionGroups,
     orderClaudeModelValues,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    promptConfigKind,
+    selectedValueName,
     shouldPersistConfigSelection,
     valueDescription,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } from "./configOptions";
   import { Badge } from "@poolsideai/components/badge";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  interface Props {
+    // Collapsed away by the footer overflow manager when there is not even room
+    // for the consolidated trigger.
+    hiddenCount?: number;
     underlineLabel?: boolean;
     placement?: "top" | "bottom";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const chatSession = getACPChatSessionScope();
+  const registry = getACPAgentRegistryRepo();
+  const agentServers = getACPAgentServersRepo();
   const handoffConfirmation = getACPHandoffConfirmation();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const repo = getACPSessionRepo();
+
+  type SubmenuKind = "agent" | "model" | "fast" | "effort";
   // Extras (agent-supplied options without a dedicated slot) open under a
   // per-option key so any number of them can each own a submenu beside the
   // fixed four.
   type SubmenuKey = SubmenuKind | `extra:${string}`;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  function find(kind: "model" | "effort" | "fast"): SessionConfigOption | undefined {
+    return chatSession.configOptions.find((option) => promptConfigKind(option) === kind);
+  }
+
+  const canChangeAgent = $derived(chatSession.canChangeAgent);
+  const currentAgent = $derived(selectedAgentServer(chatSession));
+  const serverName = $derived(agentName(registry, currentAgent));
 
   // --- local-agent warm/cold model indicator ---------------------------------
   // The local runtime context is provided app-wide by Repositories (every ACP
@@ -155,9 +155,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const showAgentOption = $derived(
     availableAgents.length > 1 && (canChangeAgent || chatSession.hasSession),
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const model = $derived(find("model"));
+  const fast = $derived(find("fast"));
+  const effort = $derived(find("effort"));
   // Claude's models render in the canonical family order everywhere they list
   // (inline menu, submenu, mobile sheet); other agents keep their given order.
   const claudeModelOrder = $derived(isClaudeAgent(registry, currentAgent));
@@ -168,39 +168,39 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
   // With a small model list (fifteen or fewer) the models render inline in the
   // main menu instead of behind a submenu (no search box).
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const inlineModels = $derived(
     Boolean(model) && modelValues.length > 0 && modelValues.length <= 15,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
+
+  const fastLabel = $derived.by(() => {
+    if (!fast) return "";
+    if (fast.type === "boolean") return booleanCurrentValue(fast) ? "On" : "Off";
+    return selectedValueName(fast);
+  });
   // Closed-state indicators on the trigger, so the two settings buried in the
   // submenus read at a glance: fast mode as a bolt (nothing when off, since
   // off is the quiet default) and the effort level as trailing subtext.
   const fastOn = $derived(fast ? fastToggleState(fast).isOn : false);
   const effortLabel = $derived(effort ? effortValueName(effort) : "");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const effortBarsInfo = $derived(effort ? effortBars(effort) : null);
+  // Effort submenu ordering: the auto/default entry first, then magnitudes
+  // ascending — regardless of the order the agent lists them in.
+  const sortedEffortValues = $derived.by<SessionConfigSelectOption[]>(() => {
+    if (!effort) return [];
+    const values = optionGroups(effort).flatMap((group) => group.options);
+    if (!effortBarsInfo) return values;
+    const byValue = new Map(values.map((value) => [value.value, value]));
+    const ordered: SessionConfigSelectOption[] = [];
+    if (effortBarsInfo.auto) {
+      const auto = byValue.get(effortBarsInfo.auto.value);
       if (auto) ordered.push({ ...auto, name: effortBarsInfo.auto.name });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    for (const level of effortBarsInfo.levels) {
+      const value = byValue.get(level.value);
       if (value) ordered.push({ ...value, name: level.name });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    return ordered;
+  });
   // --- extras: agent-supplied options without a dedicated slot ---------------
   // Every select/boolean config option the picker doesn't already surface:
   // unclassified options (Claude's persona picker, Goose's provider,
@@ -295,28 +295,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   const extraEntries = $derived(extraOptions.map(toExtraEntry));
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // While the agent's config probe is in flight there are no options to show
+  // yet: surface that as an explicit loading state instead of a bare menu.
+  // (Session-level probe runs when switching to an agent with no cached
+  // config — first use can take several seconds while the agent downloads.)
+  const configLoading = $derived(chatSession.isConfigCacheLoading);
+  // The probe finished without options because the agent wants login first
+  // (its config only becomes available once authenticated).
+  const optionsNeedAuth = $derived(
+    !configLoading &&
+      !model &&
+      !fast &&
+      !effort &&
       extraOptions.length === 0 &&
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      repo.agents.authRequiredForAgent(chatSession.activeAgentServer),
+  );
   // Keep the control available when another agent can take over, even if the
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // current agent did not publish model or effort options — and while loading
+  // or awaiting login, so the empty-state header always has a live picker.
   // Same for the local agent with no model: the menu carries the "No model
   // available" note the locked composer points to, so it must stay reachable
   // even in a local-agent-only install with nothing else to show.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const hasOptions = $derived(
     Boolean(
       showAgentOption ||
         model ||
@@ -327,14 +327,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         optionsNeedAuth ||
         localModelMissing,
     ),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
+
+  // --- mobile bottom sheets ---------------------------------------------------
+  // On the phone the anchored panel + side-by-side submenu don't fit (two
   // panels as wide as the whole ~390px viewport) and hover-driven rows don't
   // map to touch. The same structure renders as the standard bottom sheets
   // instead: a main sheet of option rows, each drilling into a value sheet.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const isMobile = $derived($appState.environment.assistantHost === "mobile");
   // The phone footer shares one row with the mode control, mic, and submit:
   // there is room for the trigger's bolt but not for a word or two of effort.
   const showEffortLabel = $derived(Boolean(effortLabel) && !isMobile);
@@ -344,29 +344,29 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   let mobileSheet = $state<"main" | SubmenuKey | null>(null);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const mobileMainOptions = $derived.by<MobileSelectOption[]>(() => {
+    const rows: MobileSelectOption[] = [];
     if (showAgentOption) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      rows.push({
+        id: "agent",
+        label: "Agent",
         agentIcon: {
           iconUrl: agentPickerIconUrl(registry, currentAgent),
           ...agentPickerIconProps(registry, currentAgent),
         },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        detail: serverName,
+        submenu: true,
+      });
+    }
+    if (model) {
+      rows.push({
+        id: "model",
+        label: "Model",
+        icon: configIcon(model),
+        detail: selectedValueName(model),
+        submenu: true,
+      });
     } else if (localModelMissing) {
       // Mirrors the desktop panel's note; the locked composer points here.
       rows.push({
@@ -374,25 +374,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         label: "No model available",
         disabled: true,
       });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    if (fast) {
+      rows.push({
+        id: "fast",
+        label: "Fast Mode",
+        icon: configIcon(fast),
+        detail: fastLabel,
+        submenu: true,
+      });
+    }
+    if (effort) {
+      rows.push({
+        id: "effort",
+        label: "Effort",
+        icon: configIcon(effort),
         detail: effortValueName(effort),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        submenu: true,
+      });
+    }
     for (const entry of extraEntries) {
       // No icon: the sheet reserves the icon box itself when icon-bearing
       // rows (Model/Fast Mode/Effort) sit alongside, keeping labels aligned.
@@ -403,28 +403,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         submenu: true,
       });
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Mirror the desktop panel's status rows so the sheet is never empty (and
+    // never silent) while options load or await login.
+    if (configLoading) {
+      rows.push({
+        id: "config-loading",
+        label: `Loading ${serverName} options...`,
+        disabled: true,
+      });
+    } else if (optionsNeedAuth) {
+      rows.push({
+        id: "config-needs-auth",
+        label: `Log in to ${serverName} to load its models and options.`,
+        disabled: true,
+      });
+    }
+    return rows;
+  });
+
+  function isSubmenuKind(id: string): id is SubmenuKind {
+    return id === "agent" || id === "model" || id === "fast" || id === "effort";
+  }
+
   function isSubmenuKey(id: string): id is SubmenuKey {
     return isSubmenuKind(id) || id.startsWith("extra:");
   }
@@ -451,89 +451,89 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }));
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function valueSheetOptions(
+    option: SessionConfigOption,
+    values: SessionConfigSelectOption[],
+  ): MobileSelectOption[] {
+    // De-dupe by value so a value appearing in more than one group keys once.
+    const seen = new Set<string>();
+    return values
+      .filter((value) => (seen.has(value.value) ? false : (seen.add(value.value), true)))
+      .map((value) => ({
+        id: value.value,
+        label: value.name,
         caption: valueDescription(value) ?? undefined,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        icon: configIcon(option),
+        selected: option.type === "select" && value.value === option.currentValue,
+      }));
+  }
+
+  // --- open/close state -----------------------------------------------------
+
   // Wide enough for a value's name and its description underneath (agents
   // describe their models and modes in a short sentence) without the subtext
   // clamping after a couple of words.
   const PANEL_W = 390;
   const SUB_W = 390;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Breathing room between popups and the window edges.
+  const EDGE = 16;
   // Submenus tuck slightly under the main panel's facing edge.
   const SUB_OVERLAP = 4;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  let open = $state(false);
   let activeSub = $state<SubmenuKey | null>(null);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let triggerEl = $state<HTMLButtonElement>();
+  let panelEl = $state<HTMLDivElement>();
+  let subEl = $state<HTMLDivElement>();
+  let searchInputEl = $state<HTMLInputElement>();
+  let panelStyle = $state("");
+  let subStyle = $state("");
+  let searchQuery = $state("");
+
+  function toggleOpen(): void {
+    if (open) {
+      closeAll();
+      return;
+    }
+    open = true;
+    activeSub = null;
+    searchQuery = "";
+    positionPanel();
+  }
+
+  function closeAll(): void {
     cancelGrace();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    open = false;
+    activeSub = null;
+    searchQuery = "";
+  }
+
+  // Close everything if the trigger disappears while the menu is open — the
+  // options vanished (agent restart, config error) or the footer overflow
+  // manager collapsed the control — so the panel never floats unanchored.
+  $effect(() => {
+    if ((open || mobileSheet !== null) && (!hasOptions || hiddenCount > 0)) {
+      closeAll();
+      mobileSheet = null;
+    }
+  });
+
+  // Hovering a main-menu row that doesn't own a submenu collapses whichever
+  // submenu is open (matching how the opener rows switch between submenus).
+  function closeSub(): void {
+    if (!activeSub) return;
+    activeSub = null;
+    searchQuery = "";
+    panelEl?.focus({ preventScroll: true });
+  }
+
+  function positionPanel(): void {
+    if (!triggerEl) return;
+    const rect = triggerEl.getBoundingClientRect();
+    // Right-align to the trigger, but never push the fixed-width panel's left
+    // edge off-screen when the trigger sits far to the left.
+    const maxRight = window.innerWidth - EDGE - PANEL_W;
+    const right = Math.max(8, Math.min(window.innerWidth - rect.right, maxRight));
     const verticalPosition =
       placement === "bottom"
         ? `top: ${rect.bottom + 6}px`
@@ -546,59 +546,59 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       placement === "bottom" ? window.innerHeight - rect.bottom - 6 - EDGE : rect.top - 6 - EDGE,
     );
     panelStyle = `position: fixed; right: ${right}px; ${verticalPosition}; width: ${PANEL_W}px; max-height: ${maxHeight}px; overflow-y: auto; z-index: 50;`;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  let subAnchorTop = 0;
+
   function openSub(kind: SubmenuKey, row: HTMLElement): void {
     cancelGrace();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (activeSub === kind) return;
+    activeSub = kind;
+    searchQuery = "";
+    if (!panelEl) return;
+    subAnchorTop = row.getBoundingClientRect().top;
+    const panelRect = panelEl.getBoundingClientRect();
     // Prefer the right side of the main menu, overlapping it slightly so the
     // panels read as one surface; flip to the left when the viewport has no
     // room there.
     let left = panelRect.right - SUB_OVERLAP;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (left + SUB_W > window.innerWidth - EDGE) {
       left = panelRect.left - SUB_W + SUB_OVERLAP;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    left = Math.max(EDGE, left);
+    subStyle = `position: fixed; left: ${left}px; top: ${subAnchorTop}px; width: ${SUB_W}px; z-index: 51;`;
+  }
+
+  // Once the submenu's real height is known, align it with its row and pull it
+  // back up only as far as the viewport requires.
+  $effect(() => {
+    if (!activeSub || !subEl) return;
+    const height = subEl.getBoundingClientRect().height;
+    const top = Math.max(EDGE, Math.min(subAnchorTop, window.innerHeight - EDGE - height));
+    subEl.style.top = `${top}px`;
+  });
+
+  // Focus the panel container so keystrokes leave the prompt editor, then let
+  // key routing (below) steer characters into the submenu search box.
+  $effect(() => {
+    if (!open || !panelEl) return;
+    panelEl.focus({ preventScroll: true });
+  });
+
+  $effect(() => {
+    if (!activeSub || !searchInputEl) return;
+    searchInputEl.focus({ preventScroll: true });
+  });
+
+  function handleWindowPointerdown(event: PointerEvent): void {
+    if (!open) return;
+    const target = event.target as Node;
+    if (panelEl?.contains(target) || subEl?.contains(target) || triggerEl?.contains(target)) {
+      return;
+    }
+    closeAll();
+  }
+
   // --- submenu hover grace ----------------------------------------------------
   // Travelling from an opener row to its open submenu crosses other rows (the
   // path is diagonal), and a bare mouseenter
@@ -649,81 +649,81 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }, SUB_GRACE_MS);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Arrow keys walk the rows of the active panel (the submenu when one is
+  // open): Down from the search box highlights the first row, then Up/Down
+  // move through the list — matching the empty-state dropdowns.
+  function moveFocus(delta: number): void {
+    const container = activeSub ? subEl : panelEl;
+    if (!container) return;
+    const items = [...container.querySelectorAll<HTMLElement>('[role="menuitem"]')];
+    if (items.length === 0) return;
+    const index = items.indexOf(document.activeElement as HTMLElement);
+    const next =
+      index === -1
+        ? delta > 0
+          ? 0
+          : items.length - 1
+        : Math.max(0, Math.min(items.length - 1, index + delta));
+    items[next]?.focus();
+    items[next]?.scrollIntoView({ block: "nearest" });
+  }
+
+  // While the menu is open, typed characters belong to the submenu search box —
+  // never the prompt input. Escape peels one layer at a time.
+  function handleWindowKeydown(event: KeyboardEvent): void {
+    if (!open) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      if (activeSub) {
+        activeSub = null;
+        searchQuery = "";
+        panelEl?.focus({ preventScroll: true });
+      } else {
+        closeAll();
+        triggerEl?.focus();
+      }
+      return;
+    }
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      event.stopPropagation();
+      moveFocus(event.key === "ArrowDown" ? 1 : -1);
+      return;
+    }
+    if (!searchInputEl || event.target === searchInputEl) return;
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.key === "Backspace") {
+      searchQuery = searchQuery.slice(0, -1);
+      searchInputEl.focus();
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    if (event.key.length !== 1) return;
+    searchQuery += event.key;
+    searchInputEl.focus();
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  // The menu renders inside the prompt <form>, so Enter in the search box would
+  // natively submit it (reloading the webview). Intercept it and activate the
+  // first matching row instead.
+  function handleSearchKeydown(event: KeyboardEvent): void {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      event.stopPropagation();
+      const items = subEl?.querySelectorAll<HTMLElement>('[role="menuitem"]');
+      if (items && items.length > 0) items[0].click();
+      return;
+    }
+    if (event.key === "Escape") return; // handled by the window handler
+    event.stopPropagation();
+  }
+
+  // --- selection handlers ----------------------------------------------------
+
   function canSelectAgent(agentServer: string): boolean {
     return (
       !shouldResetSessionForAgentSelection(chatSession, agentServer) ||
@@ -739,10 +739,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       : name;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function selectAgent(agentServer: string): void {
+    closeAll();
     mobileSheet = null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (!shouldResetSessionForAgentSelection(chatSession, agentServer)) return;
     if (chatSession.hasSession || chatSession.hasPendingHandoff) {
       if (chatSession.hasSession && !chatSession.canHandoff) return;
       const conversationId = chatSession.conversationId;
@@ -753,31 +753,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       return;
     }
     rememberLastUsedAgent(agentServer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    chatSession.createSession(
+      chatSession.pendingSessionCwd ?? resolveSessionCwd($appState),
+      agentServer,
+      chatSession.pendingConversationId,
+    );
+  }
+
+  async function selectConfigValue(option: SessionConfigOption, value: string): Promise<void> {
+    closeAll();
+    try {
+      await chatSession.setConfigOption(option.id, value);
+    } catch (error) {
+      console.error("Failed to set ACP session config option", error);
+    }
+  }
+
+  async function selectBoolean(option: SessionConfigOption, value: boolean): Promise<void> {
+    closeAll();
+    try {
+      await chatSession.setBooleanConfigOption(option.id, value);
+    } catch (error) {
+      console.error("Failed to set ACP session config option", error);
+    }
+  }
+
   // Shared dispatch for an extras row: the exact same calls the dedicated
   // rows make, with the boolean rows' "true"/"false" strings mapped back.
   function selectExtraValue(option: SessionConfigOption, value: string): void {
@@ -817,7 +817,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     value: string,
     pinned: boolean,
   ): Promise<void> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    try {
       if (pinned) {
         await repo.agents.setPinnedDefaultConfigOption(
           chatSession.activeAgentServer,
@@ -836,82 +836,82 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           clearValue: !shouldPersistConfigSelection(option),
         });
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } catch (error) {
       console.error("Failed to update pinned ACP config option", error);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  }
+
   function isPinnedDefaultAgent(agentServer: string): boolean {
     return repo.agents.defaultAgentServerPinned && agentServer === repo.agents.defaultAgentServer;
   }
 
   async function setPinnedAgent(agentServer: string, pinned: boolean): Promise<void> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    try {
       if (pinned) await agentServers.setPinnedDefaultAgentServer(agentServer);
       else await agentServers.unpinDefaultAgentServer();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } catch (error) {
       console.error("Failed to update pinned default ACP agent", error);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  }
+
+  // --- search ----------------------------------------------------------------
+
+  // Filter and rank by fuzzy match quality: prefix/substring hits before
+  // scattered-letter subsequence hits, so the best match sits at the top,
+  // where Enter selects.
+  function rankBySearch<T>(items: T[], label: (item: T) => string): T[] {
+    const query = searchQuery.trim();
+    if (!query) return items;
+    return items
+      .map((item) => ({ item, score: fuzzyScore(query, label(item)) }))
+      .filter((entry): entry is { item: T; score: number } => entry.score !== null)
+      .sort((a, b) => b.score - a.score)
+      .map((entry) => entry.item);
+  }
+
+  const activeSubOption = $derived.by<SessionConfigOption | undefined>(() => {
+    if (activeSub === "model") return model;
+    if (activeSub === "fast") return fast;
+    if (activeSub === "effort") return effort;
+    return undefined;
+  });
+
   const activeExtraEntry = $derived(
     activeSub?.startsWith("extra:")
       ? extraEntries.find((entry) => entry.key === activeSub)
       : undefined,
   );
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const subSearchable = $derived.by(() => {
+    if (activeSub === "agent") return agentServerOptions(repo).length > 5;
+    if (activeSubOption && activeSubOption.type === "select") {
+      return optionGroups(activeSubOption).flatMap((g) => g.options).length > 5;
+    }
+    return false;
+  });
+
+  function filteredValues(values: SessionConfigSelectOption[]): SessionConfigSelectOption[] {
+    return rankBySearch(values, (value) => value.name);
+  }
+
+  // With no search, model lists surface the selected entry at the top (their
   // order carries no meaning, unlike mode or effort lists). Claude is the
   // exception: its family order is meaningful, so it holds even for the
   // selected model.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function orderedValues(
+    option: SessionConfigOption,
+    values: SessionConfigSelectOption[],
+  ): SessionConfigSelectOption[] {
+    const ranked = filteredValues(values);
+    if (searchQuery.trim() || option.type !== "select" || promptConfigKind(option) !== "model") {
+      return ranked;
+    }
     if (claudeModelOrder) return orderClaudeModelValues(ranked);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const index = ranked.findIndex((value) => value.value === option.currentValue);
+    if (index <= 0) return ranked;
+    return [ranked[index], ...ranked.slice(0, index), ...ranked.slice(index + 1)];
+  }
+
   // --- native menu (macOS desktop) --------------------------------------------
   // The desktop app on macOS presents this menu as a real OS menu built from
   // the same deriveds the DOM panel renders from. The spec is a snapshot taken
@@ -1331,39 +1331,39 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  // The panels render position:fixed, but inside the chat pane they are
+  // trapped in its stacking context, so surfaces later in the DOM (the bottom
+  // panel, other splits) paint over them. Portal them to <body> so the
+  // viewport coordinates keep working and the z-index wins globally.
+  function portalToBody(): Attachment {
+    return (element: Element) => {
+      document.body.appendChild(element);
+      return () => {
+        element.remove();
+      };
+    };
+  }
+
   // Value and agent rows render as role=menuitem divs (a button cannot
   // contain another button, and the rows host nested interactive accessories
   // like the star and the warmth-dot tooltip); Enter/Space activate them like
   // a button would — only when the row itself is focused, so the same keys
   // bubbling up from the nested star button keep activating the star.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function rowKeydown(event: KeyboardEvent, activate: () => void): void {
+    if (event.target !== event.currentTarget) return;
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    activate();
+  }
+</script>
+
+<svelte:window
+  onpointerdowncapture={handleWindowPointerdown}
+  onkeydowncapture={handleWindowKeydown}
   onmousemovecapture={handleWindowMousemove}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/>
+
 {#snippet localModelWarmthDot(value: string)}
   {@const warm = localModelValueIsResident(value)}
   <Tooltip placement="top" gutter={6} openDelay={400}>
@@ -1390,24 +1390,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   </Tooltip>
 {/snippet}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#snippet valueRow(
+  option: SessionConfigOption,
+  value: SessionConfigSelectOption,
+  withStar: boolean,
+  inMainMenu: boolean = false,
+)}
+  {@const activate = () => void selectConfigValue(option, value.value)}
+  {@const kind = promptConfigKind(option)}
+  {@const bars = kind === "effort" ? effortBars(option) : null}
   {@const description = valueDescription(value)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <div
+    role="menuitem"
+    tabindex="0"
     class={description ? itemTopAlignedClass : itemClass}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onclick={activate}
+    onkeydown={(event) => rowKeydown(event, activate)}
     onmouseenter={inMainMenu ? (event) => hoverWithGrace(event, closeSub) : undefined}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  >
     {#if bars || (kind === "model" && showLocalModelWarmth) || (kind !== "model" && kind !== "effort")}
       <!-- Sized to one line of the name (the menu's own line box) so the
            glyph centres on the first line rather than on the whole, possibly
@@ -1431,7 +1431,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           <Icon name={configIcon(option)} size={16} class="shrink-0" aria-hidden="true" />
         {/if}
       </span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {/if}
     <!-- The agent's own words for this value, under its name. Wrapped to two
          lines at most so one verbose entry cannot dominate the list. -->
     <div class="flex min-w-0 flex-1 flex-col">
@@ -1448,51 +1448,51 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         description && "h-[var(--text-menu--line-height)]",
       ]}
     >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {#if withStar}
         {@const pinned = isPinnedDefault(option, value.value)}
         <DefaultStarButton
           label="Use {value.name} by default"
           pressed={pinned}
           onPress={() => void setPinnedConfig(option, value.value, !pinned)}
         />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {/if}
       {#if option.type === "select" && value.value === (bars?.activeValue ?? option.currentValue)}
         <Badge size="xs" class="uppercase">Selected</Badge>
       {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </span>
+  </div>
+{/snippet}
+
+{#snippet modelsHeader()}
+  <!-- Mid conversation the agent is fixed; this small title names whose models
+       are listed, standing in for the Agent row. -->
+  <div class="text-psx-foreground-tertiary flex items-center gap-1.5 px-2 pb-1 pt-1.5 text-xs">
+    <RegistryAgentIcon
       iconUrl={agentPickerIconUrl(registry, currentAgent)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      fallback="sparkles"
+      size={13}
       {...agentPickerIconProps(registry, currentAgent)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    />
+    <span class="truncate">{serverName} models</span>
+  </div>
+{/snippet}
+
+{#snippet selectSubmenu(option: SessionConfigOption)}
+  {#each optionGroups(option) as group, groupIndex (group.name ?? `_${groupIndex}`)}
+    {@const visible = orderedValues(option, group.options)}
+    {#if visible.length > 0}
+      {#if group.name}
+        <div class="text-psx-foreground-tertiary px-2 pb-0.5 pt-1.5 text-xs">{group.name}</div>
+      {:else if groupIndex > 0}
         <div class="menu-separator"></div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {/if}
+      {#each visible as value (value.value)}
+        {@render valueRow(option, value, true)}
+      {/each}
+    {/if}
+  {/each}
+{/snippet}
+
 <!-- Extras submenu, rendered from the same shared entry the native menu and
      mobile sheets use so ordering and labels stay identical across the three
      surfaces. Rows follow valueRow's layout — name with the agent's
@@ -1547,7 +1547,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   {/each}
 {/snippet}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#if hiddenCount === 0 && hasOptions}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1631,77 +1631,77 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      {#if configLoading}
+        <Spinner size={12} class="opacity-60" aria-label="Loading agent options" />
+      {/if}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{/if}
+
+{#if isMobile && mobileSheet === "main"}
+  <MobileSelectSheet
+    title="Session options"
+    options={mobileMainOptions}
+    onSelect={(id) => {
       if (isSubmenuKey(id)) mobileSheet = id;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }}
+    onClose={() => (mobileSheet = null)}
+  />
+{:else if isMobile && mobileSheet === "agent"}
+  <MobileSelectSheet
+    title="Agent"
     options={availableAgents.map((server) => ({
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      id: server,
       label: agentSelectionLabel(server),
       agentIcon: {
         iconUrl: agentPickerIconUrl(registry, server),
         ...agentPickerIconProps(registry, server),
       },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      selected: server === currentAgent,
       disabled: !canSelectAgent(server),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }))}
+    onSelect={(server) => selectAgent(server)}
+    onClose={() => (mobileSheet = null)}
+  />
+{:else if isMobile && mobileSheet === "model" && model}
+  <MobileSelectSheet
+    title="Model"
+    options={valueSheetOptions(model, modelValues)}
+    onSelect={(value) => void selectConfigValue(model, value)}
+    onClose={() => (mobileSheet = null)}
+  />
+{:else if isMobile && mobileSheet === "fast" && fast}
+  {#if fast.type === "boolean"}
+    <MobileSelectSheet
+      title="Fast Mode"
+      options={[true, false].map((choice) => ({
+        id: String(choice),
+        label: choice ? "On" : "Off",
+        icon: configIcon(fast),
+        selected: booleanCurrentValue(fast) === choice,
+      }))}
+      onSelect={(value) => void selectBoolean(fast, value === "true")}
+      onClose={() => (mobileSheet = null)}
+    />
+  {:else}
+    <MobileSelectSheet
+      title="Fast Mode"
+      options={valueSheetOptions(
+        fast,
+        optionGroups(fast).flatMap((group) => group.options),
+      )}
+      onSelect={(value) => void selectConfigValue(fast, value)}
+      onClose={() => (mobileSheet = null)}
+    />
+  {/if}
+{:else if isMobile && mobileSheet === "effort" && effort}
+  <MobileSelectSheet
+    title="Effort"
+    options={valueSheetOptions(effort, sortedEffortValues)}
+    onSelect={(value) => void selectConfigValue(effort, value)}
+    onClose={() => (mobileSheet = null)}
+  />
 {:else if isMobile && mobileExtraEntry}
   <MobileSelectSheet
     title={mobileExtraEntry.label}
@@ -1709,36 +1709,36 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onSelect={(value) => selectExtraValue(mobileExtraEntry.option, value)}
     onClose={() => (mobileSheet = null)}
   />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{/if}
+
+{#if open}
+  <div
+    bind:this={panelEl}
+    {@attach portalToBody()}
+    tabindex="-1"
+    role="menu"
+    aria-label="Agent, model and options"
     data-placement={placement}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    style={panelStyle}
     class="menu-surface p-1"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  >
     {#if showAgentOption}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <button
+        type="button"
+        role="menuitem"
+        class={itemClass}
+        onclick={(event) => openSub("agent", event.currentTarget)}
         onmouseenter={(event) => {
           const row = event.currentTarget;
           hoverWithGrace(event, () => openSub("agent", row));
         }}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      >
+        <RegistryAgentIcon
           iconUrl={agentPickerIconUrl(registry, currentAgent)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          fallback="sparkles"
+          size={16}
           {...agentPickerIconProps(registry, currentAgent)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        />
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1750,65 +1750,65 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           class="text-psx-icon shrink-0 -rotate-90"
           aria-hidden="true"
         />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-        <div class="menu-separator"></div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-        class="text-psx-foreground-secondary flex items-center gap-2 px-2 pb-0.5 pt-1.5"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-        <div class="menu-separator"></div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </button>
+    {/if}
+
+    {#if configLoading}
       {#if showAgentOption}
         <div class="menu-separator"></div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {/if}
+      <div
+        role="status"
+        class="text-psx-foreground-secondary flex items-center gap-2 px-2 pb-0.5 pt-1.5"
+        data-testid="prompt-config-loading"
+      >
+        <!-- The wrapper is the live region; the spinner (which carries its own
+             role="status") stays decorative so the state announces once. -->
+        <Spinner size={14} aria-hidden="true" />
+        <span class="truncate">Loading {serverName} options...</span>
+      </div>
+      <p class="text-psx-foreground-tertiary px-2 pb-1.5 pt-0.5 text-xs">
+        Getting available models and settings from the agent. The first launch can take a few
+        seconds while the agent starts up.
+      </p>
+    {:else if optionsNeedAuth}
+      {#if showAgentOption}
         <div class="menu-separator"></div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {/if}
+      <p
+        class="text-psx-foreground-tertiary px-2 py-1.5 text-xs"
+        data-testid="prompt-config-needs-auth"
+      >
+        Log in to {serverName} to load its models and options.
+      </p>
+    {/if}
+
+    {#if model && inlineModels}
+      <!-- Inline model list: labelled mid-conversation, and separated from
+           option rows above and below (never from its own title). -->
+      {#if showAgentOption}
+        <div class="menu-separator"></div>
+      {:else}
+        {@render modelsHeader()}
+      {/if}
+      {#each modelValues as value (value.value)}
+        {@render valueRow(model, value, true, true)}
+      {/each}
+      {#if fast || effort}
+        <div class="menu-separator"></div>
+      {/if}
+    {:else if model}
+      <button
+        type="button"
+        role="menuitem"
+        class={itemClass}
+        onclick={(event) => openSub("model", event.currentTarget)}
         onmouseenter={(event) => {
           const row = event.currentTarget;
           hoverWithGrace(event, () => openSub("model", row));
         }}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      >
+        <Icon name={configIcon(model)} size={16} class="shrink-0" aria-hidden="true" />
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
           {#if showLocalModelWarmth}
@@ -1826,7 +1826,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
           {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        </span>
         <Icon
           name="chevron"
           size={12}
@@ -1834,7 +1834,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           class="text-psx-icon shrink-0 -rotate-90"
           aria-hidden="true"
         />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </button>
     {:else if localModelMissing}
       <!-- Where the model list belongs; the locked composer points here. -->
       {#if showAgentOption}
@@ -1848,20 +1848,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       >
         No model available
       </p>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {/if}
+
+    {#if fast}
+      <button
+        type="button"
+        role="menuitem"
+        class={itemClass}
+        onclick={(event) => openSub("fast", event.currentTarget)}
         onmouseenter={(event) => {
           const row = event.currentTarget;
           hoverWithGrace(event, () => openSub("fast", row));
         }}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      >
+        <Icon name={configIcon(fast)} size={16} class="shrink-0" aria-hidden="true" />
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1873,33 +1873,33 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           class="text-psx-icon shrink-0 -rotate-90"
           aria-hidden="true"
         />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </button>
+    {/if}
+
+    {#if effort}
+      <button
+        type="button"
+        role="menuitem"
+        class={itemClass}
+        onclick={(event) => openSub("effort", event.currentTarget)}
         onmouseenter={(event) => {
           const row = event.currentTarget;
           hoverWithGrace(event, () => openSub("effort", row));
         }}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      >
+        {#if effortBarsInfo?.isAuto}
           <Icon name="wand" size={16} class="shrink-0" aria-hidden="true" />
+        {:else if effortBarsInfo}
+          <EffortBarsIcon total={effortBarsInfo.total} filled={effortBarsInfo.activeFilled ?? 0} />
+        {:else}
+          <Icon name={configIcon(effort)} size={16} class="shrink-0" aria-hidden="true" />
+        {/if}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        </span>
         <Icon
           name="chevron"
           size={12}
@@ -1907,8 +1907,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           class="text-psx-icon shrink-0 -rotate-90"
           aria-hidden="true"
         />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </button>
+    {/if}
 
     {#if extraEntries.length > 0}
       <!-- The agent's own extra options, set apart from the dedicated rows —
@@ -1949,65 +1949,65 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         </button>
       {/each}
     {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </div>
+{/if}
+
+{#if open && activeSub}
+  <div
+    bind:this={subEl}
+    {@attach portalToBody()}
     tabindex="-1"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    role="menu"
     aria-label={activeExtraEntry ? `${activeExtraEntry.label} options` : `${activeSub} options`}
     onmouseenter={cancelGrace}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    style={subStyle}
     class="menu-surface max-h-[320px] overflow-y-auto p-1"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  >
     <!-- No title for the fast/effort submenus: the row that opened them is
          right there, still naming them. The models submenu is the exception —
          its header names whose models these are, which nothing else says once
          the Agent row is hidden. -->
     {#if activeSub === "model" && !showAgentOption}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {@render modelsHeader()}
+    {/if}
+    {#if subSearchable}
+      <div class="px-0.5 pb-1 pt-0.5">
+        <input
+          bind:this={searchInputEl}
+          type="text"
+          bind:value={searchQuery}
+          onkeydown={handleSearchKeydown}
+          placeholder="Search..."
+          aria-label="Search options"
           spellcheck="false"
           autocorrect="off"
           autocapitalize="off"
           autocomplete="off"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          class="border-psx-border bg-psx-editor-background text-psx-foreground-primary placeholder:text-psx-foreground-secondary/50 focus:border-psx-focus w-full rounded-md border px-2 py-1 text-sm outline-none"
+        />
+      </div>
+    {/if}
+
+    {#if activeSub === "agent"}
       {#each rankBySearch( availableAgents, (server) => agentName(registry, server), ) as server (server)}
         {@const selectable = canSelectAgent(server)}
         {@const pinned = isPinnedDefaultAgent(server)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <div
+          role="menuitem"
           tabindex={selectable ? 0 : -1}
           aria-disabled={!selectable}
           class={[itemClass, !selectable && "cursor-not-allowed opacity-50"]}
           onclick={() => selectable && selectAgent(server)}
           onkeydown={(event) => selectable && rowKeydown(event, () => selectAgent(server))}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        >
+          <RegistryAgentIcon
             iconUrl={agentPickerIconUrl(registry, server)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            fallback="sparkles"
+            size={16}
             {...agentPickerIconProps(registry, server)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          />
           <span class="truncate">{agentSelectionLabel(server)}</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <span class="ml-auto flex shrink-0 items-center gap-1">
             <DefaultStarButton
               label="Use {agentName(registry, server)} by default"
               pressed={pinned}
@@ -2016,33 +2016,33 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             {#if server === currentAgent}
               <Badge size="xs" class="uppercase">Selected</Badge>
             {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          </span>
+        </div>
+      {/each}
+    {:else if activeSub === "fast" && fast?.type === "boolean"}
+      {#each [true, false] as choice (String(choice))}
+        <button
+          type="button"
+          role="menuitem"
+          class={itemClass}
+          onclick={() => void selectBoolean(fast, choice)}
+        >
+          <Icon name={configIcon(fast)} size={16} class="shrink-0" aria-hidden="true" />
+          <span class="truncate">{choice ? "On" : "Off"}</span>
+          {#if booleanCurrentValue(fast) === choice}
             <Badge size="xs" class="ml-auto uppercase">Selected</Badge>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          {/if}
+        </button>
+      {/each}
+    {:else if activeSub === "effort" && effort && effortBarsInfo}
+      <!-- Auto/default first, then magnitudes ascending. -->
+      {#each filteredValues(sortedEffortValues) as value (value.value)}
+        {@render valueRow(effort, value, true)}
+      {/each}
     {:else if activeExtraEntry}
       {@render extraSubmenu(activeExtraEntry)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {:else if activeSubOption}
+      {@render selectSubmenu(activeSubOption)}
+    {/if}
+  </div>
+{/if}

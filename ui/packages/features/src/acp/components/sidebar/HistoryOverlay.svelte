@@ -29,11 +29,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     pane?: boolean;
     embedded?: boolean;
     showCollapseButton?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // True while agent session lists are being reconciled in the background;
+    // the locally persisted archive is already shown.
+    reconciling?: boolean;
+    // Agent servers whose session list could not be fetched. Non-fatal.
+    listFailures?: SessionListFailure[];
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -49,9 +49,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       session: ACPConversationSummary,
       navSession: ACPConversationSummary,
     ) => void | Promise<void>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Opens an archived conversation as a read-only transcript without
+    // restoring it to the sidebar.
+    onOpenHistorySessionReadOnly?: (session: ACPConversationSummary) => void | Promise<void>;
     onArchiveHistorySession: (
       session: ACPConversationSummary,
       navSession: ACPConversationSummary,
@@ -60,10 +60,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onRestoreHistorySession: (
       session: ACPConversationSummary,
     ) => boolean | void | Promise<boolean | void>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onDeleteHistorySession: (
+      session: ACPConversationSummary,
+      event: MouseEvent,
+    ) => void | Promise<void>;
   }
 
   let {
@@ -77,8 +77,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     pane = false,
     embedded = false,
     showCollapseButton = false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    reconciling = false,
+    listFailures = [],
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     hasArchivedChats = false,
@@ -87,10 +87,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     onBack,
     onCollapse,
     onOpenRestoredHistorySession,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onOpenHistorySessionReadOnly,
     onArchiveHistorySession,
     onRestoreHistorySession,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onDeleteHistorySession,
   }: Props = $props();
 
   const controller = getAcpSidebarController();
@@ -109,30 +109,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return controller.getSessionAgentServer(session);
   }
 
+  function canDeleteSession(session: ACPConversationSummary): boolean {
+    return controller.canDeleteSession(session);
+  }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function canOpenReadOnly(session: ACPConversationSummary): boolean {
+    return Boolean(onOpenHistorySessionReadOnly && session.sessionId) && sessionAvailable(session);
+  }
+
+  function sessionAvailable(session: ACPConversationSummary): boolean {
+    return session.sessionAvailable !== false;
+  }
+
   function historySessionRowKey(session: ACPConversationSummary): string {
     return `${getSessionAgentServer(session)}:${session.sessionId || session.id}`;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  const failedAgentLabel = $derived(
+    listFailures
+      .map((failure) =>
+        failure.agentServer === "*" ? "some agents" : controller.getAgentName(failure.agentServer),
+      )
+      .join(", "),
+  );
+
   const visibleGroupedHistorySessions = $derived(
     groupedHistorySessions
       .map((bucket) => ({
@@ -408,21 +408,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     {/if}
   </div>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {#if listFailures.length > 0}
+    <div
+      class="text-psx-foreground-secondary mx-2 mb-1.5 flex items-start gap-1.5 rounded-[6px] px-2 py-1.5 text-[12px]/[15px]"
+      role="status"
+    >
+      <Icon name="alert" size={12} class="mt-0.5 shrink-0" aria-hidden="true" />
+      <span class="min-w-0"
+        >Couldn't refresh history from {failedAgentLabel}. Showing saved conversations.</span
+      >
+    </div>
   {/if}
   {#if reconciling && sessionCount > 0}
     <span class="sr-only" role="status">Refreshing archived conversations</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {/if}
+
   <div
     class={embedded
       ? "archive-history-list archive-catalog px-1.5 pb-1.5"

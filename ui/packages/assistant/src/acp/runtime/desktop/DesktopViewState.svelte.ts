@@ -1,54 +1,54 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Owns desktop-panel view routing, selected project-settings path, and sidebar collapse state.
+export type DesktopView =
+  | "chat"
+  | "agents"
+  | "settings"
+  | "shortcuts"
   | "models"
   | "voice"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "connectors"
+  | "github"
   | "archived"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "remote"
+  | "project-settings";
+export type SettingsView = Exclude<DesktopView, "chat" | "project-settings">;
+
+const SETTINGS_VIEWS: readonly SettingsView[] = [
+  "agents",
+  "settings",
+  "shortcuts",
+  "models",
   "voice",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "connectors",
+  "github",
   "archived",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "remote",
+];
+
+// Validates strings arriving over the host RPC (rpc.openSettings(section)).
+export function isSettingsView(value: string): value is SettingsView {
+  return (SETTINGS_VIEWS as readonly string[]).includes(value);
+}
+
+export class DesktopViewState {
+  #view = $state<DesktopView>("chat");
+  #projectSettingsPath = $state<string | null>(null);
+  #sidebarCollapsed = $state(false);
+
+  get view() {
+    return this.#view;
+  }
+  get projectSettingsPath() {
+    return this.#projectSettingsPath;
+  }
+  get sidebarCollapsed() {
+    return this.#sidebarCollapsed;
+  }
+
+  setSidebarCollapsed = (collapsed: boolean) => {
     if (collapsed && this.#requiresSidebar()) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.#sidebarCollapsed = collapsed;
+  };
   toggleSidebarCollapsed = () => {
     if (this.#requiresSidebar()) {
       this.#sidebarCollapsed = false;
@@ -100,10 +100,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.#sidebarCollapsed = false;
     this.#projectSettingsPath = path ?? null;
     this.#view = "project-settings";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  };
+  showChat = () => {
+    this.#view = "chat";
+  };
   restore = (view: DesktopView, projectSettingsPath: string | null) => {
     this.#view = view;
     this.#projectSettingsPath = projectSettingsPath;
@@ -111,9 +111,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       this.#sidebarCollapsed = false;
     }
   };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  expandSidebar = () => {
+    this.#sidebarCollapsed = false;
+  };
 
   // Views whose navigation lives in the sidebar cannot collapse it. Connectors
   // is deliberately absent: it is a standalone destination (AcpConnectorsView),
@@ -124,10 +124,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       this.#view === "shortcuts" ||
       this.#view === "models" ||
       this.#view === "voice" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.#view === "github" ||
       this.#view === "agents" ||
       this.#view === "archived" ||
       this.#view === "project-settings"
     );
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

@@ -1,1 +1,1 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts"></script>

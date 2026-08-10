@@ -26,9 +26,9 @@
   let term = $state<Terminal | null>(null);
   let fit = $state<FitAddon | null>(null);
   let renderedTabId = $state<string | null>(null);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let renderedBufferEndOffset = $state(0);
   let styleRevision = $state(0);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let lastNotifiedSize: { terminalId: string; cols: number; rows: number } | null = null;
   // Number of replayed-buffer writes still being parsed; see writeReplayedBuffer.
   let replayWritesInFlight = 0;
   let resizeObserver: ResizeObserver | null = null;
@@ -55,10 +55,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       : null,
   );
   const buffer = $derived(tab ? (assistantTerminals.buffers[tab.id] ?? "") : "");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const bufferStartOffset = $derived(
+    tab ? (assistantTerminals.bufferStartOffsets[tab.id] ?? 0) : 0,
+  );
+  const bufferEndOffset = $derived(bufferStartOffset + buffer.length);
 
   $effect(() => {
     if (!tab) {
@@ -76,13 +76,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   $effect(() => {
     if (!term || renderedTabId !== tab?.id) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (renderedBufferEndOffset < bufferStartOffset || renderedBufferEndOffset > bufferEndOffset) {
       term.reset();
       writeReplayedBuffer(term, buffer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } else if (bufferEndOffset > renderedBufferEndOffset) {
+      term.write(buffer.slice(renderedBufferEndOffset - bufferStartOffset));
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    renderedBufferEndOffset = bufferEndOffset;
   });
 
   // Focus requests are one-shot. This effect also depends on `term` and `tab`,
@@ -218,7 +218,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     } catch (error) {
       console.warn("Canvas renderer unavailable; using DOM renderer", error);
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    nextFit.fit();
     // Only clear+repaint when the shell was spawned at a size other than the
     // one just measured. The common case — terminals spawn at the repository's
     // last measured pane size — keeps the first prompt untouched and avoids
@@ -229,30 +229,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       nextTerm.cols,
       nextTerm.rows,
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await notifySizeIfChanged(terminalTab.id, nextTerm.cols, nextTerm.rows);
     if (generation !== renderGeneration || !container || tab?.id !== terminalTab.id) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      nextTerm.dispose();
+      return;
+    }
+    if (resetStartupPrompt) {
+      await assistantTerminals.clear(terminalTab.id);
+    }
     if (generation !== renderGeneration || !container || tab?.id !== terminalTab.id) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      nextTerm.dispose();
+      return;
+    }
+
+    renderedBufferEndOffset = resetStartupPrompt
+      ? 0
+      : (assistantTerminals.bufferStartOffsets[terminalTab.id] ?? 0) + initialBuffer.length;
+    if (!resetStartupPrompt) {
       writeReplayedBuffer(nextTerm, initialBuffer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
     term = nextTerm;
     fit = nextFit;
     renderedTabId = terminalTab.id;
     installResizeObserver();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    fitAndNotify({ retries: 3, terminalId: terminalTab.id });
     if (returnFocusAfterRender) {
       returnFocusAfterRender = false;
       // Disposing the previous xterm dropped focus to <body>; unclaimed focus
@@ -337,7 +337,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }
       fit.fit();
       term.scrollToBottom();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      void notifySizeIfChanged(targetTerminalId, term.cols, term.rows);
       if (retries > 1) {
         window.setTimeout(
           () => fitAndNotify({ retries: retries - 1, terminalId: targetTerminalId }),
@@ -347,22 +347,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function notifySizeIfChanged(targetTerminalId: string, cols: number, rows: number) {
+    if (
+      lastNotifiedSize?.terminalId === targetTerminalId &&
+      lastNotifiedSize.cols === cols &&
+      lastNotifiedSize.rows === rows
+    ) {
+      return;
+    }
+    lastNotifiedSize = {
+      terminalId: targetTerminalId,
+      cols,
+      rows,
+    };
+    await assistantTerminals.resize(targetTerminalId, cols, rows);
+  }
+
   function focusTerminal() {
     requestAnimationFrame(() => term?.focus());
   }
@@ -400,8 +400,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     // completion callbacks; reset so the counter can't stay stuck above zero.
     replayWritesInFlight = 0;
     renderedTabId = null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    renderedBufferEndOffset = 0;
+    lastNotifiedSize = null;
     container?.replaceChildren();
   }
 

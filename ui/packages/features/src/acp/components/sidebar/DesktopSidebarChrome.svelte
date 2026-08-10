@@ -53,7 +53,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   let updateTooltip = $derived.by(() => {
     if (!$desktopUpdate.available) return "";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if ($desktopUpdate.waitingForIdle) return "Waiting for conversations to finish before updating";
     return $desktopUpdate.version
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       : "Restart to finish updating Poolside Assistant";
@@ -132,7 +132,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         disabled={applyingUpdate}
         onclick={onApplyUpdate}
       >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {$desktopUpdate.waitingForIdle ? "Waiting…" : "Update"}
       </button>
     {:else}
       <div bind:this={updateCluster} class="desktop-update-cluster flex items-center gap-1.5">
@@ -158,7 +158,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           disabled={applyingUpdate}
           onclick={onApplyUpdate}
         >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          {$desktopUpdate.waitingForIdle ? "Waiting for conversations…" : "Update"}
         </button>
         {#if notesOpen && updateNotes}
           <div
@@ -175,34 +175,34 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     {/if}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {#if !$desktopUpdate.available && $desktopUpdate.downloading}
+    <div
+      class="desktop-update-progress bg-psx-chrome border-psx-border text-psx-foreground-secondary absolute flex h-6 w-[132px] items-center overflow-hidden rounded-full border px-2 text-[10px] font-medium shadow-sm"
+      role="progressbar"
+      aria-label="Downloading update"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-valuenow={$desktopUpdate.progress === undefined
+        ? undefined
+        : Math.round($desktopUpdate.progress * 100)}
+    >
+      <div
+        class={[
+          "bg-psx-button-primary-background absolute inset-y-0 left-0 opacity-25 transition-[width]",
+          $desktopUpdate.progress === undefined && "w-1/3 animate-pulse",
+        ]}
+        style:width={$desktopUpdate.progress === undefined
+          ? undefined
+          : `${$desktopUpdate.progress * 100}%`}
+      ></div>
+      <span class="relative z-10 truncate">
+        {$desktopUpdate.progress === undefined
+          ? "Downloading update…"
+          : `Downloading ${Math.round($desktopUpdate.progress * 100)}%`}
+      </span>
+    </div>
+  {/if}
+
   <div
     role="slider"
     aria-label="Resize conversations sidebar"
@@ -302,12 +302,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     pointer-events: auto;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .desktop-update-progress {
+    top: var(--desktop-title-bar-control-top, 12px);
+    right: 12px;
+    z-index: 50;
+  }
+
   .desktop-update-button {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

@@ -1,10 +1,10 @@
 <script lang="ts">
   import Icon from "../icon/Icon.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { isPreviewableImagePath } from "../assistant-ui/imagePreview.js";
   import ChipNode from "../prompt/editor/chip/ChipNode.svelte";
   import { defaultMarkdownHost, type MarkdownHostAdapter } from "./host.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { isAppleUser } from "../../utils/platform.js";
+  import { get } from "svelte/store";
 
   interface Props {
     absolutePath: string;
@@ -17,83 +17,83 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let { absolutePath, displayPath, line, column, host = defaultMarkdownHost }: Props = $props();
 
   let hovered = $state(false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let previewStatus = $state<"idle" | "loading" | "loaded" | "unavailable">("idle");
+  let previewSrc = $state<string | undefined>();
+  let previewRequestId = 0;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let supportsImagePreview = $derived(
+    !!host.getImageFileData && isPreviewableImagePath(absolutePath),
+  );
+  let supportsFileContextMenu = $derived(
+    !!host.showFileContextMenu && get(host.state).environment.assistantHost === "desktop",
+  );
+
+  function open(event: Event) {
+    const mouseEvent = event instanceof MouseEvent ? event : undefined;
+    void host.openFile?.(absolutePath, line, column, {
+      preferredEditor: isExternalEditorClick(mouseEvent),
+    });
     host.reportUserAction?.("file_link_open");
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  function isExternalEditorClick(event: MouseEvent | undefined) {
+    if (!event) return false;
+    return isAppleUser() ? event.metaKey : event.ctrlKey;
+  }
+
+  function showContextMenu(event: MouseEvent) {
+    const showFileContextMenu = host.showFileContextMenu;
+    if (!supportsFileContextMenu || !showFileContextMenu) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    void showFileContextMenu({
+      path: absolutePath,
+      line,
+      column,
+      position: { x: event.clientX, y: event.clientY },
+    });
+  }
+
+  function handleMouseenter() {
+    hovered = true;
+    loadPreview();
+  }
+
+  function loadPreview() {
+    if (!supportsImagePreview || previewStatus === "loading" || previewStatus === "loaded") return;
+
+    const requestId = ++previewRequestId;
+    previewStatus = "loading";
+    void host
+      .getImageFileData?.(absolutePath)
+      .then((image) => {
+        if (requestId !== previewRequestId) return;
+        if (!image) {
+          previewStatus = "unavailable";
+          return;
+        }
+        previewSrc = `data:${image.mimeType};base64,${image.data}`;
+        previewStatus = "loaded";
+      })
+      .catch(() => {
+        if (requestId !== previewRequestId) return;
+        previewStatus = "unavailable";
+      });
+  }
 </script>
 
 <span
   class="inline-block align-baseline"
   role="presentation"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  onmouseenter={handleMouseenter}
   onmouseleave={() => (hovered = false)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  oncontextmenu={showContextMenu}
 >
   <ChipNode
     label={displayPath}
     tooltip={absolutePath}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    tooltipContent={supportsImagePreview ? imagePreviewTooltip : undefined}
     ariaLabel={`Open file ${displayPath}`}
     onActivate={open}
     icon={fileIcon}
@@ -108,33 +108,33 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     <Icon {...iconProps} size={13} />
   </span>
 {/snippet}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+{#snippet imagePreviewTooltip()}
   <div
     class="image-tooltip box-border max-w-80 overflow-hidden p-1"
     role="tooltip"
     aria-label={`Image preview ${displayPath}`}
   >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {#if previewStatus === "loaded" && previewSrc}
       <img
         class="block max-h-64 max-w-full rounded-[3px] object-contain"
         src={previewSrc}
         alt={`Preview of ${displayPath}`}
       />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <p>{absolutePath}</p>
+    {:else if previewStatus === "unavailable"}
+      <p>Unable to preview image</p>
+    {:else}
+      <p>Loading image...</p>
+    {/if}
+  </div>
+{/snippet}
+
+<style lang="postcss">
+  @reference "#tailwind.css";
+
   .image-tooltip p {
     @apply max-w-80 truncate px-1.5 py-1 text-xs leading-tight text-psx-tooltip-foreground;
     overflow-wrap: anywhere;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+</style>

@@ -80,8 +80,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     rules: [
       {
         trigger: "#",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        triggerRegExp: /(?<=\s|^)#(?=\S*$)/g,
+        queryRegExp: /^\S*$/,
       },
     ],
   },

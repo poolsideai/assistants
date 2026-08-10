@@ -302,9 +302,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     background:
       linear-gradient(var(--psx-chrome-hover), var(--psx-chrome-hover)),
       var(--psx-editor-background);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /* Keep inline file/skill/command pills readable on the muted bubble
+       background instead of using the brand bubble's foreground. */
+    --psx-user-chip-fg: var(--psx-foreground-primary);
   }
 
   .user-bubble.variant-steer {

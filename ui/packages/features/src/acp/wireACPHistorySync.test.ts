@@ -3,7 +3,7 @@ import {
   ACP_PENDING_CONVERSATION_AGENT_EVENT,
   ACP_SESSION_NEW_EVENT,
   ACP_SESSION_TITLE_EVENT,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACP_SESSION_TURN_EVENT,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { wireACPHistorySync } from "./wireACPHistorySync";
 
@@ -14,7 +14,7 @@ describe("wireACPHistorySync", () => {
       hideSession: vi.fn(),
       showSession: vi.fn(),
       updateSessionTitle: vi.fn(),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      touchSession: vi.fn(),
     };
   }
 
@@ -152,27 +152,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     stop();
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("touches the conversation when the user starts a turn", () => {
+    const emitter = new EventTarget();
+    const history = mockHistory();
+
+    const stop = wireACPHistorySync({
+      emitter,
+      history,
+      getRefreshCwd: () => "/workspace",
+    });
+
+    emitter.dispatchEvent(
+      new CustomEvent(ACP_SESSION_TURN_EVENT, {
+        detail: { conversationId: "conv-1" },
+      }),
+    );
+
+    expect(history.touchSession).toHaveBeenCalledWith("conv-1");
+
+    stop();
+  });
+
   it("updates the pending conversation agent before a session exists", () => {
     const emitter = new EventTarget();
     const history = {

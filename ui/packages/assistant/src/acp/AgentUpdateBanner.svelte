@@ -15,9 +15,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let activeAgentName = $derived(
+    activeUpdate?.agent.name.trim().replace(/\s+agent$/i, "") ?? "ACP",
+  );
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -64,20 +64,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            ? `${activeAgentName} agent is configured but not installed on this machine`
             : isRestart
               ? `Restart required for the ${activeAgentName} agent`
               : `Update available for the ${activeAgentName} agent`}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {#if !progress}
+        <div class="mt-0.5 text-[12px]/[16px] text-psx-foreground-tertiary">
+          {#if isInstall}
+            Install the local ACP agent package to use this agent on this machine.
           {:else if isRestart}
             Version {activeUpdate.agent.version} is installed. {restartBlocked
               ? "Wait for this agent’s running conversations to finish, then restart to use it."
               : "Restart the agent to use it and refresh available models."}
+          {:else}
+            This updates the local ACP agent used for chats, not the Poolside Assistant app.
+          {/if}
+        </div>
+      {/if}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -87,20 +92,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <div class="mb-1 text-[12px]/[16px] text-psx-foreground-tertiary">
+            {#if isInstall}
+              Installing the local ACP agent package for this machine.
             {:else if isRestart}
               Restarting the agent and refreshing available models.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            {:else}
+              Updating the local ACP agent used for chats, not the Poolside Assistant app.
+            {/if}
+          </div>
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -142,8 +142,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         disabled={updates.busyAgentServer != null || restartBlocked}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {isUpdating
+          ? updates.busyLabel(normalizedAgentServer)
           : updateError
             ? "Retry"
             : isInstall

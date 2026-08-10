@@ -63,16 +63,16 @@ func (h *PoolsideHandler) ACPNavUpsertProject(ctx context.Context, req *methods.
 	return project, nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (h *PoolsideHandler) ACPNavPrepareWorktree(ctx context.Context, req *methods.ACPNavPrepareWorktreeParams, gCtx *glsp.Context) (methods.ACPNavProject, error) {
+	// Prepare reserves a name in memory only — no DB or filesystem change,
+	// so the file-search cache does not need to be invalidated here.
+	return h.acpNavHandler.PrepareWorktree(ctx, req, gCtx)
+}
+
 func (h *PoolsideHandler) ACPNavReleasePreparedWorktree(ctx context.Context, req *methods.ACPNavReleasePreparedWorktreeParams, gCtx *glsp.Context) (methods.ACPNavReleasePreparedWorktreeOutput, error) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return h.acpNavHandler.ReleasePreparedWorktree(ctx, req, gCtx)
+}
+
 func (h *PoolsideHandler) ACPNavCreateWorktree(ctx context.Context, req *methods.ACPNavCreateWorktreeParams, gCtx *glsp.Context) (methods.ACPNavProject, error) {
 	project, err := h.acpNavHandler.CreateWorktree(ctx, req, gCtx)
 	if err != nil {

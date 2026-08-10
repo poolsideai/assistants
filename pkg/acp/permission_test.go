@@ -12,4 +12,4 @@ func TestEncodeOverrideRules(t *testing.T) {
 	assert.Equal(t, map[string]any{
 		MetaKeyPermissionOverrideRules: []string{"gh *"},
 	}, EncodeOverrideRules([]string{"gh *"}))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

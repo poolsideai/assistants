@@ -2,7 +2,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { DateTime } from "luxon";
 import { serializeError, type ErrorObject } from "serialize-error";
 import * as vscode from "vscode";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getExtensionIdentity } from "../extensionIdentity";
 
 /** Local diagnostic logger; no errors or usage events are sent to a reporting service. */
 export class TelemetryLogger {
@@ -10,10 +10,10 @@ export class TelemetryLogger {
   #disposed = false;
 
   constructor() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.#output = vscode.window.createOutputChannel(
+      getExtensionIdentity().telemetryOutputChannelName,
+      "json",
+    );
   }
 
   deactivate() {

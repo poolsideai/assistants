@@ -4,15 +4,15 @@ go_library(
     name = "acpproxy",
     srcs = [
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "claude_auth_probe.go",
         "client.go",
         "elicitation.go",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "events.go",
         "handler.go",
         "process.go",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "process_signal_other.go",
+        "process_signal_unix.go",
+        "registry_binary.go",
         "registry_cache.go",
         "registry_transport.go",
         "runtime_check.go",
@@ -20,14 +20,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     visibility = ["//pkg/poolside-helper:__subpackages__"],
     deps = [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/acp",
         "//pkg/common/version",
         "//pkg/poolside-helper/gopls/pkg/protocol",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/poolside-helper/internal/gopls/gotoolsinternal/jsonrpc2",
         "//pkg/poolside-helper/internal/handler/acpnav",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/poolside-helper/internal/handler/acpregistry",
+        "//pkg/poolside-helper/internal/handler/approvals",
+        "//pkg/poolside-helper/internal/shellenv",
         "//pkg/poolside-helper/methods",
         "@com_github_coder_acp_go_sdk//:acp-go-sdk",
         "@com_github_google_uuid//:uuid",
@@ -39,13 +39,13 @@ go_test(
     name = "acpproxy_test",
     srcs = [
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "claude_auth_probe_test.go",
         "client_test.go",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "events_test.go",
         "handler_test.go",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "process_signal_unix_test.go",
         "process_test.go",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "registry_binary_test.go",
         "registry_transport_test.go",
         "runtime_check_test.go",
     ],
@@ -54,7 +54,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         "//pkg/acp",
         "//pkg/poolside-helper/gopls/pkg/protocol",
         "//pkg/poolside-helper/internal/handler/acpnav",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/poolside-helper/internal/handler/acpregistry",
         "//pkg/poolside-helper/internal/handler/approvals",
         "//pkg/poolside-helper/methods",
         "@com_github_coder_acp_go_sdk//:acp-go-sdk",

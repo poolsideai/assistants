@@ -9,14 +9,14 @@
     label: string;
     placement?: "bottom-start" | "bottom-end" | "top-start" | "top-end";
     header?: Snippet;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    children?: Snippet<[{ query: string }]>;
     searchable?: boolean;
     searchPlaceholder?: string;
     disableFocusFirstItem?: boolean;
     wide?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    trigger?: Snippet<[{ open: boolean }]>;
+    triggerClass?: string;
+    triggerLabel?: string;
   }
 
   let {
@@ -30,24 +30,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     searchPlaceholder = "Search...",
     disableFocusFirstItem = false,
     wide = false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    trigger,
+    triggerClass,
+    triggerLabel,
   }: Props = $props();
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<SharedDropdown
+  {icon}
   {iconClass}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {label}
+  {placement}
+  {header}
+  {searchable}
+  {searchPlaceholder}
   {disableFocusFirstItem}
   {wide}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {trigger}
+  {triggerClass}
+  {triggerLabel}
+  {children}
+/>

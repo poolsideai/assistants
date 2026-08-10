@@ -1,41 +1,41 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import { tick } from "svelte";
+  import { enqueuePaneShapeReveal } from "./internal/paneShapeRevealQueue.js";
+
+  interface PaneShapeFrame {
+    width: number;
+    height: number;
+    contentY: number;
+    tabLeft: number;
+    tabRight: number;
+    hasVisibleTab: boolean;
+    edgeRadii: PaneShapeRadii;
+    fillRadii: PaneShapeRadii;
+  }
+
+  interface PaneShapeRadii {
+    tab: number;
+    shoulder: number;
+    pane: number;
+  }
+
+  interface Props {
+    paneId: string;
+    tabId?: string;
+    version: number;
+    paneElement?: HTMLElement;
+    paneContentElement?: HTMLElement;
     animating: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   let { paneId, tabId, version, paneElement, paneContentElement, animating }: Props = $props();
 
   // Quiet period after self-observed geometry churn before settling back to
   // the full-quality filter and a rounded re-measure.
   const LOCAL_MOTION_SETTLE_MS = 160;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  let shapeFrame = $state<PaneShapeFrame>();
+  let shapeVisible = $state(false);
   // Geometry churn this component observes itself (window resizes, tab-strip
   // scrolls, pane resizes). Host-driven motion (panel toggles, divider drags)
   // arrives via the `animating` prop instead.
@@ -43,15 +43,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let localMotionTimer: number | undefined;
 
   const inMotion = $derived(animating || localMotion);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  const clipPathId = $derived(`splits-pane-shape-clip-${safeId(paneId)}`);
   const outerClipPathId = $derived(`splits-pane-shape-outer-clip-${safeId(paneId)}`);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const edgePath = $derived(
+    shapeFrame ? paneShapePathForFrame(shapeFrame, shapeFrame.edgeRadii) : undefined,
+  );
+  const fillPath = $derived(
+    shapeFrame ? paneShapePathForFrame(shapeFrame, shapeFrame.fillRadii) : undefined,
+  );
   // An even-odd clip leaves only the area outside the silhouette. Keeping
   // the dark stroke outside and the highlight inside makes their widths
   // independent of the opaque content rendered within the pane.
@@ -60,7 +60,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       ? `M ${-shapeFrame.width} ${-shapeFrame.height} H ${shapeFrame.width * 2} V ${shapeFrame.height * 2} H ${-shapeFrame.width} Z ${edgePath}`
       : undefined,
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   function markLocalMotion() {
     localMotion = true;
     if (localMotionTimer !== undefined) window.clearTimeout(localMotionTimer);
@@ -74,120 +74,120 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     if (localMotionTimer !== undefined) window.clearTimeout(localMotionTimer);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  $effect(() => {
+    version;
+
+    const element = paneElement;
+    const contentElement = paneContentElement;
+    const selectedTabId = tabId;
     const motion = inMotion;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     if (!element || !selectedTabId) {
       // Nothing valid to draw — the box-shadow fallback must take over.
       shapeVisible = false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return;
+    }
+
+    let cancelled = false;
+    let measureFrame: number | undefined;
     let trackFrame: number | undefined;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let cancelReveal: (() => void) | undefined;
+    let receivedInitialResize = false;
+    const tabListElement = element.querySelector<HTMLElement>("[data-splits-tab-list]");
+
+    function findSelectedTabElement(): HTMLElement | undefined {
+      return Array.from(element!.querySelectorAll<HTMLElement>("[data-splits-tab-id]")).find(
+        (candidate) => candidate.dataset.splitsTabId === selectedTabId,
+      );
+    }
+
     function cancelScheduledWork() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (measureFrame !== undefined) {
+        cancelAnimationFrame(measureFrame);
+        measureFrame = undefined;
+      }
       if (trackFrame !== undefined) {
         cancelAnimationFrame(trackFrame);
         trackFrame = undefined;
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      cancelReveal?.();
+      cancelReveal = undefined;
+    }
+
     function measureShape(rounded: boolean) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (cancelled) return;
       // Round only at rest: animated geometry sits on subpixels, and snapping
       // the silhouette to integers there makes it shimmer against the pane.
       const px = rounded ? Math.round : (value: number) => value;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+      const selectedTabElement = findSelectedTabElement();
+      if (!selectedTabElement) {
+        shapeFrame = undefined;
+        return;
+      }
+
+      const paneRect = element!.getBoundingClientRect();
+      const contentRect = contentElement?.getBoundingClientRect();
+      const tabRect = selectedTabElement.getBoundingClientRect();
+      const tabViewportRect = tabListElement?.getBoundingClientRect();
+      const visibleTabLeft = tabViewportRect
+        ? Math.max(tabRect.left, tabViewportRect.left)
+        : tabRect.left;
+      const visibleTabRight = tabViewportRect
+        ? Math.min(tabRect.right, tabViewportRect.right)
+        : tabRect.right;
+      const hasVisibleTab = visibleTabRight > visibleTabLeft;
+      const hiddenTabEdge = tabViewportRect
+        ? tabRect.right <= tabViewportRect.left
+          ? tabViewportRect.left
+          : tabViewportRect.right
+        : tabRect.left;
+      const shapeTabLeft = hasVisibleTab ? visibleTabLeft : hiddenTabEdge;
+      const shapeTabRight = hasVisibleTab ? visibleTabRight : hiddenTabEdge;
+      const selectedTabStyle = getComputedStyle(selectedTabElement);
+      const paneStyle = getComputedStyle(element!);
+      const shapeTopOffset = pixelValue(paneStyle.getPropertyValue("--splits-pane-shape-top"), -1);
+      const shapeHeightExtension = pixelValue(
+        paneStyle.getPropertyValue("--splits-pane-shape-height-extension"),
+        1,
+      );
+      const shapeTop = paneRect.top + shapeTopOffset;
+      const tabRadius = pixelValue(selectedTabStyle.borderTopRightRadius, 6);
+      const shoulderRadius = pixelValue(
+        paneStyle.getPropertyValue("--splits-pane-shape-shoulder-radius"),
+        tabRadius,
+      );
+      const paneRadius = pixelValue(paneStyle.borderTopRightRadius, 0);
+
+      shapeFrame = {
         width: px(paneRect.width),
         height: px(paneRect.height + shapeHeightExtension),
         contentY: px((contentRect?.top ?? tabRect.bottom) - shapeTop),
         tabLeft: px(shapeTabLeft - paneRect.left),
         tabRight: px(shapeTabRight - paneRect.left),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        hasVisibleTab,
+        edgeRadii: {
+          tab: tabRadius,
+          shoulder: shoulderRadius,
+          pane: paneRadius,
+        },
+        fillRadii: {
+          tab: pixelValue(
+            paneStyle.getPropertyValue("--splits-pane-shape-fill-tab-radius"),
+            tabRadius,
+          ),
+          shoulder: pixelValue(
+            paneStyle.getPropertyValue("--splits-pane-shape-fill-shoulder-radius"),
+            shoulderRadius,
+          ),
+          pane: pixelValue(
+            paneStyle.getPropertyValue("--splits-pane-shape-fill-pane-radius"),
+            paneRadius,
+          ),
+        },
+      };
+    }
+
     if (motion) {
       // Track motion frame-by-frame: re-measure and redraw so the silhouette
       // rides the animation, skipping the reveal queue. Measuring inside rAF
@@ -223,148 +223,148 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           });
         });
       });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+
+    const selectedTabElement = findSelectedTabElement();
     const handleGeometryChange = () => markLocalMotion();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const handleObservedResize = () => {
       // ResizeObserver delivers an initial notification after observe(); only
       // later notifications are real geometry changes.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (!receivedInitialResize) {
+        receivedInitialResize = true;
+        return;
+      }
       markLocalMotion();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    };
+    const resizeObserver =
+      typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(handleObservedResize);
+    resizeObserver?.observe(element);
+    if (tabListElement) {
+      resizeObserver?.observe(tabListElement);
+      tabListElement.addEventListener("scroll", handleGeometryChange, { passive: true });
+    }
+    if (selectedTabElement) resizeObserver?.observe(selectedTabElement);
+    window.addEventListener("resize", handleGeometryChange);
+
+    return () => {
       // Do not hide the shape here: this teardown also runs between effect
       // re-runs (every layout-version bump and motion flip), and hiding would
       // flash the box-shadow fallback behind the pane. The next run re-measures
       // and swaps the shape in place, or hides it itself when it cannot draw;
       // on real unmount the SVG leaves the DOM with the component anyway.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      cancelled = true;
+      resizeObserver?.disconnect();
+      tabListElement?.removeEventListener("scroll", handleGeometryChange);
+      window.removeEventListener("resize", handleGeometryChange);
       cancelScheduledWork();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    };
+  });
+
+  function safeId(value: string): string {
+    return value.replace(/[^A-Za-z0-9_-]/g, "_");
+  }
+
+  function pixelValue(value: string, fallback: number): number {
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  function pathNumber(value: number): string {
+    return Number.isInteger(value) ? String(value) : value.toFixed(2);
+  }
+
+  function paneShapePathForFrame(frame: PaneShapeFrame, radii: PaneShapeRadii): string {
+    if (!frame.hasVisibleTab) return paneShapeBodyPathForFrame(frame, radii);
+
+    const width = Math.max(0, frame.width);
+    const height = Math.max(frame.contentY, frame.height);
+    const tabLeft = Math.min(frame.tabLeft, frame.tabRight);
+    const tabRight = Math.max(frame.tabLeft, frame.tabRight);
+    const tabWidth = Math.max(0, tabRight - tabLeft);
+    const tabRadius = Math.max(0, Math.min(radii.tab, tabWidth / 2, frame.contentY));
+    const shoulderRadius = Math.max(0, Math.min(radii.shoulder, frame.contentY - tabRadius));
+    const paneRadius = Math.max(
+      0,
+      Math.min(radii.pane, width / 2, Math.max(0, height - frame.contentY)),
+    );
+    const rightShoulderRadius = Math.min(
+      shoulderRadius,
+      Math.max(0, width - paneRadius - tabRight),
+    );
+    const leftShoulderRadius = Math.min(shoulderRadius, tabLeft);
+    const topLeftPaneRadius = Math.max(0, Math.min(paneRadius, tabLeft - leftShoulderRadius));
+    const n = pathNumber;
+    const shoulderRight =
+      rightShoulderRadius > 0
+        ? [
+            `L ${n(tabRight)} ${n(frame.contentY - rightShoulderRadius)}`,
+            `Q ${n(tabRight)} ${n(frame.contentY)} ${n(tabRight + rightShoulderRadius)} ${n(frame.contentY)}`,
+          ]
+        : [`L ${n(tabRight)} ${n(frame.contentY)}`];
+    const shoulderLeft =
+      leftShoulderRadius > 0
+        ? [
+            `L ${n(tabLeft - leftShoulderRadius)} ${n(frame.contentY)}`,
+            `Q ${n(tabLeft)} ${n(frame.contentY)} ${n(tabLeft)} ${n(frame.contentY - leftShoulderRadius)}`,
+          ]
+        : [`L ${n(tabLeft)} ${n(frame.contentY)}`];
+
+    return [
+      `M ${n(tabLeft + tabRadius)} 0`,
+      `L ${n(tabRight - tabRadius)} 0`,
+      `Q ${n(tabRight)} 0 ${n(tabRight)} ${n(tabRadius)}`,
+      ...shoulderRight,
+      `L ${n(width - paneRadius)} ${n(frame.contentY)}`,
+      `Q ${n(width)} ${n(frame.contentY)} ${n(width)} ${n(frame.contentY + paneRadius)}`,
+      `L ${n(width)} ${n(height - paneRadius)}`,
+      `Q ${n(width)} ${n(height)} ${n(width - paneRadius)} ${n(height)}`,
+      `L ${n(paneRadius)} ${n(height)}`,
+      `Q 0 ${n(height)} 0 ${n(height - paneRadius)}`,
+      `L 0 ${n(frame.contentY + topLeftPaneRadius)}`,
+      ...(topLeftPaneRadius > 0
+        ? [`Q 0 ${n(frame.contentY)} ${n(topLeftPaneRadius)} ${n(frame.contentY)}`]
+        : []),
+      ...shoulderLeft,
+      `L ${n(tabLeft)} ${n(tabRadius)}`,
+      `Q ${n(tabLeft)} 0 ${n(tabLeft + tabRadius)} 0`,
+      "Z",
+    ].join(" ");
+  }
+
+  function paneShapeBodyPathForFrame(frame: PaneShapeFrame, radii: PaneShapeRadii): string {
+    const width = Math.max(0, frame.width);
+    const height = Math.max(frame.contentY, frame.height);
+    const top = Math.max(0, Math.min(frame.contentY, height));
+    const bodyHeight = Math.max(0, height - top);
+    const paneRadius = Math.max(0, Math.min(radii.pane, width / 2, bodyHeight / 2));
+    const n = pathNumber;
+
+    return [
+      `M ${n(paneRadius)} ${n(top)}`,
+      `L ${n(width - paneRadius)} ${n(top)}`,
+      `Q ${n(width)} ${n(top)} ${n(width)} ${n(top + paneRadius)}`,
+      `L ${n(width)} ${n(height - paneRadius)}`,
+      `Q ${n(width)} ${n(height)} ${n(width - paneRadius)} ${n(height)}`,
+      `L ${n(paneRadius)} ${n(height)}`,
+      `Q 0 ${n(height)} 0 ${n(height - paneRadius)}`,
+      `L 0 ${n(top + paneRadius)}`,
+      `Q 0 ${n(top)} ${n(paneRadius)} ${n(top)}`,
+      "Z",
+    ].join(" ");
+  }
+</script>
+
+{#if shapeVisible && edgePath && fillPath && shapeFrame}
+  <svg
+    class="splits-pane-shape splits-pane-shape-shadow-layer"
     class:splits-pane-shape-in-motion={inMotion}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    data-pane-shape-ready
+    viewBox={`0 0 ${shapeFrame.width} ${shapeFrame.height}`}
+    preserveAspectRatio="none"
+    aria-hidden="true"
+  >
+    <path class="splits-pane-shape-shadow" d={edgePath}></path>
+  </svg>
   <svg
     class="splits-pane-shape splits-pane-shape-edge-ring-layer"
     viewBox={`0 0 ${shapeFrame.width} ${shapeFrame.height}`}
@@ -373,11 +373,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   >
     <path class="splits-pane-shape-edge-ring" d={edgePath}></path>
   </svg>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  <svg
+    class="splits-pane-shape splits-pane-shape-surface-layer"
+    viewBox={`0 0 ${shapeFrame.width} ${shapeFrame.height}`}
+    preserveAspectRatio="none"
+    aria-hidden="true"
   >
     <!-- Keep this as direct vector geometry. A pane-sized SVG mask makes
          WKWebView software-rasterize the full alpha buffer during repaints. -->
@@ -388,46 +388,46 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     viewBox={`0 0 ${shapeFrame.width} ${shapeFrame.height}`}
     preserveAspectRatio="none"
     aria-hidden="true"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  >
+    <defs>
+      <clipPath id={clipPathId}>
+        <path d={edgePath}></path>
+      </clipPath>
       <clipPath id={outerClipPathId}>
         <path d={outerClipPath} clip-rule="evenodd"></path>
       </clipPath>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </defs>
+    <path class="splits-pane-shape-inner-shadow" clip-path={`url(#${clipPathId})`} d={edgePath}
+    ></path>
     <path class="splits-pane-shape-stroke" clip-path={`url(#${outerClipPathId})`} d={edgePath}
     ></path>
     <!-- Optional darker outline over the hairline, for consumers whose surface
          needs more edge definition than a light stroke gives. -->
     <path class="splits-pane-shape-edge-stroke" clip-path={`url(#${outerClipPathId})`} d={edgePath}
     ></path>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </svg>
+{/if}
+
+<style>
+  .splits-pane-shape {
+    position: absolute;
+    top: var(--splits-pane-shape-top, -1px);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 0;
+    width: 100%;
+    height: calc(100% + var(--splits-pane-shape-height-extension, 1px));
+    /* A dedicated compositor layer can make WKWebView omit newly mounted
+       sibling pane content until another input forces a repaint. */
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .splits-pane-shape-shadow-layer {
+    filter: var(--splits-pane-shape-filter, none);
+  }
+
   .splits-pane-shape-rim-layer {
     /* Opaque tab/terminal/editor backgrounds must not cover the inner rim. */
     z-index: 2;
@@ -440,10 +440,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     filter: var(--splits-pane-shape-motion-filter, var(--splits-pane-shape-filter, none));
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .splits-pane-shape-shadow {
+    fill: var(--splits-pane-shape-shadow-fill, var(--splits-pane-background));
+  }
+
   /* The tight edge shadow is a blurred uniform-width stroke, not a
      drop-shadow() pass: blurring the area silhouette integrates extra
      darkness into the concave shoulder fillet (a visible dark tick in the
@@ -461,27 +461,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     vector-effect: non-scaling-stroke;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .splits-pane-shape-surface {
+    fill: var(--splits-pane-shape-surface-fill, var(--splits-pane-background));
     fill-opacity: var(--splits-pane-shape-surface-alpha, 1);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  .splits-pane-shape-inner-shadow {
+    fill: none;
+    filter: var(--splits-pane-shape-inner-shadow-filter, none);
+    stroke: var(--splits-pane-shape-inner-shadow-color, transparent);
+    stroke-width: var(--splits-pane-shape-inner-shadow-width, 0);
+    shape-rendering: geometricPrecision;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .splits-pane-shape-stroke {
+    fill: none;
+    stroke: var(--splits-pane-shape-border-color, transparent);
+    stroke-width: var(--splits-pane-shape-border-width, 0);
+    shape-rendering: geometricPrecision;
+    vector-effect: non-scaling-stroke;
+  }
 
   .splits-pane-shape-edge-stroke {
     fill: none;
@@ -493,4 +493,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     shape-rendering: geometricPrecision;
     vector-effect: non-scaling-stroke;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</style>

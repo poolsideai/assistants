@@ -41,6 +41,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("keeps pre-reply finished tools summarized while the reply streams without turn metadata", () => {
+    const events = [
+      { eventKind: "user_message", messageId: "u1", content: [] },
+      tool("edit-1", "edit", "completed"),
+      tool("run-1", "execute", "completed"),
+      { eventKind: "user_message", messageId: "u2", content: [] },
+      tool("read-1", "read", "completed"),
+      tool("read-2", "read", "completed"),
+    ] satisfies SessionEvent[];
+
+    const state = new SessionEventsState({
+      events,
+      isPrompting: true,
+    });
+
+    const groups = state.grouped.filter((item) => item.kind === "event_group");
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -52,31 +76,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   it("summarizes tools on both sides of a steer as one completed turn", () => {
     const state = new SessionEventsState({
       events: [
@@ -138,13 +138,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   });
 
   it("folds a two-tool interrupted turn instead of leaving every tool expanded", () => {
+    const state = new SessionEventsState({
+      events: [tool("edit-1", "edit", "completed"), tool("run-1", "execute", "cancelled")],
+      isPrompting: false,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      turns: [interruptedTurn(0, 1)],
+    });
+
     expect(state.grouped).toHaveLength(1);
     expect(state.grouped[0]).toMatchObject({
       kind: "event_group",
@@ -286,8 +286,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       events: [{ index: 0 }, { index: 1 }, { index: 2 }],
       turn: { interrupted: true },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
   it("keeps an interim message inside the settled interrupted compact fold", () => {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -397,84 +397,84 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    const state = new SessionEventsState({
+      events: [
+        tool("read-1", "read", "completed"),
+        tool("read-2", "read", "completed"),
+        tool("edit-1", "edit", "cancelled"),
+      ],
+      isPrompting: false,
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+      turns: [interruptedTurn(0, 2)],
+    });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
   it("keeps an interrupted turn's live group while a subsequent turn is prompting", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const events = [
+      tool("edit-1", "edit", "completed"),
       tool("edit-2", "edit", "completed"),
       tool("read-1", "read", "completed"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      tool("run-1", "execute", "cancelled"),
+      { eventKind: "user_message", messageId: "u2", content: [] },
+    ] satisfies SessionEvent[];
+
+    const state = new SessionEventsState({
+      events,
+      isPrompting: true,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       turns: [interruptedTurn(0, 3)],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    });
+
+    const groups = state.grouped.filter((item) => item.kind === "event_group");
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       events: [{ index: 0 }, { index: 1 }, { index: 2 }, { index: 3 }],
       turn: { startIndex: 0, endIndex: 3, interrupted: true },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const events = [
+      tool("edit-1", "edit", "cancelled"),
       tool("edit-2", "edit", "cancelled"),
       tool("read-1", "read", "cancelled"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      tool("run-1", "execute", "cancelled"),
+      { eventKind: "user_message", messageId: "u2", content: [] },
       tool("edit-3", "edit", "completed"),
+      tool("run-2", "execute", "completed"),
+    ] satisfies SessionEvent[];
+
+    const state = new SessionEventsState({
+      events,
+      isPrompting: false,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      turns: [
         interruptedTurn(0, 3),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {
+          startedAt: "2026-06-02T10:05:00.000Z",
+          endedAt: "2026-06-02T10:06:00.000Z",
           startIndex: 4,
           endIndex: 6,
+        },
+      ],
+    });
+
+    const groups = state.grouped.filter((item) => item.kind === "event_group");
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(groups[0]).toMatchObject({
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       events: [{ index: 0 }, { index: 1 }, { index: 2 }, { index: 3 }],
       turn: { startIndex: 0, endIndex: 3, interrupted: true },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       turn: { startIndex: 4, endIndex: 6 },
+    });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   it("shows every thought while prompting, marking only the latest live", () => {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1944,16 +1944,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function interruptedTurn(startIndex: number, endIndex: number) {
+  return {
+    startedAt: "2026-06-02T10:00:00.000Z",
+    endedAt: "2026-06-02T10:01:00.000Z",
+    startIndex,
+    endIndex,
+    interrupted: true,
+  };
+}
+
 function steerMessage(text: string): SessionEvent {
   return {
     eventKind: "user_message",

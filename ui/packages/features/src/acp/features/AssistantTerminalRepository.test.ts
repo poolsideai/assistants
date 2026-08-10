@@ -68,7 +68,7 @@ describe("AssistantTerminalRepositoryWriter", () => {
       undefined,
     ]);
     expect(repo.activeTabId).toBe("terminal-1");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(repo.consumeInitialResizeClear("terminal-1")).toBe(true);
   });
 
   it("spawns new terminals at the last measured size and skips the startup clear", async () => {
@@ -142,26 +142,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(repo.tabs).toEqual([]);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("marks only newly-created interactive empty terminals for initial resize clear", async () => {
+    sender
+      .mockResolvedValueOnce(tab("interactive", "/repo", "2026-05-20T10:00:00Z"))
+      .mockResolvedValueOnce(tab("command", "/repo", "2026-05-20T10:01:00Z"))
+      .mockResolvedValueOnce(tab("non-interactive", "/repo", "2026-05-20T10:02:00Z"))
+      .mockResolvedValueOnce([tab("restored", "/repo", "2026-05-20T10:03:00Z")]);
+    const repo = new AssistantTerminalRepositoryWriter();
+
+    await repo.createTab("/repo");
+    await repo.createTab("/repo", "pnpm test");
+    await repo.createTab("/repo", undefined, undefined, "nonInteractive");
+    await repo.setWorktreePath("/repo");
+
+    expect(repo.consumeInitialResizeClear("interactive")).toBe(true);
+    expect(repo.consumeInitialResizeClear("interactive")).toBe(false);
+    expect(repo.consumeInitialResizeClear("command")).toBe(false);
+    expect(repo.consumeInitialResizeClear("non-interactive")).toBe(false);
+    expect(repo.consumeInitialResizeClear("restored")).toBe(false);
+  });
+
   it("tracks terminal lifecycle notifications and buffers", () => {
     const repo = new AssistantTerminalRepositoryWriter();
 
@@ -189,70 +189,70 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(repo.buffers).toEqual({});
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("tracks the start offset when capped terminal buffers slide forward", () => {
+    const repo = new AssistantTerminalRepositoryWriter();
+    repo.terminalDidOpen(tab("terminal-1", "/repo", "2026-05-20T10:00:00Z"));
+
+    repo.terminalDidWrite("terminal-1", "a".repeat(199_999));
+    repo.terminalDidWrite("terminal-1", "bc");
+
+    expect(repo.buffers["terminal-1"]).toHaveLength(200_000);
+    expect(repo.buffers["terminal-1"]?.startsWith("a")).toBe(true);
+    expect(repo.buffers["terminal-1"]?.endsWith("bc")).toBe(true);
+    expect(repo.bufferStartOffsets["terminal-1"]).toBe(1);
+
+    repo.terminalDidWrite("terminal-1", "d");
+
+    expect(repo.buffers["terminal-1"]).toHaveLength(200_000);
+    expect(repo.buffers["terminal-1"]?.endsWith("bcd")).toBe(true);
+    expect(repo.bufferStartOffsets["terminal-1"]).toBe(2);
+
+    repo.terminalDidClose("terminal-1");
+
+    expect(repo.bufferStartOffsets).toEqual({});
+  });
+
+  it("clears a terminal buffer and notifies the host", async () => {
+    sender.mockResolvedValueOnce(undefined);
+    const repo = new AssistantTerminalRepositoryWriter();
+    repo.terminalDidOpen(tab("terminal-1", "/repo", "2026-05-20T10:00:00Z"));
+    repo.terminalDidWrite("terminal-1", "noisy output");
+
+    await repo.clear("terminal-1");
+
+    expect(repo.buffers["terminal-1"]).toBe("");
+    expect(sender).toHaveBeenCalledWith("clearAssistantTerminal", ["terminal-1"]);
+  });
+
   it("closes all tabs for a project path and nested worktrees", async () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    sender
+      .mockResolvedValueOnce(tab("pending", "/repo", "2026-05-20T12:00:00Z"))
+      .mockResolvedValueOnce(undefined);
     const repo = new AssistantTerminalRepositoryWriter();
     repo.terminalDidOpen(tab("project", "/repo", "2026-05-20T09:00:00Z"));
     repo.terminalDidOpen(tab("worktree", "/repo/worktrees/feature", "2026-05-20T10:00:00Z"));
     repo.terminalDidOpen(tab("other", "/other", "2026-05-20T11:00:00Z"));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await repo.createTab("/repo");
     repo.terminalDidWrite("project", "project buffer");
     repo.terminalDidWrite("worktree", "worktree buffer");
     repo.terminalDidWrite("other", "other buffer");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    repo.terminalDidWrite("pending", "pending buffer");
 
     await repo.closeProject("/repo");
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(sender).toHaveBeenCalledWith("createAssistantTerminal", [
+      "/repo",
       undefined,
       undefined,
       undefined,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      undefined,
+      undefined,
+      undefined,
+    ]);
     expect(sender).toHaveBeenCalledWith("closeAssistantTerminalsForProject", ["/repo"]);
     expect(repo.tabs.map((candidate) => candidate.id)).toEqual(["other"]);
     expect(repo.buffers).toEqual({ other: "other buffer" });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(repo.consumeInitialResizeClear("pending")).toBe(false);
   });
 
   it("runs a command and resolves when the terminal exits", async () => {
@@ -266,12 +266,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     repo.terminalDidExit("terminal-1", 0);
 
     await expect(exit).resolves.toBe(0);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(sender).toHaveBeenCalledWith(
+      "createAssistantTerminal",
+      expect.arrayContaining(["/repo", expect.stringContaining("pnpm clean")]),
+    );
+  });
+
   it("runs a command through a registered visible terminal opener", async () => {
     const repo = new AssistantTerminalRepositoryWriter();
     const opener = vi
@@ -419,24 +419,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     await expect(exit).resolves.toBe(0);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("runs a command and resolves when its completion marker is emitted", async () => {
+    sender.mockResolvedValueOnce(tab("terminal-1", "/repo", "2026-05-20T10:00:00Z"));
+    const repo = new AssistantTerminalRepositoryWriter();
+
+    const exit = repo.runCommandAndWait("/repo", "pnpm clean");
+    await vi.waitFor(() =>
+      expect(repo.tabs.map((candidate) => candidate.id)).toEqual(["terminal-1"]),
+    );
+    const command = sender.mock.calls[0][1]?.[1] as string;
+    const token = command.match(/PoolsideCommandDone=([^:]+):%s/)?.[1];
+    expect(token).toBeTruthy();
+
+    repo.terminalDidWrite("terminal-1", `\x1b]1337;PoolsideCommandDone=${token}:7\x07`);
+
+    await expect(exit).resolves.toBe(7);
+    expect(repo.buffers["terminal-1"]).toBeUndefined();
+  });
+
   it("streams command output without completion markers", async () => {
     sender.mockResolvedValueOnce(tab("terminal-1", "/repo", "2026-05-20T10:00:00Z"));
     const repo = new AssistantTerminalRepositoryWriter();
@@ -468,46 +468,46 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(repo.buffers["terminal-1"]).toBe("hello\n");
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("runs a command and resolves when ctrl-c is sent to the startup command", async () => {
+    sender
+      .mockResolvedValueOnce(tab("terminal-1", "/repo", "2026-05-20T10:00:00Z"))
+      .mockResolvedValueOnce(undefined);
+    const repo = new AssistantTerminalRepositoryWriter();
+
+    const exit = repo.runCommandAndWait("/repo", "pnpm clean");
+    await vi.waitFor(() =>
+      expect(repo.tabs.map((candidate) => candidate.id)).toEqual(["terminal-1"]),
+    );
+    await repo.write("terminal-1", "\x03");
+
+    await expect(exit).resolves.toBeUndefined();
+    expect(sender).toHaveBeenLastCalledWith("writeAssistantTerminal", ["terminal-1", "\x03"]);
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  it("runs a command and resolves when the abort signal fires", async () => {
+    sender.mockResolvedValueOnce(tab("terminal-1", "/repo", "2026-05-20T10:00:00Z"));
+    const repo = new AssistantTerminalRepositoryWriter();
+    const controller = new AbortController();
+
+    const exit = repo.runCommandAndWait("/repo", "pnpm clean", controller.signal);
+    await vi.waitFor(() =>
+      expect(repo.tabs.map((candidate) => candidate.id)).toEqual(["terminal-1"]),
+    );
+    controller.abort();
+
+    await expect(exit).resolves.toBeUndefined();
+    expect((repo as unknown as { exitWaiters: Map<string, unknown> }).exitWaiters.size).toBe(0);
+  });
+
+  it("runs a command with an already aborted signal without hanging", async () => {
+    sender.mockResolvedValueOnce(tab("terminal-1", "/repo", "2026-05-20T10:00:00Z"));
+    const repo = new AssistantTerminalRepositoryWriter();
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(repo.runCommandAndWait("/repo", "pnpm clean", controller.signal)).resolves.toBe(
+      undefined,
+    );
+    expect((repo as unknown as { exitWaiters: Map<string, unknown> }).exitWaiters.size).toBe(0);
+  });
 });

@@ -3,7 +3,7 @@
   import { melt, createDropdownMenu } from "@melt-ui/svelte";
   import Icon, { type IconName } from "../../icon/index.js";
   import { Badge } from "../../badge/index.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { fuzzyScore } from "./fuzzy.js";
 
   interface Props {
     icon?: IconName;
@@ -13,22 +13,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     description?: string | null;
     tag?: string;
     selected?: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    disabled?: boolean;
     onclick?: () => void;
     accessories?: Snippet;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let {
+    icon,
     iconClass,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    label,
     description,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    tag,
+    selected = false,
+    disabled = false,
+    onclick,
+    accessories,
+  }: Props = $props();
 
   const {
     elements: { item },
@@ -36,14 +36,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   const search = getContext<{ readonly query: string } | undefined>("dropdown-search");
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const visible = $derived(fuzzyScore(search?.query ?? "", label) !== null);
 </script>
 
 {#if visible}
   <button
     type="button"
     use:melt={$item}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {disabled}
     {onclick}
     class={[
       // No text size: rows inherit the menu surface's 13px system font.
@@ -86,23 +86,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         description && "h-[var(--text-menu--line-height)]",
       ]}
     >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {#if accessories}
+        <!-- Interactive accessories (e.g. the "use by default" star) act on
+             their own: their events must not reach the row, where melt would
+             treat them as selecting the item and close the menu. -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <span
+          class="contents"
+          onclick={(event) => event.stopPropagation()}
+          onpointerdown={(event) => event.stopPropagation()}
+          onpointerup={(event) => event.stopPropagation()}
+          onkeydown={(event) => {
+            if (event.key === "Enter" || event.key === " ") event.stopPropagation();
+          }}
+        >
+          {@render accessories()}
+        </span>
+      {/if}
       {#if selected}
         <Badge size="xs" class="uppercase">Selected</Badge>
       {/if}

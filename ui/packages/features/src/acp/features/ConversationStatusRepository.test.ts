@@ -58,28 +58,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(repo.hasWorkingConversationForAgent("agent-a")).toBe(false);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("reports working conversations from local and remote surfaces", () => {
+    const repo = new ACPConversationStatusRepositoryWriter();
+    expect(repo.hasWorkingConversation).toBe(false);
+
+    repo.syncRemoteStatuses([
+      {
+        sessionId: sessionId("remote-session"),
+        agentServer: "agent-a",
+        liveStatus: { working: true, waitingForUser: false, unread: false },
+      },
+    ]);
+    expect(repo.hasWorkingConversation).toBe(true);
+
+    repo.syncRemoteStatuses([]);
+    syncSession(repo, {
+      conversationId: "conversation-1",
+      sessionId: sessionId("session-1"),
+      working: true,
+    });
+    expect(repo.hasWorkingConversation).toBe(true);
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

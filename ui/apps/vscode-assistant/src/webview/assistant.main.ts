@@ -5,7 +5,7 @@ const vscodeAPI = acquireVsCodeApi<any>();
 globalThis.acquireVsCodeApi = (() => vscodeAPI) as typeof acquireVsCodeApi;
 
 import { messageHandler } from "@estruyf/vscode/dist/client";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { SidebarOnlyPanel, init } from "@poolsideai/assistant";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
@@ -13,7 +13,7 @@ const targetElement = document.getElementById("app");
 const target = targetElement!;
 
 init().then(() => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  mount(SidebarOnlyPanel, {
     target,
     props: {
 __POOL_SYNTHETIC_IMPORT_BASELINE__

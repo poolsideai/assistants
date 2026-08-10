@@ -1,10 +1,10 @@
 <script lang="ts">
   import { Button, type ButtonProps } from "@poolsideai/components/button";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { isAppleUser } from "@poolsideai/components";
   import Icon from "@poolsideai/components/icon";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { get } from "svelte/store";
+  import { appState } from "../../hostAdapter";
+  import { markdownHost } from "../../markdownHost";
 
   interface Props extends ButtonProps {
     path: string;
@@ -14,43 +14,43 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let { path, icon = true, children, onclick, class: className, ...rest }: Props = $props();
 
   const click: ButtonProps["onclick"] = (event) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    void markdownHost.openFile?.(path, undefined, undefined, {
+      preferredEditor: isExternalEditorClick(event),
+    });
     onclick?.(event);
     event.stopPropagation();
   };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  function showContextMenu(event: MouseEvent) {
+    if (
+      !markdownHost.showFileContextMenu ||
+      get(appState).environment.assistantHost !== "desktop"
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    void markdownHost.showFileContextMenu({
+      path,
+      position: { x: event.clientX, y: event.clientY },
+    });
+  }
+
+  function isExternalEditorClick(event: MouseEvent) {
+    return isAppleUser() ? event.metaKey : event.ctrlKey;
+  }
 </script>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<Button
+  appearance="link"
   data-cursor="link"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  class={["truncate", className]}
+  onclick={click}
+  oncontextmenu={showContextMenu}
+  {...rest}
   title={undefined}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+>
   {#if icon}
     <Icon type="file" name={path} />
   {/if}

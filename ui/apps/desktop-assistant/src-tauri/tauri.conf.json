@@ -17,7 +17,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "windows": [
       {
         "label": "main",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "create": false,
         "title": "Poolside",
         "titleBarStyle": "Overlay",
         "hiddenTitle": true,
@@ -47,8 +47,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "category": "DeveloperTool",
     "externalBin": [
       "binaries/poolside-helper",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "binaries/poolside-mlx-sidecar",
+      "binaries/poolside-whisper-server"
     ],
     "resources": {
       "Credits.html": "Credits.html",
@@ -65,7 +65,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "longDescription": "Poolside for desktop",
     "macOS": {
       "bundleName": "Poolside",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "entitlements": "Entitlements.plist"
     }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

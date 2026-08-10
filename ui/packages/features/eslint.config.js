@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { defineConfig } from "@poolsideai/eslint-config";
 import acpRules from "./eslint-acp-rules.js";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 export default defineConfig(

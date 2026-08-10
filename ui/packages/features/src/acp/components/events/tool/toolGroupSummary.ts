@@ -47,11 +47,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  if (turn?.interrupted) {
+    parts.push(duration ? `Interrupted after ${duration}` : "Interrupted");
+  } else if (duration) {
+    parts.push(`Worked for ${duration}`);
+  }
   if (editedFiles.size > 0) parts.push(`edited ${countOf(editedFiles.size, "file")}`);
   if (commandCount > 0) parts.push(`ran ${countOf(commandCount, "command")}`);
 __POOL_SYNTHETIC_IMPORT_BASELINE__

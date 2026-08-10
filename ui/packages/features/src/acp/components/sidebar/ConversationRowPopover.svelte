@@ -30,9 +30,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     // rows the user archived rather than rows a search or collapse filtered out.
     isExiting?: () => boolean;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onArchive?: (event: MouseEvent) => void | Promise<void>;
+    onArchiveNow?: (event: MouseEvent) => void | Promise<void>;
+    onContextMenu?: (event: MouseEvent) => void;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -52,9 +52,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     isExiting,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onArchive,
+    onArchiveNow,
+    onContextMenu,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -157,8 +157,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     {shortcutHint}
     {desktop}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {onArchive}
+    {onArchiveNow}
     onContextMenu={handleContextMenu}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

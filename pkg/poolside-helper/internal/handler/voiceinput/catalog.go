@@ -1,33 +1,33 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package voiceinput
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/poolsideai/assistant/pkg/common/userconfig"
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
+)
+
+// catalogEntry describes one ggml Whisper model from the official
+// ggerganov/whisper.cpp conversions on Hugging Face.
+type catalogEntry struct {
+	id           string
+	name         string
+	multilingual bool
+	recommended  bool
 	// downloadBytes is the model's exact size, which is also enforced during
 	// download; it doubles as the pre-download display size.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	downloadBytes int64
 	// sha256 is the model file's digest, verified before the download is moved
 	// into place. Hugging Face stores these files in LFS, where the object ID
 	// is the content's SHA-256.
 	sha256 string
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+const defaultModelID = "base"
+
 // modelRepoRevision pins the whisper.cpp model repository to a commit. The
 // `main` ref is mutable: whoever controls the repository (or a compromised
 // Hugging Face) could change what `main` points at, and these bytes are fed
@@ -35,7 +35,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 // below.
 const modelRepoRevision = "5359861c739e955e79d9a303bcbc70fb988958b1"
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+var catalog = []catalogEntry{
 	{
 		id: "tiny", name: "Whisper Tiny", multilingual: true,
 		downloadBytes: 77691713,
@@ -56,36 +56,36 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		downloadBytes: 1624555275,
 		sha256:        "1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69",
 	},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func catalogModel(modelID string) (catalogEntry, bool) {
+	for _, entry := range catalog {
+		if entry.id == modelID {
+			return entry, true
+		}
+	}
+	return catalogEntry{}, false
+}
+
+func modelFileName(modelID string) string {
+	return "ggml-" + modelID + ".bin"
+}
+
+func modelPath(modelsDir, modelID string) string {
+	return filepath.Join(modelsDir, modelFileName(modelID))
+}
+
+func modelDownloaded(modelsDir, modelID string) bool {
+	info, err := os.Stat(modelPath(modelsDir, modelID))
+	return err == nil && !info.IsDir() && info.Size() > 0
+}
+
+func (s *Server) modelDownloadURL(modelID string) string {
 	return fmt.Sprintf("%s/ggerganov/whisper.cpp/resolve/%s/%s",
 		s.modelBaseURL(), modelRepoRevision, modelFileName(modelID))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func (s *Server) modelBaseURL() string {
 	if url := usingModelMirror(); url != "" {
 		return url
 	}
@@ -97,9 +97,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 // than the real weights, so the pinned digest cannot apply to it; the size and
 // transfer limits still do.
 func usingModelMirror() string {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if url := strings.TrimSpace(os.Getenv(modelBaseURLEnv)); url != "" {
+		return strings.TrimRight(url, "/")
+	}
 	return ""
 }
 
@@ -110,42 +110,42 @@ func (s *Server) expectedDigest(model catalogEntry) string {
 		return ""
 	}
 	return model.sha256
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func defaultModelsDirectory() string {
+	if dir := strings.TrimSpace(os.Getenv(modelsDirEnv)); dir != "" {
+		return cleanDirectory(dir)
+	}
+	return cleanDirectory(filepath.Join(userconfig.PoolsideDirectory(), "models", "whisper"))
+}
+
+func cleanDirectory(dir string) string {
+	if abs, err := filepath.Abs(dir); err == nil {
+		dir = abs
+	}
+	return filepath.Clean(dir)
+}
+
+func (s *Server) models(modelsDir, selectedModelID string) []methods.VoiceInputModel {
+	models := make([]methods.VoiceInputModel, 0, len(catalog))
+	for _, entry := range catalog {
+		model := methods.VoiceInputModel{
+			ID:            entry.id,
+			Name:          entry.name,
+			Multilingual:  entry.multilingual,
+			Recommended:   entry.recommended,
+			Default:       entry.id == defaultModelID,
+			Selected:      entry.id == selectedModelID,
+			DownloadBytes: entry.downloadBytes,
+		}
+		if modelsDir != "" && modelDownloaded(modelsDir, entry.id) {
+			model.Downloaded = true
+			model.LocalPath = modelPath(modelsDir, entry.id)
+			if info, err := os.Stat(model.LocalPath); err == nil {
+				model.DownloadBytes = info.Size()
+			}
+		}
+		models = append(models, model)
+	}
+	return models
+}

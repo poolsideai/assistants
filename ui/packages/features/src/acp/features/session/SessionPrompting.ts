@@ -54,10 +54,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  get hasQueuedSendPending(): boolean {
+    return this.queuedSendScheduled || this.session.queuedPrompts.length > 0;
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     await this.session.serialize((gen) => this.promptCore(gen, text, content));
@@ -709,7 +709,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const queued = s.queuedPrompts[0];
     if (!queued) return;
     this.queuedSendScheduled = true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    s.queuedPrompts = s.queuedPrompts.slice(1);
     void s.serialize(async (gen) => {
       this.queuedSendScheduled = false;
       return this.sendCore(

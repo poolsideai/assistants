@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from "@poolsideai/components/icon";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { untrack } from "svelte";
   import { slide } from "svelte/transition";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -26,17 +26,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   );
   let expandedProjectPaths = $state<string[]>([]);
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Auto-expand only when the requested project changes, so the section stays
+  // collapsible afterwards; tracking expandedProjectPaths here would re-expand
+  // it on every collapse.
   $effect(() => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const path = expandedProjectPath;
+    if (!path) return;
+    untrack(() => {
+      if (!expandedProjectPaths.includes(path)) {
+        expandedProjectPaths = [...expandedProjectPaths, path];
+      }
+    });
   });
 
   function toggleProject(path: string) {

@@ -7,7 +7,7 @@
 
   interface Props {
     buffer?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    bufferStartOffset?: number;
     class?: string;
     placeholder?: string;
   }
@@ -16,15 +16,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   type XtermCursorStyle = NonNullable<ITerminalOptions["cursorStyle"]>;
   type XtermCursorInactiveStyle = NonNullable<ITerminalOptions["cursorInactiveStyle"]>;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let { buffer = "", bufferStartOffset = 0, class: className, placeholder = "" }: Props = $props();
 
   let container = $state<HTMLDivElement | null>(null);
   let term = $state<Terminal | null>(null);
   let fit = $state<FitAddon | null>(null);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let renderedBufferEndOffset = $state(0);
   let styleRevision = $state(0);
   let resizeObserver: ResizeObserver | null = null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const bufferEndOffset = $derived(bufferStartOffset + buffer.length);
 
   $effect(() => {
     if (!container || term) return;
@@ -33,13 +33,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   $effect(() => {
     if (!term) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (renderedBufferEndOffset < bufferStartOffset || renderedBufferEndOffset > bufferEndOffset) {
       term.reset();
       term.write(buffer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } else if (bufferEndOffset > renderedBufferEndOffset) {
+      term.write(buffer.slice(renderedBufferEndOffset - bufferStartOffset));
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    renderedBufferEndOffset = bufferEndOffset;
     requestAnimationFrame(() => term?.scrollToBottom());
   });
 
@@ -97,7 +97,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     installResizeObserver();
     fitTerminal({ retries: 4 });
     nextTerm.write(buffer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    renderedBufferEndOffset = bufferEndOffset;
   }
 
   async function applyTerminalStyles() {
@@ -149,7 +149,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     term?.dispose();
     term = null;
     fit = null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    renderedBufferEndOffset = 0;
     container?.replaceChildren();
   }
 

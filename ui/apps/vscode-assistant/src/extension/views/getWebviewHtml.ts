@@ -2,8 +2,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getPoolsideConfigurationSection } from "../api/configuration";
+import { getExtensionIdentity } from "../extensionIdentity";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import type { System } from "../system";
 
@@ -68,7 +68,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   let logoFaceUri: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const identity = getExtensionIdentity();
   const production = system.context.extensionMode === vscode.ExtensionMode.Production;
   const devPort = process.env[identity.devPortEnvName] || "5173";
   const [initialAppState, manifest, devBaseUri] = await Promise.all([
@@ -79,7 +79,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       : vscode.env.asExternalUri(vscode.Uri.parse(`http://localhost:${devPort}/`)),
   ]);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const poolsideConfig = getPoolsideConfigurationSection();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     customCodeFontSize > 0 ? customCodeFontSize : (editorConfig.get<number>("fontSize") ?? 14);
@@ -145,23 +145,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      .poolside-dev-badge {
+        position: fixed;
+        top: 8px;
+        right: 10px;
+        z-index: 2147483647;
+        padding: 3px 7px;
+        border-radius: 4px;
+        background: var(--vscode-badge-background);
+        color: var(--vscode-badge-foreground);
+        font: 600 10px/1.2 var(--vscode-font-family);
+        letter-spacing: 0;
+        pointer-events: none;
+      }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    ${identity.isDev ? '<div class="poolside-dev-badge">DEV</div>' : ""}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -202,7 +202,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const poolsideConfig = getPoolsideConfigurationSection();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     customCodeFontSize > 0 ? customCodeFontSize : (editorConfig.get<number>("fontSize") ?? 14);

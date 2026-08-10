@@ -7,13 +7,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import {
+  poolsideAcpApprovalsList,
+  poolsideAcpApprovalsRespond,
   poolsideAcpNavGetConversationHistory,
   poolsideAcpSessionClose,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  type ACPApproval,
+} from "@poolsideai/helperapi";
 import type {
   ACPCompactionNotification,
   ACPTurnEndedNotification,
@@ -53,7 +53,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  type ACPPendingPermissionRequest,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { handoffContextContent } from "./session/handoffContext";
@@ -110,15 +110,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   // sessions will drop to the hidden cadence permanently.
   private visibleConversationClaims = new Map<string, number>();
   private transcriptVisibilityDriven = false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Permission requests for sessions with no live record on this surface
+  // (broadcast prompts for conversations that are not open here). They render
+  // through pendingApprovals and merge into a session's chat scope once that
+  // conversation is opened.
+  private unboundPermissionRequests = $state.raw<ACPPendingPermissionRequest[]>([]);
+  // Every pending permission request on this surface (unbound + per-session),
   // refreshed on each publish. A snapshot rather than a $derived because the
   // request arrays mutate on their sessions without replacing map entries.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private pendingApprovalsSnapshot = $state.raw<ACPPendingPermissionRequest[]>([]);
   // Incremented whenever an authoritative helper snapshot arrives. Failed
   // optimistic responses only restore their local card if no newer snapshot
   // has already decided its state.
@@ -153,10 +153,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      getUnbound: () => this.unboundPermissionRequests,
+      setUnbound: (requests) => {
+        this.unboundPermissionRequests = requests;
+      },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -323,22 +323,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return false;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /** Whether any conversation is doing work that must finish before an app restart. */
+  get hasActiveConversations(): boolean {
+    if (this.conversationStatus.hasWorkingConversation) return true;
+    for (const session of this.liveSessions.values()) {
+      if (
+        session.isPromptActive ||
+        session.isSending ||
+        session.compacting ||
+        session.prompting.hasQueuedSendPending
+      )
+        return true;
+      if (session.sessionId === null) continue;
+    }
+    return false;
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -476,20 +476,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Fold any held (unbound) requests into their now-live session first, so a
+    // single source — the session's own pendingPermissionRequests — drives the
+    // inline card, the waiting indicator, and cancellation for it.
+    this.bindUnboundRequests();
     this.evictInactiveSessions();
     // Runs on every session update of every session, so keep the snapshot's
     // identity stable when nothing changed — reassigning $state.raw here would
     // re-derive every approvals reader once per streaming chunk.
     const nextApprovals = [
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      ...this.unboundPermissionRequests,
+      ...Array.from(this.liveSessions.values()).flatMap(
+        (record) => record.pendingPermissionRequests,
+      ),
+    ];
     if (!shallowArrayEquals(this.pendingApprovalsSnapshot, nextApprovals)) {
       this.pendingApprovalsSnapshot = nextApprovals;
     }
@@ -507,32 +507,32 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Fold any held (unbound) permission requests into a now-live session so a
+   * single source — the session's own pendingPermissionRequests — drives its
+   * inline card, waiting indicator, and cancellation. Requests whose
+   * conversation is still not open here stay unbound. Runs on every publish;
+   * unbound is almost always empty, so the scan is cheap.
+   */
+  private bindUnboundRequests(): void {
+    if (this.unboundPermissionRequests.length === 0) return;
+    let remaining = this.unboundPermissionRequests;
+    for (const record of this.liveSessions.values()) {
+      if (record.sessionId === null) continue;
+      const mine = remaining.filter(
+        (request) =>
+          request.sessionId === record.sessionId &&
+          normalizeAgentServerName(request.agentServer) === record.agentServer,
+      );
+      if (mine.length === 0) continue;
+      record.pendingPermissionRequests = [...record.pendingPermissionRequests, ...mine];
+      remaining = remaining.filter((request) => !mine.includes(request));
+    }
+    if (remaining !== this.unboundPermissionRequests) {
+      this.unboundPermissionRequests = remaining;
+    }
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -591,7 +591,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const applyToPendingTarget = () => {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -602,23 +602,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         // settled.
         target.applyCachedConfigPreservingSelections();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    };
+    void this.agents
+      .loadOrInitCachedConfig(agentServer, session.cwd)
+      .then(applyToPendingTarget)
+      .then(() =>
+        // A persisted cache makes the load above a no-op, but auth-required
+        // state is runtime-only: agents report it by failing a (probe)
         // session/new. Ensure a recent probe (TTL-gated) so the login banner
         // appears when the user switches here, not after their first message
         // fails — and so the cached options shown on this page track the
         // agent (e.g. a newly released model) instead of freezing at the
         // first probe of the app run.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        this.agents.ensureConfigProbe(agentServer, session.cwd),
+      )
+      // The probe may have refreshed the cache; mirror it into the still-
+      // pending session so the visible options aren't stale until recreation.
+      .then(applyToPendingTarget);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1365,23 +1365,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Store-backed approvals answer through the helper. Remove the card
+    // optimistically so it feels instant (matching the elicitation path); the
+    // helper is authoritative — the first valid answer wins there and the
     // shrunken set is pushed back via approvals/didChange. An invalid or failed
     // response restores the card unless a newer authoritative snapshot already
     // decided its state, so a transport failure cannot leave the agent blocked
     // with a hidden approval. already_resolved (another surface won) lands on
     // the same removal.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const storeBacked = this.findStoreBackedRequest(requestId);
+    if (storeBacked?.approval) {
+      const approval = storeBacked.approval;
       const approvalsRevision = this.approvalsRevision;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.removeStoreBackedRequest(requestId);
+      void poolsideAcpApprovalsRespond({
+        ...approval,
+        optionId: String(optionId),
+        ...(overrideRules && overrideRules.length > 0 ? { overrideRules } : {}),
       })
         .then(({ outcome }) => {
           if (outcome === "invalid") {
@@ -1392,6 +1392,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           console.error("acp: approvals respond failed", error);
           this.restoreStoreBackedRequest(storeBacked, approvalsRevision);
         });
+      return;
+    }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1400,134 +1402,132 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Reconcile the helper-pushed pending approval set (the single source of
+   * truth for permission prompts and elicitations) into per-session and
+   * unbound request lists. Store-backed entries are fully replaced on every
+   * push — re-delivery after a reconnect is idempotent, an approval answered
+   * anywhere disappears everywhere, and duplicates are structurally
+   * impossible. Legacy (SDK-delivered) and debug-dump requests are preserved.
+   */
+  reconcileApprovals(pending: ACPApproval[]): void {
     this.approvalsRevision++;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const permissions = pending.filter((approval) => approval.kind === "permission");
+    const desired = permissions.map((approval) => this.approvalToPendingRequest(approval));
+    const desiredIds = new Set(desired.map((request) => request.id));
+
+    // Reuse existing objects for unchanged ids so cards keep DOM state.
+    const existingById = new Map<string, ACPPendingPermissionRequest>();
+    for (const session of this.liveSessions.values()) {
+      for (const request of session.pendingPermissionRequests) {
+        if (request.approval) existingById.set(request.id, request);
+      }
+    }
+    for (const request of this.unboundPermissionRequests) {
+      if (request.approval) existingById.set(request.id, request);
+    }
+
+    const place = new Map<ACPSession | null, ACPPendingPermissionRequest[]>();
+    for (const request of desired) {
+      const resolved = existingById.get(request.id) ?? request;
+      const session = this.sessionFor(request.sessionId, request.agentServer);
+      const bucket = place.get(session) ?? [];
+      bucket.push(resolved);
+      place.set(session, bucket);
+    }
+
+    for (const session of this.liveSessions.values()) {
+      const kept = session.pendingPermissionRequests.filter((request) => !request.approval);
+      const mine = place.get(session) ?? [];
+      const next = [...kept, ...mine];
+      if (!sameRequestList(session.pendingPermissionRequests, next)) {
+        session.pendingPermissionRequests = next;
+      }
+    }
+    const keptUnbound = this.unboundPermissionRequests.filter((request) => !request.approval);
+    this.unboundPermissionRequests = [...keptUnbound, ...(place.get(null) ?? [])];
+
+    // Waiting notifications: fire for newly-arrived approvals, dismiss when a
+    // session's store-backed approvals are all gone.
+    for (const request of desired) {
+      if (!existingById.has(request.id)) {
+        this.conversationStatus.markWaitingForUser({
+          type: "approval",
+          sessionId: request.sessionId,
+          agentServer: request.agentServer,
+          toolCall: request.toolCall,
+        });
+      }
+    }
+    for (const [id, request] of existingById) {
+      if (!desiredIds.has(id)) {
+        this.conversationStatus.clearWaitingForUser(request.sessionId, request.agentServer);
+      }
+    }
+
+    this.elicitation?.reconcileApprovals(
+      pending.filter((approval) => approval.kind === "elicitation"),
+    );
+    this.publishLiveStatuses();
+  }
+
+  /**
+   * Pull the current pending approval set from the helper and reconcile.
+   * Called at boot and periodically as a reconnect safety net; steady-state
+   * changes arrive via the approvals/didChange push.
+   */
+  async refreshApprovals(): Promise<void> {
+    try {
+      const { pending } = await poolsideAcpApprovalsList();
+      this.reconcileApprovals(pending ?? []);
+    } catch (error) {
+      console.debug("acp: approvals list failed", error);
+    }
+  }
+
+  private approvalToPendingRequest(approval: ACPApproval): ACPPendingPermissionRequest {
+    const agentServer = normalizeAgentServerName(approval.agentServer);
+    return {
+      id: `approval:permission:${agentServer}:${approval.sessionId}:${approval.id}`,
+      agentServer,
+      sessionId: approval.sessionId as SessionId,
+      toolCall: (approval.permission?.toolCall ?? {
+        toolCallId: approval.id,
+      }) as ACPPendingPermissionRequest["toolCall"],
+      options: (approval.permission?.options ?? []) as ACPPendingPermissionRequest["options"],
+      approval: {
+        agentServer: approval.agentServer,
+        sessionId: approval.sessionId,
+        kind: "permission",
+        id: approval.id,
+      },
+    };
+  }
+
+  private findStoreBackedRequest(requestId: string): ACPPendingPermissionRequest | undefined {
+    for (const session of this.liveSessions.values()) {
+      const request = session.pendingPermissionRequests.find(({ id }) => id === requestId);
+      if (request) return request.approval ? request : undefined;
+    }
+    return this.unboundPermissionRequests.find(
+      (request) => request.id === requestId && request.approval,
+    );
+  }
+
+  private removeStoreBackedRequest(requestId: string): void {
+    for (const session of this.liveSessions.values()) {
+      if (session.pendingPermissionRequests.some(({ id }) => id === requestId)) {
+        session.pendingPermissionRequests = session.pendingPermissionRequests.filter(
+          ({ id }) => id !== requestId,
+        );
+      }
+    }
+    this.unboundPermissionRequests = this.unboundPermissionRequests.filter(
+      ({ id }) => id !== requestId,
+    );
+    this.publishLiveStatuses();
+  }
+
   private restoreStoreBackedRequest(
     request: ACPPendingPermissionRequest,
     approvalsRevision: number,
@@ -1553,49 +1553,49 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.publishLiveStatuses();
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Every pending permission request on this surface, including ones held for
+   * conversations with no live session here (broadcast prompts that arrived
+   * before the conversation was opened).
+   */
+  get pendingApprovals(): ACPPendingPermissionRequest[] {
+    return this.pendingApprovalsSnapshot;
+  }
+
+  /**
+   * A broadcast permission prompt was answered (or abandoned) on another
+   * surface. Broadcasts are raced first-response-wins, so this surface may
+   * still be showing it with no other signal to clear it — resolve the
+   * matching request (bound or held unbound) as cancelled so its card comes
+   * down and the in-flight ACP request completes. Keyed by the identity every
+   * surface shares: (sessionId, agentServer, toolCallId). A no-op if this
+   * surface answered it already or never had it.
+   */
+  resolvePermissionExternally(
+    sessionId: string,
+    agentServer: string | undefined,
+    toolCallId: string,
+  ): void {
+    this.permissions.resolveByToolCall(
+      sessionId as SessionId,
+      normalizeAgentServerName(agentServer ?? DEFAULT_AGENT_SERVER),
+      toolCallId,
+      this.liveSessions.values(),
+    );
+  }
+
+  /** Pending permission requests held for a session that has no live record. */
+  unboundPermissionRequestsFor(
+    sessionId: SessionId,
+    agentServer: string,
+  ): ACPPendingPermissionRequest[] {
+    const server = normalizeAgentServerName(agentServer);
+    return this.unboundPermissionRequests.filter(
+      (request) =>
+        request.sessionId === sessionId && normalizeAgentServerName(request.agentServer) === server,
+    );
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
    * `params.sessionId` identifies the ACP session; `params.id` only
@@ -1649,19 +1649,19 @@ function shallowArrayEquals<T>(a: readonly T[], b: readonly T[]): boolean {
   return a.length === b.length && a.every((item, i) => item === b[i]);
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Same requests, same order, same objects — reconcile skips the assignment so
+// unchanged sessions don't re-render their approval cards on every push.
+function sameRequestList(
+  a: ACPPendingPermissionRequest[],
+  b: ACPPendingPermissionRequest[],
+): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

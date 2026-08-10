@@ -66,17 +66,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    DESKTOP_FILE_TREE_CHANGED_EVENT,
+    DESKTOP_GIT_CHANGED_EVENT,
+    DesktopGitChangesState,
+    type DesktopFileTreeChangedEventDetail,
+  } from "../../features/DesktopGitChangesState.svelte";
+  import { requestDesktopChangesView } from "./desktopChangesViewRequest";
+  import {
+    DESKTOP_OPEN_DIFF_TAB_EVENT,
+    type DesktopOpenDiffTabEventDetail,
+  } from "./desktopCommandPicker";
+  import DesktopGitChangesSummary from "./DesktopGitChangesSummary.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -167,21 +167,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let hasPendingElicitation = $derived(
     elicitation.hasPendingForChat(chatSession.sessionId, chatSession.sessionAgentServer),
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   // Event-driven git working-tree tracking for the desktop/VS Code conversation
   // footer. The footer is purely git-based — no task/version system: the branch,
   // file state, and +/− line counts come straight from `git status`, and the
   // branch opens "Stage and Commit...". No polling:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // refreshes are driven by the host file watcher, in-app git mutations,
+  // turn completion, and window focus (see DesktopGitChangesState).
+  const gitChanges = new DesktopGitChangesState();
+  onMount(() => () => gitChanges.dispose());
+  // $derived.by so the supportsReviewBar reference (declared later) resolves
+  // lazily.
   let desktopConversationOverlaysHeight = $state(0);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let showGitChangesSummary = $derived.by(
     () => supportsReviewBar && chatSession.events.length > 0 && gitChanges.isRepo,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  );
   let showConversationOverlays = $derived(
     !readOnlyPreview &&
       !hasPendingPermissionRequests &&
@@ -295,12 +295,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Auth methods the user has launched (terminal or external browser flow).
+  // While set, the auth panel swaps the login buttons for "I'm logged in" /
+  // "Try again": external flows finish outside the app, so the user confirms
+  // completion manually and we re-verify with a fresh config probe.
+  let attemptedAuthMethodByAgent = $state<Record<string, string>>({});
+  let authConfirmInProgressFor = $state<Record<string, true>>({});
   const terminalAuthPollControllers = new Map<string, AbortController>();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -352,15 +352,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  let isVscode = $derived($appState.environment.assistantHost === "vscode");
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Hosts that show the git "Review" bar at the bottom of a conversation:
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   function showRenderedImageContextMenu(event: MouseEvent): void {
     if (!isDesktop) return;
     const image = imageFromContextMenuEvent(event);
@@ -378,29 +378,29 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return () => node.removeEventListener("contextmenu", showRenderedImageContextMenu);
   }
 
+  // Opens the review surface appropriate to the host: the desktop app's
+  // custom changes view, or VS Code's native Source Control panel.
+  function openReview(): void {
+    if (isDesktop) {
+      requestDesktopChangesView(terminalScopePath || undefined);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      rpc.revealSourceControl();
+    }
+  }
+
+  // Opens the singleton Diff tab (all changed files) on desktop; VS Code has
+  // no in-webview diff tab, so fall back to the review surface there.
+  function openDiff(): void {
+    if (isDesktop) {
+      window.dispatchEvent(
+        new CustomEvent<DesktopOpenDiffTabEventDetail>(DESKTOP_OPEN_DIFF_TAB_EVENT, {
+          detail: { worktreePath: terminalScopePath || undefined },
+        }),
+      );
+    } else {
+      openReview();
+    }
+  }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -629,27 +629,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    const nextAttempted = { ...attemptedAuthMethodByAgent };
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let attemptedChanged = false;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    for (const agentServer of Object.keys(nextAttempted)) {
+      if (!acp.agents.authRequiredForAgent(agentServer)) {
+        delete nextAttempted[agentServer];
+        attemptedChanged = true;
+      }
+    }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (attemptedChanged) {
+      attemptedAuthMethodByAgent = nextAttempted;
+    }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -788,48 +788,48 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Point the git working-tree tracker at the active conversation's worktree
+  // on hosts that show the review bar (desktop + VS Code).
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    gitChanges.setWorktreePath(supportsReviewBar ? terminalScopePath : undefined);
+  });
+
+  // Refresh git status when files change (debounced — agent edits arrive in
+  // bursts), after in-app git mutations, and on window focus as a safety net
+  // for changes made while the app was unfocused. The desktop file-watcher
+  // events never fire off desktop; VS Code relies on window focus and
+  // turn-completion refreshes.
+  $effect(() => {
+    if (!supportsReviewBar) return;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const onFileTreeChanged = (event: Event) => {
+      const detail = (event as CustomEvent<DesktopFileTreeChangedEventDetail>).detail;
+      if (!gitChanges.affectsWorktree(detail)) return;
+      gitChanges.scheduleRefresh();
+    };
+    const onGitChanged = () => gitChanges.refreshNow();
+    const onWindowFocus = () => gitChanges.scheduleRefresh();
+
+    window.addEventListener(DESKTOP_FILE_TREE_CHANGED_EVENT, onFileTreeChanged);
+    window.addEventListener(DESKTOP_GIT_CHANGED_EVENT, onGitChanged);
+    window.addEventListener("focus", onWindowFocus);
+    return () => {
+      window.removeEventListener(DESKTOP_FILE_TREE_CHANGED_EVENT, onFileTreeChanged);
+      window.removeEventListener(DESKTOP_GIT_CHANGED_EVENT, onGitChanged);
+      window.removeEventListener("focus", onWindowFocus);
+    };
+  });
+
+  // Refresh when a turn finishes: the file watcher usually catches edits
+  // mid-turn, but a final refresh guarantees the summary reflects the turn's
+  // end state (and catches gitignored-path edge cases the watcher may skip).
+  let wasTurnActive = false;
+  $effect(() => {
+    const active = isTurnActive;
+    if (wasTurnActive && !active && supportsReviewBar) {
+      gitChanges.scheduleRefresh();
+    }
+    wasTurnActive = active;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   function updateTranscriptOverflow(element = scrollEl): void {
@@ -1042,63 +1042,63 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      // Only record the attempt once the login terminal actually launched:
+      // the launch can fail (no command, no tab) and the panel must not
+      // offer "I'm logged in" for a flow that never started.
+      if (await handleTerminalAuthenticate(method, agentServer)) {
+        attemptedAuthMethodByAgent = { ...attemptedAuthMethodByAgent, [agentServer]: methodId };
+      }
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Non-terminal flows resolve outside the app (browser); mark the attempt
+    // up front so the confirmation UI is available while authenticate blocks.
+    attemptedAuthMethodByAgent = { ...attemptedAuthMethodByAgent, [agentServer]: methodId };
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // "I'm logged in": the user says they completed the login that runs outside
+  // this panel (terminal TUI, browser). Verify with a fresh config probe — an
+  // agent that still lacks credentials fails it and re-marks auth required
+  // (for Claude the helper checks `--cli auth status` during the probe), so a
+  // premature click keeps the panel and an honest one dismisses it.
+  async function handleConfirmLoggedIn() {
+    const agentServer = chatSession.activeAgentServer;
+    if (authConfirmInProgressFor[agentServer]) return;
+    authConfirmInProgressFor = { ...authConfirmInProgressFor, [agentServer]: true };
+    try {
+      await acp.agents.refreshCachedConfig(
+        agentServer,
+        chatSession.pendingSessionCwd ??
+          acpProtocolCwd(currentACPWorkspaceFolders, resolveSessionCwd($appState)),
+        { fresh: true },
+      );
+      if (!acp.agents.authRequiredForAgent(agentServer)) {
+        // The verification probe above already refreshed the config cache;
+        // a second refresh here would only prolong the confirmation spinner.
+        await continueAfterAuthenticated(agentServer, { skipConfigRefresh: true });
+      }
+    } finally {
+      const next = { ...authConfirmInProgressFor };
+      delete next[agentServer];
+      authConfirmInProgressFor = next;
+    }
+  }
+
+  // "Try again": abandon the attempted method and reshow the login buttons.
+  function handleAuthTryAgain() {
+    const agentServer = chatSession.activeAgentServer;
+    stopTerminalAuthPolling(agentServer);
+    const pending = { ...pendingTerminalAuthMethodByAgent };
+    delete pending[agentServer];
+    pendingTerminalAuthMethodByAgent = pending;
+    const attempted = { ...attemptedAuthMethodByAgent };
+    delete attempted[agentServer];
+    attemptedAuthMethodByAgent = attempted;
+    acp.agents.clearNonSessionError(agentServer);
+  }
+
   async function handleRetryAuthentication(methodId: string) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     const method = acp.agents
@@ -1118,15 +1118,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     await handleAuthenticate(methodId);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async function continueAfterAuthenticated(
+    agentServer: string,
+    options: { skipConfigRefresh?: boolean } = {},
+  ) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     stopTerminalAuthPolling(agentServer);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    const attempted = { ...attemptedAuthMethodByAgent };
+    delete attempted[agentServer];
+    attemptedAuthMethodByAgent = attempted;
+    if (options.skipConfigRefresh) return;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1149,22 +1153,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  /** Returns whether the login terminal was actually launched. */
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ): Promise<boolean> {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return false;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1178,7 +1178,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (!tab) return false;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1187,7 +1187,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     startTerminalAuthPolling(method.id, agentServer);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return true;
   }
 
   function startTerminalAuthPolling(methodId: string, agentServer: string): void {
@@ -1538,8 +1538,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           >
             {#if shouldCenterComposer}
               <!-- The header stays visible while the selected agent awaits
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                     login: the composer is inert then, but the agent picker is
+                     how the user reaches an agent they CAN use. -->
               {#if isDesktop}
                 <div
                   class="mx-auto flex w-fit min-w-0 max-w-full flex-row flex-wrap items-center justify-center gap-[3px] py-2"
@@ -1563,7 +1563,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                   </span>
                   <div class="flex min-w-0">
                     <AcpPromptConfigControls emptyStateDesktop placement="bottom" />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                  </div>
                 </div>
               {:else}
                 <div
@@ -1572,7 +1572,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 >
                   <span
                     class="text-psx-foreground-secondary shrink-0 text-lg font-medium leading-tight"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                  >
                     {showHeaderProjectSelector
                       ? "Start a new conversation in"
                       : "Start a new conversation"}
@@ -1592,7 +1592,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                   </span>
                   <div class="flex min-w-0">
                     <AcpPromptConfigControls underlineLabel placement="bottom" />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                  </div>
                 </div>
               {/if}
               {#if showLaunchChatActions}

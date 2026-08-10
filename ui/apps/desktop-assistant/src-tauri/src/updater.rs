@@ -5,7 +5,7 @@ use base64::Engine;
 use minisign_verify::{PublicKey, Signature};
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+use tauri::{async_runtime, AppHandle, Emitter, Manager, State, Url};
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -248,30 +248,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 /// Downloads and verifies the update archive without touching the installed
 /// bundle.
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct DesktopUpdateProgress {
+    downloaded: usize,
+    content_length: Option<u64>,
+}
+
+async fn download_update(app: &AppHandle, update: &Update) -> Result<Vec<u8>, String> {
+    let app = app.clone();
+    let mut downloaded = 0usize;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        .download(
+            move |chunk, content_length| {
+                downloaded += chunk;
+                let _ = app.emit(
+                    "poolside:desktop-update-progress",
+                    DesktopUpdateProgress {
+                        downloaded,
+                        content_length,
+                    },
+                );
+            },
+            || {},
+        )
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         .map_err(|err| err.to_string())
 }
@@ -366,7 +366,7 @@ async fn stage_update_on_disk(
     };
 
     if !cached_matches {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        let bytes = download_update(app, &update).await?;
         let dir = dir.clone();
         let path = path.clone();
         async_runtime::spawn_blocking(move || write_pending_archive(&dir, &path, &bytes))
@@ -420,7 +420,7 @@ pub async fn install_staged_desktop_update(
     };
     let bytes = match loaded {
         Ok(bytes) => bytes,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        Err(_) => match download_update(&app_handle, &staged.update).await {
             Ok(bytes) => bytes,
             Err(err) => {
                 *slot = Some(staged);

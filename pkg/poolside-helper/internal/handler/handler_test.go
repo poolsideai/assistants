@@ -40,19 +40,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	registerJSONRPCMethod(h, JSONRPCOperation{
+		Method: "test/error-data",
+	}, func(ctx context.Context, req *int, lspReq *glsp.Context) (any, error) {
+		wireErr := &jsonrpc2.WireError{
+			Code:    jsonrpc2.CodeInternalError,
+			Message: "Internal error",
+		}
+		wireErr.SetError(map[string]any{
+			"error":   "loaded session does not exist",
+			"details": []string{"session-1", "workspace-a"},
+		})
+		return nil, wireErr
+	})
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -156,6 +156,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	t.Run("jsonrpc error data is logged", func(t *testing.T) {
+		tlog := testLogger()
+
+		_, validMethod, _, err := h.Handle(lsptest.NewGLSPTestCtxForMethod(t,
+			"test/error-data",
+			mustJSON(t, 42),
+		))
+		require.True(t, validMethod, "expected valid method")
+		assert.Error(t, err)
+
+		assert.Contains(t, tlog.String(), `error="jsonrpc2: code -32603 message: Internal error`)
+		assert.Contains(t, tlog.String(), `error_data="{\"details\":[\"session-1\",\"workspace-a\"],\"error\":\"loaded session does not exist\"}"`)
+	})
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -169,38 +183,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	t.Run("successful acp nav list requests are silent", func(t *testing.T) {
+		tlog := testLogger()
 		h := New()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		h.SetInitialized(true)
+		h.extensionHandlers[methods.ACPNavListMethod] = func(ctx context.Context, req *glsp.Context) (any, error) {
+			return methods.ACPNavState{}, nil
+		}
+
+		_, validMethod, validParams, err := h.Handle(lsptest.NewGLSPTestCtxForMethod(t,
+			methods.ACPNavListMethod,
+			mustJSON(t, &methods.ACPNavListParams{}),
+		))
+		require.NoError(t, err)
+		require.True(t, validMethod && validParams, "expected valid call")
+
+		assert.NotContains(t, tlog.String(), methods.ACPNavListMethod)
+	})
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -300,6 +300,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+			// Loop variable passed as an argument (not captured) to appease
+			// nogo's loopclosure analyzer, which cannot see the Go language
+			// version under rules_go and assumes pre-1.22 capture semantics.
+			go func(rid int) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -307,11 +311,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			}(rid)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -353,10 +353,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		h := New()
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			methods.ACPInitializeMethod,
 			methods.ACPSteerMethod,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			methods.ACPSetConfigOptionMethod,
+			methods.ACPSetModeMethod,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -452,22 +452,22 @@ func TestRequestContextDeadlines(t *testing.T) {
 	assert.False(t, sawNoDeadline)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestACPInitializeHasNoRequestDeadline(t *testing.T) {
 	h := New()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	_, ok := h.noDeadlineMethods[methods.ACPInitializeMethod]
+	require.True(t, ok)
+	assert.True(t, h.IsConcurrentMethod(methods.ACPInitializeMethod))
+}
+
+func TestACPNavInstallAgentServerHasNoRequestDeadline(t *testing.T) {
 	h := New()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	_, ok := h.noDeadlineMethods[methods.ACPNavInstallAgentServerMethod]
+	require.True(t, ok)
+	assert.True(t, h.IsConcurrentMethod(methods.ACPNavInstallAgentServerMethod))
+}
+
 func TestAgentServerBinaryDistributionConversionsPreserveSHA256(t *testing.T) {
 	binaries := map[string]methods.ACPAgentServerBinaryDistribution{
 		"darwin-aarch64": {

@@ -1,18 +1,18 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import {
+    AcpChatPane,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     AcpDesktopSplitsPane,
     DESKTOP_SPLITS_CACHE_LIMIT,
     DESKTOP_SETTINGS_SECTIONS,
     DesktopProjectSettingsView,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    DesktopSettingsView,
+    DesktopSideBar,
     DesktopSplitsCache,
     getCurrentAssistantTerminalRepo,
     IDE_SETTINGS_SECTIONS,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    IDESideBar,
+    ProjectSettingsView,
     terminalIdsForDesktopSplitsEntry,
     type DesktopSettingsSection,
     type DesktopSplitNavigationLocation,
@@ -20,28 +20,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     type DesktopSplitsEntry,
     type DesktopFileViewerPanelProps,
     type DesktopNewTabAvailability,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  } from "@poolsideai/features/acp";
   import { onDestroy, onMount, type Component } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import AssistantConfigErrorBanner from "./AssistantConfigErrorBanner.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { installPinchZoomBlocker } from "../lib/utils/pinchZoom";
+  import RuntimeProviders from "./RuntimeProviders.svelte";
+  import { DesktopRuntime } from "./runtime/DesktopRuntime.svelte";
+  import { CoreRuntime, type TargetProps } from "./runtime/CoreRuntime.svelte";
   import {
     DesktopNavigationHistory,
     type DesktopNavigationEntry,
   } from "./runtime/desktop/DesktopNavigationHistory";
   import type { TauriDragDropSubscriber } from "./runtime/desktop/TauriDragDrop.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   interface Props extends TargetProps {
     desktopFileViewerPanel?: Component<DesktopFileViewerPanelProps>;
     tauriDragDropSubscriber?: TauriDragDropSubscriber;
     /** Chrome and navigation handlers are mounted; agent/history work may still be pending. */
     onShellInteractive?: () => void;
     onInitialScreenSettled?: () => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onConversationActivityChange?: (active: boolean) => void;
   }
 
   const DESKTOP_NEW_CONVERSATION_EVENT = "poolside:desktop-new-conversation";
@@ -53,24 +53,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const DESKTOP_NAVIGATE_BACK_EVENT = "poolside:desktop-navigate-back";
   const DESKTOP_NAVIGATE_FORWARD_EVENT = "poolside:desktop-navigate-forward";
   const DESKTOP_NAVIGATION_AVAILABILITY_EVENT = "poolside:desktop-navigation-availability";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   let {
     desktopFileViewerPanel,
     tauriDragDropSubscriber,
     onShellInteractive,
     onInitialScreenSettled,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onConversationActivityChange,
     ...runtimeProps
   }: Props = $props();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   const core = new CoreRuntime({ target: "desktop", ...runtimeProps });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  core.initialize();
+  $effect(() => onConversationActivityChange?.(core.acpRepo.hasActiveConversations));
   const desktop = new DesktopRuntime(core, {
     tauriDragDropSubscriber,
     onNavigationChange: scheduleDesktopNavigationRecord,
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  desktop.initialize();
   // Optional startup-diagnostics hooks installed by the desktop host (see
   // desktop-assistant/src/startupDiagnostics.ts) for debugging launches stuck
   // on the startup frame: the probe samples every input to the initial-screen
@@ -111,7 +111,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     maxEntries: DESKTOP_SPLITS_CACHE_LIMIT,
     onEvictEntry: closeDesktopSplitsEntryTerminals,
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  onDestroy(installPinchZoomBlocker());
 
   function currentDesktopNavigationEntry(): DesktopNavigationEntry {
     const split =
@@ -194,15 +194,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     left: DesktopNewTabAvailability,
     right: DesktopNewTabAvailability,
   ): boolean {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    for (const kind of [
+      "terminal",
+      "files",
+      "diff",
+      "review",
+      "trajectory",
+      "github",
+      "changes",
+    ] as const) {
       const leftState = left[kind];
       const rightState = right[kind];
       if (leftState?.disabled !== rightState?.disabled) return false;
@@ -270,22 +270,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   onDestroy(() => desktopSplitsCache.disposeAll());
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function isSettingsView(view: string): boolean {
     return (
       view === "settings" ||
       view === "shortcuts" ||
       view === "models" ||
       view === "voice" ||
       view === "github" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      view === "agents" ||
       view === "archived" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      view === "remote"
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   function isSettingsSidebarView(view: string): boolean {
     return isSettingsView(view) || view === "project-settings";
   }
@@ -297,25 +297,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       view === "voice" ||
       view === "connectors" ||
       view === "github" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      view === "agents" ||
       view === "archived" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      view === "remote"
     ) {
+      return view;
+    }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   function showSettingsSection(section: DesktopSettingsSection) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (section === "preferences") {
+      desktop.showSettings();
+    } else {
+      desktop.showSettingsSection(section);
+    }
+  }
+
   // Coalesce resize-drag mousemoves to one geometry update per frame. On
   // high-refresh displays, mousemove can fire more often than frames render;
   // applying every event forces redundant layout work mid-drag.
@@ -375,94 +375,94 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 </script>
 
 <svelte:window onmousemove={handleResizeMouseMove} onmouseup={handleResizeMouseUp} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+<RuntimeProviders runtime={core}>
+  <!--
+    NOTE: the `desktop.isDesktop` (assistantHost === "desktop") branches below are surprising in a
+    file named DesktopPanel. This panel is meant for Desktop only, but the Visual Studio extension
+    (not VS Code) currently mounts it too — it has no panel-based experience yet. These non-desktop
     branches (chrome and settings sections) are temporary and should be removed once VS gets
     dedicated panels.
+  -->
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div class="h-screen min-w-0 bg-psx-panel">
+      <DesktopSettingsView
+        section={activeSettingsSection(desktop.view, desktop.isDesktop)}
+        availableSections={desktop.isDesktop ? DESKTOP_SETTINGS_SECTIONS : IDE_SETTINGS_SECTIONS}
+        onSectionChange={showSettingsSection}
         onShowConnectors={desktop.showConnectors}
+        onDone={desktop.showChat}
+      />
+    </div>
+  {:else}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <!-- VS borrows this panel: desktop sidebar chrome vs the IDE sidebar (temporary; see note above) -->
       {#if desktop.isDesktop}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <DesktopSideBar
+          collapsed={desktop.sidebarCollapsed}
+          currentView={desktop.view}
+          width={desktop.desktopSidebarWidth}
+          minWidth={desktop.DESKTOP_SIDEBAR_MIN_WIDTH}
+          maxWidth={desktop.DESKTOP_SIDEBAR_MAX_WIDTH}
+          resizing={desktop.desktopSidebarResizing}
           collapseDisabled={isSettingsSidebarView(desktop.view)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          showCollapsedActions={desktop.view === "agents" ||
+            desktop.view === "settings" ||
+            desktop.view === "shortcuts" ||
             desktop.view === "models" ||
             desktop.view === "voice" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            desktop.view === "connectors" ||
+            desktop.view === "github" ||
             desktop.view === "archived" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            desktop.view === "remote" ||
             desktop.view === "chat" ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            desktop.view === "project-settings" ||
+            desktop.isBlockingSessionLoading}
+          currentWorkspaceFolders={desktop.currentACPWorkspaceFolders}
+          onCollapsedChange={desktop.setSidebarCollapsed}
+          onResizeStart={desktop.startDesktopSidebarResize}
+          onWidthChange={desktop.setDesktopSidebarWidth}
+          onNewConversation={desktop.handleNewConversation}
           onNewChat={desktop.handleNewChat}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          onShowSettings={desktop.showSettings}
           onShowShortcuts={desktop.showShortcuts}
           onShowModels={desktop.showModels}
           onShowVoice={desktop.showVoice}
           onShowConnectors={desktop.showConnectors}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          onShowGithub={desktop.showGithub}
           onShowAgents={desktop.showAgents}
           onShowArchived={desktop.showArchived}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          onShowRemote={desktop.showRemote}
+          onShowProjectSettings={desktop.showProjectSettings}
+          onShowChat={desktop.showChat}
+          activeConversationId={desktop.activeConversationId}
+          activeSession={desktop.activeSession}
           newTabAvailability={desktopNewTabAvailability}
+          onActiveConversationIdChange={desktop.handleActiveConversationIdChange}
+        />
+      {:else}
+        <IDESideBar
+          collapsed={desktop.sidebarCollapsed}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          currentWorkspaceFolders={desktop.currentACPWorkspaceFolders}
+          onCollapsedChange={desktop.setSidebarCollapsed}
+          onNewConversation={() => desktop.handleNewConversation()}
+          onShowAgents={desktop.showAgents}
+          onShowChat={desktop.showChat}
+          activeConversationId={desktop.activeConversationId}
+          activeSession={desktop.activeSession}
+          onActiveConversationIdChange={desktop.handleActiveConversationIdChange}
+        />
+      {/if}
+
       {#if desktop.isDesktop && isSettingsView(desktop.view)}
         <DesktopSettingsView
           desktopFrame
@@ -484,15 +484,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         <DesktopProjectSettingsView projectPath={desktop.projectSettingsPath} />
       {:else if desktop.view === "project-settings" && desktop.projectSettingsPath}
         <div class="min-w-0 flex-1">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <ProjectSettingsView
+            projectPath={desktop.projectSettingsPath}
+            projectName={desktop.projectSettingsProject?.name}
+            centerHeader={desktop.sidebarCollapsed}
+            sidebarWidth={desktop.desktopSidebarWidth}
+            onDone={desktop.showChat}
             desktopFrame={desktop.isDesktop}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          />
+        </div>
       {:else if desktop.isDesktop}
         <AcpDesktopSplitsPane
           layoutKey={desktop.desktopChatLayoutKey}
@@ -533,43 +533,43 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             <ACPAgentUpdateBanner />
           {/snippet}
         </AcpDesktopSplitsPane>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {:else}
+        <AcpChatPane
+          chrome={{
+            sidebar: {
+              collapsed: desktop.sidebarCollapsed,
+              width: desktop.desktopSidebarWidth,
+              onExpand: desktop.expandSidebar,
+            },
+          }}
+          activeConversationId={desktop.activeConversationId}
+          onActiveConversationIdChange={desktop.handleActiveConversationIdChange}
+          onNewConversation={desktop.handleNewConversation}
+          onAddProject={desktop.handleAddProject}
+          onShowAgentSettings={desktop.showAgents}
           onShowModelSettings={desktop.isDesktop ? desktop.showModels : undefined}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        >
+          {#snippet promptBanners()}
             <AssistantConfigErrorBanner />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            <ACPAgentUpdateBanner />
+          {/snippet}
+        </AcpChatPane>
+      {/if}
+    </div>
+  {/if}
+</RuntimeProviders>
+
+<style lang="postcss">
   :global(body.desktop-sidebar-resizing),
   :global(body.desktop-right-sidebar-resizing) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    cursor: col-resize !important;
+    user-select: none;
+  }
+
   :global(body.desktop-sidebar-resizing *),
   :global(body.desktop-right-sidebar-resizing *) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    cursor: col-resize !important;
+  }
 
   :global(body.desktop-bottom-panel-resizing) {
     cursor: row-resize !important;
@@ -579,4 +579,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   :global(body.desktop-bottom-panel-resizing *) {
     cursor: row-resize !important;
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</style>

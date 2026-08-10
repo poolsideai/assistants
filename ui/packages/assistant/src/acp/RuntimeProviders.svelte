@@ -1,28 +1,28 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import { type Snippet } from "svelte";
+
   import { AcpHandoffConfirmationProvider } from "@poolsideai/features/acp";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import GlobalProviders from "../lib/GlobalProviders.svelte";
+  import IdentityManager from "../lib/IdentityManager.svelte";
+  import MCPProvider from "../lib/mcp/MCPProvider.svelte";
+  import Providers from "../lib/Providers.svelte";
+  import type { Runtime } from "./runtime/CoreRuntime.svelte";
+
+  interface Props {
+    runtime: Runtime;
+    children: Snippet;
+  }
+
+  let { runtime, children }: Props = $props();
+</script>
+
+<svelte:window
+  onfocus={runtime.handleWindowFocus}
+  onblur={runtime.handleWindowBlur}
+  onkeydowncapture={runtime.handleGlobalKeydown}
+/>
+
 <AcpHandoffConfirmationProvider>
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div

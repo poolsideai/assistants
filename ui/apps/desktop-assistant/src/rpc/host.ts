@@ -15,16 +15,16 @@ import type {
   ListSecretsParams,
   UpsertSecretParams,
 } from "@poolsideai/helperapi/schemas";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getUnknownErrorMessage } from "@poolsideai/lib/errors";
+import {
+  INFO_MESSAGE_EVENT,
+  InfoMessageType,
+  type ACPAgentServers,
+  type AssistantTerminalTab,
+  type ImageFileData,
   type OpenAcpChatOptions,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  type SaveTextFileOptions,
+} from "@poolsideai/rpc";
 import {
   appliedSourceNotificationCount,
   coalesceACPTextChunkNotificationBatch,
@@ -71,7 +71,7 @@ export const DESKTOP_TOGGLE_BOTTOM_PANEL_EVENT = "poolside:desktop-toggle-bottom
 export const DESKTOP_SAVE_LAYOUT_AS_DEFAULT_EVENT = "poolside:desktop-save-layout-as-default";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export const DESKTOP_UPDATE_PROGRESS_EVENT = "poolside:desktop-update-progress";
 export const DESKTOP_BUNDLE_REPLACED_EVENT = "poolside:desktop-bundle-replaced";
 export const DESKTOP_NAVIGATE_BACK_EVENT = "poolside:desktop-navigate-back";
 export const DESKTOP_NAVIGATE_FORWARD_EVENT = "poolside:desktop-navigate-forward";
@@ -88,11 +88,11 @@ const DESKTOP_SYSTEM_CONTEXT_MENU_CLOSE_DELAY_MS = 30_000;
 let activeDesktopSystemContextMenu: { menu: Menu; dismiss: () => Promise<void> } | undefined;
 
 type AssistantTerminalCommandMode = "interactive" | "nonInteractive";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export const TERMINAL_DID_OPEN_EVENT = "poolside:assistant-terminal-did-open";
 export const TERMINAL_DID_UPDATE_EVENT = "poolside:assistant-terminal-did-update";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export const TERMINAL_DID_WRITE_EVENT = "poolside:assistant-terminal-did-write";
+export const TERMINAL_DID_EXIT_EVENT = "poolside:assistant-terminal-did-exit";
+export const TERMINAL_DID_CLOSE_EVENT = "poolside:assistant-terminal-did-close";
 
 export interface DesktopSettings {
   themePreference: DesktopThemePreference;
@@ -109,10 +109,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   appIconTint: AppIconTint;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  autoInstallUpdates: boolean;
+  fileOpenerId: string;
+  fileOpeners: DesktopFileOpener[];
+  desktopOpeners: DesktopFileOpener[];
 }
 
 export interface HelperNotificationBatchApplyResult {
@@ -172,15 +172,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export interface DesktopFileOpener {
+  id: string;
+  label: string;
   kind: "inApp" | "default" | "editorEnv" | "application" | "terminal";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  appPath?: string;
+  bundleId?: string;
+  iconDataUri?: string;
+}
+
 export interface DesktopOpenFileTabPayload {
   path: string;
   line?: number;
@@ -221,17 +221,17 @@ export type DesktopFileTreeContextMenuAction =
   | "revealInFinder"
   | "openInTerminal"
   | "addFileToChat"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "viewDiff"
   | "cut"
   | "copy"
   | "paste"
   | "copyPath"
   | "copyRelativePath"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "delete"
+  // Git actions used by the changes-list variant of the context menu.
+  | "gitStage"
+  | "gitUnstage"
+  | "gitDiscard";
 
 export interface DesktopFileTreeContextMenuActionPayload {
   requestId: string;
@@ -325,7 +325,7 @@ type WebviewResponsePayload = {
 export type WebviewResponseSender = (command: string, payload: WebviewResponsePayload) => void;
 
 export class DesktopHost {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private fileIconDefinitionResolver?: (iconName: string) => Promise<string | undefined>;
   private readonly webviewReady: Promise<void>;
   private resolveReady!: () => void;
 
@@ -421,16 +421,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     await helperJsonRpcNotify(methodName, params);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async checkFileExists(path: string): Promise<boolean> {
+    return await invokeCheckFileExists(path);
+  }
+
+  async getFileIconDefinition(iconName: string): Promise<string | undefined> {
+    return await this.fileIconDefinitionResolver?.(iconName);
+  }
+
+  setFileIconDefinitionResolver(resolver: (iconName: string) => Promise<string | undefined>): void {
+    this.fileIconDefinitionResolver = resolver;
   }
 
   async getCodeSymbols(): Promise<{ symbols: unknown[] }> {
@@ -443,11 +443,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  openFile(path: string, line?: number, column?: number): void {
+    void invokeOpenFile(path, line, column).catch((error) => {
+      console.debug("Unable to open file", error);
+    });
+  }
 
   openImageFile(): void {}
 
@@ -461,8 +461,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return { path: file.path, content: file.contents };
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async getImageFileData(path: string): Promise<ImageFileData | undefined> {
+    return await invokeGetImageFileData(path);
   }
 
   async getPromptContext(): Promise<unknown[]> {
@@ -471,19 +471,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   openTerminal(): void {}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async listAssistantTerminals(worktreePath: string): Promise<AssistantTerminalTab[]> {
+    return await invoke("list_assistant_terminals", { worktreePath });
+  }
+
+  async createAssistantTerminal(
+    worktreePath: string,
+    command?: string,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     commandMode?: AssistantTerminalCommandMode,
     cwd?: string,
     cols?: number,
     rows?: number,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ): Promise<AssistantTerminalTab> {
     return await invoke("create_assistant_terminal", {
       worktreePath,
       command,
@@ -493,34 +493,34 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       cols,
       rows,
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  async deleteAssistantTerminal(terminalId: string): Promise<void> {
+    await invoke("delete_assistant_terminal", { terminalId });
+  }
+
+  async writeAssistantTerminal(terminalId: string, data: string): Promise<void> {
+    await invoke("write_assistant_terminal", { terminalId, data });
+  }
+
+  async clearAssistantTerminal(terminalId: string): Promise<void> {
+    await invoke("clear_assistant_terminal", { terminalId });
+  }
+
+  async resizeAssistantTerminal(terminalId: string, cols: number, rows: number): Promise<void> {
+    await invoke("resize_assistant_terminal", { terminalId, cols, rows });
+  }
+
+  async closeAssistantTerminalsForWorktree(worktreePath: string): Promise<void> {
+    await invoke("close_assistant_terminals_for_worktree", { worktreePath });
+  }
+
+  async closeAssistantTerminalsForProject(projectPath: string): Promise<void> {
+    await invoke("close_assistant_terminals_for_project", { projectPath });
+  }
+
   showInfoMessage(message: string, type: InfoMessageType = InfoMessageType.info): void {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    window.dispatchEvent(new CustomEvent(INFO_MESSAGE_EVENT, { detail: { message, type } }));
     const log = type === InfoMessageType.error ? console.error : console.info;
     log(`poolside: ${message}`);
   }
@@ -529,12 +529,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     await helperJsonRpc("poolside/mcpOAuthCallback", { url });
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async openSettings(setting?: string): Promise<void> {
+    // detail carries the target section (a DesktopSettingsSection); the
+    // runtime falls back to plain settings for unknown values.
+    window.dispatchEvent(
+      new CustomEvent(DESKTOP_OPEN_SETTINGS_PANEL_EVENT, { detail: { section: setting } }),
+    );
   }
 
   /**
@@ -585,19 +585,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     };
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async saveTextFile(options: SaveTextFileOptions): Promise<string | undefined> {
     if (!(await this.nativeFilePanelIsSafe())) return undefined;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const path = await save({
+      title: options.title,
+      defaultPath: options.defaultFileName,
+      filters: options.filters,
+    });
+    if (!path) return undefined;
+
+    await invokeWriteTextFile(path, options.contents);
+    return path;
+  }
+
   async getDesktopSettings(): Promise<DesktopSettings> {
     return await getDesktopSettings();
   }
@@ -676,9 +676,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async setDesktopAutoInstallUpdates(autoInstallUpdates: boolean): Promise<DesktopSettings> {
+    return await setDesktopAutoInstallUpdates(autoInstallUpdates);
+  }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -690,23 +690,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async setDesktopFileOpener(fileOpenerId: string): Promise<DesktopSettings> {
+    return await setDesktopFileOpener(fileOpenerId);
+  }
+
+  async openPathWithOpener(
+    path: string,
+    openerId: string,
+    line?: number,
+    column?: number,
+  ): Promise<void> {
+    await openPathWithOpener(path, openerId, line, column);
+  }
+
+  async openAssistantConfigWithOpener(openerId: string): Promise<void> {
+    await openAssistantConfigWithOpener(openerId);
+  }
+
   async showDesktopFileTreeContextMenu(request: DesktopFileTreeContextMenuRequest): Promise<void> {
     await showDesktopFileTreeContextMenu(request);
   }
@@ -886,19 +886,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   private async dispatchHelperNotification(method: string, params: unknown): Promise<void> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Desktop-specific handling first; everything that forwards into the
+    // webview as-is routes through the shared table so a new helper
+    // notification needs one entry there instead of a case per host.
     switch (method) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "poolside/mcpOAuthURL":
         this.openExternalURL(helperAuthURL(params));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        return;
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const command = webviewCommandForHelperNotification(method);
+    if (!command) {
+      console.debug("desktop host: unhandled helper notification", method);
+      return;
+    }
     await this.callWebview(command, [params], HELPER_NOTIFICATION_WEBVIEW_TIMEOUT_MS);
   }
 
@@ -1028,10 +1028,10 @@ export async function setDesktopNavigationMenuEnabled(
   await invoke("set_navigation_menu_enabled", { backEnabled, forwardEnabled });
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function refreshDesktopOpenersCache(): Promise<void> {
+  await invoke("refresh_desktop_openers_cache");
+}
+
 export async function setDesktopThemePreference(
   themePreference: DesktopThemePreference,
 ): Promise<DesktopSettings> {
@@ -1089,12 +1089,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function setDesktopAutoInstallUpdates(
+  autoInstallUpdates: boolean,
+): Promise<DesktopSettings> {
+  return await invoke("set_desktop_auto_install_updates", { autoInstallUpdates });
+}
+
 /** Check once and download that exact selected-channel update. */
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1131,23 +1131,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function setDesktopFileOpener(fileOpenerId: string): Promise<DesktopSettings> {
+  return await invoke("set_desktop_file_opener", { fileOpenerId });
+}
+
+export async function openPathWithOpener(
+  path: string,
+  openerId: string,
+  line?: number,
+  column?: number,
+): Promise<void> {
+  await invoke("open_path_with_opener", { path, openerId, line, column });
+}
+
+export async function openAssistantConfigWithOpener(openerId: string): Promise<void> {
+  await invoke("open_assistant_config_with_opener", { openerId });
+}
+
 /**
  * Present a native context menu via the `show_native_menu` command. Resolves
  * with the selected action id once the menu closes, or `null` when it was
@@ -1344,42 +1344,42 @@ export async function readTextFile(path: string): Promise<DesktopTextFile> {
   return await invoke("read_text_file", { path });
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export async function getImageFileData(path: string): Promise<ImageFileData | undefined> {
+  return await invokeGetImageFileData(path);
+}
+
 async function openExternalUrl(url: string): Promise<void> {
   await invoke("open_external_url", { url });
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+async function invokeCheckFileExists(path: string): Promise<boolean> {
+  return await invoke("check_file_exists", { path });
+}
+
+async function invokeWriteTextFile(path: string, contents: string): Promise<void> {
+  await invoke("write_text_file", { path, contents });
+}
+
+async function invokeOpenFile(path: string, line?: number, column?: number): Promise<void> {
+  await invoke("open_file", { path, line, column });
+}
+
+async function invokeGetImageFileData(path: string): Promise<ImageFileData | undefined> {
+  return (await invoke("get_image_file_data", { path })) ?? undefined;
+}
+
 function projectFolderName(path: string): string {
   const trimmed = path.replace(/[\\/]+$/, "");
   return trimmed.split(/[\\/]/).pop() || path;
 }
 
 function toHelperJsonRpcError(error: unknown): HelperJsonRpcError {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Any Error is already an object with a string message, so isHelperJsonRpcError
+  // covers it; everything else falls through to the same normalization.
+  if (isHelperJsonRpcError(error)) {
+    return { ...error, message: getUnknownErrorMessage(error) };
+  }
+  return { message: getUnknownErrorMessage(error) };
 }
 
 function isHelperJsonRpcError(error: unknown): error is HelperJsonRpcError {
@@ -1391,10 +1391,10 @@ function isHelperJsonRpcError(error: unknown): error is HelperJsonRpcError {
   );
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function helperAuthURL(params: unknown): string {
+  const authURL = (params as { authURL?: unknown } | undefined)?.authURL;
+  if (typeof authURL !== "string" || !authURL) {
+    throw new Error("MCP OAuth notification did not include an auth URL");
+  }
+  return authURL;
+}

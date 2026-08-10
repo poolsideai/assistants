@@ -7,7 +7,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPAgentServerParams,
   ACPCloseSessionParams,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   ACPNavAbortConversationHandoffParams,
@@ -15,52 +15,52 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   ACPNavCheckAgentRuntimesParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavConfigCacheState,
   ACPNavConversationHandoffOutput,
   ACPNavConversationHistory,
   ACPNavCreateChatOutput,
   ACPNavCreateChatParams,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavDeleteConversationParams,
+  ACPNavGetConfigCacheParams,
   ACPNavGetConversationHistoryParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavGetProjectSettingsParams,
+  ACPNavInstallAgentServerOutput,
+  ACPNavInstallAgentServerParams,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   ACPNavPrepareConversationHandoffParams,
+  ACPNavPrepareWorktreeParams,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavProjectSettingsState,
   ACPNavReleasePreparedWorktreeOutput,
+  ACPNavReleasePreparedWorktreeParams,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavRenameConversationParams,
+  ACPNavRenameProjectParams,
+  ACPNavReorderProjectsParams,
+  ACPNavReorderWorktreesParams,
+  ACPNavRestoreConversationParams,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavSetProjectSettingsParams,
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPNavUpsertConfigCacheParams,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ACPRenameSessionParams,
+  ACPRestartServerOutput,
   CloseSessionResponse,
+  DeleteSecretOutput,
+  DeleteSecretParams,
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  GetSecretOutput,
+  GetSecretParams,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ListSecretsOutput,
+  ListSecretsParams,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   LocalInferenceCancelDownloadParams,
@@ -72,23 +72,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   LocalInferenceSetDefaultModelParams,
   LocalInferenceState,
   LocalInferenceUnloadModelParams,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  MCPServersAuthenticateOutput,
+  MCPServersAuthenticateParams,
+  MCPServersDeleteOutput,
+  MCPServersDeleteParams,
+  MCPServersListOutput,
+  MCPServersListParams,
+  MCPServersSetEnabledOutput,
+  MCPServersSetEnabledParams,
+  MCPServersSignOutOutput,
+  MCPServersSignOutParams,
+  MCPServersTestConfigParams,
+  MCPServersTestConnectionOutput,
+  MCPServersTestConnectionParams,
+  MCPServersUpsertOutput,
+  MCPServersUpsertParams,
   SearchFilesOutput,
   SearchFilesParams,
+  SessionRenameResponse,
+  UpsertSecretOutput,
+  UpsertSecretParams,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -111,31 +114,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * renames an ACP session when the agent supports the extension
+ */
+export const poolsideAcpPoolsideRenameSession = async (
+  aCPRenameSessionParams: NonReadonly<ACPRenameSessionParams>,
+): Promise<SessionRenameResponse> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acp/_poolside/rename_session"),
+    aCPRenameSessionParams,
+  );
+};
+/**
+ * restarts the ACP agent subprocess
+ */
+export const poolsideAcpServerRestart = async (
+  aCPAgentServerParams: NonReadonly<ACPAgentServerParams>,
+): Promise<ACPRestartServerOutput> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acp/server/restart"),
+    aCPAgentServerParams,
+  );
+};
 /**
  * closes an ACP session's agent-side resources, keeping it reopenable
  */
@@ -213,28 +213,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * deletes conversations with a matching ACP session from local navigation state
+ */
+export const poolsideAcpNavDeleteConversation = async (
+  aCPNavDeleteConversationParams: NonReadonly<ACPNavDeleteConversationParams>,
+): Promise<ACPNavState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/deleteConversation"),
+    aCPNavDeleteConversationParams,
+  );
+};
+/**
+ * gets cached ACP session configuration options for an agent server
+ */
+export const poolsideAcpNavGetConfigCache = async (
+  aCPNavGetConfigCacheParams: NonReadonly<ACPNavGetConfigCacheParams>,
+): Promise<ACPNavConfigCacheState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/getConfigCache"),
+    aCPNavGetConfigCacheParams,
+  );
+};
 /**
  * loads completed ACP agent legs for a conversation
  */
@@ -246,28 +246,28 @@ export const poolsideAcpNavGetConversationHistory = async (
     aCPNavGetConversationHistoryParams,
   );
 };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * gets setup and teardown scripts for an ACP project
+ */
+export const poolsideAcpNavGetProjectSettings = async (
+  aCPNavGetProjectSettingsParams: NonReadonly<ACPNavGetProjectSettingsParams>,
+): Promise<ACPNavProjectSettingsState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/getProjectSettings"),
+    aCPNavGetProjectSettingsParams,
+  );
+};
+/**
+ * downloads and unpacks registry ACP agent server assets before enabling the server
+ */
+export const poolsideAcpNavInstallAgentServer = async (
+  aCPNavInstallAgentServerParams: NonReadonly<ACPNavInstallAgentServerParams>,
+): Promise<ACPNavInstallAgentServerOutput> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/installAgentServer"),
+    aCPNavInstallAgentServerParams,
+  );
+};
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -342,6 +342,61 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * renames a conversation in local ACP navigation state
+ */
+export const poolsideAcpNavRenameConversation = async (
+  aCPNavRenameConversationParams: NonReadonly<ACPNavRenameConversationParams>,
+): Promise<ACPNavState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/renameConversation"),
+    aCPNavRenameConversationParams,
+  );
+};
+/**
+ * renames a locally known ACP project or worktree
+ */
+export const poolsideAcpNavRenameProject = async (
+  aCPNavRenameProjectParams: NonReadonly<ACPNavRenameProjectParams>,
+): Promise<ACPNavState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/renameProject"),
+    aCPNavRenameProjectParams,
+  );
+};
+/**
+ * updates the locally persisted order for root ACP projects
+ */
+export const poolsideAcpNavReorderProjects = async (
+  aCPNavReorderProjectsParams: NonReadonly<ACPNavReorderProjectsParams>,
+): Promise<ACPNavState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/reorderProjects"),
+    aCPNavReorderProjectsParams,
+  );
+};
+/**
+ * updates the locally persisted order for a project's worktrees
+ */
+export const poolsideAcpNavReorderWorktrees = async (
+  aCPNavReorderWorktreesParams: NonReadonly<ACPNavReorderWorktreesParams>,
+): Promise<ACPNavState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/reorderWorktrees"),
+    aCPNavReorderWorktreesParams,
+  );
+};
+/**
+ * restores an archived ACP conversation and recreates its project entry
+ */
+export const poolsideAcpNavRestoreConversation = async (
+  aCPNavRestoreConversationParams: NonReadonly<ACPNavRestoreConversationParams>,
+): Promise<ACPNavState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/restoreConversation"),
+    aCPNavRestoreConversationParams,
+  );
+};
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -364,6 +419,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * updates setup and teardown scripts for an ACP project
+ */
+export const poolsideAcpNavSetProjectSettings = async (
+  aCPNavSetProjectSettingsParams: NonReadonly<ACPNavSetProjectSettingsParams>,
+): Promise<ACPNavProjectSettingsState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/setProjectSettings"),
+    aCPNavSetProjectSettingsParams,
+  );
+};
+/**
+ * updates cached ACP session configuration options for an agent server
+ */
+export const poolsideAcpNavUpsertConfigCache = async (
+  aCPNavUpsertConfigCacheParams: NonReadonly<ACPNavUpsertConfigCacheParams>,
+): Promise<ACPNavConfigCacheState> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/acpNav/upsertConfigCache"),
+    aCPNavUpsertConfigCacheParams,
+  );
+};
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -386,6 +463,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * Delete a poolside secret
+ */
+export const poolsideDeleteSecret = async (
+  deleteSecretParams: NonReadonly<DeleteSecretParams>,
+): Promise<DeleteSecretOutput> => {
+  return await runtime.jsonrpcCall(toJsonrpcMethod("/poolside/deleteSecret"), deleteSecretParams);
+};
+/**
+ * Get a single poolside secret
+ */
+export const poolsideGetSecret = async (
+  getSecretParams: NonReadonly<GetSecretParams>,
+): Promise<GetSecretOutput> => {
+  return await runtime.jsonrpcCall(toJsonrpcMethod("/poolside/getSecret"), getSecretParams);
+};
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -394,107 +487,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * List poolside secrets
+ */
+export const poolsideListSecrets = async (
+  listSecretsParams: NonReadonly<ListSecretsParams>,
+): Promise<ListSecretsOutput> => {
+  return await runtime.jsonrpcCall(toJsonrpcMethod("/poolside/listSecrets"), listSecretsParams);
+};
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -581,91 +581,91 @@ export const poolsideLocalInferenceUnloadModel = async (
   );
 };
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ * initiate OAuth flow for a user MCP server
+ */
+export const poolsideMcpServersAuthenticate = async (
+  mCPServersAuthenticateParams: NonReadonly<MCPServersAuthenticateParams>,
+): Promise<MCPServersAuthenticateOutput> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/mcpServers/authenticate"),
+    mCPServersAuthenticateParams,
+  );
+};
+/**
+ * delete a user MCP server
+ */
+export const poolsideMcpServersDelete = async (
+  mCPServersDeleteParams: NonReadonly<MCPServersDeleteParams>,
+): Promise<MCPServersDeleteOutput> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/mcpServers/delete"),
+    mCPServersDeleteParams,
+  );
+};
+/**
+ * list user MCP servers
+ */
+export const poolsideMcpServersList = async (
+  mCPServersListParams: NonReadonly<MCPServersListParams>,
+): Promise<MCPServersListOutput> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/mcpServers/list"),
+    mCPServersListParams,
+  );
+};
+/**
+ * enable or disable a user MCP server
+ */
+export const poolsideMcpServersSetEnabled = async (
+  mCPServersSetEnabledParams: NonReadonly<MCPServersSetEnabledParams>,
+): Promise<MCPServersSetEnabledOutput> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/mcpServers/setEnabled"),
+    mCPServersSetEnabledParams,
+  );
+};
+/**
+ * sign out (clear OAuth tokens) for a user MCP server
+ */
+export const poolsideMcpServersSignOut = async (
+  mCPServersSignOutParams: NonReadonly<MCPServersSignOutParams>,
+): Promise<MCPServersSignOutOutput> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/mcpServers/signOut"),
+    mCPServersSignOutParams,
+  );
+};
+/**
+ * run a transient probe against an inline (unsaved) MCP server config
+ */
+export const poolsideMcpServersTestConfig = async (
+  mCPServersTestConfigParams: NonReadonly<MCPServersTestConfigParams>,
+): Promise<MCPServersTestConnectionOutput> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/mcpServers/testConfig"),
+    mCPServersTestConfigParams,
+  );
+};
+/**
+ * run a transient probe against a user MCP server
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+export const poolsideMcpServersTestConnection = async (
+  mCPServersTestConnectionParams: NonReadonly<MCPServersTestConnectionParams>,
+): Promise<MCPServersTestConnectionOutput> => {
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    toJsonrpcMethod("/poolside/mcpServers/testConnection"),
+    mCPServersTestConnectionParams,
+  );
+};
+/**
+ * add or replace a user MCP server
+ */
+export const poolsideMcpServersUpsert = async (
+  mCPServersUpsertParams: NonReadonly<MCPServersUpsertParams>,
+): Promise<MCPServersUpsertOutput> => {
+  return await runtime.jsonrpcCall(
+    toJsonrpcMethod("/poolside/mcpServers/upsert"),
+    mCPServersUpsertParams,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 /**
@@ -677,10 +677,10 @@ export const poolsideSearchFiles = async (
   return await runtime.jsonrpcCall(toJsonrpcMethod("/poolside/searchFiles"), searchFilesParams);
 };
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+ * Add or update a poolside secret
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export const poolsideUpsertSecret = async (
+  upsertSecretParams: NonReadonly<UpsertSecretParams>,
+): Promise<UpsertSecretOutput> => {
+  return await runtime.jsonrpcCall(toJsonrpcMethod("/poolside/upsertSecret"), upsertSecretParams);
 __POOL_SYNTHETIC_IMPORT_BASELINE__

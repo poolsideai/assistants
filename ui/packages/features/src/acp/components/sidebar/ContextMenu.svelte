@@ -1,79 +1,79 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts" module>
+  import type { IconName } from "@poolsideai/components/icon";
+
+  export interface ContextMenuAction {
     kind?: "action";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    name: string;
+    icon: IconName;
+    disabled?: boolean;
     accelerator?: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    callback: () => void | Promise<void>;
+  }
 
   export interface ContextMenuSeparator {
     kind: "separator";
   }
 
   export type ContextMenuItem = ContextMenuAction | ContextMenuSeparator;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
+<script lang="ts">
+  import Icon from "@poolsideai/components/icon";
+  import { onMount } from "svelte";
+
+  interface Props {
+    x: number;
+    y: number;
     actions: ContextMenuItem[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onClose: () => void;
+  }
+
+  let { x, y, actions, onClose }: Props = $props();
+  let menuElement = $state<HTMLDivElement | null>(null);
+  let left = $state(x);
+  let top = $state(y);
+
+  onMount(() => {
+    if (!menuElement) return;
+    const rect = menuElement.getBoundingClientRect();
+    left = Math.min(x, window.innerWidth - rect.width - 8);
+    top = Math.min(y, window.innerHeight - rect.height - 8);
+  });
+
+  function handlePointerDown(event: PointerEvent) {
+    if (menuElement?.contains(event.target as Node)) return;
+    onClose();
+  }
+
+  function handleKeyDown(event: KeyboardEvent) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      onClose();
+    }
+  }
+
+  async function run(action: ContextMenuAction) {
+    if (action.disabled) return;
+    onClose();
+    await action.callback();
+  }
+</script>
+
+<svelte:window
+  onpointerdown={handlePointerDown}
+  onkeydown={handleKeyDown}
+  oncontextmenu={(event) => {
+    if (!menuElement?.contains(event.target as Node)) onClose();
+  }}
+/>
+
+<div
+  bind:this={menuElement}
+  role="menu"
   class="menu-surface fixed z-[100] min-w-[180px] p-1"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  style:left={`${left}px`}
+  style:top={`${top}px`}
+>
   {#each actions as action, index (action.kind === "separator" ? `separator-${index}` : action.name)}
     {#if action.kind === "separator"}
       <div role="separator" class="menu-separator"></div>
@@ -94,5 +94,5 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         {/if}
       </button>
     {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {/each}
+</div>

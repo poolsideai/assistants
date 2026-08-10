@@ -1,10 +1,10 @@
 <script lang="ts">
   import type { PermissionOption, ToolKind } from "@agentclientprotocol/sdk";
   import type { ToolCall } from "../../types";
+  import { insideModalOverlay, isAppleUser } from "@poolsideai/components";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { DEFAULT_AGENT_SERVER } from "../../agentServers";
+  import { agentName as getAgentName } from "../chat/menus/config/agentConfig";
   import { Button } from "@poolsideai/components/button";
   import Icon from "@poolsideai/components/icon";
   import Kbd from "@poolsideai/components/kbd";
@@ -13,23 +13,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { ACP_PERMISSION_SUGGESTED_RULES_META_KEY } from "../../permissionMeta";
   import { getToolCommand, getToolCommandLabel, getToolDescription } from "../shared/toolStatus";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { appState } from "../../hostAdapter";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   import ToolCallContentRenderer from "../shared/ToolCallContentRenderer.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { getKeybindingService, matchesChord, type Platform } from "../../../keybindings";
   import { supportsNativeMenus } from "../chat/desktopContextMenu";
   import { presentNativeMenu, type MenuSpecItem } from "../ui/menuSpec";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  // Approve/Reject chords come from the shared keybindings registry so they're listed
+  // in settings and (on desktop) user-configurable. This component owns the dispatch on
+  // every host — it knows the pending request and works inside the VS Code webview, where
+  // the global desktop dispatcher does not run.
+  const keybindings = getKeybindingService();
+  const platform: Platform = isAppleUser() ? "mac" : "other";
+  const approveChord = $derived(keybindings?.binding("approve") ?? "alt+a");
+  const rejectChord = $derived(keybindings?.binding("reject") ?? "escape");
+  const approveHint = $derived(keybindings?.hint("approve") ?? (isAppleUser() ? "⌥A" : "Alt+A"));
+  const rejectHint = $derived(keybindings?.hint("reject") ?? "esc");
 
   type ApprovalOptionKind = "allow_once" | "allow_always" | "reject_once" | "reject_always";
 
@@ -53,11 +53,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let { request, toolCallContext }: Props = $props();
 
   const acp = getACPContext();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const registry = getACPAgentRegistryRepo();
+  // Keyboard hints are noise on a touch surface with no hardware keyboard.
+  const showKeyHints = $derived($appState.environment.assistantHost !== "mobile");
+  const currentAgentServer = request.agentServer ?? DEFAULT_AGENT_SERVER;
+  const currentAgentName = $derived(getAgentName(registry, currentAgentServer));
 
   let isSubmitting = $state(false);
   let containerDiv: HTMLDivElement | undefined = $state();
@@ -217,18 +217,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   function handleKeydown(e: KeyboardEvent): void {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Keystrokes inside a modal overlay (e.g. the conversation search) belong
+    // to that overlay: Escape there closes it, it must not reject the request.
+    if (insideModalOverlay(e.target)) return;
+
+    if (denyShortcutOption && matchesChord(e, rejectChord, platform)) {
       e.preventDefault();
       e.stopImmediatePropagation();
       selectOption(denyShortcutOption.optionId);
       return;
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (allowShortcutOption && matchesChord(e, approveChord, platform)) {
       e.preventDefault();
       selectOption(allowShortcutOption.optionId);
       return;
@@ -282,10 +282,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     </div>
   </div>
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {#if command}
     <div
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      class="border-psx-border text-psx-foreground-primary flex max-h-56 max-w-full flex-col overflow-auto overscroll-contain border-t"
+      data-testid="acp-permission-command"
     >
       {#if description}
         <div class="text-psx-foreground-secondary px-2.5 pt-2 text-xs italic">
@@ -293,19 +293,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         </div>
       {/if}
       <div class="font-(family-name:--editor-font-size) block min-h-4 px-2.5 py-2 text-sm">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <pre class="whitespace-pre-wrap break-all"><span
+            class="text-psx-foreground-secondary select-none"
             >$ </span><HighlightedShellCommand {command} /></pre>
       </div>
     </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {:else if hasContent}
+    <div
+      class="border-psx-border flex max-h-56 flex-col gap-2 overflow-auto overscroll-contain border-t"
+    >
+      {#each displayToolCall.content ?? [] as content, i (`${content.type}-${i}`)}
         <ToolCallContentRenderer {content} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {/each}
+    </div>
   {:else if rawInput}
     <div
       class="border-psx-border font-(family-name:--editor-font-size) block max-h-56 min-h-4 overflow-auto overscroll-contain border-t px-2.5 py-2 text-sm"
@@ -405,10 +405,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           class="justify-between text-start"
         >
           <span>{optionLabel(option)}</span>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          {#if showKeyHints && allowShortcutOption && option.optionId === allowShortcutOption.optionId}
+            <Kbd label={approveHint} />
+          {:else if showKeyHints && denyShortcutOption && option.optionId === denyShortcutOption.optionId}
+            <Kbd label={rejectHint} />
           {/if}
         </Button>
       {/if}

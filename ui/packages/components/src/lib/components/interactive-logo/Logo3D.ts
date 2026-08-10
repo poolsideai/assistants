@@ -47,7 +47,7 @@ const CONFIG = {
   BOTTOM_OFFSET_PX: 48,
   // Threshold for determining if animation should continue (in radians)
   ANIMATION_THRESHOLD: 0.001,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  MIN_RENDER_SIZE: 1,
   MAX_RENDER_WIDTH: 720,
   MAX_RENDER_HEIGHT: 360,
   MAX_PIXEL_RATIO: 1.5,
@@ -109,7 +109,7 @@ export function initLogoScene(
   camera.position.set(0, 0, 5);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  renderer.setSize(lastRenderSize.width, lastRenderSize.height);
   renderer.setPixelRatio(getLogoPixelRatio(window.devicePixelRatio));
   container.appendChild(renderer.domElement);
 
@@ -200,7 +200,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     syncOverlays();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    renderScene();
 
     // Only continue animating if rotation hasn't settled
     const needsAnimation =
@@ -222,11 +222,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function renderScene() {
     if (disposed) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    renderer.render(scene, camera);
+  }
+
   function syncOverlays() {
     if (!model) return;
 
@@ -243,17 +243,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function containerRenderSize(): { width: number; height: number } | null {
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    if (width === 0 || height === 0) {
+      return null;
+    }
+
     return getLogoRenderSize(width, height);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   loader.load(
     window.logoUri ?? "/poolside-logo.glb",
     (gltf) => {
@@ -306,7 +306,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         // Update renderer size
         if (renderSizeChanged) {
           renderer.setSize(viewportWidth, viewportHeight);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
 
         // Update model position
         if (anchorCenter) {

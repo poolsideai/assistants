@@ -29,14 +29,14 @@
     kind?: DesktopFileTreeEntry["kind"];
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /** Sidebar view: file tree or the git changes list + commit zone. */
+  type DesktopFilesTreeViewMode = "tree" | "changes";
+
   interface CachedDesktopFileTreeState {
     rootPath: string;
     showGitIgnored: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    showChangedOnly: boolean;
+    viewMode: DesktopFilesTreeViewMode;
     loadState: "idle" | "loading" | "ready" | "error";
     errorMessage: string | null;
     fileTree: DesktopFileTree | null;
@@ -144,8 +144,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     getThemeContext,
     type FileIconTheme,
   } from "@poolsideai/components/providers";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { isAppleUser } from "@poolsideai/components";
+  import { onMount, tick, untrack } from "svelte";
   import { getUnknownErrorMessage } from "@poolsideai/lib/errors";
   import { basename, dirname, normalize, relative } from "@poolsideai/lib/path";
   import { InfoMessageType } from "@poolsideai/rpc";
@@ -161,27 +161,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     DesktopFileTreeContextMenuRequest,
   } from "./desktopFilesTreeContextMenu";
   import { requestDesktopFilePromptChip } from "./desktopFilePromptChip";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import {
+    DESKTOP_OPEN_CHANGES_EVENT,
+    DESKTOP_OPEN_CHANGES_VIEW_EVENT,
+  } from "./desktopCommandPicker";
+  import { requestDesktopChangesFileSelection } from "./desktopChangesFileSelection";
+  import {
+    changesViewRequestMatches,
+    requestDesktopChangesView,
+    takePendingDesktopChangesViewRequest,
+    type DesktopOpenChangesViewEventDetail,
+  } from "./desktopChangesViewRequest";
+  import { readDesktopFilesTreePrefs, writeDesktopFilesTreePrefs } from "./desktopFilesTreePrefs";
+  import { visibleChangedTreePaths } from "./desktopFilesTreeChangedFilter";
+  import DesktopChangesList from "./DesktopChangesList.svelte";
+  import type { GitStatusOutput } from "@poolsideai/helperapi";
+  import {
+    DESKTOP_FILE_TREE_CHANGED_EVENT,
+    DESKTOP_GIT_CHANGED_EVENT,
+    DesktopGitChangesState,
+  } from "../../features/DesktopGitChangesState.svelte";
+  import SegmentedSwitch from "../ui/SegmentedSwitch.svelte";
 
   interface DesktopSettings {
     fileOpenerId: string;
@@ -206,12 +206,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       relativePath: string,
       includeGitIgnored?: boolean,
     ): Promise<DesktopFileTree>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    openPathWithOpener(
+      path: string,
+      openerId: string,
+      line?: number,
+      column?: number,
+    ): Promise<void>;
     showDesktopFileTreeContextMenu(request: DesktopFileTreeContextMenuRequest): Promise<void>;
     revealPathInFinder(path: string): Promise<void>;
     writeFileUrlToPasteboard(path: string, operation: "copy" | "cut"): Promise<void>;
@@ -223,42 +223,42 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     rootPath: string;
     cacheKey?: string;
     openTerminal: (cwd: string) => void | Promise<void>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    active: boolean;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let { rootPath, cacheKey, openTerminal, active }: Props = $props();
 
   const desktopRpc = rpc as DesktopFilesRPC;
   const languages = getLanguages();
   const theme = getThemeContext();
   const DESKTOP_SETTINGS_CHANGED_EVENT = "poolside:desktop-settings-changed";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const DESKTOP_OPEN_FILE_TAB_EVENT = "poolside:desktop-open-file-tab";
   const DESKTOP_FILE_TREE_CONTEXT_MENU_ACTION_EVENT =
     "poolside:desktop-file-tree-context-menu-action";
   const FILE_CHANGE_CREATED = 1;
   const FILE_CHANGE_CHANGED = 2;
   const FILE_CHANGE_DELETED = 3;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Coalesces filtered-model rebuilds across watcher payload bursts (the host
+  // flushes every ~150 ms, so 200 ms folds consecutive flushes together).
+  const FILTERED_MODEL_REFRESH_DELAY_MS = 200;
   type DesktopFileTreeGitStatusEntry = DesktopFileTree["gitStatus"][number];
   type DesktopFileTreeGitStatus = DesktopFileTreeGitStatusEntry["status"];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Git statuses that count as "changed" for row colouring, the changed-file
+  // count badge, and the changed-only filter ("ignored" is excluded on
+  // purpose — gitignored entries are dimmed, not highlighted).
+  const CHANGED_GIT_STATUSES: ReadonlySet<DesktopFileTreeGitStatus> =
+    new Set<DesktopFileTreeGitStatus>(["added", "deleted", "modified", "renamed", "untracked"]);
   const treeUnsafeCss = `
     :host {
       --trees-bg-override: transparent;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      /* Row hover: same token as the sidebar and changes-list hover states. */
+      --trees-bg-muted-override: var(--psx-menu-hover-background);
+      --trees-git-added-color-override: var(--psx-diff-insert-foreground, #4fb262);
+      --trees-git-untracked-color-override: var(--psx-diff-insert-foreground, #4fb262);
+      --trees-git-modified-color-override: var(--psx-info-foreground, #1a85ff);
+      --trees-git-renamed-color-override: var(--psx-foreground-secondary);
+      --trees-git-deleted-color-override: var(--psx-error-foreground, #e5534b);
+      --trees-git-ignored-color-override: var(--psx-foreground-tertiary);
       --trees-fg-override: var(--psx-foreground-primary);
       --trees-fg-muted-override: var(--psx-foreground-secondary);
       --trees-border-color-override: var(--psx-border);
@@ -289,24 +289,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       height: 16px;
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /* Status letters get the same rounded tint badge as the diff panel and
+       the changes list. The :has(svg) guards leave the directory
+       contains-changes dot untouched (it renders an icon, not a letter). */
+    [data-item-section='git']:has(> span:not(:has(svg))) {
+      width: auto;
+      opacity: 1;
+    }
+
+    [data-item-section='git'] > span:not(:has(svg)) {
+      width: auto;
+      padding: 3px 6px;
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: normal;
+      background: color-mix(in srgb, currentColor 12%, transparent);
+    }
+
     [data-poolside-loading='true'] > [data-item-section='icon']::after {
       position: absolute;
       inset: 4px;
@@ -334,8 +334,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let errorMessage = $state<string | null>(null);
   let fileTree = $state<DesktopFileTree | null>(null);
   let showGitIgnored = $state(false);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let showChangedOnly = $state(false);
+  let viewMode = $state<DesktopFilesTreeViewMode>("tree");
   let desktopFileOpenerId = $state(
     typeof $appState.environment.desktopFileOpenerId === "string"
       ? $appState.environment.desktopFileOpenerId
@@ -358,25 +358,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let entriesByRelativePath = new Map<string, DesktopFileTreeEntry>();
   const pendingContextMenuEntries = new Map<string, DesktopFileTreeEntry>();
   const cachedState = takeCachedDesktopFileTreeState(cacheKey, rootPath);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Durable per-worktree prefs (subview + expanded folders): survive
+  // conversation switches, unlike the short-lived in-memory tab cache.
+  const storedPrefs = readDesktopFilesTreePrefs(rootPath);
+  if (storedPrefs) {
+    viewMode = storedPrefs.viewMode;
+    expandedDirectoryPaths = new Set(storedPrefs.expandedDirectoryPaths);
+  }
 
   if (cachedState) {
     loadState = cachedState.loadState;
     errorMessage = cachedState.errorMessage;
     fileTree = cachedState.fileTree;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // The floating controls overlay was removed (no UI room): the gitignore
+    // toggle and changed-only filter have no buttons anymore, so never
+    // restore either as stuck-on from a cached tab state. The underlying
+    // plumbing is kept for when the features return.
+    showGitIgnored = false;
+    showChangedOnly = false;
+    viewMode = cachedState.viewMode;
     latestFileTree = cachedState.latestFileTree;
     latestFileIconConfig = cachedState.latestFileIconConfig;
     latestFileIconConfigSignature = cachedState.latestFileIconConfigSignature;
@@ -388,102 +388,102 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     iconConfigVersion = cachedState.iconConfigVersion;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // A pending "Stage and Commit..." request (the tab may have been created just
+  // for it) opens straight into the changes view, overriding cached state.
+  const changesViewRequestedOnMount = takePendingDesktopChangesViewRequest(rootPath);
+  if (changesViewRequestedOnMount) {
+    viewMode = "changes";
+  }
+
   let loadedRootPath = cachedState?.latestFileTree ? cachedState.rootPath : undefined;
   let loadedShowGitIgnored = cachedState?.latestFileTree ? cachedState.showGitIgnored : undefined;
 
   let canLoad = $derived(rootPath.length > 0);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Drives the sliding view strip: All files sits on the left, Changes on the
+  // right, and the active pane translates into place in time with the mode
+  // switch thumb.
+  let changesViewActive = $derived(viewMode === "changes" && canLoad);
+  let changesViewElement = $state<HTMLElement>();
+  let commitMessageFocusToken = 0;
+  let commitMessageFocusRequest = $state(0);
+  // Capture the initial state so persisted Changes views do not steal focus
+  // merely because a layout or conversation was restored.
+  // svelte-ignore state_referenced_locally
+  let commitMessageFocusContextActive = changesViewActive && active;
+
+  async function focusCommitMessageAfterViewOpens(): Promise<void> {
+    const token = ++commitMessageFocusToken;
+    await tick();
+    const view = changesViewElement;
+    if (!view) return;
+
+    // The files/changes panes use a sequential cross-fade. Wait for the
+    // incoming pane to become fully visible before focusing its textarea.
+    await Promise.allSettled((view.getAnimations?.() ?? []).map((animation) => animation.finished));
+    if (token !== commitMessageFocusToken || !changesViewActive || !active) return;
+
+    commitMessageFocusRequest += 1;
+  }
+
+  $effect(() => {
+    const nextFocusContextActive = changesViewActive && active;
+    if (nextFocusContextActive && !commitMessageFocusContextActive) {
+      void focusCommitMessageAfterViewOpens();
+    }
+    commitMessageFocusContextActive = nextFocusContextActive;
+  });
+
+  onMount(() => {
+    if (changesViewRequestedOnMount && active) {
+      void focusCommitMessageAfterViewOpens();
+    }
+  });
+  // Includes directory records (git reports a wholly-untracked directory as
+  // one "dir/" entry), so the filter's empty state only shows when the
+  // filtered tree is truly empty.
+  let hasChangedStatuses = $derived(
+    fileTree ? fileTree.gitStatus.some((entry) => CHANGED_GIT_STATUSES.has(entry.status)) : false,
+  );
+  // Authoritative git status for this worktree. The watcher-driven upserts in
+  // applyFileTreeChanges are optimistic guesses (created → untracked,
+  // changed → modified) that ignore .gitignore and content-identical writes,
+  // so they drift upward during build/agent bursts. This tracker reconciles
+  // the tree's gitStatus (and the counts) with real `git status` output,
+  // debounced and token-guarded (no polling).
+  const gitChanges = new DesktopGitChangesState();
+  onMount(() => () => gitChanges.dispose());
+  $effect(() => {
+    gitChanges.setWorktreePath(canLoad ? rootPath : undefined);
+  });
+  $effect(() => {
+    const git = gitChanges.status;
+    if (!git) return;
+    untrack(() => reconcileGitStatus(git));
+  });
+  $effect(() => {
+    // In-app git mutations (stage/commit/discard in the changes list or
+    // Changes panel) invalidate both the optimistic statuses and the count.
+    const onGitChanged = () => gitChanges.refreshNow();
+    window.addEventListener(DESKTOP_GIT_CHANGED_EVENT, onGitChanged);
+    return () => window.removeEventListener(DESKTOP_GIT_CHANGED_EVENT, onGitChanged);
+  });
+
+  const MODE_OPTIONS: { value: DesktopFilesTreeViewMode; label: string }[] = [
+    { value: "tree", label: "All files" },
+    { value: "changes", label: "Changes" },
+  ];
+
+  $effect(() => {
+    // Persist the subview and expanded folders per worktree so switching
+    // conversations and coming back restores the same view.
+    const currentViewMode = viewMode;
+    const currentExpanded = expandedDirectoryPaths;
+    if (!canLoad) return;
+    writeDesktopFilesTreePrefs(rootPath, {
+      viewMode: currentViewMode,
+      expandedDirectoryPaths: Array.from(currentExpanded),
+    });
+  });
 
   onMount(() => {
     void desktopRpc
@@ -507,7 +507,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         rpc: desktopRpc,
         openTerminal,
         insertFileChip: requestDesktopFilePromptChip,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        viewDiff: openDiffForFile,
       });
     };
     const onFileTreeChanged = (event: Event) => {
@@ -517,31 +517,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (!applyFileTreeChanges(payload)) {
         void reloadTree();
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      // Reconcile the optimistic watcher-derived statuses with real git
+      // status once the burst settles (debounced inside the tracker).
+      gitChanges.scheduleRefresh();
+    };
+    const onOpenChangesView = (event: Event) => {
+      const detail = (event as CustomEvent<DesktopOpenChangesViewEventDetail>).detail;
+      // Requests scoped to another worktree are not for this tree.
+      if (!changesViewRequestMatches(detail?.worktreePath, rootPath)) return;
+      takePendingDesktopChangesViewRequest(rootPath);
+      const changesViewWasAlreadyActive = viewMode === "changes";
+      viewMode = "changes";
+      if (changesViewWasAlreadyActive && active) {
+        void focusCommitMessageAfterViewOpens();
+      }
     };
     window.addEventListener(DESKTOP_SETTINGS_CHANGED_EVENT, onSettingsChanged);
     window.addEventListener(DESKTOP_FILE_TREE_CONTEXT_MENU_ACTION_EVENT, onContextMenuAction);
     window.addEventListener(DESKTOP_FILE_TREE_CHANGED_EVENT, onFileTreeChanged);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    window.addEventListener(DESKTOP_OPEN_CHANGES_VIEW_EVENT, onOpenChangesView);
     return () => {
       window.removeEventListener(DESKTOP_SETTINGS_CHANGED_EVENT, onSettingsChanged);
       window.removeEventListener(DESKTOP_FILE_TREE_CONTEXT_MENU_ACTION_EVENT, onContextMenuAction);
       window.removeEventListener(DESKTOP_FILE_TREE_CHANGED_EVENT, onFileTreeChanged);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      window.removeEventListener(DESKTOP_OPEN_CHANGES_VIEW_EVENT, onOpenChangesView);
+      cancelFilteredModelRefresh();
     };
   });
 
@@ -559,17 +559,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         return;
       }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      // The very first load keeps the expansion restored from the durable
+      // per-worktree prefs (hydrated + pruned against the fetched tree);
+      // resetting is only right when re-rooting or toggling gitignored
+      // content, where the old expansion no longer applies.
+      const isFirstLoad = loadedRootPath === undefined && !latestFileTree;
       loadedRootPath = nextRootPath;
       loadedShowGitIgnored = nextShowGitIgnored;
       void reloadTree({
         includeGitIgnored: nextShowGitIgnored,
         path: nextRootPath,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        resetExpansion: !isFirstLoad,
       });
     });
   });
@@ -590,44 +590,44 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     refreshFileTreeIcons(tree?.entries ?? []);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Intentionally capture the initial value; the effect below tracks changes.
+  // svelte-ignore state_referenced_locally
+  let appliedShowChangedOnly = showChangedOnly;
+  $effect(() => {
+    const nextShowChangedOnly = showChangedOnly;
+
+    untrack(() => {
+      if (nextShowChangedOnly === appliedShowChangedOnly) return;
+      appliedShowChangedOnly = nextShowChangedOnly;
+      const tree = latestFileTree;
+      if (tree) {
+        applyFileTreeModelSnapshot(tree);
+      }
+    });
+  });
+
+  async function openFile(path: string, options: { external?: boolean } = {}) {
     try {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (options.external) {
+        await desktopRpc.openPathWithOpener(path, desktopFileOpenerId);
+        return;
+      }
+
+      window.dispatchEvent(
+        new CustomEvent(DESKTOP_OPEN_FILE_TAB_EVENT, {
+          detail: { path },
+        }),
+      );
     } catch (error) {
       console.debug("Unable to open file", error);
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function isExternalEditorClick(event: MouseEvent | undefined) {
+    if (!event) return false;
+    return isAppleUser() ? event.metaKey : event.ctrlKey;
+  }
+
   async function reloadTree(
     options: { includeGitIgnored?: boolean; path?: string; resetExpansion?: boolean } = {},
   ) {
@@ -704,13 +704,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     destroyFileTreeModel();
     const model = new FileTree({
       flattenEmptyDirectories: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      gitStatus: fileTreeModelGitStatus(tree.gitStatus),
       icons: latestFileIconConfig ?? "minimal",
       initialExpansion: "closed",
       initialExpandedPaths: Array.from(expandedDirectoryPaths),
       itemHeight: 26,
       overscan: 24,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      paths: visibleTreePaths(tree),
       stickyFolders: true,
       unsafeCSS: treeUnsafeCss,
     });
@@ -749,8 +749,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const state: CachedDesktopFileTreeState = {
       rootPath,
       showGitIgnored,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      showChangedOnly,
+      viewMode,
       loadState,
       errorMessage,
       fileTree,
@@ -783,10 +783,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (!entry) return;
 
       if (row.dataset.itemType === "file") {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        const mouseEvent = event instanceof MouseEvent ? event : undefined;
+        void openFile(entry.path, {
+          external: isExternalEditorClick(mouseEvent),
+        });
         return;
       }
 
@@ -848,8 +848,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   function applyFileTreeModelSnapshot(tree: DesktopFileTree) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // A full snapshot supersedes any coalesced filtered refresh.
+    cancelFilteredModelRefresh();
     const model = fileTreeModel;
     if (!model) {
       const mount = mountElement;
@@ -859,39 +859,39 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       return;
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    model.resetPaths(visibleTreePaths(tree), {
+      initialExpandedPaths: Array.from(expandedDirectoryPaths),
+    });
+    model.setGitStatus(fileTreeModelGitStatus(tree.gitStatus));
+  }
+
+  /**
+   * Pierre's built-in git lane letters untracked files "U", but users read
+   * new files as "A"dded — matching the diff panel and changes list — so
+   * untracked maps to added before statuses reach the tree model. The row
+   * colour is unchanged (both slots are overridden to the same green).
+   */
+  function fileTreeModelGitStatus(
+    gitStatus: DesktopFileTree["gitStatus"],
+  ): DesktopFileTree["gitStatus"] {
+    return gitStatus.map((entry) =>
+      entry.status === "untracked" ? { ...entry, status: "added" } : entry,
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  /**
+   * Paths shown in the tree model. With the changed-only filter active this
+   * keeps changed files/directories plus their ancestor directories, computed
+   * from the git status paths themselves (loaded tree entries may stop at a
+   * deferred directory well above the actual changed file, so visibility must
+   * be derived from the status paths, not from matching entries).
+   */
+  function visibleTreePaths(tree: DesktopFileTree): string[] {
+    if (!showChangedOnly) {
+      return tree.entries.map((entry) => entry.relativePath);
+    }
+
+    return visibleChangedTreePaths(tree.entries, tree.gitStatus, CHANGED_GIT_STATUSES);
   }
 
   function clearFileTreeState(options: { resetExpansion?: boolean } = {}) {
@@ -968,55 +968,55 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return normalized === "/" ? normalized : normalized.replace(/\/+$/, "");
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Per-payload mutation scratchpad. Watcher payloads can contain thousands
+   * of changes (builds, installs, checkouts), so every per-change lookup must
+   * be O(1)/O(depth) — array scans over the full entry list per change made
+   * large bursts take seconds and blocked the webview main thread.
+   */
+  interface FileTreeMutationState {
+    /** Retained + added entries, keyed by relativePath. Source of truth. */
+    entriesByPath: Map<string, DesktopFileTreeEntry>;
+    /** Entries added this payload, in arrival order (appended to the tree). */
+    addedEntries: DesktopFileTreeEntry[];
+    /** Directories that have (or had, within this payload) descendant entries. */
+    ancestorDirectoryPaths: Set<string>;
+    gitStatusByPath: Map<string, DesktopFileTreeGitStatus>;
+    entriesChanged: boolean;
+  }
+
+  function createFileTreeMutationState(tree: DesktopFileTree): FileTreeMutationState {
+    const entriesByPath = new Map(tree.entries.map((entry) => [entry.relativePath, entry]));
+    const ancestorDirectoryPaths = new Set<string>();
+    for (const entry of tree.entries) {
+      addAncestorDirectoryPaths(ancestorDirectoryPaths, entry.relativePath);
+    }
+    return {
+      entriesByPath,
+      addedEntries: [],
+      ancestorDirectoryPaths,
+      gitStatusByPath: new Map(tree.gitStatus.map((entry) => [entry.path, entry.status])),
+      entriesChanged: false,
+    };
+  }
+
+  function addAncestorDirectoryPaths(ancestorDirectoryPaths: Set<string>, relativePath: string) {
+    let parentPath = fileTreeParentDirectory(relativePath);
+    while (parentPath && !ancestorDirectoryPaths.has(parentPath)) {
+      ancestorDirectoryPaths.add(parentPath);
+      parentPath = fileTreeParentDirectory(parentPath);
+    }
+  }
+
   function applyFileTreeChanges(payload: DesktopFileTreeChangedPayload | undefined) {
     const currentTree = latestFileTree;
     if (!currentTree || !payload?.changes) return false;
 
     const model = fileTreeModel;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const mutation = createFileTreeMutationState(currentTree);
+    const nextDeferredDirectoryPaths = new Set(deferredDirectoryPaths);
+    const nextLoadingDirectoryPaths = new Set(loadingDirectoryPaths);
+    const nextExpandedDirectoryPaths = captureExpandedDirectoryPaths();
     const mutationOperations: FileTreeBatchOperation[] = [];
     let changed = false;
 
@@ -1027,7 +1027,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         const result = applyCreatedFileTreeChange(
           change,
           currentTree.rootPath,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          mutation,
           nextDeferredDirectoryPaths,
           mutationOperations,
         );
@@ -1036,7 +1036,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }
 
       if (change.type === FILE_CHANGE_CHANGED) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        const result = applyChangedFileTreeChange(change, currentTree.rootPath, mutation);
         if (result === "changed") changed = true;
         continue;
       }
@@ -1045,7 +1045,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         const result = applyDeletedFileTreeChange(
           change,
           currentTree.rootPath,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          mutation,
           nextDeferredDirectoryPaths,
           nextLoadingDirectoryPaths,
           nextExpandedDirectoryPaths,
@@ -1057,43 +1057,43 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
     if (!changed) return true;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const nextEntries = mutation.entriesChanged
+      ? [
+          ...currentTree.entries.filter(
+            (entry) => mutation.entriesByPath.get(entry.relativePath) === entry,
+          ),
+          // Identity check: a path added, deleted, and re-added within one
+          // payload leaves stale records in addedEntries.
+          ...mutation.addedEntries.filter(
+            (entry) => mutation.entriesByPath.get(entry.relativePath) === entry,
+          ),
+        ]
+      : currentTree.entries;
     const nextTree = {
       ...currentTree,
       entries: nextEntries,
       deferredDirectories: Array.from(nextDeferredDirectoryPaths),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      gitStatus: Array.from(mutation.gitStatusByPath, ([path, status]) => ({ path, status })),
     };
     deferredDirectoryPaths = nextDeferredDirectoryPaths;
     loadingDirectoryPaths = nextLoadingDirectoryPaths;
     expandedDirectoryPaths = nextExpandedDirectoryPaths;
     latestFileTree = nextTree;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    entriesByRelativePath = mutation.entriesByPath;
     fileTree = nextTree;
     loadState = "ready";
     if (model) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (showChangedOnly) {
+        // Incremental add/remove ops assume the unfiltered path set; with the
+        // changed-only filter active, recompute the visible paths instead —
+        // coalesced so a burst of payloads rebuilds the model once, not once
+        // per 150 ms watcher flush.
+        scheduleFilteredModelRefresh();
+      } else {
+        if (mutationOperations.length > 0) {
+          model.batch(mutationOperations);
+        }
+        model.setGitStatus(fileTreeModelGitStatus(nextTree.gitStatus));
       }
     } else if (mountElement && nextEntries.length > 0) {
       renderFileTreeModel(mountElement);
@@ -1101,127 +1101,127 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return true;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Replaces the watcher-inferred git statuses with authoritative
+   * `git status` output. The optimistic upserts only ever add/overwrite
+   * (created → untracked, changed → modified) and can't see .gitignore,
+   * content-identical writes, or files reverting to their committed state, so
+   * without reconciliation the changed count grows during any build/agent
+   * burst. Gitignored entries (host-provided when "show gitignored" is on)
+   * are preserved — `git status` doesn't report them.
+   */
+  function reconcileGitStatus(git: GitStatusOutput): void {
+    const currentTree = latestFileTree;
+    if (!currentTree) return;
+
+    const nextStatusByPath = new Map<string, DesktopFileTreeGitStatus>();
+    for (const entry of currentTree.gitStatus) {
+      if (entry.status === "ignored") {
+        nextStatusByPath.set(entry.path, "ignored");
+      }
+    }
+    if (git.isRepo) {
+      for (const file of git.staged) {
+        nextStatusByPath.set(file.path, treeGitStatusForHelperStatus(file.status));
+      }
+      // Worktree state wins over index state for row colouring.
+      for (const file of git.unstaged) {
+        nextStatusByPath.set(file.path, treeGitStatusForHelperStatus(file.status));
+      }
+      for (const file of git.untracked) {
+        nextStatusByPath.set(file.path, "untracked");
+      }
+    }
+
+    if (gitStatusMapEquals(nextStatusByPath, currentTree.gitStatus)) return;
+
+    const nextTree = {
+      ...currentTree,
+      gitStatus: Array.from(nextStatusByPath, ([path, status]) => ({ path, status })),
+    };
+    latestFileTree = nextTree;
+    fileTree = nextTree;
+    fileTreeModel?.setGitStatus(fileTreeModelGitStatus(nextTree.gitStatus));
+    if (showChangedOnly) {
+      // The set of changed paths may have shrunk/grown; refresh the filter.
+      scheduleFilteredModelRefresh();
+    }
+  }
+
+  function treeGitStatusForHelperStatus(status: string): DesktopFileTreeGitStatus {
+    switch (status) {
+      case "added":
+        return "added";
+      case "deleted":
+        return "deleted";
+      case "renamed":
+      case "copied":
+        return "renamed";
+      case "untracked":
+        return "untracked";
+      default:
+        // modified / typechange / unmerged / unknown all colour as modified.
+        return "modified";
+    }
+  }
+
+  function gitStatusMapEquals(
+    statusByPath: Map<string, DesktopFileTreeGitStatus>,
+    gitStatus: DesktopFileTreeGitStatusEntry[],
+  ): boolean {
+    if (statusByPath.size !== gitStatus.length) return false;
+    for (const entry of gitStatus) {
+      if (statusByPath.get(entry.path) !== entry.status) return false;
+    }
+    return true;
+  }
+
+  let filteredModelRefreshTimer: ReturnType<typeof setTimeout> | undefined;
+
+  function scheduleFilteredModelRefresh() {
+    if (filteredModelRefreshTimer !== undefined) return;
+    filteredModelRefreshTimer = setTimeout(() => {
+      filteredModelRefreshTimer = undefined;
+      const tree = latestFileTree;
+      if (tree && showChangedOnly && fileTreeModel) {
+        applyFileTreeModelSnapshot(tree);
+      }
+    }, FILTERED_MODEL_REFRESH_DELAY_MS);
+  }
+
+  function cancelFilteredModelRefresh() {
+    if (filteredModelRefreshTimer !== undefined) {
+      clearTimeout(filteredModelRefreshTimer);
+      filteredModelRefreshTimer = undefined;
+    }
+  }
+
   function applyCreatedFileTreeChange(
     change: DesktopFileTreeChange,
     root: string,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    mutation: FileTreeMutationState,
     nextDeferredDirectoryPaths: Set<string>,
     mutationOperations: FileTreeBatchOperation[],
   ): "changed" | "unchanged" {
     const relativePath = fileTreeRelativePathForCreatedChange(change, root);
     if (!relativePath) return "unchanged";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // The host tree hides git internals (`**/.git`); don't let a watcher
+    // create event (git init/clone writing the repo dir) re-add them. Deeper
+    // .git-internal paths are already dropped by the visible-ancestor checks.
+    if (relativePath.split("/").includes(".git")) return "unchanged";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const existingEntry = mutation.entriesByPath.has(relativePath);
     const parentPath = fileTreeParentDirectory(relativePath);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const parentLoaded = mutationParentLoaded(parentPath, mutation);
+    if (
+      !existingEntry &&
+      !parentLoaded &&
+      !mutationHasVisibleAncestorDirectory(relativePath, mutation)
+    ) {
       return "unchanged";
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const statusChanged = mutationUpsertGitStatus(mutation, relativePath, "untracked");
     if (existingEntry) {
       return statusChanged ? "changed" : "unchanged";
     }
@@ -1236,10 +1236,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       kind,
       gitIgnored: false,
     };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    mutation.entriesByPath.set(relativePath, entry);
+    mutation.addedEntries.push(entry);
+    mutation.entriesChanged = true;
+    addAncestorDirectoryPaths(mutation.ancestorDirectoryPaths, relativePath);
     if (kind === "directory") {
       nextDeferredDirectoryPaths.add(relativePath);
     }
@@ -1250,75 +1250,75 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   function applyChangedFileTreeChange(
     change: DesktopFileTreeChange,
     root: string,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    mutation: FileTreeMutationState,
   ): "changed" | "unchanged" {
     const relativePath = fileTreeRelativePath(change.path, root);
     if (!relativePath) return "unchanged";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const entry =
+      mutation.entriesByPath.get(relativePath) ??
+      mutation.entriesByPath.get(ensureDirectoryPath(relativePath));
     if (entry?.gitIgnored) return "unchanged";
 
     const statusPath =
       entry?.kind === "directory" ? ensureDirectoryPath(relativePath) : relativePath;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const existingStatus = mutation.gitStatusByPath.get(statusPath);
+    if (!entry && !existingStatus && !mutationHasVisibleAncestorDirectory(relativePath, mutation)) {
       return "unchanged";
     }
     if (existingStatus && existingStatus !== "modified") {
       return "unchanged";
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return mutationUpsertGitStatus(mutation, statusPath, "modified") ? "changed" : "unchanged";
   }
 
   function applyDeletedFileTreeChange(
     change: DesktopFileTreeChange,
     root: string,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    mutation: FileTreeMutationState,
     nextDeferredDirectoryPaths: Set<string>,
     nextLoadingDirectoryPaths: Set<string>,
     nextExpandedDirectoryPaths: Set<string>,
     mutationOperations: FileTreeBatchOperation[],
   ): "changed" | "unchanged" {
     const directRelativePath = fileTreeRelativePath(change.path, root);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const relativePath = mutationRelativePathForDeletedChange(change, root, mutation);
     if (!directRelativePath && !relativePath) return "unchanged";
 
     const deletedPath = relativePath ?? directRelativePath;
     if (!deletedPath) return "unchanged";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const removedEntry = relativePath ? mutation.entriesByPath.get(relativePath) : undefined;
     const removeDirectory =
       removedEntry?.kind === "directory" ||
       deletedPath.endsWith("/") ||
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      mutationGitStatusHasDescendants(mutation, deletedPath);
     const statusChanged = applyDeletedFileTreeGitStatusChange(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      mutation,
       deletedPath,
       removeDirectory,
       removedEntry,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      mutationHasVisibleAncestorDirectory(deletedPath, mutation),
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    let entriesRemoved = false;
+    if (removeDirectory) {
+      const directoryPath = ensureDirectoryPath(deletedPath);
+      for (const path of mutation.entriesByPath.keys()) {
+        if (path === deletedPath || path.startsWith(directoryPath)) {
+          mutation.entriesByPath.delete(path);
+          entriesRemoved = true;
+        }
+      }
+    } else if (mutation.entriesByPath.delete(deletedPath)) {
+      entriesRemoved = true;
+    }
+    if (!entriesRemoved) {
       return statusChanged ? "changed" : "unchanged";
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    mutation.entriesChanged = true;
     if (removeDirectory) {
       const directoryPath = ensureDirectoryPath(deletedPath);
       nextDeferredDirectoryPaths.delete(directoryPath);
@@ -1330,38 +1330,38 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   function applyDeletedFileTreeGitStatusChange(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    mutation: FileTreeMutationState,
     relativePath: string,
     removeDirectory: boolean,
     removedEntry: DesktopFileTreeEntry | undefined,
     hasVisibleAncestor: boolean,
   ) {
     const statusPath = removeDirectory ? ensureDirectoryPath(relativePath) : relativePath;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const existingStatus = mutation.gitStatusByPath.get(statusPath);
+
+    let changed = false;
+    let removedOnlyUntrackedOrIgnored: boolean;
+    if (removeDirectory) {
+      const directoryPath = ensureDirectoryPath(statusPath);
+      let removedCount = 0;
+      let removedUntrackedOrIgnoredCount = 0;
+      for (const [path, status] of mutation.gitStatusByPath) {
+        if (path !== statusPath && !path.startsWith(directoryPath)) continue;
+        removedCount += 1;
+        if (status === "untracked" || status === "ignored") {
+          removedUntrackedOrIgnoredCount += 1;
+        }
+        mutation.gitStatusByPath.delete(path);
+        changed = true;
+      }
+      removedOnlyUntrackedOrIgnored =
+        removedCount > 0 && removedCount === removedUntrackedOrIgnoredCount;
+    } else {
+      const status = mutation.gitStatusByPath.get(statusPath);
+      changed = mutation.gitStatusByPath.delete(statusPath);
+      removedOnlyUntrackedOrIgnored =
+        status !== undefined && (status === "untracked" || status === "ignored");
+    }
 
     if (
       existingStatus === "untracked" ||
@@ -1376,72 +1376,72 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       return changed;
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    changed = mutationUpsertGitStatus(mutation, statusPath, "deleted") || changed;
     return changed;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function mutationUpsertGitStatus(
+    mutation: FileTreeMutationState,
     path: string,
     status: DesktopFileTreeGitStatus,
   ) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (mutation.gitStatusByPath.get(path) === status) return false;
+    mutation.gitStatusByPath.set(path, status);
     return true;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function mutationGitStatusHasDescendants(mutation: FileTreeMutationState, path: string) {
+    const directoryPath = ensureDirectoryPath(path);
+    for (const statusPath of mutation.gitStatusByPath.keys()) {
+      if (statusPath.startsWith(directoryPath)) return true;
+    }
+    return false;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function mutationParentLoaded(parentPath: string, mutation: FileTreeMutationState) {
+    if (!parentPath) return true;
+    const parentEntry = mutation.entriesByPath.get(parentPath);
+    return parentEntry?.kind === "directory" && !deferredDirectoryPaths.has(parentPath);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function mutationHasVisibleAncestorDirectory(
+    relativePath: string,
+    mutation: FileTreeMutationState,
   ) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let parentPath = fileTreeParentDirectory(relativePath);
+    while (parentPath) {
+      if (mutation.entriesByPath.get(parentPath)?.kind === "directory") return true;
+      parentPath = fileTreeParentDirectory(parentPath);
+    }
+    return false;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function mutationRelativePathForDeletedChange(
     change: DesktopFileTreeChange,
     root: string,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    mutation: FileTreeMutationState,
   ): string | null {
     const relativePath = fileTreeRelativePath(change.path, root);
     if (!relativePath) return null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    if (mutation.entriesByPath.has(relativePath)) return relativePath;
+
+    const directoryPath = ensureDirectoryPath(relativePath);
+    if (mutation.entriesByPath.has(directoryPath)) return directoryPath;
+    // A directory with loaded descendants but no explicit entry (e.g. the
+    // watcher reports the parent of visible children).
+    if (mutation.ancestorDirectoryPaths.has(directoryPath)) return directoryPath;
+
+    return null;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function fileTreeRelativePathForCreatedChange(
     change: DesktopFileTreeChange,
     root: string,
   ): string | null {
     const relativePath = fileTreeRelativePath(change.path, root);
     if (!relativePath) return null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    return change.kind === "directory" ? ensureDirectoryPath(relativePath) : relativePath;
   }
 
   function fileTreeRelativePath(path: string, root: string): string | null {
@@ -1577,7 +1577,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         requestId,
         item: {
           kind: entry.kind,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          hasGitChanges: entryHasGitChanges(entry),
         },
         position: {
           x: event.clientX,
@@ -1596,25 +1596,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  function entryHasGitChanges(entry: DesktopFileTreeEntry): boolean {
+    if (entry.kind !== "file" || entry.gitIgnored) return false;
+    const status = latestFileTree?.gitStatus.find(
+      (candidate) => candidate.path === entry.relativePath,
+    )?.status;
+    return status !== undefined && CHANGED_GIT_STATUSES.has(status);
+  }
+
+  /**
+   * Switches this worktree's files tab into the changes view and asks it to
+   * preselect the given repo-relative file so its diff opens immediately.
+   */
+  function openDiffForFile(relativePath: string) {
+    requestDesktopChangesFileSelection(relativePath);
+    requestDesktopChangesView(rootPath);
+    // Ask the splits pane to focus/reveal the files tab hosting the tree.
+    window.dispatchEvent(new CustomEvent(DESKTOP_OPEN_CHANGES_EVENT));
+  }
+
   function syncExpandedDirectory(model: FileTree, path: string) {
     const item = model.getItem(path);
     if (!item || !("isExpanded" in item)) return;
@@ -1845,61 +1845,61 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 </script>
 
 <div class="desktop-files-tree">
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {#if canLoad}
+    <SegmentedSwitch
+      class="desktop-files-tree-mode"
+      options={MODE_OPTIONS}
+      bind:value={viewMode}
+      ariaLabel="Files pane view"
+      optionWidth={78}
       data-tauri-drag-region="false"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    />
+  {/if}
+
+  <!-- The two views cross-fade sequentially (out first, in second). Both
+       panes stay mounted: the tree keeps its model, expansion state, and
+       watcher wiring across toggles (rebuilding it on every toggle would
+       cost far more than keeping it), and the changes list keeps its loaded
+       status, so neither side flashes a spinner mid-fade. The hidden pane is
+       visibility: hidden — skipped for paint and hit-testing — and inert
+       (unreachable by focus and assistive tech). -->
+  <div class="desktop-files-tree-views" class:desktop-files-tree-views--changes={changesViewActive}>
+    <div class="desktop-files-tree-pane desktop-files-tree-tree-view" inert={changesViewActive}>
+      <div class="desktop-files-tree-body">
+        {#if canLoad}
+          <div
+            bind:this={mountElement}
+            class="desktop-files-tree-mount"
+            class:desktop-files-tree-mount--hidden={!fileTree && loadState !== "ready"}
+          ></div>
+        {/if}
+
+        {#if !canLoad}
+          <div class="desktop-files-tree-message">No working directory.</div>
+        {:else if loadState === "loading" && !fileTree}
+          <div class="desktop-files-tree-message">Loading files...</div>
+        {:else if loadState === "error" && !fileTree}
+          <div class="desktop-files-tree-message">
+            <div>Files could not load.</div>
+            {#if errorMessage}
+              <div class="desktop-files-tree-error">{errorMessage}</div>
+            {/if}
+          </div>
+        {:else if fileTree?.entries.length === 0}
+          <div class="desktop-files-tree-message">No files in this folder.</div>
+        {:else if loadState === "ready" && showChangedOnly && !hasChangedStatuses}
+          <div class="desktop-files-tree-message">No changed files.</div>
+        {/if}
+      </div>
+    </div>
 
     {#if canLoad}
       <div
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        bind:this={changesViewElement}
+        class="desktop-files-tree-pane desktop-files-tree-changes-view"
+        inert={!changesViewActive}
+      >
+        <DesktopChangesList worktreePath={rootPath} focusRequest={commitMessageFocusRequest} />
       </div>
     {/if}
   </div>
@@ -1919,62 +1919,62 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     color: var(--psx-foreground-primary);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /* Per-instance overrides on the shared SegmentedSwitch: centred with a
+     small top margin, slightly taller options than the default. */
+  .desktop-files-tree :global(.desktop-files-tree-mode) {
+    align-self: center;
+    margin: 4px 6px 0;
+    --segmented-switch-option-min-height: 24px;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /* Stacked panes for the two views. Toggling cross-fades sequentially: the
+     outgoing pane fades out over 90ms, then the incoming pane fades in for
+     90ms (its opacity transition is delayed by the outgoing duration, so the
+     fades never overlap). visibility flips instantly on hide — the hidden
+     pane stops painting and hit-testing at once — but is held during the
+     incoming delay so the pane only appears when its fade starts. */
+  .desktop-files-tree-views {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .desktop-files-tree-pane {
+    position: absolute;
+    inset: 0;
     display: flex;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /* Hidden state: fade out immediately (no delay), then flip visibility. */
+  .desktop-files-tree-pane {
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity 90ms ease,
+      visibility 0s 90ms;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /* Shown state: wait out the other pane's fade, then fade in. */
+  .desktop-files-tree-views:not(.desktop-files-tree-views--changes) .desktop-files-tree-tree-view,
+  .desktop-files-tree-views--changes .desktop-files-tree-changes-view {
+    visibility: visible;
+    opacity: 1;
+    transition:
+      opacity 90ms ease 90ms,
+      visibility 0s 90ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .desktop-files-tree-pane,
+    .desktop-files-tree-views:not(.desktop-files-tree-views--changes) .desktop-files-tree-tree-view,
+    .desktop-files-tree-views--changes .desktop-files-tree-changes-view {
+      transition: none;
+    }
   }
 
   .desktop-files-tree-body {

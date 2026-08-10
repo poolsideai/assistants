@@ -18,7 +18,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   interface Props {
     events: SessionEvent[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    items: GroupedItem[];
     isPrompting?: boolean;
     toolActivity?: ToolActivityMode;
     scrollElement?: HTMLElement;

@@ -1,55 +1,55 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{
+  "name": "@poolsideai/mobile-remote",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mobile remote-control web UI for the Poolside desktop assistant, served by poolside-helper over Tailscale.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/poolsideai/assistant"
+  },
+  "author": {
+    "name": "Poolside",
+    "email": "hello@poolside.ai",
+    "url": "https://poolside.ai"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "check:format": "prettier . --check --cache --ignore-path .gitignore --ignore-path ../../.gitignore",
+    "check:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}'",
     "check:types": "svelte-check --tsconfig tsconfig.json --fail-on-warnings --compiler-warnings \"state_referenced_locally:ignore,a11y_no_static_element_interactions:ignore\"",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "dev": "vite --host 127.0.0.1",
+    "dev:helper": "node scripts/dev-helper.mjs",
+    "embed": "node scripts/embed-webui.mjs",
+    "fix:format": "prettier . --write --cache --ignore-path .gitignore --ignore-path ../../.gitignore --list-different",
+    "preview": "vite preview",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest"
+  },
+  "prettier": "@poolsideai/prettier-config",
+  "dependencies": {
+    "@poolsideai/assistant": "workspace:*",
+    "@poolsideai/components": "workspace:*",
+    "@poolsideai/features": "workspace:*",
+    "@poolsideai/helperapi": "workspace:*",
+    "@poolsideai/lib": "workspace:*",
+    "@poolsideai/remote-client": "workspace:*",
     "@poolsideai/rpc": "workspace:*"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  },
+  "devDependencies": {
+    "@poolsideai/eslint-config": "workspace:*",
+    "@poolsideai/prettier-config": "workspace:*",
+    "@poolsideai/svelte-config": "workspace:*",
+    "@poolsideai/tailwind-config": "workspace:*",
+    "@poolsideai/tsconfig": "workspace:*",
+    "@poolsideai/vite-config": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "svelte": "catalog:",
+    "svelte-check": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -32,8 +32,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   agentIconUrl?: string;
   cwd?: string;
   workingDirectories?: string[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  readOnly?: boolean;
+  fallbackCwds?: string[];
 }
 
 export interface AcpChatPanelInitialState {
@@ -43,8 +43,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   sessionId?: string;
   cwd?: string;
   workingDirectories?: string[];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  readOnly?: boolean;
+  fallbackCwds?: string[];
 }
 
 interface PanelEntry {
@@ -171,8 +171,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           sessionId: opts.sessionId,
           cwd: opts.cwd,
           workingDirectories: cloneStringArray(opts.workingDirectories),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          readOnly: opts.readOnly,
+          fallbackCwds: cloneStringArray(opts.fallbackCwds),
         }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
@@ -340,8 +340,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         return this.routeAgentServerDidExit(params);
       case "poolside/acp/elicitation/create":
         return this.routeElicitation(params);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "poolside/acp/approvals/didChange":
+        return this.routeApprovalsDidChange(params);
       case "poolside/mcpServers/didChange":
         return this.routeMcpServersDidChange();
     }
@@ -366,8 +366,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       sessionId: state.sessionId,
       cwd: state.cwd,
       workingDirectories: cloneStringArray(state.workingDirectories),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      readOnly: state.readOnly,
+      fallbackCwds: cloneStringArray(state.fallbackCwds),
     };
 
     await this.bindPanel(panel, initial, {
@@ -507,15 +507,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return await this.requestFromPanel(entry, "elicitation", [params]);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // The helper's pending approval set changed. Every panel receives the full
+  // set and reconciles by key — a panel renders entries for its own session
+  // inline and holds the rest unbound, so no per-panel filtering is needed.
+  private routeApprovalsDidChange(params: unknown): void {
+    for (const entry of this.panels.values()) {
+      void this.postToPanel(entry, "acpApprovalsDidChange", [params]);
+    }
+  }
+
   // The user's MCP connector store changed: every panel re-lists it and
   // re-injects the connector set into its live agent sessions.
   private routeMcpServersDidChange(): void {

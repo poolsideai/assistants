@@ -111,32 +111,32 @@
     methods: [],
   }}
 />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+<Story
+  name="Awaiting login confirmation"
+  args={{
+    attemptedMethodId: terminalMethod.id,
+    pendingTerminalAuthMethodId: terminalMethod.id,
+  }}
+  play={async ({ canvas }) => {
+    const tryAgain = canvas.getByRole("button", { name: "Try again" });
+    const confirm = canvas.getByRole("button", { name: "I'm logged in" });
+
+    await expect(confirm).toBeEnabled();
+    await expect(canvas.queryByRole("button", { name: terminalMethod.name })).toBeNull();
+    await expect(tryAgain.nextElementSibling).toBe(confirm);
+  }}
+/>
+
+<Story
+  name="Verifying login confirmation"
+  args={{
+    attemptedMethodId: terminalMethod.id,
+    confirmInProgress: true,
+  }}
+  play={async ({ canvas }) => {
+    await expect(canvas.getByRole("button", { name: "I'm logged in" })).toBeDisabled();
+    await expect(canvas.getByRole("button", { name: "Try again" })).toBeDisabled();
+    await expect(canvas.getByRole("status")).toBeInTheDocument();
+  }}
+/>

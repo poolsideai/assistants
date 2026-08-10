@@ -9,10 +9,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 )
 
 var enumValue = map[string]string{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"path":   "path",
+	"tool":   "tool",
+	"mcp":    "mcp",
+	"secret": "secret",
 }
 
 func TestEnumSchema_DeterministicOrdering(t *testing.T) {
@@ -48,22 +48,22 @@ func TestEnumSchema_ApprovalDecisionType(t *testing.T) {
 	schema := EnumSchema(enumValue)
 
 	require.NotNil(t, schema)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.Len(t, schema.Enum, 4)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// Sorted alphabetically by PascalCase name: Mcp, Path, Secret, Tool
 	assert.Equal(t, "mcp", schema.Enum[0])
 	assert.Equal(t, "path", schema.Enum[1])
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	assert.Equal(t, "secret", schema.Enum[2])
+	assert.Equal(t, "tool", schema.Enum[3])
 
 	names, ok := schema.Extensions["x-enumNames"].([]string)
 	require.True(t, ok, "x-enumNames should be a []string")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.Len(t, names, 4)
 
 	assert.Equal(t, "Mcp", names[0])
 	assert.Equal(t, "Path", names[1])
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	assert.Equal(t, "Secret", names[2])
+	assert.Equal(t, "Tool", names[3])
 }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

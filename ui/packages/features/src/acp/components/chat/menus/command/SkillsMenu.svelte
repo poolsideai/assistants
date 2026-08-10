@@ -12,7 +12,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let { fallbackSkills = [] }: Props = $props();
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const { search } = Prompt.getMenus();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   const skills = $derived(
     visibleServerCommandEntries(

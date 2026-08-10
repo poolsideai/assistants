@@ -15,12 +15,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     rowIconSlotSize?: number;
     rowLeadingPaddingClass?: string;
     onToggleExpanded: (workspacePath: string) => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onArchiveSession?: (session: ACPConversationSummary, event: MouseEvent) => void | Promise<void>;
+    onArchiveSessionNow?: (
+      session: ACPConversationSummary,
+      event: MouseEvent,
+    ) => void | Promise<void>;
+    onSessionContextMenu?: (session: ACPConversationSummary, event: MouseEvent) => void;
     sessionShortcutHint?: (session: ACPConversationSummary) => string | undefined;
     isSessionExiting?: (session: ACPConversationSummary) => boolean;
   }
@@ -36,9 +36,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     rowIconSlotSize,
     rowLeadingPaddingClass = "pl-2",
     onToggleExpanded,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onArchiveSession,
+    onArchiveSessionNow,
+    onSessionContextMenu,
     sessionShortcutHint,
     isSessionExiting,
   }: Props = $props();
@@ -78,9 +78,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
         isExiting={() => isSessionExiting?.(session) === true}
         onOpen={() => sidebar.openSession(session)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        onArchive={(event) => onArchiveSession?.(session, event)}
+        onArchiveNow={(event) => onArchiveSessionNow?.(session, event)}
+        onContextMenu={(event) => onSessionContextMenu?.(session, event)}
       />
     {/each}
 

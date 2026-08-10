@@ -1,8 +1,8 @@
 package methods
 
 import (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"encoding/json"
+
 	acpsdk "github.com/coder/acp-go-sdk"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -24,30 +24,30 @@ const ACPSteerFallbackMetaKey = "poolside/steer_fallback"
 
 // ACP method names for client → agent requests.
 const (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ACPInitializeMethod           = acpMethodPrefix + acpsdk.AgentMethodInitialize
+	ACPAuthenticateMethod         = acpMethodPrefix + acpsdk.AgentMethodAuthenticate
+	ACPLogoutMethod               = acpMethodPrefix + acpsdk.AgentMethodLogout
+	ACPNewSessionMethod           = acpMethodPrefix + acpsdk.AgentMethodSessionNew
+	ACPLoadSessionMethod          = acpMethodPrefix + acpsdk.AgentMethodSessionLoad
 	ACPResumeSessionMethod        = acpMethodPrefix + acpsdk.AgentMethodSessionResume
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ACPListSessionsMethod         = acpMethodPrefix + acpsdk.AgentMethodSessionList
+	ACPPromptMethod               = acpMethodPrefix + acpsdk.AgentMethodSessionPrompt
 	ACPSteerMethod                = acpMethodPrefix + ACPSessionSteeringExtensionMethod
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ACPCancelMethod               = acpMethodPrefix + acpsdk.AgentMethodSessionCancel
+	ACPSetModeMethod              = acpMethodPrefix + acpsdk.AgentMethodSessionSetMode
+	ACPSetConfigOptionMethod      = acpMethodPrefix + acpsdk.AgentMethodSessionSetConfigOption
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	ACPCloseSessionMethod         = acpMethodPrefix + acpsdk.AgentMethodSessionClose
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ACPRenameSessionMethod        = acpMethodPrefix + acp.ExtensionMethodSessionRename
+	ACPRestartServerMethod        = acpMethodPrefix + "server/restart"
+	ACPMCPSettingsMethod          = acpMethodPrefix + acp.ExtensionMethodMCPSettings
+	ACPMCPSetServerDisabledMethod = acpMethodPrefix + acp.ExtensionMethodMCPSetServerDisabled
+	ACPMCPDeleteSecretsMethod     = acpMethodPrefix + acp.ExtensionMethodMCPDeleteSecrets
+	ACPMCPAuthenticateMethod      = acpMethodPrefix + acp.ExtensionMethodMCPAuthenticate
+	ACPMCPSetInputVariableMethod  = acpMethodPrefix + acp.ExtensionMethodMCPSetInputVariable
+	ACPElicitationCreateMethod    = acpMethodPrefix + "elicitation/create"
+	ACPElicitationResponseMethod  = ACPElicitationCreateMethod + "resp"
+	ACPCompactionUpdateMethod     = acpMethodPrefix + "compaction_update"
 	ACPTurnEndedMethod            = acpMethodPrefix + "turn_ended"
 )
 
@@ -57,73 +57,73 @@ const (
 	JSONRPCRequestMethod = "poolside/jsonrpc/request"
 )
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const ACPAgentServerDidExitMethod = "poolside/acp/serverDidExit"
+
+type ACPAgentServerDidExitParams struct {
+	AgentServer string `json:"agentServer"`
+	Error       string `json:"error,omitempty"`
+}
+
+type ACPAgentServerParams struct {
+	AgentServer string `json:"agentServer,omitempty"`
+}
+
+// Client → Agent: ACP SDK request types plus helper routing metadata.
+type ACPInitializeParams struct {
+	ACPAgentServerParams
+	acpsdk.InitializeRequest
+}
+
+type ACPAuthenticateParams struct {
+	ACPAgentServerParams
+	acpsdk.AuthenticateRequest
+}
+
+type ACPLogoutParams struct {
+	ACPAgentServerParams
+	acpsdk.LogoutRequest
+}
+
+type ACPNewSessionParams struct {
+	ACPAgentServerParams
+	acpsdk.NewSessionRequest
+}
+
+type ACPLoadSessionParams struct {
+	ACPAgentServerParams
+	acpsdk.LoadSessionRequest
+}
+
 type ACPResumeSessionParams struct {
 	ACPAgentServerParams
 	acpsdk.ResumeSessionRequest
 }
 
+type ACPListSessionsParams struct {
+	ACPAgentServerParams
+	acpsdk.ListSessionsRequest
+}
+
+type ACPDeleteSessionParams struct {
+	ACPAgentServerParams
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 type ACPCloseSessionParams struct {
 	ACPAgentServerParams
 	acpsdk.CloseSessionRequest
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type ACPRenameSessionParams struct {
+	ACPAgentServerParams
+	acp.SessionRenameRequest
+}
+
+type ACPPromptParams struct {
+	ACPAgentServerParams
+	acpsdk.PromptRequest
+}
+
 type ACPSteerRequest struct {
 	SessionID acpsdk.SessionId      `json:"sessionId"`
 	Prompt    []acpsdk.ContentBlock `json:"prompt"`
@@ -152,162 +152,162 @@ type ACPSteerOutput struct {
 	Outcome ACPSteerOutcome `json:"outcome"`
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type ACPCancelParams struct {
+	ACPAgentServerParams
+	acpsdk.CancelNotification
+}
+
+type ACPSetModeParams struct {
+	ACPAgentServerParams
+	acpsdk.SetSessionModeRequest
+}
+
+type ACPSetConfigOptionParams struct {
+	ACPAgentServerParams
+	acpsdk.SetSessionConfigOptionRequest
+}
+
+type ACPMCPSettingsParams struct {
+	ACPAgentServerParams
+	acp.MCPSettingsRequest
+}
+
+type ACPMCPSetServerDisabledParams struct {
+	ACPAgentServerParams
+	acp.MCPSetServerDisabledRequest
+}
+
+type ACPMCPDeleteSecretsParams struct {
+	ACPAgentServerParams
+	acp.MCPDeleteSecretsRequest
+}
+
+type ACPMCPAuthenticateParams struct {
+	ACPAgentServerParams
+	acp.MCPAuthenticateRequest
+}
+
+type ACPMCPSetInputVariableParams struct {
+	ACPAgentServerParams
+	acp.MCPSetInputVariableRequest
+}
+
+func (p *ACPInitializeParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.InitializeRequest)
+}
+
+func (p *ACPAuthenticateParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.AuthenticateRequest)
+}
+
+func (p *ACPLogoutParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.LogoutRequest)
+}
+
+func (p *ACPNewSessionParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.NewSessionRequest)
+}
+
+func (p *ACPLoadSessionParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.LoadSessionRequest)
+}
+
 func (p *ACPResumeSessionParams) UnmarshalJSON(b []byte) error {
 	return decodeACPParams(b, &p.AgentServer, &p.ResumeSessionRequest)
 }
 
+func (p *ACPListSessionsParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.ListSessionsRequest)
+}
+
+func (p *ACPDeleteSessionParams) UnmarshalJSON(b []byte) error {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 func (p *ACPCloseSessionParams) UnmarshalJSON(b []byte) error {
 	return decodeACPParams(b, &p.AgentServer, &p.CloseSessionRequest)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (p *ACPRenameSessionParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.SessionRenameRequest)
+}
+
+func (p *ACPPromptParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.PromptRequest)
+}
+
 func (p *ACPSteerParams) UnmarshalJSON(b []byte) error {
 	return decodeACPParams(b, &p.AgentServer, &p.ACPSteerRequest)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (p *ACPCancelParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.CancelNotification)
+}
+
+func (p *ACPSetModeParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.SetSessionModeRequest)
+}
+
+func (p *ACPSetConfigOptionParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.SetSessionConfigOptionRequest)
+}
+
+func (p *ACPMCPSettingsParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.MCPSettingsRequest)
+}
+
+func (p *ACPMCPSetServerDisabledParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.MCPSetServerDisabledRequest)
+}
+
+func (p *ACPMCPDeleteSecretsParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.MCPDeleteSecretsRequest)
+}
+
+func (p *ACPMCPAuthenticateParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.MCPAuthenticateRequest)
+}
+
+func (p *ACPMCPSetInputVariableParams) UnmarshalJSON(b []byte) error {
+	return decodeACPParams(b, &p.AgentServer, &p.MCPSetInputVariableRequest)
+}
+
+func decodeACPParams(b []byte, agentServer *string, request any) error {
+	var routing ACPAgentServerParams
+	if err := json.Unmarshal(b, &routing); err != nil {
+		return err
+	}
+	if err := json.Unmarshal(b, request); err != nil {
+		return err
+	}
+	*agentServer = routing.AgentServer
+	return nil
+}
+
 type (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ACPInitializeOutput           = acpsdk.InitializeResponse
+	ACPAuthenticateOutput         = acpsdk.AuthenticateResponse
+	ACPLogoutOutput               = acpsdk.LogoutResponse
+	ACPNewSessionOutput           = acpsdk.NewSessionResponse
+	ACPLoadSessionOutput          = acpsdk.LoadSessionResponse
 	ACPResumeSessionOutput        = acpsdk.ResumeSessionResponse
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ACPListSessionsOutput         = acpsdk.ListSessionsResponse
+	ACPPromptOutput               = acpsdk.PromptResponse
+	ACPCancelOutput               = struct{}
+	ACPSetModeOutput              = acpsdk.SetSessionModeResponse
+	ACPSetConfigOptionOutput      = acpsdk.SetSessionConfigOptionResponse
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	ACPCloseSessionOutput         = acpsdk.CloseSessionResponse
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	ACPRenameSessionOutput        = acp.SessionRenameResponse
+	ACPMCPSettingsOutput          = acp.MCPSettingsResponse
+	ACPMCPSetServerDisabledOutput = acp.MCPSetServerDisabledResponse
+	ACPMCPDeleteSecretsOutput     = acp.MCPDeleteSecretsResponse
+	ACPMCPAuthenticateOutput      = acp.MCPAuthenticateResponse
+	ACPMCPSetInputVariableOutput  = acp.MCPSetInputVariableResponse
 )
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type ACPRestartServerOutput struct{}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 type ACPElicitationParams struct {
 	ACPAgentServerParams

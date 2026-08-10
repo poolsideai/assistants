@@ -3,13 +3,13 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { ToolCall } from "../../types";
 import ToolCallContentsHarness from "./ToolCallContents.test.svelte";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// jsdom cannot host @pierre/diffs' shadow-DOM renderer; swap PatchDiff for a
+// stub that renders the new-side text so assertions still see each block's
+// own content.
+vi.mock("@poolsideai/components/file-diff", async () => ({
+  PatchDiff: (await import("./PatchDiff.mock.svelte")).default,
+}));
+
 describe("ToolCallContents", () => {
   beforeAll(() => {
     // jsdom has no Web Animations API; CollapsibleContent's reveal transition needs it.

@@ -10,9 +10,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import {
   USER_MESSAGE_END_BOUNDARY,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  USER_MESSAGE_START_BOUNDARY,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import {
   MAX_AGENT_THOUGHT_CONTENT_BYTES,
@@ -186,46 +186,46 @@ describe("TurnMaterializer", () => {
     });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("drops Poolside host context user chunks replayed as resource blocks", () => {
+    const m = new TurnMaterializer();
+    const context = hostContextBlock({
+      assistantVersion: "4.3.8",
+      userPrompt: "Always reply like a pirate.",
+    });
+    m.apply(textChunk("user_message_chunk", "hello", "m1"));
+    m.apply({
+      sessionUpdate: "user_message_chunk",
+      messageId: "m1",
+      content: context,
+    } as SessionUpdate);
+
+    expect(m.events).toHaveLength(1);
+    expect(m.events[0]).toMatchObject({
+      eventKind: "user_message",
+      messageId: "m1",
+      content: [{ type: "text", text: "hello" }],
+    });
+  });
+
+  it("drops Poolside host context user chunks replayed as resource links", () => {
+    const m = new TurnMaterializer();
+    m.apply(textChunk("user_message_chunk", "hello"));
+    m.apply({
+      sessionUpdate: "user_message_chunk",
+      content: {
+        type: "resource_link",
+        name: "poolside://host-context.md",
+        uri: "poolside://host-context.md",
+      },
+    } as SessionUpdate);
+
+    expect(m.events).toHaveLength(1);
+    expect(m.events[0]).toMatchObject({
+      eventKind: "user_message",
+      content: [{ type: "text", text: "hello" }],
+    });
+  });
+
   it("drops replayed handoff context user chunks", () => {
     const m = new TurnMaterializer();
     m.apply(textChunk("user_message_chunk", "hello", "m1"));
@@ -250,125 +250,125 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("strips flattened host context from loaded user chunks", () => {
+    const context = hostContextBlock({
+      assistantVersion: "4.3.8",
+      userPrompt: "Always reply like a pirate.",
+    });
+    const resourceText =
+      context.type === "resource" && "text" in context.resource ? context.resource.text : "";
+    const items = applyAll([
+      textChunk(
+        "user_message_chunk",
+        [
+          "What is 2 plus 2?poolside://host-context.md",
+          '<context ref="poolside://host-context.md">',
+          resourceText,
+          "</context>",
+        ].join("\n"),
+      ),
+    ]);
+
+    expect(items).toEqual([
+      expect.objectContaining({
+        eventKind: "user_message",
+        content: [{ type: "text", text: "What is 2 plus 2?" }],
+      }),
+    ]);
+  });
+
+  it("strips host context replayed as separate trailing user chunks", () => {
+    // claude-agent-acp replays the prompt as one chunk per block: the user
+    // text, the bare resource URI, then the <context>-wrapped resource text.
+    const context = hostContextBlock({
+      assistantVersion: "4.3.8",
+      userPrompt: "Always reply like a pirate.",
+    });
+    const resourceText =
+      context.type === "resource" && "text" in context.resource ? context.resource.text : "";
+    const items = applyAll([
+      textChunk("user_message_chunk", "What is 2 plus 2?"),
+      textChunk("user_message_chunk", "poolside://host-context.md"),
+      textChunk(
+        "user_message_chunk",
+        `\n<context ref="poolside://host-context.md">\n${resourceText}\n</context>`,
+      ),
+    ]);
+
+    expect(items).toEqual([
+      expect.objectContaining({
+        eventKind: "user_message",
+        content: [{ type: "text", text: "What is 2 plus 2?" }],
+      }),
+    ]);
+  });
+
+  it("strips a raw inlined system instructions tag from loaded user chunks", () => {
+    const context = hostContextBlock({ assistantVersion: "4.3.8" });
+    const resourceText =
+      context.type === "resource" && "text" in context.resource ? context.resource.text : "";
+    const items = applyAll([textChunk("user_message_chunk", `What is 2 plus 2?\n${resourceText}`)]);
+
+    expect(items).toEqual([
+      expect.objectContaining({
+        eventKind: "user_message",
+        content: [{ type: "text", text: "What is 2 plus 2?" }],
+      }),
+    ]);
+  });
+
+  it("unwraps loaded user chunks and discards text outside the client boundary", () => {
+    const items = applyAll([
+      textChunk(
+        "user_message_chunk",
+        [
           `raw prefix ${USER_MESSAGE_START_BOUNDARY}What is 2 plus 2?${USER_MESSAGE_END_BOUNDARY}poolside://host-context.md`,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          '<context ref="poolside://host-context.md">',
+          "# Poolside Host Context",
+          "",
+          "You are running within Poolside Assistant via the Agent Client Protocol (ACP).",
+          "",
+          "## Project Guidelines for Agent",
+          "",
+          "Always reply like a pirate.",
+          "",
+          "</context>",
+        ].join("\n"),
+      ),
+    ]);
+
+    expect(items).toEqual([
+      expect.objectContaining({
+        eventKind: "user_message",
+        content: [{ type: "text", text: "What is 2 plus 2?" }],
+      }),
+    ]);
+  });
+
+  it("keeps loaded user chunks unchanged when there is no client boundary pair", () => {
+    const text = "What is 2 plus 2?\npoolside://host-context.md\n<context>raw</context>";
+    const items = applyAll([textChunk("user_message_chunk", text)]);
+
+    expect(items).toEqual([
+      expect.objectContaining({
+        eventKind: "user_message",
+        content: [{ type: "text", text }],
+      }),
+    ]);
+  });
+
+  it("keeps loaded user chunks unchanged when only one client boundary is present", () => {
+    const text = `${USER_MESSAGE_START_BOUNDARY}What is 2 plus 2?`;
+    const items = applyAll([textChunk("user_message_chunk", text)]);
+
+    expect(items).toEqual([
+      expect.objectContaining({
+        eventKind: "user_message",
+        content: [{ type: "text", text }],
+      }),
+    ]);
+  });
+
   it("concatenates two text chunks with the same messageId", () => {
     const items = applyAll([
       textChunk("agent_message_chunk", "hel", "m1"),
@@ -587,24 +587,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(m.events[1]).toMatchObject({ toolCallId: "tc2", status: "failed" });
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("marks the turn as interrupted when cancelled", () => {
+    const m = new TurnMaterializer();
+    m.startTurn("2026-06-02T10:00:00.000Z");
+    m.apply(toolCall("tc1", "Read file"));
+
+    m.cancelOpenToolCalls("2026-06-02T10:03:00.000Z");
+
+    expect(m.turns).toEqual([
+      {
+        startedAt: "2026-06-02T10:00:00.000Z",
+        endedAt: "2026-06-02T10:03:00.000Z",
+        startIndex: 0,
+        endIndex: 0,
+        interrupted: true,
+      },
+    ]);
+  });
+
   it("ignores tool_call_update for unknown toolCallId", () => {
     const items = applyAll([toolCallUpdate("unknown", { status: "completed" })]);
     expect(items).toHaveLength(0);

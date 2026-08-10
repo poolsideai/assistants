@@ -995,10 +995,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         >
           {#if item.type === "tab"}
             {@const shortcutLabel = shortcutLabelForTab(item.tab)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            <span class="splits-tab-shoulder-edge splits-tab-shoulder-edge-left" aria-hidden="true"
+            ></span>
+            <span class="splits-tab-shoulder-edge splits-tab-shoulder-edge-right" aria-hidden="true"
+            ></span>
             {#if tabIcon || item.tab.icon}
               <span class="splits-tab-icon-slot" aria-hidden="true">
                 {#if tabIcon}
@@ -1150,18 +1150,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     display: flex;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    box-sizing: border-box;
+    /* Let an opt-in selected-tab shadow reach the pane's top and left gutters.
+       The scroller still ends at the content seam, clipping its bottom shadow. */
+    height: calc(100% + var(--splits-tab-shadow-gutter, 0px));
     min-width: 0;
     flex: 1;
     gap: var(--splits-tab-spacing);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    margin-top: calc(var(--splits-tab-shadow-gutter, 0px) * -1);
+    margin-left: calc(var(--splits-tab-shadow-gutter, 0px) * -1);
+    padding-top: var(--splits-tab-shadow-gutter, 0px);
     padding-right: var(--splits-tab-radius, 6px);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    padding-left: var(--splits-tab-shadow-gutter, 0px);
     overflow-x: auto;
     overflow-y: hidden;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -1268,7 +1268,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       var(--splits-active-tab-border, var(--splits-separator))
     );
     background: var(--splits-active-tab-visual-background, var(--splits-active-tab-background));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    box-shadow: var(--splits-active-tab-shadow, none);
     color: var(--splits-active-tab-foreground);
   }
 
@@ -1291,13 +1291,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   .splits-tab-selected::before {
     left: calc(var(--splits-tab-radius, 6px) * -1);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    border-radius: 0 0 var(--splits-tab-radius, 6px) 0;
+    box-shadow:
+      calc(var(--splits-tab-radius, 6px) / 2) calc(var(--splits-tab-radius, 6px) / 2) 0
+        calc(var(--splits-tab-radius, 6px) / 2) var(--splits-active-tab-background),
+      calc(var(--splits-tab-radius, 6px) / 2) calc(var(--splits-tab-radius, 6px) / 2) 0
+        calc(var(--splits-tab-radius, 6px) / 2 + 1px)
+        var(--splits-active-tab-border, var(--splits-separator));
   }
 
   .splits-tab-selected[data-splits-tab-index="0"]::before {
@@ -1306,88 +1306,88 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   .splits-tab-selected::after {
     right: calc(var(--splits-tab-radius, 6px) * -1);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    border-radius: 0 0 0 var(--splits-tab-radius, 6px);
+    box-shadow:
+      calc(var(--splits-tab-radius, 6px) / -2) calc(var(--splits-tab-radius, 6px) / 2) 0
+        calc(var(--splits-tab-radius, 6px) / 2) var(--splits-active-tab-background),
+      calc(var(--splits-tab-radius, 6px) / -2) calc(var(--splits-tab-radius, 6px) / 2) 0
+        calc(var(--splits-tab-radius, 6px) / 2 + 1px)
+        var(--splits-active-tab-border, var(--splits-separator));
+  }
+
+  .splits-tab-shoulder-edge {
+    position: absolute;
+    bottom: 0;
+    width: var(--splits-tab-radius, 6px);
+    height: var(--splits-tab-radius, 6px);
+    display: none;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+
+  .splits-tab-selected > .splits-tab-shoulder-edge {
+    display: var(--splits-active-tab-corner-display, block);
+  }
+
+  .splits-tab-shoulder-edge-left {
+    left: calc(var(--splits-tab-radius, 6px) * -1);
+    background-image: radial-gradient(
+      circle at 0 0,
+      transparent
+        calc(var(--splits-tab-radius, 6px) - var(--splits-active-tab-shoulder-edge-width, 0px)),
+      var(--splits-active-tab-shoulder-edge-color, transparent)
+        calc(
+          var(--splits-tab-radius, 6px) - var(--splits-active-tab-shoulder-edge-width, 0px) * 0.5
+        ),
+      transparent var(--splits-tab-radius, 6px)
+    );
+    -webkit-mask-image: conic-gradient(
+      from 0deg at 0 0,
+      transparent 90deg,
+      black 102deg,
+      black 168deg,
+      transparent 180deg
+    );
+    mask-image: conic-gradient(
+      from 0deg at 0 0,
+      transparent 90deg,
+      black 102deg,
+      black 168deg,
+      transparent 180deg
+    );
+  }
+
+  .splits-tab-selected[data-splits-tab-index="0"] > .splits-tab-shoulder-edge-left {
+    display: none;
+  }
+
+  .splits-tab-shoulder-edge-right {
+    right: calc(var(--splits-tab-radius, 6px) * -1);
+    background-image: radial-gradient(
       circle at 100% 0,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      transparent
+        calc(var(--splits-tab-radius, 6px) - var(--splits-active-tab-shoulder-edge-width, 0px)),
+      var(--splits-active-tab-shoulder-edge-color, transparent)
+        calc(
+          var(--splits-tab-radius, 6px) - var(--splits-active-tab-shoulder-edge-width, 0px) * 0.5
+        ),
+      transparent var(--splits-tab-radius, 6px)
+    );
+    -webkit-mask-image: conic-gradient(
+      from 0deg at 100% 0,
+      transparent 180deg,
+      black 192deg,
+      black 258deg,
+      transparent 270deg
+    );
+    mask-image: conic-gradient(
+      from 0deg at 100% 0,
+      transparent 180deg,
+      black 192deg,
+      black 258deg,
+      transparent 270deg
     );
   }
 

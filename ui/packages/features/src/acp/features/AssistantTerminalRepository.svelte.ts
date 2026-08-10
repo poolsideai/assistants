@@ -14,7 +14,7 @@ export type AssistantTerminalOpener = (
     env?: Record<string, string>;
     commandMode?: AssistantTerminalCommandMode;
     placement?: AssistantTerminalPlacement;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    layoutKey?: string;
     /**
      * Prefer replacing an existing terminal tab for the worktree on the target
      * surface (e.g. one restored from the default layout) over opening a second
@@ -37,15 +37,15 @@ interface RunCommandAndWaitOptions {
   keepAliveAfterCommand?: boolean;
   reuseExisting?: boolean;
   placement?: AssistantTerminalPlacement;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  layoutKey?: string;
   /** See AssistantTerminalOpener's `focus`; only meaningful with `visible`. */
   focus?: boolean;
   onOutput?: (data: string) => void;
 }
 
 const MAX_BUFFER_LENGTH = 200_000;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const COMMAND_DONE_PREFIX = "\x1b]1337;PoolsideCommandDone=";
+const COMMAND_DONE_RE = /\x1b]1337;PoolsideCommandDone=([^:\x07]+):(\d+)\x07/g;
 // Terminal panes usually keep a stable size across sessions (the layout is
 // restored), so the last measured size is a good guess at the spawn size for
 // the next terminal. A shell spawned at the size its pane will actually have
@@ -97,18 +97,18 @@ export class AssistantTerminalRepositoryWriter {
   tabs = $state<AssistantTerminalTab[]>([]);
   activeTabByWorktree = $state<Record<string, string>>({});
   buffers = $state<Record<string, string>>({});
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  bufferStartOffsets = $state<Record<string, number>>({});
   currentWorktreePath = $state("");
   private creatingForWorktree = new Set<string>();
   private exitWaiters = new Map<string, (exitCode?: number) => void>();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private commandWaiters = new Map<
+    string,
+    { token: string; resolve: (exitCode?: number) => void }
+  >();
+  private commandResults = new Map<string, number>();
   private commandOutputListeners = new Map<string, (data: string) => void>();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private pendingCommandTokens = new Set<string>();
+  private partialCommandMarkers: Record<string, string> = {};
   private visibleTerminalOpeners = new Set<AssistantTerminalOpener>();
   // Size each newly created interactive terminal was spawned at. After its
   // first fit, the view compares the measured size against this and requests
@@ -168,16 +168,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   private async loadTabsForWorktree(worktreePath: string): Promise<AssistantTerminalTab[]> {
     const tabs = await rpc.listAssistantTerminals(worktreePath);
     const buffers = { ...this.buffers };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const bufferStartOffsets = { ...this.bufferStartOffsets };
     for (const tab of tabs) {
       if (tab.buffer !== undefined) {
         buffers[tab.id] = tab.buffer;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        bufferStartOffsets[tab.id] = 0;
       }
       this.upsertTab(tab);
     }
     this.buffers = buffers;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.bufferStartOffsets = bufferStartOffsets;
     if (!this.activeTabByWorktree[worktreePath] && tabs[0]) {
       this.activeTabByWorktree = { ...this.activeTabByWorktree, [worktreePath]: tabs[0].id };
     }
@@ -210,7 +210,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.upsertTab(tab);
     if (interactive) {
       this.pendingInitialSpawnSizes.set(tab.id, size ?? { cols: 80, rows: 24 });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
     this.selectTab(tab.id);
     return tab;
   }
@@ -234,20 +234,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   write(id: string, data: string): Promise<void> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (data.includes("\x03")) {
+      this.finishCommandWaiter(id, undefined);
+    }
     return rpc.writeAssistantTerminal(id, data);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async clear(id: string): Promise<void> {
+    // Drop the replayable buffer first so the cleared state survives a re-render
+    // or tab switch; the host then wipes its own buffer and redraws the prompt.
+    this.buffers = { ...this.buffers, [id]: "" };
+    this.bufferStartOffsets = { ...this.bufferStartOffsets, [id]: 0 };
+    await rpc.clearAssistantTerminal(id);
+  }
+
   resize(id: string, cols: number, rows: number): Promise<void> {
     // Every fit of a visible terminal refreshes the preferred spawn size for
     // the next terminal (and, via storage, for the next session).
@@ -280,32 +280,32 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   terminalDidWrite(terminalId: string, data: string): void {
     const commandOutputListener = this.commandOutputListeners.get(terminalId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    data = this.stripCommandDoneMarkers(terminalId, data);
+    if (!data) return;
     commandOutputListener?.(data);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const previousBuffer = this.buffers[terminalId] ?? "";
+    const previousStartOffset = this.bufferStartOffsets[terminalId] ?? 0;
+    const nextBuffer = `${previousBuffer}${data}`;
+    const trimmedLength = Math.max(0, nextBuffer.length - MAX_BUFFER_LENGTH);
     this.buffers = {
       ...this.buffers,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      [terminalId]: nextBuffer.slice(trimmedLength),
+    };
+    this.bufferStartOffsets = {
+      ...this.bufferStartOffsets,
+      [terminalId]: previousStartOffset + trimmedLength,
     };
   }
 
   terminalDidExit(terminalId: string, exitCode?: number): void {
     this.tabs = this.tabs.map((tab) => (tab.id === terminalId ? { ...tab, exitCode } : tab));
     this.emitTabsChanged();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.finishCommandWaiter(terminalId, exitCode);
     this.exitWaiters.get(terminalId)?.(exitCode);
   }
 
   terminalDidClose(terminalId: string): void {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.finishCommandWaiter(terminalId, undefined);
     this.exitWaiters.get(terminalId)?.(undefined);
     this.removeTab(terminalId);
   }
@@ -327,8 +327,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.pendingInitialSpawnSizes.delete(id);
     if (measuredCols === undefined || measuredRows === undefined) return true;
     return spawnSize.cols !== measuredCols || spawnSize.rows !== measuredRows;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   async closeWorktree(worktreePath: string): Promise<void> {
     await rpc.closeAssistantTerminalsForWorktree(worktreePath);
     this.removeTabsFor((tab) => tab.worktreePath === worktreePath);
@@ -342,12 +342,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     );
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  async runCommandAndWait(
+    worktreePath: string,
+    command: string,
+    signal?: AbortSignal,
     options?: RunCommandAndWaitOptions,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ): Promise<number | undefined> {
     const token = `cmd-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
     this.pendingCommandTokens.add(token);
     const tab = await this.createCommandTab(
@@ -355,23 +355,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       commandWithDoneMarker(command, token, options?.keepAliveAfterCommand),
       options,
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (!tab) {
       this.pendingCommandTokens.delete(token);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return undefined;
+    }
     return await new Promise<number | undefined>((resolve) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      let settled = false;
+      const onAbort = () => finish(undefined);
+      const finish = (code?: number) => {
+        if (settled) return;
+        settled = true;
         this.pendingCommandTokens.delete(token);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        this.commandWaiters.delete(tab.id);
+        this.exitWaiters.delete(tab.id);
         this.commandOutputListeners.delete(tab.id);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        signal?.removeEventListener("abort", onAbort);
+        resolve(code);
+      };
       if (options?.onOutput) {
         const bufferedOutput = this.buffers[tab.id];
         if (bufferedOutput) {
@@ -384,19 +384,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         this.commandResults.delete(token);
         finish(earlyResult);
         return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
+      if (signal?.aborted) {
+        finish(undefined);
+        return;
+      }
       const currentTab = this.tabs.find((candidate) => candidate.id === tab.id);
       if (currentTab?.exitCode !== undefined) {
         finish(currentTab.exitCode);
         return;
       }
       this.commandWaiters.set(tab.id, { token, resolve: finish });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.exitWaiters.set(tab.id, finish);
+      signal?.addEventListener("abort", onAbort, { once: true });
     });
   }
 
@@ -416,7 +416,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       command,
       commandMode: "nonInteractive",
       placement: options?.placement,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      layoutKey: options?.layoutKey,
       reuseExisting: options?.reuseExisting,
       focus: options?.focus,
     });
@@ -435,36 +435,36 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return current;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  private stripCommandDoneMarkers(terminalId: string, data: string): string {
+    const combined = `${this.partialCommandMarkers[terminalId] ?? ""}${data}`;
+    delete this.partialCommandMarkers[terminalId];
+
+    let stripped = combined.replace(COMMAND_DONE_RE, (_match, token: string, code: string) => {
+      const exitCode = Number.parseInt(code, 10);
+      const waiter = this.commandWaiters.get(terminalId);
+      if (waiter?.token === token) {
+        waiter.resolve(exitCode);
+      } else if (this.pendingCommandTokens.has(token)) {
+        this.commandResults.set(token, exitCode);
+      }
+      return "";
+    });
+
+    const markerStart = stripped.lastIndexOf(COMMAND_DONE_PREFIX);
+    if (markerStart !== -1 && !stripped.slice(markerStart).includes("\x07")) {
+      this.partialCommandMarkers[terminalId] = stripped.slice(markerStart);
+      stripped = stripped.slice(0, markerStart);
+    }
+
+    return stripped;
+  }
+
+  private finishCommandWaiter(terminalId: string, exitCode?: number): void {
+    const waiter = this.commandWaiters.get(terminalId);
+    if (!waiter) return;
+    waiter.resolve(exitCode);
+  }
+
   private upsertTab(tab: AssistantTerminalTab): void {
     const { buffer: _buffer, ...tabWithoutBuffer } = tab;
     const tabs = this.tabs.filter((candidate) => candidate.id !== tab.id);
@@ -478,9 +478,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const tab = this.tabs.find((candidate) => candidate.id === id);
     this.tabs = this.tabs.filter((candidate) => candidate.id !== id);
     const { [id]: _removedBuffer, ...buffers } = this.buffers;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const { [id]: _removedBufferStartOffset, ...bufferStartOffsets } = this.bufferStartOffsets;
     this.buffers = buffers;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.bufferStartOffsets = bufferStartOffsets;
     delete this.partialCommandMarkers[id];
     this.pendingInitialSpawnSizes.delete(id);
     this.emitTabsChanged();
@@ -495,13 +495,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.buffers = Object.fromEntries(
       Object.entries(this.buffers).filter(([id]) => !removed.has(id)),
     );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    this.bufferStartOffsets = Object.fromEntries(
+      Object.entries(this.bufferStartOffsets).filter(([id]) => !removed.has(id)),
+    );
+    for (const id of removed) {
       delete this.partialCommandMarkers[id];
       this.pendingInitialSpawnSizes.delete(id);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
     if (removed.size > 0) {
       this.emitTabsChanged();
     }

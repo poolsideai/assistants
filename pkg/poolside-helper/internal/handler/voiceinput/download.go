@@ -1,22 +1,22 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package voiceinput
+
+import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"errors"
+	"fmt"
+	"io"
 	"log/slog"
 	"net"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"net/http"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
+)
+
 // maxModelDownloadBytes caps a model download when the exact size is not being
 // enforced (i.e. against a developer mirror). The largest catalog model is
 // ~1.6 GB.
@@ -61,64 +61,64 @@ func verifyDownload(model catalogEntry, expectedSHA256 string, written int64, ac
 	return nil
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type downloadJob struct {
+	modelID string
+	cancel  context.CancelFunc
+	done    chan struct{}
+}
+
+func (j *downloadJob) running() bool {
+	select {
+	case <-j.done:
+		return false
+	default:
+		return true
+	}
+}
+
 // runDownload fetches one ggml model file to modelsDir and records progress in
 // downloadState for the client's polling reads. It owns job.done.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func (s *Server) runDownload(ctx context.Context, job *downloadJob, model catalogEntry, modelsDir string) {
+	defer close(job.done)
+	err := s.downloadModelFile(ctx, job, model, modelsDir)
+
+	s.mu.Lock()
+	if state := s.downloadState; state != nil && state.ModelID == model.id {
+		state.BytesPerSecond = 0
+		state.EtaSeconds = 0
+		switch {
+		case err == nil:
+			state.Status = methods.VoiceInputDownloadCompleted
+		case errors.Is(err, context.Canceled):
+			state.Status = methods.VoiceInputDownloadCancelled
+		default:
+			state.Status = methods.VoiceInputDownloadFailed
+			state.Error = err.Error()
+		}
+	}
+	s.mu.Unlock()
+}
+
+func (s *Server) downloadModelFile(ctx context.Context, job *downloadJob, model catalogEntry, modelsDir string) error {
+	if err := os.MkdirAll(modelsDir, 0o755); err != nil {
+		return fmt.Errorf("voice input: creating models directory: %w", err)
+	}
+	target := modelPath(modelsDir, model.id)
+	partPath := target + partFileSuffix
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.modelDownloadURL(model.id), nil)
+	if err != nil {
+		return err
+	}
 	resp, err := modelDownloadClient().Do(req)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return fmt.Errorf("voice input: downloading %s: status %d", model.id, resp.StatusCode)
+	}
+
 	// The catalog knows exactly how big each model is, so anything larger is
 	// refused rather than allowed to fill the disk. A mirror serves fixture
 	// bytes of its own size, so it only gets the blanket cap.
@@ -131,59 +131,59 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 			model.id, resp.ContentLength, maxBytes)
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if resp.ContentLength > 0 {
+		s.updateDownloadState(model.id, func(state *methods.VoiceInputDownloadState) {
+			state.BytesTotal = resp.ContentLength
+		})
+	}
+
+	out, err := os.Create(partPath)
+	if err != nil {
+		return fmt.Errorf("voice input: creating %s: %w", partPath, err)
+	}
+	removePart := func() {
+		_ = out.Close()
+		_ = os.Remove(partPath)
+	}
+
+	var written int64
+	started := time.Now()
+	lastNotify := started
 	// Hash while streaming so verification costs no extra pass over a file
 	// that can be 1.6 GB.
 	hasher := sha256.New()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	buf := make([]byte, 128<<10)
+	for {
+		n, readErr := resp.Body.Read(buf)
+		if n > 0 {
 			if written+int64(n) > maxBytes {
 				removePart()
 				return fmt.Errorf("voice input: downloading %s: response exceeds expected %d bytes",
 					model.id, maxBytes)
 			}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			if _, writeErr := out.Write(buf[:n]); writeErr != nil {
+				removePart()
+				return fmt.Errorf("voice input: writing %s: %w", partPath, writeErr)
+			}
 			_, _ = hasher.Write(buf[:n])
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			written += int64(n)
+			if now := time.Now(); now.Sub(lastNotify) >= downloadProgressInterval {
+				lastNotify = now
+				s.reportDownloadProgress(model.id, written, resp.ContentLength, started)
+			}
+		}
+		if readErr == io.EOF {
+			break
+		}
+		if readErr != nil {
+			removePart()
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			return fmt.Errorf("voice input: downloading %s: %w", model.id, readErr)
+		}
+	}
+
 	// Verify before the file is moved into place, so a mismatched model is
 	// never visible as installed and never reaches the Whisper parser.
 	if err := verifyDownload(model, s.expectedDigest(model), written, hasher.Sum(nil)); err != nil {
@@ -191,45 +191,45 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		return err
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if err := out.Close(); err != nil {
+		_ = os.Remove(partPath)
+		return fmt.Errorf("voice input: closing %s: %w", partPath, err)
+	}
+	if err := os.Rename(partPath, target); err != nil {
+		_ = os.Remove(partPath)
+		return fmt.Errorf("voice input: installing %s: %w", filepath.Base(target), err)
+	}
+	s.updateDownloadState(model.id, func(state *methods.VoiceInputDownloadState) {
+		state.BytesDownloaded = written
+		if state.BytesTotal == 0 {
+			state.BytesTotal = written
+		}
+	})
+	return nil
+}
+
+func (s *Server) reportDownloadProgress(modelID string, written, total int64, started time.Time) {
+	elapsed := time.Since(started).Seconds()
+	var perSecond int64
+	if elapsed > 0 {
+		perSecond = int64(float64(written) / elapsed)
+	}
+	var eta int64
+	if perSecond > 0 && total > written {
+		eta = (total - written) / perSecond
+	}
+	s.updateDownloadState(modelID, func(state *methods.VoiceInputDownloadState) {
+		state.BytesDownloaded = written
+		state.BytesPerSecond = perSecond
+		state.EtaSeconds = eta
+	})
+}
+
+func (s *Server) updateDownloadState(modelID string, apply func(*methods.VoiceInputDownloadState)) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.downloadState == nil || s.downloadState.ModelID != modelID {
+		return
+	}
+	apply(s.downloadState)
+}

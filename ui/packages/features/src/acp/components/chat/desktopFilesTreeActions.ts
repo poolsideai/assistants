@@ -8,18 +8,18 @@ export type DesktopFileTreeContextMenuAction =
   | "revealInFinder"
   | "openInTerminal"
   | "addFileToChat"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "viewDiff"
   | "cut"
   | "copy"
   | "paste"
   | "copyPath"
   | "copyRelativePath"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | "delete"
+  // Git actions offered by the changes-list variant of the menu. The changes
+  // list handles these itself; performDesktopFilesTreeAction ignores them.
+  | "gitStage"
+  | "gitUnstage"
+  | "gitDiscard";
 
 export interface DesktopFileTreeContextMenuActionPayload {
   requestId: string;
@@ -36,7 +36,7 @@ export interface DesktopFilesTreeEntry {
 export type DesktopFilePasteboardOperation = "copy" | "cut";
 
 export interface DesktopFilesTreeActionRPC {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  openPathWithOpener(path: string, openerId: string, line?: number, column?: number): Promise<void>;
   revealPathInFinder(path: string): Promise<void>;
   writeFileUrlToPasteboard(path: string, operation: DesktopFilePasteboardOperation): Promise<void>;
   pasteFilesIntoDirectory(destination: string): Promise<unknown>;
@@ -52,8 +52,8 @@ export interface DesktopFilesTreeActionOptions {
   rpc: DesktopFilesTreeActionRPC;
   openTerminal: (cwd: string) => void | Promise<void>;
   insertFileChip: (path: string) => boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /** Opens the git Changes panel with the given repo-relative file preselected. */
+  viewDiff?: (relativePath: string) => void;
 }
 
 export async function performDesktopFilesTreeAction({
@@ -63,7 +63,7 @@ export async function performDesktopFilesTreeAction({
   rpc,
   openTerminal,
   insertFileChip,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  viewDiff,
 }: DesktopFilesTreeActionOptions): Promise<void> {
   try {
     switch (payload.action) {
@@ -86,10 +86,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           rpc.showInfoMessage("Unable to add file: no active prompt", InfoMessageType.error);
         }
         return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "viewDiff":
+        if (entry.kind !== "file") return;
+        viewDiff?.(entry.relativePath);
+        return;
       case "cut":
         await rpc.writeFileUrlToPasteboard(entry.path, "cut");
         return;
@@ -109,11 +109,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       case "delete":
         await rpc.trashPath(entry.path);
         return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "gitStage":
+      case "gitUnstage":
+      case "gitDiscard":
+        // Owned by the changes list (it needs its own git state); no-op here.
+        return;
     }
   } catch (error) {
     rpc.showInfoMessage(actionErrorMessage(payload.action, error), InfoMessageType.error);
@@ -136,8 +136,8 @@ function actionErrorMessage(action: DesktopFileTreeContextMenuAction, error: unk
       return `Unable to open terminal: ${detail}`;
     case "addFileToChat":
       return `Unable to add file: ${detail}`;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    case "viewDiff":
+      return `Unable to view diff: ${detail}`;
     case "cut":
     case "copy":
       return `Unable to update pasteboard: ${detail}`;
@@ -148,9 +148,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       return `Unable to copy path: ${detail}`;
     case "delete":
       return `Unable to delete: ${detail}`;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    case "gitStage":
+    case "gitUnstage":
+    case "gitDiscard":
+      return `Git operation failed: ${detail}`;
   }
 }

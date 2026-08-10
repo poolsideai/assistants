@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { DesktopPanel, init } from "@poolsideai/assistant";
 import {
   appState,
   desktopUpdate,
@@ -10,13 +10,13 @@ import {
 } from "@poolsideai/features/acp";
 import { InfoMessageType } from "@poolsideai/rpc";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { homeDir } from "@tauri-apps/api/path";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  removeActive,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -64,21 +64,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   DESKTOP_TOGGLE_BOTTOM_PANEL_EVENT,
   DESKTOP_TOGGLE_LEFT_SIDEBAR_EVENT,
   DESKTOP_TOGGLE_RIGHT_SIDEBAR_EVENT,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  DESKTOP_UPDATE_PROGRESS_EVENT,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   DesktopHost,
   getDesktopSettings,
   markHelperNotificationBridgeReady,
   MCP_OAUTH_CALLBACK_DEEP_LINK,
   openDesktopChangelog,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  refreshDesktopOpenersCache,
   setDesktopNavigationMenuEnabled,
   takePendingUpdateAnnouncement,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  TERMINAL_DID_CLOSE_EVENT,
+  TERMINAL_DID_EXIT_EVENT,
+  TERMINAL_DID_OPEN_EVENT,
   TERMINAL_DID_UPDATE_EVENT,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  TERMINAL_DID_WRITE_EVENT,
   type DesktopFileTreeChangedPayload,
   type DesktopOpenFileTabPayload,
   type DesktopSettings,
@@ -86,7 +86,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   type HelperJsonRpcRequestEvent,
   type HelperNotificationBatchApplyResult,
 } from "./rpc/host";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { startSpoolsideBridge } from "./spoolsideBridge";
 import { logStartupDiagnostic } from "./startupDiagnostics";
 import { tauriDragDropSubscriber } from "./tauriDragDropSubscriber";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -96,8 +96,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { getVSCodeFileIconDefinition, VSCODE_FILE_ICON_THEME } from "./vscodeFileIconTheme";
+import { currentZoomLevel, installDesktopZoom } from "./zoom";
 
 const HELPER_JSONRPC_REQUEST_EVENT = "poolside:helper-jsonrpc-request";
 const HELPER_JSONRPC_NOTIFICATION_BATCH_EVENT = "poolside:helper-jsonrpc-notification-batch";
@@ -108,15 +108,15 @@ const HELPER_JSONRPC_NOTIFICATION_BATCH_EVENT = "poolside:helper-jsonrpc-notific
 // every window's targeted emissions too, so only the window-scoped listener
 // keeps another window's clicks out of this webview.
 const NATIVE_MENU_SET_DEFAULT_TAURI_EVENT = "native-menu:set-default";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const DESKTOP_NOTIFICATION_CLICK_EVENT = "poolside:desktop-notification-click";
+const CLICKABLE_NOTIFICATIONS_UNSUPPORTED = "CLICKABLE_NOTIFICATIONS_UNSUPPORTED";
 const DESKTOP_WINDOW_FULLSCREEN_CLASS = "desktop-window-fullscreen";
 const TERMINAL_FONT_FALLBACK = 'Menlo, Monaco, Consolas, "Liberation Mono", monospace';
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Matches the --vscode-editor-font-family default stack in app.css.
+const CODE_FONT_FALLBACK = 'Menlo, Monaco, Consolas, "Ubuntu Mono", "Liberation Mono", monospace';
+
+// Tauri's fallback notification id is signed 32-bit, so keep generated ids in range.
+const NOTIFICATION_ID_MAX = 2_147_483_647;
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -140,32 +140,32 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   seedDesktopAccentFromCache();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+interface TerminalWritePayload {
+  terminalId: string;
+  data: string;
+}
+
 interface TerminalUpdatePayload {
   terminalId: string;
   title?: string;
   cwd?: string;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+interface TerminalExitPayload {
+  terminalId: string;
+  exitCode?: number;
+}
+
+interface TerminalClosePayload {
+  terminalId: string;
+}
+
+interface DesktopInstanceInfo {
+  worktreeName?: string;
+  folderName?: string;
+  color?: string;
+}
+
 function sendWebviewCommand(
   command: string,
   payload: unknown[],
@@ -191,15 +191,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 function applyDesktopFontPreferences(settings: DesktopSettings): void {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  lastFontSettings = settings;
+  // The chat font variables are in px, so the rem-based root zoom does not
+  // reach them; scale them by the zoom level here.
+  const chatFontSize = settings.chatFontSize * currentZoomLevel();
+  document.documentElement.style.setProperty("--psx-chat-font-size", `${chatFontSize}px`);
   // The markdown styles read --psx-text-leading for chat line height.
   document.documentElement.style.setProperty(
     "--psx-text-leading",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    `${chatLineHeightPx(chatFontSize)}px`,
   );
   document.documentElement.style.setProperty(
     "--vscode-terminal-font-family",
@@ -213,20 +213,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "--psx-terminal-cursor-style",
     settings.terminalCursorStyle,
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // The code font preference drives the editor font variables, which
+  // vscode.css forwards as --psx-font-mono / --psx-editor-font-size to every
+  // code surface (diff view, chat code blocks). The file viewer receives the
+  // same values via the environment state instead.
+  document.documentElement.style.setProperty(
+    "--vscode-editor-font-family",
+    codeFontFamilyCssValue(settings.codeFontFamily),
+  );
+  const codeFontSize = Math.round(settings.codeFontSize);
+  if (Number.isFinite(codeFontSize) && codeFontSize > 0) {
+    document.documentElement.style.setProperty("--vscode-editor-font-size", `${codeFontSize}px`);
+  } else {
+    document.documentElement.style.removeProperty("--vscode-editor-font-size");
+  }
 }
 
 // Chat text reads best around 1.5x leading; keep it proportional so larger
@@ -235,11 +235,11 @@ function chatLineHeightPx(chatFontSize: number): number {
   return Math.round(chatFontSize * 1.5);
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+let lastFontSettings: DesktopSettings | undefined;
+installDesktopZoom(() => {
+  if (lastFontSettings) applyDesktopFontPreferences(lastFontSettings);
+});
+
 function terminalFontFamilyCssValue(fontFamily: string): string {
   const trimmed = fontFamily.trim();
   if (!trimmed) return TERMINAL_FONT_FALLBACK;
@@ -247,43 +247,43 @@ function terminalFontFamilyCssValue(fontFamily: string): string {
   return `${trimmed}, ${TERMINAL_FONT_FALLBACK}`;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function codeFontFamilyCssValue(fontFamily: string): string {
+  const trimmed = fontFamily.trim();
+  if (!trimmed) return CODE_FONT_FALLBACK;
+  if (trimmed.includes(",") || trimmed.toLocaleLowerCase().includes("monospace")) return trimmed;
+  return `${trimmed}, ${CODE_FONT_FALLBACK}`;
+}
+
 const rpcWebViewResponseHandler = createWebviewResponseSender();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function spoolsideDesktopInstance(): DesktopInstanceInfo | undefined {
+  const params = new URLSearchParams(window.location.search);
+  const color =
+    params.get("spoolsideColor") ?? (import.meta.env.VITE_SPOOLSIDE_COLOR as string | undefined);
+  const worktreeName =
+    params.get("spoolsideWorktreeName") ??
+    (import.meta.env.VITE_SPOOLSIDE_WORKTREE_NAME as string | undefined);
+  const folderName =
+    params.get("spoolsideFolderName") ??
+    (import.meta.env.VITE_SPOOLSIDE_FOLDER_NAME as string | undefined);
+  if (!color && !worktreeName && !folderName) return undefined;
+
+  const titleLabel = [folderName, worktreeName]
+    .filter(
+      (value, index, values): value is string => Boolean(value) && values.indexOf(value) === index,
+    )
+    .join(" - ");
+  if (titleLabel) {
     document.title = `Poolside - ${titleLabel}`;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  return {
+    ...(color ? { color } : {}),
+    ...(worktreeName ? { worktreeName } : {}),
+    ...(folderName ? { folderName } : {}),
+  };
+}
+
 interface StartOptions {
   onShellInteractive?: () => void;
   onInitialScreenSettled?: () => void;
@@ -291,10 +291,10 @@ interface StartOptions {
 
 export async function start({ onShellInteractive, onInitialScreenSettled }: StartOptions = {}) {
   logStartupDiagnostic("start.begin");
+  const desktopInstance = spoolsideDesktopInstance();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
   const target = document.getElementById("app");
 
   if (!target) {
@@ -331,7 +331,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   logStartupDiagnostic("start.settingsLoaded", { assistantVersion });
   logStartupDiagnostic("start.windowProbed");
   setDesktopWindowFullscreenClass(isWindowFullscreen);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let lastAttentionBadgeCount = -1;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   const initialState = {
     userSettings: {
@@ -363,8 +363,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       assistantProduct: "desktop-assistant",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      desktopInstance,
+      desktopFileOpenerId: desktopSettings.fileOpenerId,
       desktopCodeFontFamily: desktopSettings.codeFontFamily,
       desktopCodeFontSize: desktopSettings.codeFontSize,
       desktopTerminalFontFamily: desktopSettings.terminalFontFamily,
@@ -373,13 +373,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       desktopSteerWithEnter: desktopSettings.steerWithEnter,
       desktopFullscreen: isWindowFullscreen,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      desktopOpeners: desktopSettings.desktopOpeners,
       capabilities: {
         header: true,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        fileContext: true,
         hostClipboardWrite: true,
         runTerminalCommands: false,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        terminalPanel: true,
         openWorkspace: false,
         addFolderToWorkspace: false,
         // Spoolside bridge flows that click through a confirmation disable
@@ -389,7 +389,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       },
     },
     colorTheme: desktopColorTheme(currentResolvedTheme),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    fileIconTheme: VSCODE_FILE_ICON_THEME,
     workspaces: [],
     homeDirectory,
     keybindings: {},
@@ -400,7 +400,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   const desktopHost = new DesktopHost(initialState, ({ command, payload, requestId }) =>
     sendWebviewCommand(command, payload, requestId),
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  desktopHost.setFileIconDefinitionResolver(getVSCodeFileIconDefinition);
   installExternalLinkHandler((url) => desktopHost.openExternalURL(url));
 
   function setDesktopFullscreen(fullscreen: boolean) {
@@ -433,7 +433,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     desktopHost.handleHostRequest(method, args);
 
   void listen<DesktopSettings>(DESKTOP_SETTINGS_CHANGED_EVENT, (event) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    desktopSettings = event.payload;
     currentThemePreference = event.payload.themePreference;
     initialState.environment.desktopFileOpenerId = event.payload.fileOpenerId;
     initialState.environment.desktopCodeFontFamily = event.payload.codeFontFamily;
@@ -461,9 +461,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         desktopOpeners: event.payload.desktopOpeners,
       },
     }));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    window.dispatchEvent(
+      new CustomEvent(DESKTOP_SETTINGS_CHANGED_EVENT, { detail: event.payload }),
+    );
     void desktopHost.updateHelperConfig();
     void applyAndNotifyTheme(event.payload.themePreference);
   });
@@ -661,63 +661,63 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   );
 
   void listen(TERMINAL_DID_OPEN_EVENT, (event) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    void sendWebviewCommand("assistantTerminalDidOpen", [event.payload]);
+  });
+
   void listen<TerminalUpdatePayload>(TERMINAL_DID_UPDATE_EVENT, (event) => {
     void sendWebviewCommand("assistantTerminalDidUpdate", [event.payload]);
   });
 
   void listen<TerminalWritePayload>(TERMINAL_DID_WRITE_EVENT, (event) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    void sendWebviewCommand("assistantTerminalDidWrite", [event.payload]);
+  });
+
   void listen<TerminalExitPayload>(TERMINAL_DID_EXIT_EVENT, (event) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    void sendWebviewCommand("assistantTerminalDidExit", [event.payload]);
+  });
+
   void listen<TerminalClosePayload>(TERMINAL_DID_CLOSE_EVENT, (event) => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    void sendWebviewCommand("assistantTerminalDidClose", [event.payload]);
+  });
+
+  const notificationCallbacks = new Map<number, () => void>();
   void listen<number>(DESKTOP_NOTIFICATION_CLICK_EVENT, (event) => {
+    const callback = notificationCallbacks.get(event.payload);
+    notificationCallbacks.delete(event.payload);
+    void cancelDesktopNotification(event.payload);
+    callback?.();
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    send({ title, body, onClick }) {
+      const id = createNotificationId(notificationCallbacks);
       if (!isWindowFocused) {
+        notificationCallbacks.set(id, onClick);
+        void invoke<void>("send_clickable_notification", { id, title, body }).catch((error) => {
+          if (!isClickableNotificationsUnsupported(error)) {
+            console.error("failed to send clickable desktop notification", error);
+          }
+          notificationCallbacks.delete(id);
+          sendNotification({ id, title, body, autoCancel: true });
+        });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      return () => {
+        notificationCallbacks.delete(id);
+        void cancelDesktopNotification(id);
+      };
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   await init();
   logStartupDiagnostic("start.mounting");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let conversationsActive = false;
+  let waitingToApply = false;
+  mount(DesktopPanel, {
     target,
     props: {
       rpcHostRequestHandler,
@@ -731,26 +731,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      onACPAttentionCountChange: (count) => {
+        if (count === lastAttentionBadgeCount) return;
+        lastAttentionBadgeCount = count;
+        void updateAttentionBadge(count);
+      },
+      onConversationActivityChange: (active) => {
+        conversationsActive = active;
+        if (!active) void finishWaitingUpdate();
+      },
     },
   });
 
   logStartupDiagnostic("start.mounted");
 
+  void refreshDesktopOpenersCache().catch((error) => {
+    console.debug("Unable to refresh desktop openers cache", error);
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // daily and download silently. The shared `desktopUpdate` store keeps
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -759,31 +759,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   // Applying installs the staged update before restarting, so unlike the old
   // bare relaunch it can genuinely fail — a cancelled privilege prompt, a full
   // disk, a pulled release. The pill only re-enables itself, so report why.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const finishWaitingUpdate = async () => {
+    if (!waitingToApply || conversationsActive) return;
+    waitingToApply = false;
+    try {
+      await applyDownloadedUpdate();
+    } catch (error) {
+      updaterStatus.update((status) =>
+        status.kind === "downloaded" ? { ...status, waitingForIdle: false } : status,
+      );
+      desktopHost.showInfoMessage(
+        "Couldn't install the update — the download is still available, so use the Update button to try again.",
+        InfoMessageType.error,
+      );
+      console.error("failed to install update after conversations became idle", error);
+    }
+  };
   const applyUpdate = async () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (conversationsActive) {
+      if (waitingToApply) return;
+      waitingToApply = true;
+      updaterStatus.update((status) =>
+        status.kind === "downloaded" ? { ...status, waitingForIdle: true } : status,
+      );
+      return;
+    }
     try {
       await applyDownloadedUpdate();
     } catch (error) {
@@ -802,43 +802,43 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           busy: false,
           version: status.version,
           notes: status.notes,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          waitingForIdle: status.waitingForIdle,
           apply: applyUpdate,
         });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (desktopSettings.autoInstallUpdates && !status.waitingForIdle && !import.meta.env.DEV) {
+          queueMicrotask(() => void applyUpdate());
+        }
         break;
       // The bundle on disk is already new; only this process is stale.
       case "replaced":
         desktopUpdate.set({ available: true, busy: false, apply: applyUpdate });
         break;
       default:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        desktopUpdate.set({
+          available: false,
+          busy: status.kind === "checking" || status.kind === "downloading",
+          downloading: status.kind === "downloading",
+          progress: status.kind === "downloading" ? status.progress : undefined,
+        });
     }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  void listen<{ downloaded: number; contentLength?: number }>(
+    DESKTOP_UPDATE_PROGRESS_EVENT,
+    (event) => {
+      const { downloaded, contentLength } = event.payload;
+      updaterStatus.update((status) => {
+        if (status.kind !== "checking" && status.kind !== "downloading") return status;
+        return {
+          kind: "downloading",
+          progress: contentLength ? downloaded / contentLength : undefined,
+        };
+      });
+    },
+  );
   // Raised when a native file panel was blocked because the bundle had already
   // been replaced on disk; show the same restart affordance.
   window.addEventListener(DESKTOP_BUNDLE_REPLACED_EVENT, () => {
@@ -880,21 +880,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       "- Fix diff viewer cache collisions (#550)",
     ].join("\n");
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      window as unknown as {
+        __mockDesktopUpdate?: (version?: string, notes?: string) => void;
+        __mockDesktopUpdateProgress?: (progress?: number) => void;
+        __mockDesktopUpdateWaiting?: (version?: string) => void;
+      }
     ).__mockDesktopUpdate = (version = "0.0.0-mock", notes = mockNotes) =>
       updaterStatus.set({ kind: "downloaded", version, notes });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    (
+      window as unknown as { __mockDesktopUpdateProgress?: (progress?: number) => void }
+    ).__mockDesktopUpdateProgress = (progress) =>
+      updaterStatus.set({ kind: "downloading", progress });
+    (
+      window as unknown as { __mockDesktopUpdateWaiting?: (version?: string) => void }
+    ).__mockDesktopUpdateWaiting = (version = "0.0.0-mock") =>
+      updaterStatus.set({ kind: "downloaded", version, waitingForIdle: true });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -928,45 +928,45 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     desktopHost.setColorTheme(desktopColorTheme(theme));
   }
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+function createNotificationId(callbacks: Map<number, () => void>): number {
+  let id: number;
+  do {
+    id = crypto.getRandomValues(new Uint32Array(1))[0] % NOTIFICATION_ID_MAX;
+  } while (callbacks.has(id));
+  return id;
+}
+
+function isClickableNotificationsUnsupported(error: unknown): boolean {
+  if (error === CLICKABLE_NOTIFICATIONS_UNSUPPORTED) return true;
+  if (error instanceof Error) return error.message === CLICKABLE_NOTIFICATIONS_UNSUPPORTED;
+  if (typeof error === "object" && error && "message" in error) {
+    return error.message === CLICKABLE_NOTIFICATIONS_UNSUPPORTED;
+  }
+  return false;
+}
+
+async function cancelDesktopNotification(id: number): Promise<void> {
+  try {
+    await invoke("cancel_clickable_notification", { id });
+  } catch (error) {
+    if (!isClickableNotificationsUnsupported(error)) {
+      console.error("failed to cancel clickable desktop notification", error);
+    }
+  }
+
+  try {
+    await removeActive([{ id }]);
+  } catch {
+    // Best-effort fallback cleanup for notifications sent through the Tauri plugin.
+  }
+}
+
+async function updateAttentionBadge(count: number): Promise<void> {
+  const badgeCount = count > 0 ? count : undefined;
+  try {
+    await getCurrentWindow().setBadgeCount(badgeCount);
+  } catch (error) {
+    console.error("failed to update desktop attention badge", error);
+  }
+}

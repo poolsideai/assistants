@@ -1,13 +1,13 @@
 package acpproxy
 
 import (
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"bufio"
+	"bytes"
 	"context"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -16,15 +16,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	"path/filepath"
 	"runtime"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"slices"
+	"strings"
 	"sync"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"time"
 
 	acpsdk "github.com/coder/acp-go-sdk"
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/shellenv"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 )
 
@@ -56,11 +56,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// userShellEnvProvider is swapped in tests; production uses the shared
+// shell-environment capture (which the server also applies process-wide at
+// startup — the per-agent merge here keeps agent launches correct even when
+// the helper is embedded without that startup step).
+var userShellEnvProvider = shellenv.Capture
 
 // process manages the lifecycle of a `pool acp` child process.
 type process struct {
@@ -87,7 +87,7 @@ type process struct {
 	// or a non-first-party provider) for this subprocess instance (see
 	// claude_auth_probe.go). Positive-only: cleared on restart, never set on
 	// an inconclusive or logged-out-firstParty result.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	claudeAuthVerified bool
 	// promptRuntimeErr records a fatal runtime failure reported only on the
 	// subprocess's stderr. promptCancels lets that signal release any ACP
 	// prompts the adapter otherwise leaves pending indefinitely.
@@ -155,7 +155,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	p.exited = nil
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	p.claudeAuthVerified = false
 	p.promptRuntimeErr = nil
 	p.promptCancels = nil
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -184,32 +184,32 @@ func (p *process) initializeRequest() *acpsdk.InitializeRequest {
 }
 
 type startConfig struct {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	serverName string
+	binary     string
+	extraArgs  []string
+	env        map[string]string
 	// processDir is the working directory for the subprocess itself (e.g. repo root for go run).
 	processDir string
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+type AgentServerConfig struct {
+	Type                 string                                   `json:"type,omitempty"`
+	Command              string                                   `json:"command,omitempty"`
+	Args                 []string                                 `json:"args,omitempty"`
+	Env                  map[string]string                        `json:"env,omitempty"`
+	Binary               map[string]AgentServerBinaryDistribution `json:"binary,omitempty"`
+	DefaultConfigOptions map[string]string                        `json:"default_config_options,omitempty"`
+}
+
+type AgentServerBinaryDistribution struct {
+	Archive string            `json:"archive"`
 	SHA256  string            `json:"sha256,omitempty"`
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	Cmd     string            `json:"cmd"`
+	Args    []string          `json:"args,omitempty"`
+	Env     map[string]string `json:"env,omitempty"`
+}
+
 // MCPServerInjector is called by the proxy before each session/new, session/load,
 // or session/resume to get the set of user MCP servers to inject. It returns the
 // servers to add and a list of unavailable entries with their reasons. Nil return
@@ -222,7 +222,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 // injected before session/new or session/load.
 type AgentServerReadinessProvider func(context.Context, string) (bool, error)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type HandlerConfig struct {
 	WorkingDir             string
 	AgentServers           map[string]AgentServerConfig
 	AgentServerEnvProvider func(context.Context, string) (map[string]string, error)
@@ -231,40 +231,40 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	// session/load, and session/resume (except config-probe sessions) to inject
 	// user MCP servers.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func DefaultAgentServers() map[string]AgentServerConfig {
+	return map[string]AgentServerConfig{
+		DefaultAgentServerName: defaultAgentServerConfig(),
+	}
+}
+
+func NormalizeAgentServers(agentServers map[string]AgentServerConfig) map[string]AgentServerConfig {
+	normalized := DefaultAgentServers()
+	for name, cfg := range agentServers {
+		normalizedName := NormalizeAgentServerName(name)
+		if normalizedName == DefaultAgentServerName {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			continue
+		}
 		if normalizedName == LocalAgentServerName {
 			normalized[LocalAgentServerName] = mergeLocalAgentServerConfig(cfg)
 			continue
 		}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		normalized[normalizedName] = cfg
+	}
+	return normalized
+}
+
+func NormalizeAgentServerName(serverName string) string {
+	if serverName == "" || serverName == LegacyDefaultAgentServerName {
+		return DefaultAgentServerName
+	}
+	return serverName
+}
+
+func defaultAgentServerConfig() AgentServerConfig {
+	return AgentServerConfig{
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -278,17 +278,17 @@ func defaultLocalAgentServerConfig() AgentServerConfig {
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	merged.Type = cfg.Type
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+	}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 func mergeLocalAgentServerConfig(cfg AgentServerConfig) AgentServerConfig {
 	merged := defaultLocalAgentServerConfig()
 	if cfg.Command != "" && !isLegacySelfCommand(cfg.Command) {
@@ -375,9 +375,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	env, err := buildProcessEnv(cfg)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		return err
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	binary, err := resolveExecutablePath(cfg.binary, env)
 	if err != nil {
@@ -388,8 +388,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	slog.Info("acpproxy: starting subprocess", "server", cfg.serverName, "cmd", args, "cwd", cfg.processDir)
 
 	cmd := exec.Command(binary, cfg.extraArgs...)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	configureProcessCommand(cmd)
+	cmd.Env = env
 	if cfg.processDir != "" {
 		cmd.Dir = cfg.processDir
 	}
@@ -404,11 +404,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		return fmt.Errorf("acpproxy: stdout pipe: %w", err)
 	}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return fmt.Errorf("acpproxy: stderr pipe: %w", err)
+	}
+
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("acpproxy: start: %w", err)
 	}
@@ -423,20 +423,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		})
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// Tee stdout to a sniffer that forwards auth progress notifications to the
+	// webview. The Go SDK only routes underscore-prefixed methods through
+	// extension handlers, so we intercept this non-standard method before it
+	// reaches the SDK.
+	sniffPipeR, sniffPipeW := io.Pipe()
+	teedStdout := io.TeeReader(stdout, sniffPipeW)
+	go scanForAuthUpdates(cfg.serverName, sniffPipeR, client.notify)
+
+	conn := acpsdk.NewClientSideConnection(client, stdin, teedStdout)
+
+	initCtx, cancelInitialize := context.WithTimeout(ctx, initializeHandshakeTimeout)
+	defer cancelInitialize()
+
+	initResp, err := conn.Initialize(initCtx, initReq)
 	if err != nil {
 		stdin.Close()
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -467,8 +467,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 	go p.watchExit(cfg.serverName, cmd, exited, cfg.onExit)
 	go p.watchDisconnect(cfg.serverName, cmd, conn, cfg.onExit)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	slog.Info("acpproxy: connected", "server", cfg.serverName, "protocol", initResp.ProtocolVersion)
 	return nil
 }
 
@@ -493,36 +493,36 @@ func (p *process) watchDisconnect(serverName string, cmd *exec.Cmd, conn *acpsdk
 }
 
 func (p *process) watchExit(serverName string, cmd *exec.Cmd, exited chan struct{}, onExit func(serverName string, err error)) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	err := cmd.Wait()
 	// Announce the reap before the state check: stop has already cleared the
 	// state by the time it waits here, and it must still observe the exit.
 	close(exited)
+	if !p.markExited(cmd) {
+		return
+	}
+
+	if err != nil {
+		slog.Info("acpproxy: subprocess exited", "server", serverName, "error", err)
+	} else {
+		slog.Info("acpproxy: subprocess exited", "server", serverName)
+	}
+	if onExit != nil {
+		onExit(serverName, err)
+	}
+}
+
+func (p *process) markExited(cmd *exec.Cmd) bool {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if p.cmd != cmd {
+		return false
+	}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return true
+}
+
 func (p *process) markDisconnected(cmd *exec.Cmd, conn *acpsdk.ClientSideConnection) bool {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -553,7 +553,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}
 	resp, err := p.conn.NewSession(ctx, req)
 	if err != nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		return nil, preserveACPError("acpproxy: new session", err)
 	}
 	p.adoptSessionLocked(resp.SessionId, isConfigProbeSession(req.Meta))
 	slog.Info("acpproxy: session created", "session_id", string(resp.SessionId), "resp", resp)
@@ -572,7 +572,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}
 	resp, err := p.conn.LoadSession(ctx, req)
 	if err != nil {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		return nil, preserveACPError("acpproxy: load session", err)
 	}
 	// No client sends the probe marker on load today, but the marker is
 	// documented as valid here too (configProbeMetaKey), so route this path
@@ -631,9 +631,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 	}
 	awaitProcessExit(serverName, cmd, exited)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return closeErr
+}
+
 // awaitProcessExit waits for a stopping subprocess to exit, escalating to
 // terminate and then kill. The process group is signalled rather than only the
 // direct child so wrapper processes (commonly npx) cannot leave the real agent
@@ -700,7 +700,7 @@ func (p *process) supportsSessionClose() bool {
 }
 
 // ConfigFn provides dynamic access to handler configuration.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+type ConfigFn func() HandlerConfig
 
 // ensureStarted lazily initializes the subprocess on first use.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -715,11 +715,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	agentServers := NormalizeAgentServers(cfg.AgentServers)
+	serverCfg, ok := agentServers[serverName]
+	if !ok {
+		return fmt.Errorf("acpproxy: unknown agent server %q", serverName)
+	}
 	if shouldResolveBundledPoolsideBinary(serverName, serverCfg) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -737,10 +737,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		}
 		serverCfg.Env = mergeStringMaps(serverCfg.Env, env)
 	}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if serverCfg.Command == "" && len(serverCfg.Binary) == 0 {
+		return fmt.Errorf("acpproxy: agent server %q command is required", serverName)
+	}
 
+	startCfg := startConfig{
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -750,8 +751,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -792,19 +792,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func (p *process) connForSession() (*acpsdk.ClientSideConnection, acpsdk.SessionId, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		return nil, "", fmt.Errorf("acpproxy: not initialized; call initialize first")
+	}
+
+	return p.conn, p.session, nil
+}
+
 func (p *process) contextForPrompt(parent context.Context, conn *acpsdk.ClientSideConnection) (context.Context, func(), error) {
 	p.mu.Lock()
 	if !p.isRunningLocked() || p.conn != conn {
@@ -860,34 +860,34 @@ func (p *process) failActivePromptsFor(cmd *exec.Cmd, err error) {
 	}
 }
 
+func buildProcessEnv(cfg startConfig) ([]string, error) {
+	env := os.Environ()
+	env = shellenv.Merge(env, userShellEnvProvider())
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+	if shouldUsePoolsideNPMCache(cfg) {
+		cacheDir, err := poolsideNPMCacheDir()
+		if err != nil {
+			return nil, err
+		}
+		if err := pruneBrokenNpxCache(cacheDir); err != nil {
+			return nil, err
+		}
+		env = filterEnvKeys(env, npmConfigCacheEnvKey, npmConfigCacheEnvKeyUpper)
+		env = append(env, npmConfigCacheEnvKey+"="+cacheDir)
+	}
+
+	for _, key := range sortedMapKeys(cfg.env) {
+		env = append(env, key+"="+cfg.env[key])
+	}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return env, nil
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -996,247 +996,47 @@ func envValue(env []string, key string) string {
 	return value
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-type mcpConnectorCredentialsError struct{}
-
-func (*mcpConnectorCredentialsError) Error() string {
-	return "MCP connector credentials were rejected; reconnect the connector in Settings, then retry"
+func shouldUsePoolsideNPMCache(cfg startConfig) bool {
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+		return false
+	}
+	return !mapHasAnyKey(cfg.env, npmConfigCacheEnvKey, npmConfigCacheEnvKeyUpper)
 }
 
-func scanStderr(serverName string, r io.Reader, tail *lineTail, reportRuntimeError func(error)) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-		if reportRuntimeError != nil {
-			if err := classifyRuntimeStderr(line); err != nil {
-				reportRuntimeError(err)
-			}
+func poolsideNPMCacheDir() (string, error) {
+	cacheDir, err := os.UserCacheDir()
+	if err != nil {
+		cacheDir = os.TempDir()
+		if cacheDir == "" {
+			return "", fmt.Errorf("acpproxy: npm cache dir: %w", err)
 		}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-func classifyRuntimeStderr(line string) error {
-	lower := strings.ToLower(line)
-	if strings.Contains(lower, "rmcp::transport::worker") &&
-		strings.Contains(lower, "worker quit with fatal:") &&
-		strings.Contains(lower, "authrequired(authrequirederror") &&
-		strings.Contains(lower, "www_authenticate_header") {
-		return &mcpConnectorCredentialsError{}
+	}
+	return filepath.Join(cacheDir, "poolside", "acp", "npm"), nil
+}
+
+func pruneBrokenNpxCache(cacheDir string) error {
+	npxDir := filepath.Join(cacheDir, "_npx")
+	entries, err := os.ReadDir(npxDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return fmt.Errorf("acpproxy: read npm npx cache: %w", err)
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		installDir := filepath.Join(npxDir, entry.Name())
+		if _, err := os.Stat(filepath.Join(installDir, "package.json")); err == nil {
+			continue
+		} else if !os.IsNotExist(err) {
+			return fmt.Errorf("acpproxy: inspect npm npx cache: %w", err)
+		}
+		if err := os.RemoveAll(installDir); err != nil {
+			return fmt.Errorf("acpproxy: prune npm npx cache: %w", err)
+		}
 	}
 	return nil
 }
@@ -1306,4 +1106,204 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+func filterThirdPartyEnv(env []string) []string {
+	filtered := make([]string, 0, len(env))
+	for _, entry := range env {
+		key, _, _ := strings.Cut(entry, "=")
+		if key == "CLAUDECODE" ||
+			strings.HasPrefix(key, "CLAUDE_CODE_") ||
+			strings.HasPrefix(key, "CLAUDE_AGENT_SDK_") {
+			continue
+		}
+		filtered = append(filtered, entry)
+	}
+	return filtered
+}
+
+func filterEnvKeys(env []string, keys ...string) []string {
+	if len(keys) == 0 {
+		return env
+	}
+	remove := make(map[string]struct{}, len(keys))
+	for _, key := range keys {
+		remove[key] = struct{}{}
+	}
+
+	filtered := make([]string, 0, len(env))
+	for _, entry := range env {
+		key, _, _ := strings.Cut(entry, "=")
+		if _, ok := remove[key]; ok {
+			continue
+		}
+		filtered = append(filtered, entry)
+	}
+	return filtered
+}
+
+func mapHasAnyKey[V any](m map[string]V, keys ...string) bool {
+	for _, key := range keys {
+		if _, ok := m[key]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+type mcpConnectorCredentialsError struct{}
+
+func (*mcpConnectorCredentialsError) Error() string {
+	return "MCP connector credentials were rejected; reconnect the connector in Settings, then retry"
+}
+
+func scanStderr(serverName string, r io.Reader, tail *lineTail, reportRuntimeError func(error)) {
+	scanner := bufio.NewScanner(r)
+	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
+	for scanner.Scan() {
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+		if reportRuntimeError != nil {
+			if err := classifyRuntimeStderr(line); err != nil {
+				reportRuntimeError(err)
+			}
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		slog.Info("acpproxy: subprocess stderr scanner error", "server", serverName, "error", err)
+	}
+}
+
+func classifyRuntimeStderr(line string) error {
+	lower := strings.ToLower(line)
+	if strings.Contains(lower, "rmcp::transport::worker") &&
+		strings.Contains(lower, "worker quit with fatal:") &&
+		strings.Contains(lower, "authrequired(authrequirederror") &&
+		strings.Contains(lower, "www_authenticate_header") {
+		return &mcpConnectorCredentialsError{}
+	}
+	return nil
+}
+
+// scanForAuthUpdates reads NDJSON from the agent's stdout (via a tee) and
+// forwards auth progress notifications to the client. The Go SDK only
+// dispatches underscore-prefixed methods through extension handlers, so we
+// intercept this non-standard notification before the SDK rejects it.
+func scanForAuthUpdates(serverName string, r io.Reader, notify notifyFn) {
+	reader := bufio.NewReader(r)
+	for {
+		line, err := reader.ReadBytes('\n')
+		if len(line) > 0 {
+			scanAuthUpdateLine(serverName, line, notify)
+		}
+		if err == nil {
+			continue
+		}
+		if !errors.Is(err, io.EOF) {
+			slog.Info("acpproxy: stdout sniffer read error", "server", serverName, "error", err)
+		}
+		return
+	}
+}
+
+func scanAuthUpdateLine(serverName string, line []byte, notify notifyFn) {
+	if !bytes.Contains(line, []byte(authenticateUpdateMethod)) {
+		return
+	}
+
+	line = bytes.TrimSpace(line)
+	if len(line) == 0 {
+		return
+	}
+
+	var msg struct {
+		Method string         `json:"method"`
+		ID     any            `json:"id,omitempty"`
+		Params map[string]any `json:"params"`
+	}
+	// Best-effort parse; non-JSON or malformed lines are ignored.
+	if err := json.Unmarshal(line, &msg); err != nil {
+		return
+	}
+	// Only forward NOTIFICATIONS — requests would need a response.
+	if msg.Method != authenticateUpdateMethod || msg.ID != nil {
+		return
+	}
+	if notify == nil {
+		return
+	}
+	params := msg.Params
+	if params == nil {
+		params = map[string]any{}
+	}
+	slog.Info("acpproxy: forwarding auth update", "server", serverName, "params", params)
+	notify(context.Background(), msg.Method, params)
+}
+
+func sortedMapKeys[V any](m map[string]V) []string {
+	if len(m) == 0 {
+		return nil
+	}
+	keys := make([]string, 0, len(m))
+	for key := range m {
+		keys = append(keys, key)
+	}
+	slices.Sort(keys)
+	return keys
 }

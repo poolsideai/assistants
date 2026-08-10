@@ -6,7 +6,7 @@ export { default as CopyToClipboard } from "./CopyToClipboard.svelte";
 export { default as Dropdown } from "./Dropdown/Dropdown.svelte";
 export { default as DropdownItem } from "./Dropdown/DropdownItem.svelte";
 export { default as DropdownSeparator } from "./Dropdown/DropdownSeparator.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export * from "./Dropdown/fuzzy.js";
 export { default as HighlightedShellCommand } from "./HighlightedShellCommand.svelte";
 export * from "./imagePreview.js";
 export { default as PoolsideButton } from "./PoolsideButton.svelte";

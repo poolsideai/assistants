@@ -44,22 +44,22 @@ export function stripMatchingQuotes(text: string): string {
   }
   return text;
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+/**
+ * Decode a URL/path target, falling back to partial URI decoding and then the
+ * original text when it contains malformed percent escapes.
+ */
+export function decodeFilePathTarget(text: string): string {
+  try {
+    return decodeURIComponent(text);
+  } catch {
+    try {
+      return decodeURI(text);
+    } catch {
+      return text;
+    }
+  }
+}
 
 /**
  * Extract optional `:line` or `:line:column` suffix from text that may be a file
@@ -93,7 +93,7 @@ export function isFilePath(text: string): boolean {
     path.startsWith("./") ||
     path.startsWith("../") ||
     // Traditional files with extension: file.go, models/book.go, (pages)/file.tsx
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    /^(?:\/|\.\/|\.\.\/)?[\w.%\-/()]+\.\w{1,4}$/.test(path) ||
     // Dotfiles: .dockerignore, .gitignore, path/to/.eslintrc
     /^(?:[\w.\-()]+\/)*\.\w[\w.\-]*$/.test(path)
   );

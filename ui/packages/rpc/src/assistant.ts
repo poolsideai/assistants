@@ -7,7 +7,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   ActiveFileContext,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  AssistantTerminalTab,
   AssistantTerminalUpdate,
   Configuration,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -21,12 +21,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
  */
 export interface Assistant {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * The helper's pending-approval set changed (permission prompts and
+   * elicitations are helper-owned state). Carries the COMPLETE set; the
+   * webview reconciles by (agentServer, sessionId, kind, id).
+   */
+  acpApprovalsDidChange(params: { pending: unknown[] }): void;
   /**
    * The user's MCP connector store changed — possibly on another surface or in
    * another app instance sharing it. The webview re-lists the store and
@@ -43,7 +43,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  acpAgentServerDidExit(params: { agentServer: string; error?: string }): void;
   acpNavDidChange(params: ACPNavDidChangeParams): void;
   localInferenceDidChange(params: LocalInferenceDidChangeParams): void;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -52,11 +52,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  assistantTerminalDidOpen(tab: AssistantTerminalTab): void;
   assistantTerminalDidUpdate(params: AssistantTerminalUpdate): void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  assistantTerminalDidWrite(params: { terminalId: string; data: string }): void;
+  assistantTerminalDidExit(params: { terminalId: string; exitCode?: number }): void;
+  assistantTerminalDidClose(params: { terminalId: string }): void;
   jsonrpcNotify(params: any): void;
   jsonrpcNotifyBatch(params: any[]): JSONRPCNotifyBatchResult;
   jsonrpcRequest(params: any): Promise<any>;
@@ -85,41 +85,41 @@ export type AssistantError = Error<AssistantResponse>;
 export function isError(m: AssistantResponse | AssistantError): m is AssistantError {
   return m.payload.hasOwnProperty("error");
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+// --- Helper notification routing ---
+//
+// Single mapping from a poolside-helper JSON-RPC notification to the webview
+// command that delivers it. Every host that bridges the helper to the shared
+// webview (the desktop app's DesktopHost, the mobile remote's RemoteHost)
+// routes through this table, so adding a helper notification means adding ONE
+// entry here — not editing each host's hand-written switch, where a missing
+// case silently drops the notification on that surface only.
+//
+// Hosts keep their genuinely host-specific handling (the desktop opens
 // poolside/mcpOAuthURL externally; the
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// mobile remote seq-gates poolside/jsonrpc/notify and dedups terminal output)
+// as explicit cases BEFORE consulting the table. VS Code routes helper
+// notifications in its extension process instead (see acpChatPanels.ts).
+export const HELPER_NOTIFICATION_WEBVIEW_COMMANDS = {
+  "poolside/jsonrpc/notify": "jsonrpcNotify",
+  // Pushed nav state carries per-conversation liveStatus (working, waiting,
+  // unread) — it is how a surface learns about turns started on OTHER
+  // surfaces (e.g. a phone remote prompting while the desktop watches).
+  "poolside/acpNav/didChange": "acpNavDidChange",
+  "poolside/acp/serverDidExit": "acpAgentServerDidExit",
+  // Helper-owned pending approvals (permission prompts, elicitations) as a
+  // reconciled state push — how every surface renders and clears approval
+  // cards, including for conversations it does not have open.
+  "poolside/acp/approvals/didChange": "acpApprovalsDidChange",
   // The user MCP connector store changed (any surface or app instance sharing
   // it) — the webview re-lists it and re-injects its live agent sessions.
   "poolside/mcpServers/didChange": "mcpServersDidChange",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "poolside/localInference/didChange": "localInferenceDidChange",
+} as const satisfies Record<string, keyof Assistant>;
+
+export function webviewCommandForHelperNotification(method: string): keyof Assistant | undefined {
+  return (HELPER_NOTIFICATION_WEBVIEW_COMMANDS as Record<string, keyof Assistant>)[method];
+}
 
 const COALESCIBLE_ACP_TEXT_CHUNKS = new Set([
   "user_message_chunk",

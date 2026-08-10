@@ -18,18 +18,18 @@
 
   let { plan, isPrompting, desktop = false }: Props = $props();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let dismissedPlanKey = $state<string | null>(null);
+  let planKey = $derived(
+    JSON.stringify(
+      plan.entries.map((entry) => ({
+        content: entry.content,
+        priority: entry.priority,
+        status: entry.status,
+      })),
+    ),
+  );
+  let isDismissed = $derived(dismissedPlanKey === planKey);
+
   let completedCount = $derived(
     plan.entries.filter((entry) => entry.status === "completed").length,
   );
@@ -78,94 +78,94 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   </div>
 {/snippet}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{#if !isDismissed}
+  <div class="relative">
+    <Collapsible
+      open
       data-session-plan
       class={[
         "flex flex-col gap-1.5 rounded-lg p-2 px-2.5 outline-[length:var(--psx-hairline,1px)] outline-black/10 dark:outline-white/15",
         desktop ? "desktop-tinted-glass backdrop-blur-sm" : "bg-psx-menu-hover-background",
       ]}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    >
+      <div class="flex justify-between gap-1.5">
+        <CollapsibleTrigger appearance="plain" class="min-w-0 grow justify-start">
+          <CollapsibleIndicator />
+          {#if isRunning}
+            <span class="translate-y-0.5">
+              <Icon name="roundel" size={14} aria-hidden="true" />
+            </span>
+            <span
+              class="flex min-w-0 flex-1 items-center gap-1 truncate"
+              title={currentEntry?.content
+                ? `Working on ${currentEntry.content}`
+                : "Working on plan"}
+            >
+              <span class="opacity-75">Working on</span>
+              <span class="min-w-0 truncate font-medium">{currentEntry?.content ?? ""}</span>
+            </span>
+          {:else}
+            <span class="translate-y-0.5">
+              <Icon name="roundel" size={14} aria-hidden="true" />
+            </span>
+
+            Completed {completedCount} of {entriesCount} step{entriesCount === 1 ? "" : "s"}
+          {/if}
+        </CollapsibleTrigger>
+
         {#if isRunning}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <span class="whitespace-nowrap text-sm opacity-75">
+            {completedCount} of {entriesCount} steps
           </span>
         {/if}
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <button
+          type="button"
+          aria-label="Dismiss todo list"
           title="Dismiss Todo List"
           class="text-psx-icon hover:bg-psx-chrome-hover flex size-5 shrink-0 items-center justify-center rounded opacity-70 transition-colors hover:opacity-100"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          onclick={() => {
+            dismissedPlanKey = planKey;
+          }}
         >
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-          </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <Icon name="cross" size={12} />
+        </button>
+      </div>
 
+      <CollapsibleContent class="flex flex-col gap-1 pb-1">
+        {#each plan.entries as entry (`${entry.content}-${entry.priority}-${entry.status}`)}
+          <div
+            class={[
+              "pointer-events-none flex items-start gap-2 leading-tight",
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+            ]}
+          >
+            <div class="mt-0.5">
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+            </div>
+            <span class:line-through={entry.status === "completed"}>
+              {entry.content}
+            </span>
+          </div>
+        {/each}
+      </CollapsibleContent>
+    </Collapsible>
+
+    {#if isRunning}
+      {@render progress()}
+    {/if}
+  </div>
+{/if}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   :global(.desktop-tinted-glass) {

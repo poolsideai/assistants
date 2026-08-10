@@ -1,40 +1,40 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+#!/usr/bin/env node
+// Builds the mobile-remote bundle and copies it into the helper's embed
+// directory (pkg/poolside-helper/internal/handler/remoteaccess/webui/dist) so
+// `//go:embed` bakes the UI into the helper binary. Run this before building
+// the helper whenever the mobile UI changes. Helper release builds run this
+// via the embed_mobile_webui input of reusable-bazel-build.yml; the webui
+// BUILD.bazel globs dist/, so no Bazel file needs regenerating afterwards.
+
+import { execFileSync } from "node:child_process";
 import { cpSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { gzipSync, constants as zlibConstants } from "node:zlib";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+const appDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const repoRoot = path.resolve(appDir, "../../..");
+const distDir = path.join(appDir, "dist");
+const embedDir = path.join(
+  repoRoot,
+  "pkg/poolside-helper/internal/handler/remoteaccess/webui/dist",
+);
+
+console.log("building @poolsideai/mobile-remote (turbo build)…");
+execFileSync("pnpm", ["exec", "turbo", "build", "--filter", "@poolsideai/mobile-remote..."], {
+  cwd: path.join(repoRoot, "ui"),
+  stdio: "inherit",
+});
+
+console.log(`copying ${distDir} -> ${embedDir}`);
+// Clear previous bundle but keep the committed placeholders.
+for (const entry of readdirSync(embedDir)) {
+  if (entry === ".gitkeep" || entry === ".gitignore") continue;
+  rmSync(path.join(embedDir, entry), { recursive: true, force: true });
+}
+mkdirSync(embedDir, { recursive: true });
+cpSync(distDir, embedDir, { recursive: true });
+
 // Embed compressible assets gzip-only: uncompressed they were ~36MB of the
 // helper binary. The helper serves `<name>.gz` transparently for `<name>`
 // (remoteaccess spaFileHandler). Already-compressed formats stay raw.
@@ -73,9 +73,9 @@ function compressTree(dir) {
   }
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+console.log("embedded. Rebuild the helper to bake it in:");
+console.log("  go build ./cmd/poolside-helper");
+console.log("  # or, for the desktop app:");
+console.log(
+  "  POOLSIDE_DESKTOP_LOCAL_HELPER=1 pnpm --dir ui/apps/desktop-assistant download:binaries",
+);

@@ -134,13 +134,13 @@ describe("animation performance invariants", () => {
     });
 
     it("tracks the exact SVG silhouette throughout pane motion", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const paneSource = readFileSync("src/PaneContainer.svelte", "utf-8");
+      const paneShapeSource = readFileSync("src/PaneShape.svelte", "utf-8");
       const splitsViewSource = readFileSync("src/SplitsView.svelte", "utf-8");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
       expect(paneSource).toContain("animating={paneShapeAnimating}");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      expect(paneSource).toContain("[data-pane-shape-ready]");
+      expect(paneSource).toContain(".splits-pane-has-selected-tab .splits-pane-content");
       // In motion the silhouette must stay mounted and re-measure every frame
       // (unrounded — integer snapping shimmers against subpixel animation).
       expect(paneShapeSource).toContain("if (!element || !selectedTabId)");
@@ -148,16 +148,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       expect(paneShapeSource).toContain("measureShape(false)");
       expect(paneShapeSource).toContain("class:splits-pane-shape-in-motion={inMotion}");
       expect(paneShapeSource).toContain("splits-pane-shape-edge-ring-layer");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      expect(paneShapeSource).toContain("resizeObserver?.disconnect()");
+      expect(paneShapeSource).toContain("{#if shapeVisible && edgePath && fillPath && shapeFrame}");
+      expect(paneShapeSource).toContain("enqueuePaneShapeReveal");
       expect(paneShapeSource).not.toContain("<mask");
       expect(paneShapeSource).toContain('<path class="splits-pane-shape-surface" d={fillPath}>');
       expect(splitsViewSource).toContain(
         "paneShapeAnimating={paneShapeAnimating || isDividerDragging}",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      );
+    });
+
     it("keeps a pane's element across a tree restructure", () => {
       // The whole point of the flat layout: splitting a pane used to move it to
       // a deeper position in a nested flex tree, which Svelte can only express
@@ -179,20 +179,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       void unmount(component);
     });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    it("leaves explicitly empty panes unframed", () => {
+      const controller = new SplitsController({ contentViewLifecycle: "keepAllAlive" });
+      const populatedPaneId = controller.focusedPaneId!;
+      const emptyPaneId = controller.splitPane({ orientation: "horizontal", withTab: false })!;
+      const component = mountSplitsView(controller);
+
+      const populatedPane = target.querySelector(`[data-pane-id="${populatedPaneId}"]`);
+      const emptyPane = target.querySelector(`[data-pane-id="${emptyPaneId}"]`);
+      expect(populatedPane).not.toBeNull();
+      expect(emptyPane).not.toBeNull();
+      expect(populatedPane!.classList.contains("splits-pane-has-selected-tab")).toBe(true);
+      expect(emptyPane!.classList.contains("splits-pane-has-selected-tab")).toBe(false);
+
+      void unmount(component);
     });
   });
 

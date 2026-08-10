@@ -1,21 +1,21 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { describe, expect, it } from "vitest";
 import { parseFilePathWithLine, stripMatchingQuotes } from "./filePaths.js";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+describe("parseFilePathWithLine", () => {
+  it("does not decode percent escapes in literal file paths", () => {
+    expect(parseFilePathWithLine("src/a%2Fb.ts")).toEqual({
+      path: "src/a%2Fb.ts",
+    });
+  });
+
+  it("parses line and column suffixes", () => {
+    expect(parseFilePathWithLine("src/main.ts:42:5")).toEqual({
+      path: "src/main.ts",
+      line: 42,
+      column: 5,
+    });
+  });
+});
 
 describe("stripMatchingQuotes", () => {
   it("strips matching straight quote pairs", () => {

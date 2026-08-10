@@ -114,7 +114,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 export function normalizeACPError(error: unknown): ACPRequestError {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  if (error instanceof ACPError) {
     return error;
   }
 
@@ -122,10 +122,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return new ACPError(error);
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  if (error instanceof Error) {
+    return error;
+  }
+
   return toError(error);
 }
 

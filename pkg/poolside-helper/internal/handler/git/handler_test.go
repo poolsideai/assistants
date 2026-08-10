@@ -1,53 +1,53 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package git
+
+import (
+	"context"
 	"fmt"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"testing"
 	"time"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
+)
+
+// newTestRepo creates a temp git repository with a single initial commit
+// containing tracked.txt.
+func newTestRepo(t *testing.T) string {
+	t.Helper()
+	dir := t.TempDir()
+	runGitT(t, dir, "init", "--initial-branch=main")
+	runGitT(t, dir, "config", "user.email", "test@example.com")
+	runGitT(t, dir, "config", "user.name", "Test")
+	writeFile(t, dir, "tracked.txt", "one\ntwo\nthree\n")
+	runGitT(t, dir, "add", ".")
+	runGitT(t, dir, "commit", "-m", "initial")
+	return dir
+}
+
+func runGitT(t *testing.T, dir string, args ...string) {
+	t.Helper()
+	cmd := exec.Command("git", args...)
+	cmd.Dir = dir
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err, "git %v: %s", args, out)
+}
+
+func writeFile(t *testing.T, dir, name, contents string) {
+	t.Helper()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte(contents), 0o644))
+}
+
+func TestStatusNotARepo(t *testing.T) {
+	server := NewServer()
+	out, err := server.Status(context.Background(), &methods.GitStatusParams{Path: t.TempDir()}, nil)
+	require.NoError(t, err)
+	assert.False(t, out.IsRepo)
 	assert.False(t, out.GitMissing)
 }
 
@@ -125,182 +125,182 @@ func TestDiffSessionReportsGitDisappearingDuringRead(t *testing.T) {
 	}, nil)
 	require.Error(t, err)
 	assert.ErrorIs(t, err, errGitMissing)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func TestStatusCleanRepo(t *testing.T) {
+	dir := newTestRepo(t)
+	server := NewServer()
+	out, err := server.Status(context.Background(), &methods.GitStatusParams{Path: dir}, nil)
+	require.NoError(t, err)
+	assert.True(t, out.IsRepo)
+	assert.Equal(t, "main", out.Branch)
+	assert.Empty(t, out.Upstream)
+	assert.Empty(t, out.Staged)
+	assert.Empty(t, out.Unstaged)
+	assert.Empty(t, out.Untracked)
+	assert.Zero(t, out.StashCount)
+}
+
+func TestStatusUpstream(t *testing.T) {
+	dir := newTestRepo(t)
+	// A local bare remote is enough for git to report branch.upstream.
+	remote := t.TempDir()
+	runGitT(t, remote, "init", "--bare", "--initial-branch=main")
+	runGitT(t, dir, "remote", "add", "origin", remote)
+	runGitT(t, dir, "push", "--set-upstream", "origin", "main")
+
+	server := NewServer()
+	out, err := server.Status(context.Background(), &methods.GitStatusParams{Path: dir}, nil)
+	require.NoError(t, err)
+	assert.Equal(t, "main", out.Branch)
+	assert.Equal(t, "origin/main", out.Upstream)
+}
+
+func TestStatusChanges(t *testing.T) {
+	dir := newTestRepo(t)
+	writeFile(t, dir, "tracked.txt", "one\nTWO\nthree\n")
+	writeFile(t, dir, "new.txt", "hello\n")
+	writeFile(t, dir, "staged.txt", "staged\n")
+	runGitT(t, dir, "add", "staged.txt")
+
+	server := NewServer()
+	out, err := server.Status(context.Background(), &methods.GitStatusParams{Path: dir}, nil)
+	require.NoError(t, err)
+
+	require.Len(t, out.Staged, 1)
+	assert.Equal(t, "staged.txt", out.Staged[0].Path)
+	assert.Equal(t, "added", out.Staged[0].Status)
+
+	require.Len(t, out.Unstaged, 1)
+	assert.Equal(t, "tracked.txt", out.Unstaged[0].Path)
+	assert.Equal(t, "modified", out.Unstaged[0].Status)
+
+	require.Len(t, out.Untracked, 1)
+	assert.Equal(t, "new.txt", out.Untracked[0].Path)
+	assert.Equal(t, "untracked", out.Untracked[0].Status)
+
 	// tracked.txt: "two" → "TWO" (+1/−1); staged.txt: new staged file (+1);
 	// untracked new.txt is represented as a full addition (+1).
 	assert.Equal(t, 3, out.Additions)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	assert.Equal(t, 1, out.Deletions)
+}
+
+func TestStatusLineCountsCleanRepo(t *testing.T) {
+	dir := newTestRepo(t)
+	server := NewServer()
+	out, err := server.Status(context.Background(), &methods.GitStatusParams{Path: dir}, nil)
+	require.NoError(t, err)
+	assert.Zero(t, out.Additions)
+	assert.Zero(t, out.Deletions)
+}
+
+func TestStatusSubdirWorktree(t *testing.T) {
+	dir := newTestRepo(t)
+	sub := filepath.Join(dir, "sub")
+	require.NoError(t, os.MkdirAll(sub, 0o755))
+	writeFile(t, dir, "sub/inner.txt", "one\ntwo\n")
+	runGitT(t, dir, "add", ".")
+	runGitT(t, dir, "commit", "-m", "add sub")
+
+	// One change inside the subtree, one outside, one untracked inside.
+	writeFile(t, dir, "sub/inner.txt", "one\nTWO\n")
+	writeFile(t, dir, "tracked.txt", "outside change\n")
+	writeFile(t, dir, "sub/new.txt", "hello\n")
+
+	server := NewServer()
+	ctx := context.Background()
+	out, err := server.Status(ctx, &methods.GitStatusParams{Path: sub}, nil)
+	require.NoError(t, err)
+
+	// Paths are sub-relative and the outside change is excluded.
+	require.Len(t, out.Unstaged, 1)
+	assert.Equal(t, "inner.txt", out.Unstaged[0].Path)
+	require.Len(t, out.Untracked, 1)
+	assert.Equal(t, "new.txt", out.Untracked[0].Path)
+
 	// Line totals are scoped to the subtree: inner.txt "two" → "TWO" and the
 	// untracked new.txt is a full addition.
 	assert.Equal(t, 2, out.Additions)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	assert.Equal(t, 1, out.Deletions)
+
+	// Diffs (and their full contents) resolve sub-relative paths.
+	diff, err := server.DiffFile(ctx, &methods.GitDiffFileParams{Path: sub, File: "inner.txt"}, nil)
+	require.NoError(t, err)
+	assert.Contains(t, diff.Patch, "+TWO")
+	assert.True(t, diff.HasContents)
+	assert.Equal(t, "one\ntwo\n", diff.OldContent)
+	assert.Equal(t, "one\nTWO\n", diff.NewContent)
+}
+
+func TestStatusRename(t *testing.T) {
+	dir := newTestRepo(t)
+	runGitT(t, dir, "mv", "tracked.txt", "renamed.txt")
+
+	server := NewServer()
+	out, err := server.Status(context.Background(), &methods.GitStatusParams{Path: dir}, nil)
+	require.NoError(t, err)
+
+	require.Len(t, out.Staged, 1)
+	assert.Equal(t, "renamed.txt", out.Staged[0].Path)
+	assert.Equal(t, "tracked.txt", out.Staged[0].OrigPath)
+	assert.Equal(t, "renamed", out.Staged[0].Status)
+}
+
+func TestDiffFile(t *testing.T) {
+	dir := newTestRepo(t)
+	writeFile(t, dir, "tracked.txt", "one\nTWO\nthree\n")
+
+	server := NewServer()
+	ctx := context.Background()
+
+	out, err := server.DiffFile(ctx, &methods.GitDiffFileParams{Path: dir, File: "tracked.txt"}, nil)
+	require.NoError(t, err)
+	assert.Contains(t, out.Patch, "-two")
+	assert.Contains(t, out.Patch, "+TWO")
+	assert.False(t, out.Binary)
+	// Full contents ride along so the viewer can expand unmodified lines.
+	assert.True(t, out.HasContents)
+	assert.Equal(t, "one\ntwo\nthree\n", out.OldContent)
+	assert.Equal(t, "one\nTWO\nthree\n", out.NewContent)
+
+	// Untracked file diff renders as a full addition.
+	writeFile(t, dir, "new.txt", "hello\n")
+	out, err = server.DiffFile(ctx, &methods.GitDiffFileParams{Path: dir, File: "new.txt", Untracked: true}, nil)
+	require.NoError(t, err)
+	assert.Contains(t, out.Patch, "+hello")
+	assert.True(t, out.HasContents)
+	assert.Empty(t, out.OldContent)
+	assert.Equal(t, "hello\n", out.NewContent)
+
+	// Staged diff.
+	runGitT(t, dir, "add", "tracked.txt")
+	out, err = server.DiffFile(ctx, &methods.GitDiffFileParams{Path: dir, File: "tracked.txt", Staged: true}, nil)
+	require.NoError(t, err)
+	assert.Contains(t, out.Patch, "+TWO")
+	assert.True(t, out.HasContents)
+	assert.Equal(t, "one\ntwo\nthree\n", out.OldContent)
+	assert.Equal(t, "one\nTWO\nthree\n", out.NewContent)
+}
+
+func TestDiffFileHead(t *testing.T) {
+	dir := newTestRepo(t)
+	server := NewServer()
+	ctx := context.Background()
+
+	// Stage one change, then make another on top: the HEAD diff shows both.
+	writeFile(t, dir, "tracked.txt", "one\nTWO\nthree\n")
+	runGitT(t, dir, "add", "tracked.txt")
+	writeFile(t, dir, "tracked.txt", "one\nTWO\nTHREE\n")
+
+	out, err := server.DiffFile(ctx, &methods.GitDiffFileParams{Path: dir, File: "tracked.txt", Head: true}, nil)
+	require.NoError(t, err)
+	assert.Contains(t, out.Patch, "+TWO")
+	assert.Contains(t, out.Patch, "+THREE")
+	assert.True(t, out.HasContents)
+	assert.Equal(t, "one\ntwo\nthree\n", out.OldContent)
+	assert.Equal(t, "one\nTWO\nTHREE\n", out.NewContent)
+}
+
 func TestDiffSessionPagesLargeFile(t *testing.T) {
 	dir := newTestRepo(t)
 	var oldContents strings.Builder
@@ -689,68 +689,68 @@ func TestParseDiffChunksTruncatesOversizedLine(t *testing.T) {
 	assert.Less(t, len(chunks[0].Patch), diffChunkMaxBytes)
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestDiffFileRejectsEscapingPaths(t *testing.T) {
+	dir := newTestRepo(t)
+	server := NewServer()
+	ctx := context.Background()
+
+	_, err := server.DiffFile(ctx, &methods.GitDiffFileParams{Path: dir, File: "../outside.txt"}, nil)
+	assert.Error(t, err)
+	_, err = server.DiffFile(ctx, &methods.GitDiffFileParams{Path: dir, File: "--flag"}, nil)
+	assert.Error(t, err)
+	_, err = server.DiffFile(ctx, &methods.GitDiffFileParams{Path: dir, File: "/abs/path.txt"}, nil)
+	assert.Error(t, err)
+}
+
+func TestStageUnstageCommit(t *testing.T) {
+	dir := newTestRepo(t)
+	writeFile(t, dir, "tracked.txt", "one\nTWO\nthree\n")
+
+	server := NewServer()
+	ctx := context.Background()
+
+	out, err := server.Stage(ctx, &methods.GitStageParams{Path: dir, Files: []string{"tracked.txt"}}, nil)
+	require.NoError(t, err)
+	require.Len(t, out.Staged, 1)
+	assert.Empty(t, out.Unstaged)
+
+	out, err = server.Unstage(ctx, &methods.GitUnstageParams{Path: dir, Files: []string{"tracked.txt"}}, nil)
+	require.NoError(t, err)
+	assert.Empty(t, out.Staged)
+	require.Len(t, out.Unstaged, 1)
+
+	_, err = server.Stage(ctx, &methods.GitStageParams{Path: dir, Files: []string{"tracked.txt"}}, nil)
+	require.NoError(t, err)
+	out, err = server.Commit(ctx, &methods.GitCommitParams{Path: dir, Message: "update tracked"}, nil)
+	require.NoError(t, err)
+	assert.Empty(t, out.Staged)
+	assert.Empty(t, out.Unstaged)
+}
+
+func TestCommitEmptyMessage(t *testing.T) {
+	dir := newTestRepo(t)
+	server := NewServer()
+	_, err := server.Commit(context.Background(), &methods.GitCommitParams{Path: dir, Message: "  "}, nil)
+	assert.Error(t, err)
+}
+
+func TestDiscard(t *testing.T) {
+	dir := newTestRepo(t)
+	writeFile(t, dir, "tracked.txt", "changed\n")
+	writeFile(t, dir, "new.txt", "hello\n")
+
+	server := NewServer()
+	out, err := server.Discard(context.Background(), &methods.GitDiscardParams{
+		Path:           dir,
+		Files:          []string{"tracked.txt"},
+		UntrackedFiles: []string{"new.txt"},
+	}, nil)
+	require.NoError(t, err)
+	assert.Empty(t, out.Unstaged)
+	assert.Empty(t, out.Untracked)
+
+	contents, err := os.ReadFile(filepath.Join(dir, "tracked.txt"))
+	require.NoError(t, err)
+	assert.Equal(t, "one\ntwo\nthree\n", string(contents))
+	assert.NoFileExists(t, filepath.Join(dir, "new.txt"))
+}

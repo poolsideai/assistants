@@ -5,7 +5,7 @@ const vscodeAPI = acquireVsCodeApi<any>();
 globalThis.acquireVsCodeApi = (() => vscodeAPI) as typeof acquireVsCodeApi;
 
 import { messageHandler } from "@estruyf/vscode/dist/client";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { ChatOnlyPanel, init } from "@poolsideai/assistant";
 import { mount } from "svelte";
 import "./assistant.css";
 
@@ -13,7 +13,7 @@ const targetElement = document.getElementById("app");
 const target = targetElement!;
 
 init().then(() => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  mount(ChatOnlyPanel, {
     target,
     props: {
       rpcHostRequestHandler: (method, args) => messageHandler.request(method.toString(), args),

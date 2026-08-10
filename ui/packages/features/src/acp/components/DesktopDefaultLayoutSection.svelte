@@ -257,12 +257,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           label: "GitHub",
           icon: { type: "product", name: "github" },
         };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      case "changes":
+        return {
+          kind: "changes",
+          label: "Changes",
+          icon: { type: "product", name: "diff" },
+        };
       case "file":
         return {
           kind: "file",

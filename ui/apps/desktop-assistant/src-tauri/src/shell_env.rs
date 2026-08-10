@@ -1,31 +1,31 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+//! Recovers the environment a user's login shell would provide.
+//!
+//! Finder-launched apps inherit launchd's minimal environment: PATH is just
+//! the system directories and none of the user's shell-profile exports
+//! (EDITOR, VISUAL, version-manager paths, ...) exist, while a terminal
+//! launch provides all of them. That asymmetry makes features work in dev and
+//! silently break in the released bundle. Capturing the login shell's
+//! environment once at startup and folding it into the process closes the gap
+//! for this process and for everything it spawns (including poolside-helper,
+//! which additionally repairs its own environment for IDE hosts).
+
+use std::{
+    env,
+    io::Read,
     path::{Path, PathBuf},
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    process::{Command, Stdio},
+    time::{Duration, Instant},
+};
+
+const MARKER_START: &str = "__POOLSIDE_ENV_START__";
+const MARKER_END: &str = "__POOLSIDE_ENV_END__";
+/// Generous on purpose: shell inits that source version managers (nvm in
+/// particular) routinely take over two seconds, and this runs once at startup.
+const CAPTURE_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// Folds the user's login-shell environment into this process: shell values
+/// win (they are the inherited values plus whatever the shell profile
+/// exports), and PATH becomes the shell PATH merged with the current one.
 /// Also repairs a stale inherited $SHELL to the user's login shell, on every
 /// launch shape. Call before anything reads the environment or spawns
 /// children.
@@ -45,10 +45,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 /// (SSH_AUTH_SOCK and friends) are unaffected — cached entries only fill
 /// keys missing from the inherited environment. Terminals are unaffected
 /// too; they source the rc files themselves.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+pub fn apply_user_shell_env() {
+    if cfg!(windows) {
+        return;
+    }
     let shell = login_shell();
     // launchd replays the $SHELL recorded when the login session started, so
     // a `chsh` since then (zsh → fish, say) leaves every GUI launch with a
@@ -60,13 +60,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         env::set_var("SHELL", &shell);
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // A terminal launch already carries the full shell environment; only pay
+    // the capture (bounded by CAPTURE_TIMEOUT, on the startup path) when the
+    // inherited PATH has launchd's minimal GUI shape.
+    if !path_looks_minimal(&env::var("PATH").unwrap_or_default()) {
+        return;
+    }
+
     let fingerprint = shell_fingerprint(&shell);
     if let Some(cached) = load_cached_env(&fingerprint) {
         apply_env(&cached, /* preserve_existing */ true);
@@ -75,8 +75,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     }
 
     let Some(output) = capture_login_shell_output(&shell) else {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        return;
+    };
     let captured = parse_marked_env(&output);
     store_cached_env(&fingerprint, &captured);
     apply_env(&captured, /* preserve_existing */ false);
@@ -102,7 +102,7 @@ fn env_updates(
 ) -> Vec<(String, String)> {
     let mut updates = Vec::new();
     for (key, value) in entries {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if key == "PATH" {
             let current_path = current("PATH").unwrap_or_default();
             let merged = merge_path_lists(value, &current_path);
             if merged != current_path {
@@ -111,31 +111,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         } else if preserve_existing {
             if current(key).is_none() {
                 updates.push((key.clone(), value.clone()));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            }
         } else if current(key).as_deref() != Some(value.as_str()) {
             updates.push((key.clone(), value.clone()));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
+    }
     updates
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+/// Every PATH entry is a stock system directory — the shape launchd hands GUI
+/// apps. Any other entry means a shell already shaped this environment.
+fn path_looks_minimal(path: &str) -> bool {
+    const SYSTEM_DIRS: &[&str] = &[
+        "/usr/bin",
+        "/bin",
+        "/usr/sbin",
+        "/sbin",
+        "/usr/local/bin",
+        "/usr/local/sbin",
+        "/System/Cryptexes/App/usr/bin",
+    ];
+    path.split(':')
+        .filter(|dir| !dir.is_empty())
+        .all(|dir| SYSTEM_DIRS.contains(&dir))
+}
+
 /// The user's login shell: the user-database entry (what `chsh` writes)
 /// first, then $SHELL, then the platform default. $SHELL alone is not
 /// enough — launchd hands GUI apps the value recorded at login, so a later
@@ -143,7 +143,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 /// and VS Code all resolve the shell from the user database this way.
 pub(crate) fn login_shell() -> String {
     passwd_shell()
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        .filter(|shell| is_usable_shell(shell))
         .or_else(|| {
             env::var("SHELL")
                 .ok()
@@ -192,120 +192,120 @@ fn passwd_shell() -> Option<String> {
 }
 
 fn capture_login_shell_output(shell: &str) -> Option<String> {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    let script = format!("printf '%s\\n' {MARKER_START}; env; printf '%s\\n' {MARKER_END}");
+
     let mut child = Command::new(shell)
         .args(shell_args(shell, &script))
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .map_err(|err| eprintln!("shell env capture: spawn {shell}: {err}"))
+        .ok()?;
+
+    // Drain stdout on a separate thread so a large environment can't fill the
+    // pipe buffer and deadlock against the try_wait loop below.
+    let mut stdout = child.stdout.take()?;
+    let reader = std::thread::spawn(move || {
+        let mut buffer = String::new();
+        let _ = stdout.read_to_string(&mut buffer);
+        buffer
+    });
+
+    let deadline = Instant::now() + CAPTURE_TIMEOUT;
+    loop {
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                let output = reader.join().ok()?;
+                if !status.success() {
+                    eprintln!("shell env capture: {shell} exited with {status}");
+                    return None;
+                }
+                return Some(output);
+            }
+            Ok(None) => {
+                if Instant::now() >= deadline {
+                    eprintln!("shell env capture: {shell} timed out");
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    let _ = reader.join();
+                    return None;
+                }
+                std::thread::sleep(Duration::from_millis(25));
+            }
+            Err(err) => {
+                eprintln!("shell env capture: wait {shell}: {err}");
+                let _ = child.kill();
+                let _ = child.wait();
+                let _ = reader.join();
+                return None;
+            }
+        }
+    }
+}
+
+/// Requires an absolute path to an existing non-directory, so a bogus $SHELL
+/// (empty, relative, missing) falls back to the platform default instead of
+/// failing the capture or running something unintended.
+fn is_usable_shell(shell: &str) -> bool {
+    let path = Path::new(shell);
+    path.is_absolute() && path.is_file()
+}
+
 pub(crate) fn default_shell() -> &'static str {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if cfg!(target_os = "macos") {
+        "/bin/zsh"
+    } else {
+        "/bin/sh"
+    }
+}
+
+fn shell_args(shell: &str, script: &str) -> Vec<String> {
+    let name = Path::new(shell)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or_default();
+    match name {
+        "fish" => vec!["-l".to_string(), "-c".to_string(), script.to_string()],
+        "sh" => vec!["-ic".to_string(), script.to_string()],
+        _ => vec!["-ilc".to_string(), script.to_string()],
+    }
+}
+
+fn parse_marked_env(output: &str) -> Vec<(String, String)> {
+    let Some(start) = output.rfind(MARKER_START).map(|i| i + MARKER_START.len()) else {
+        return Vec::new();
+    };
+    let Some(end) = output[start..].find(MARKER_END).map(|i| i + start) else {
+        return Vec::new();
+    };
+    let block = output[start..end].trim();
+    if block.is_empty() {
+        return Vec::new();
+    }
+    parse_env_block(block)
+}
+
+fn parse_env_block(block: &str) -> Vec<(String, String)> {
+    block
+        .lines()
+        .filter_map(|line| {
+            let line = line.trim_end_matches('\r');
+            let (key, value) = line.split_once('=')?;
+            if key.is_empty() || should_drop_key(key) {
+                return None;
+            }
+            Some((key.to_string(), value.to_string()))
+        })
+        .collect()
+}
+
+fn should_drop_key(key: &str) -> bool {
     // SHELL is dropped so a capture (which inherits this launch's possibly
     // stale value) can never overwrite the login-shell repair above.
     matches!(key, "_" | "OLDPWD" | "PWD" | "SHELL" | "SHLVL")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 /// Identifies the inputs that shape a login shell's environment: the shell
 /// binary and the rc files it sources, by mtime and size (absence included).
 /// Any edit changes the fingerprint and forces a fresh synchronous capture.
@@ -484,72 +484,72 @@ fn refresh_cache_in_background(
     });
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/// Joins PATH lists in order, dropping empty entries and duplicates (first
+/// occurrence wins).
+fn merge_path_lists(first: &str, second: &str) -> String {
+    let mut seen = std::collections::HashSet::<&str>::new();
+    let mut merged = Vec::new();
+    for dir in first.split(':').chain(second.split(':')) {
+        if dir.is_empty() || !seen.insert(dir) {
+            continue;
+        }
+        merged.push(dir);
+    }
+    merged.join(":")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_marked_env_and_drops_shell_bookkeeping_keys() {
+        let output = [
+            "shell startup noise",
+            MARKER_START,
+            "PATH=/shell/bin:/usr/bin",
+            "EDITOR=nvim",
+            "PWD=/Users/test",
             "SHELL=/bin/zsh",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            "SHLVL=2",
+            "VALUE_WITH_EQUALS=a=b",
+            MARKER_END,
+            "shell shutdown noise",
+        ]
+        .join("\n");
+
+        assert_eq!(
+            parse_marked_env(&output),
+            vec![
+                ("PATH".to_string(), "/shell/bin:/usr/bin".to_string()),
+                ("EDITOR".to_string(), "nvim".to_string()),
+                ("VALUE_WITH_EQUALS".to_string(), "a=b".to_string()),
+            ]
+        );
+    }
+
+    #[test]
+    fn parse_returns_empty_without_markers() {
+        assert!(parse_marked_env("no markers here").is_empty());
+        assert!(parse_marked_env(&format!("{MARKER_START}\nA=1")).is_empty());
+    }
+
+    #[test]
+    fn merges_paths_shell_first_without_duplicates() {
+        assert_eq!(
+            merge_path_lists("/shell/bin:/usr/bin", "/app/bin:/usr/bin:"),
+            "/shell/bin:/usr/bin:/app/bin"
+        );
+    }
+
+    #[test]
+    fn minimal_path_detection() {
+        assert!(path_looks_minimal("/usr/bin:/bin:/usr/sbin:/sbin"));
+        assert!(path_looks_minimal(""));
+        assert!(!path_looks_minimal("/usr/bin:/bin:/opt/homebrew/bin"));
+        assert!(!path_looks_minimal("/Users/test/.local/bin:/usr/bin"));
+    }
+
     #[test]
     #[cfg(unix)]
     fn login_shell_resolves_to_a_usable_shell() {
@@ -557,21 +557,21 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         assert!(is_usable_shell(&shell), "login_shell() = {shell}");
     }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    #[test]
+    fn rejects_unusable_shells() {
+        assert!(is_usable_shell("/bin/sh"));
+        assert!(!is_usable_shell(""));
+        assert!(!is_usable_shell("zsh"));
+        assert!(!is_usable_shell("/nonexistent-poolside-test-shell"));
+        assert!(!is_usable_shell("/tmp"));
+    }
+
+    #[test]
+    fn picks_shell_flags_by_shell_name() {
+        assert_eq!(shell_args("/bin/zsh", "env")[0], "-ilc");
+        assert_eq!(shell_args("/usr/local/bin/fish", "env")[0], "-l");
+        assert_eq!(shell_args("/bin/sh", "env")[0], "-ic");
+    }
 
     fn lookup<'a>(pairs: &'a [(&'a str, &'a str)]) -> impl Fn(&str) -> Option<String> + 'a {
         move |key| {
@@ -661,4 +661,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         assert!(zsh.contains("/etc/zprofile"));
         assert_ne!(zsh, shell_fingerprint("/bin/bash"));
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

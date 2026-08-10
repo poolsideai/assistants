@@ -7,7 +7,7 @@
     width?: number;
     isLoading?: boolean;
     onExpand: () => void;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    onNewConversation: () => string | null | void | Promise<string | null | void>;
   }
 
   let {
@@ -49,9 +49,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       class="pointer-events-auto"
       dragRegion={desktop}
       disabled={isLoading}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      onclick={() => {
+        void onNewConversation();
+      }}
     />
   </div>
 </aside>

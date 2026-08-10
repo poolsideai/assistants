@@ -146,28 +146,28 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       aliases: ["file tree", "explorer"],
     },
     {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      kind: "diff",
       label: "Review Diff",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      detail: "Review all uncommitted changes",
+      icon: "diff",
+      aliases: ["git", "changes", "review"],
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {
+      kind: "changes",
       label: "Stage and Commit",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      detail: "Open changes to stage and commit",
+      icon: "diff",
+      aliases: ["git", "changes", "commit", "stage", "stash", "source control"],
+    },
+    // The legacy Review panel is soft-removed; the git-backed staging workflow
+    // below replaces it. Restore this entry if the review panel comes back.
+    // {
+    //   kind: "review",
+    //   label: "Review",
+    //   detail: "Review model edits",
+    //   icon: "review",
+    //   aliases: ["task", "diff"],
+    // },
     {
       kind: "trajectory",
       label: "ACP Events",
@@ -175,13 +175,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       icon: "output",
       aliases: ["events", "trajectory", "log"],
     },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {
+      kind: "github",
+      label: "GitHub",
+      detail: "Pull-request status and checks",
+      icon: "github",
+      aliases: ["pr", "pull request", "git"],
+    },
   ];
 
   let search = $state("");
@@ -385,10 +385,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   function handleDialogKeyDown(event: KeyboardEvent) {
     if (event.key === "Escape") {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      // Consume the key entirely — if it reached the window listeners it would
+      // interrupt the running turn via the prompt editor's Escape handling.
       event.preventDefault();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      event.stopPropagation();
       closeSearch();
       return;
     }

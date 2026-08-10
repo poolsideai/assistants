@@ -10,19 +10,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
  * fix, but the incoming version is not ours to know.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  | { available: false; busy: boolean; downloading: boolean; progress?: number }
   | {
       available: true;
       busy: false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      waitingForIdle?: boolean;
       version?: string;
       /** User-facing release notes (markdown) for the staged update, if the feed carried any. */
       notes?: string;
       apply: () => Promise<void>;
     };
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export const desktopUpdate = writable<DesktopUpdateState>({
+  available: false,
+  busy: false,
+  downloading: false,
+});

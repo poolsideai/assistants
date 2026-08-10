@@ -21,11 +21,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
   interface Props {
     event: ToolCall;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    headerClass?: string;
     workspaceFolders?: WorkspaceFolder[];
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let { event, headerClass, workspaceFolders = [] }: Props = $props();
 
   function stringify(value: unknown): string | undefined {
     if (value == null) return;
@@ -51,7 +51,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 {#snippet genericToolCall()}
   <ToolRoot tool={event} {workspaceFolders}>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <ToolHeader class={headerClass} />
 
     <ToolBody>
       {#if isPermissionDenied}

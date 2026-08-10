@@ -1,7 +1,7 @@
 import type { WorkspaceFolder } from "@poolsideai/rpc";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { get } from "svelte/store";
 import { describe, expect, it } from "vitest";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { appState, appStateUpdates, workspaceFromCwd, type AppState } from "./store";
 
 describe("workspaceFromCwd", () => {
   it("creates a workspace folder from an ACP cwd", () => {
@@ -44,14 +44,14 @@ describe("appStateUpdates.ensureWorkspaceForCwd", () => {
 
     expect(appStateUpdates.ensureWorkspaceForCwd("/Users/poolie/project")(state)).toBe(state);
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  it("keeps desktop workspaces empty", () => {
+    const state = {
+      ...get(appState),
+      environment: { ...get(appState).environment, assistantHost: "desktop" },
+      workspaces: [],
+    };
+
+    expect(appStateUpdates.ensureWorkspaceForCwd("/Users/poolie/project")(state)).toBe(state);
+  });
 });

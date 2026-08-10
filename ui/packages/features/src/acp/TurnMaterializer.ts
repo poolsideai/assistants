@@ -23,7 +23,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  interrupted?: boolean;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -147,7 +147,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }
     }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      this.finishCurrentTurn(endedAt, { interrupted: true });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
@@ -167,14 +167,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     ) {
       return;
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const content =
+      eventKind === "user_message"
+        ? stripInjectedContextBlock(unwrapUserMessageBlock(chunk.content))
+        : chunk.content;
     if (eventKind === "user_message" && content.type === "text" && content.text.length === 0) {
       return;
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
     const messageId = getSessionUpdateMessageId(chunk);
     const parentToolUseId = getClaudeParentToolUseId(chunk._meta);
     const explicitMessageKey = messageId !== null ? `${eventKind}|${messageId}` : null;
@@ -203,7 +203,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (chunk._meta) {
         msg._meta = isRecord(msg._meta) ? mergeRecordFields(msg._meta, chunk._meta) : chunk._meta;
       }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const block = content;
       const lastBlock = msg.content[msg.content.length - 1];
       if (block.type === "text" && lastBlock?.type === "text") {
         if (msg.eventKind === "agent_thought") {
@@ -229,7 +229,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       const message = {
         eventKind,
         messageId,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        content: [content],
         ...(chunk._meta ? { _meta: chunk._meta } : {}),
         ...(isSteer ? { steer: true as const } : {}),
       } as UserMessage | AgentMessage | AgentThought;
@@ -283,17 +283,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     this.lastMessageKey = null;
   }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  private finishCurrentTurn(
+    endedAt: Date | string,
+    { interrupted = false }: { interrupted?: boolean } = {},
+  ): void {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      ...(interrupted ? { interrupted } : {}),
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

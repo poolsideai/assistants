@@ -6,27 +6,27 @@ describe("shouldCreateConversationAfterWorktreeCreation", () => {
     expect(
       shouldCreateConversationAfterWorktreeCreation({
         createdPath: "/repo/worktrees/first",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        firstConversationPath: "/repo/worktrees/first",
         isLoading: false,
       }),
     ).toBe(false);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("uses the first worktree conversation instead of the current conversation", () => {
     expect(
       shouldCreateConversationAfterWorktreeCreation({
         createdPath: "/repo/worktrees/first",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        firstConversationPath: "/repo/worktrees/first",
+        isLoading: false,
+      }),
+    ).toBe(false);
+  });
+
+  it("keeps the fallback for flows without a matching first conversation", () => {
+    expect(
+      shouldCreateConversationAfterWorktreeCreation({
+        createdPath: "/repo/worktrees/first",
+        firstConversationPath: "/repo/worktrees/newer",
         isLoading: false,
       }),
     ).toBe(true);
@@ -36,7 +36,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     expect(
       shouldCreateConversationAfterWorktreeCreation({
         createdPath: "/repo/worktrees/first",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        firstConversationPath: null,
         isLoading: true,
       }),
     ).toBe(false);

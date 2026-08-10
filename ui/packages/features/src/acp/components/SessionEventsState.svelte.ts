@@ -110,11 +110,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  userSettings: unknown;
+  environment: { desktopToolActivity?: unknown };
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const userSettings = state.userSettings as { toolActivity?: unknown };
+  const mode = userSettings.toolActivity ?? state.environment.desktopToolActivity;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -192,7 +192,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   readonly grouped = $derived.by(() => {
     const result: GroupedItem[] = [];
     const events = this.props.events;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const latestUserMessageIndex = this.latestUserMessageIndex(events);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     const compactFolds = this.compactFoldsFor(events, liveTail);
@@ -412,12 +412,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  private groupModeForTool(
+    event: SessionEvent,
+    index: number,
+    latestUserMessageIndex: number,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ): GroupMode | null {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -439,15 +439,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         const fold = this.interruptedTurnFolds.get(turn);
         if (fold && !this.foldsBehindTail(event, index, fold)) return null;
         return { turn, live: true };
+      }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (index < latestUserMessageIndex) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -864,12 +864,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     };
   }
 
+  private nextGroupModeForTool(
+    events: SessionEvent[],
+    from: number,
+    latestUserMessageIndex: number,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ): GroupMode | null {
     for (let j = from + 1; j < events.length; j++) {
       const e = events[j];
       if (SessionEventsState.isBufferable(e)) continue;
@@ -893,14 +893,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     return this.turnByIndex.get(index);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  private latestUserMessageIndex(events: readonly SessionEvent[]): number {
+    for (let i = events.length - 1; i >= 0; i--) {
       const event = events[i];
       if (event.eventKind === "user_message" && !event.steer) return i;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    return -1;
+  }
 }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 function isSteerMessage(event: SessionEvent): boolean {

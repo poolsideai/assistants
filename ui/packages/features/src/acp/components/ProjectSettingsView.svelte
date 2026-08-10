@@ -39,7 +39,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let projectNameInput = $state(projectName ?? projectPath);
   let setupScript = $state("");
   let teardownScript = $state("");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let userPrompt = $state("");
   let loading = $state(false);
   let error = $state<string | null>(null);
   let renameError = $state<string | null>(null);
@@ -103,7 +103,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       if (path !== projectPath) return;
       setupScript = settings?.setupScript ?? "";
       teardownScript = settings?.teardownScript ?? "";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      userPrompt = settings?.userPrompt ?? "";
       lastSavedSignature = settingsSignature(path);
     } catch (e) {
       if (path === projectPath) {
@@ -227,19 +227,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <SettingsSection
       title="Worktree Setup Script"
+      subtitle="Runs in each new worktree of this project, right after the worktree is created."
+    >
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <SettingsSection
       title="Worktree Teardown Script"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      subtitle="Runs in a worktree of this project, right before the worktree is deleted."
+    >
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -279,7 +279,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          Project Guidelines for Agent
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
           Your personal instructions for agents working in this project. Use AGENTS.md for shared
@@ -291,11 +291,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <h3 class="text-psx-foreground-primary text-[13px]/[18px] font-medium">
           Worktree Setup Script
+        </h3>
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          Runs in each new worktree of this project, right after the worktree is created.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       </div>
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -303,11 +303,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <h3 class="text-psx-foreground-primary text-[13px]/[18px] font-medium">
           Worktree Teardown Script
+        </h3>
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          Runs in a worktree of this project, right before the worktree is deleted.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -367,7 +367,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    aria-label="Worktree setup script"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -379,7 +379,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    aria-label="Worktree teardown script"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

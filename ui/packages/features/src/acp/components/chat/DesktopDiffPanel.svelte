@@ -1,65 +1,65 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import Icon from "@poolsideai/components/icon";
+  import { Spinner } from "@poolsideai/components/spinner";
+  import {
     poolsideGitDiffClose,
     poolsideGitDiffOpen,
     poolsideGitDiffStats,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    poolsideGitStatus,
     type GitDiffOpenOutput,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    type GitDiffScope,
     type GitDiffStats as GitDiffStatsValue,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    type GitStatusOutput,
+  } from "@poolsideai/helperapi";
   import { onDestroy, untrack } from "svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { extractErrorMessage } from "../../errors";
   import {
     DESKTOP_FILE_TREE_CHANGED_EVENT,
     DESKTOP_GIT_CHANGED_EVENT,
     type DesktopFileTreeChangedEventDetail,
   } from "../../features/DesktopGitChangesState.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { diffLayoutPreference } from "../shared/diffLayoutPreference.svelte";
+  import SegmentedSwitch from "../ui/SegmentedSwitch.svelte";
+  import { DESKTOP_OPEN_FILE_TAB_EVENT } from "./desktopCommandPicker";
+  import { requestDesktopChangesView } from "./desktopChangesViewRequest";
+  import GitDiffStats from "./GitDiffStats.svelte";
+  import GitBranchTrackingLabel from "./GitBranchTrackingLabel.svelte";
   import DesktopDiffDocument from "./DesktopDiffDocument.svelte";
   import DesktopDiffEmptyState from "./DesktopDiffEmptyState.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  /**
    * All-files git diff shown in the main zone's singleton Diff tab. File
    * summaries and bounded patch chunks stream into one virtual document, so
    * opening the tab never materializes the complete worktree patch.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+   */
+  interface Props {
+    worktreePath: string;
+    /** File whose diff to scroll into view, when opened from a file row. */
+    relativePath?: string;
+    /** Bumped for every open request so re-clicking the same file re-scrolls. */
+    openToken: number;
+  }
+
   type DiffDocumentController = ReturnType<typeof DesktopDiffDocument>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  let { worktreePath, relativePath, openToken }: Props = $props();
+
+  /** Which changes the combined diff covers. */
+  let scope = $state<GitDiffScope>("uncommitted");
+
+  const SCOPE_OPTIONS: { value: GitDiffScope; label: string }[] = [
+    { value: "uncommitted", label: "All Uncommitted" },
+    { value: "staged", label: "Staged" },
+    { value: "unstaged", label: "Unstaged" },
+  ];
+
+  let diffState = $state<
+    | { status: "loading" }
     | { status: "unavailable"; gitMissing: boolean }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    | { status: "error"; message: string }
     | { status: "ready"; diff: GitDiffOpenOutput }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  >({ status: "loading" });
+  let diffToken = 0;
 
   /**
    * A mounted diff document. At most two exist at once: the displayed one
@@ -92,50 +92,50 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   let fileRefreshTimer: ReturnType<typeof setTimeout> | undefined;
   const FILE_REFRESH_DEBOUNCE_MS = 750;
   // Collapsed-card count reported by the virtual document; drives the footer's
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Expand All / Collapse All toggle.
+  let collapsedCount = $state(0);
+
+  // Branch info for the header, refreshed alongside every diff load. Kept
+  // undefined until known so the header shows nothing rather than stale data.
+  let gitStatus = $state<GitStatusOutput | undefined>(undefined);
+  let branchLabel = $derived.by(() => {
+    const git = gitStatus;
+    if (!git?.isRepo) return "";
+    return git.detached ? "(detached)" : git.branch;
+  });
+
+  let scopeLabel = $derived(
+    SCOPE_OPTIONS.find((option) => option.value === scope)?.label ?? "Changes",
+  );
+  // Expand All whenever any card is collapsed; Collapse All only when every
+  // card is expanded (matching the reference design's toggle).
+  let anyCollapsed = $derived(collapsedCount > 0);
   // Hides the body while the very first document (or a replacement after
   // an error/worktree change) settles behind the gate — the only time a
   // spinner shows. Updates over existing content (silent reloads, scope
   // switches) never fade: the old diff stays visible until the incoming
   // one is ready, then the swap is instant.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let bodyFaded = $state(false);
   let visibleDiffStats = $derived(bodyFaded ? undefined : diffStats);
   let canToggleAll = $derived(
     diffState.status === "ready" && !bodyFaded && (visibleDiffStats?.files ?? 0) > 0,
   );
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  /** Refreshes the header's branch info; failures just leave it hidden. */
+  function loadBranch(): void {
+    const path = worktreePath;
     if (!path) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    void poolsideGitStatus({ path })
+      .then((git) => {
+        if (path !== worktreePath) return;
+        gitStatus = git;
+      })
+      .catch(() => {
+        if (path !== worktreePath) return;
+        gitStatus = undefined;
+      });
+  }
+
   // Session the current diffStats were computed for: per-file stats are
   // only applied to the document mounted for that session — feeding an
   // outgoing scope's stats into the incoming document would seed wrong
@@ -166,8 +166,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     // Empty only transiently, while a stale tab's content is being torn down
     // (see desktopTabContent in DesktopSplitsPane): skip the doomed fetch.
     if (!worktreePath) return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const token = ++diffToken;
+    loadBranch();
     // Seamless reloads (scope switches) keep the displayed diff fully
     // visible and interactive while the replacement settles off-screen;
     // silent reloads (a git mutation elsewhere invalidated this diff)
@@ -177,13 +177,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     // to keep.
     const seamless = options.seamless && diffEntries.length > 0;
     if (!options.silent && !seamless) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      diffState = { status: "loading" };
       diffStats = undefined;
       collapsedCount = 0;
       bodyFaded = false;
       closeAllEntries();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+    try {
       const result = await poolsideGitDiffOpen({
         path: worktreePath,
         scope,
@@ -191,8 +191,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       });
       if (token !== diffToken) {
         if (result.sessionId) closeSession(result.sessionId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        return;
+      }
       if (result.unavailable) {
         diffState = { status: "unavailable", gitMissing: result.gitMissing ?? false };
         diffStats = undefined;
@@ -201,8 +201,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         closeAllEntries();
         adoptLooseSession(undefined);
         return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
+      diffState = { status: "ready", diff: result };
       if (result.stats) acceptStats(result.stats, result.sessionId);
       else scheduleStatsPoll(result.sessionId, token);
 
@@ -215,7 +215,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         collapsedCount = 0;
         bodyFaded = false;
         return;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
       adoptLooseSession(undefined);
 
       const latest = diffEntries.at(-1);
@@ -249,18 +249,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       collapsedCount = 0;
       consumedRevealToken = undefined;
       bodyFaded = true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } catch (error) {
+      if (token !== diffToken) return;
       if ((options.silent || seamless) && diffState.status === "ready") return;
       diffStats = undefined;
       collapsedCount = 0;
       bodyFaded = false;
       closeAllEntries();
       adoptLooseSession(undefined);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      diffState = { status: "error", message: extractErrorMessage(error, "Failed to load diff") };
+    }
+  }
+
   function scheduleStatsPoll(sessionId: string, token: number, delay = 50): void {
     if (statsPollTimer !== undefined) clearTimeout(statsPollTimer);
     statsPollTimer = setTimeout(async () => {
@@ -276,14 +276,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         }
       } catch {
         // Totals are supplementary; the diff remains usable if polling fails.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      }
     }, delay);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   function closeSession(sessionId: string): void {
     void poolsideGitDiffClose({ sessionId }).catch(() => undefined);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
   /**
    * A mounted document's first viewport has settled. For the displayed
    * document this lifts the initial-load gate; for a hidden incoming one
@@ -318,35 +318,35 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     closeAllEntries();
     adoptLooseSession(undefined);
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  $effect(() => {
+    // Retargeting an existing tab does not invalidate its full patch. Reload
+    // only when the worktree changes; scope and git mutations reload below.
+    void worktreePath;
+    untrack(() => void load());
+  });
+
+  let previousScope: GitDiffScope = "uncommitted";
+  $effect(() => {
     // Scope switches keep the current diff fully visible while the new
     // scope's document settles hidden, then swap it in — no loading state
     // over existing content, and no triple-mounted scopes.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const nextScope = scope;
+    if (nextScope === previousScope) return;
+    previousScope = nextScope;
     untrack(() => void load({ seamless: true }));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
   // The reveal consumes one openToken per mounted document (reset by
   // non-silent loads): a silent reload swaps diffState but must not yank
   // the scroll position back to the requested file.
   let consumedRevealToken = $state<number | undefined>(undefined);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  $effect(() => {
+    // Scroll to the requested file once the diff has rendered — also when a
+    // new open request retargets an already-loaded panel.
     const token = openToken;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const path = relativePath;
+    if (diffState.status !== "ready" || !path) return;
     const mountedDocument = displayedDocument;
     if (!mountedDocument || consumedRevealToken === token) return;
     consumedRevealToken = token;
@@ -359,13 +359,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const latest = diffEntries.at(-1);
     if (!latest || latest.diff.sessionId !== diffStatsSessionId) return;
     latest.ref?.applyFileStats(diffStats?.fileStats ?? []);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
+  $effect(() => {
     // In-app git actions refresh immediately. File-watcher events cover edits
     // made by the agent or an external editor; debounce those because one edit
     // often arrives as a burst of filesystem notifications.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    const onGitChanged = () => void load({ silent: true });
     const onFileTreeChanged = (event: Event) => {
       const detail = (event as CustomEvent<DesktopFileTreeChangedEventDetail>).detail;
       if (!fileTreeChangeAffectsWorktree(detail)) return;
@@ -373,15 +373,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     };
     const onWindowFocus = () => scheduleFileRefresh();
     window.addEventListener(DESKTOP_FILE_TREE_CHANGED_EVENT, onFileTreeChanged);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    window.addEventListener(DESKTOP_GIT_CHANGED_EVENT, onGitChanged);
     window.addEventListener("focus", onWindowFocus);
     return () => {
       window.removeEventListener(DESKTOP_FILE_TREE_CHANGED_EVENT, onFileTreeChanged);
       window.removeEventListener(DESKTOP_GIT_CHANGED_EVENT, onGitChanged);
       window.removeEventListener("focus", onWindowFocus);
     };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+
   function scheduleFileRefresh(): void {
     if (fileRefreshTimer !== undefined) clearTimeout(fileRefreshTimer);
     fileRefreshTimer = setTimeout(() => {
@@ -412,74 +412,74 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     return normalized;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /** Opens the current version of a file in a regular editor tab. */
+  function openFullFile(path: string): void {
+    const root = worktreePath.endsWith("/") ? worktreePath.slice(0, -1) : worktreePath;
+    window.dispatchEvent(
+      new CustomEvent(DESKTOP_OPEN_FILE_TAB_EVENT, {
+        detail: { path: `${root}/${path}` },
+      }),
+    );
+  }
+</script>
+
+<div class="diff-panel">
+  <header class="diff-panel-header">
+    <!-- Equal flexible sides keep the scope switch centred: branch info at
+         the left edge, the layout toggle at the right. -->
+    <span class="diff-panel-header-side diff-panel-header-side--start">
+      {#if branchLabel}
         <GitBranchTrackingLabel branch={branchLabel} upstream={gitStatus?.upstream} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {/if}
+    </span>
+    <SegmentedSwitch options={SCOPE_OPTIONS} bind:value={scope} ariaLabel="Diff scope" />
+    <span class="diff-panel-header-side diff-panel-header-side--end">
+      <button
+        type="button"
+        class="diff-panel-icon-button"
+        class:is-active={diffLayoutPreference.current === "split"}
+        title={diffLayoutPreference.current === "split" ? "Unified view" : "Side-by-side view"}
+        aria-pressed={diffLayoutPreference.current === "split"}
+        aria-label={diffLayoutPreference.current === "split"
+          ? "Switch to unified diff view"
+          : "Switch to side-by-side diff view"}
+        onclick={() => diffLayoutPreference.toggle()}
+      >
+        <Icon name="compare" size={14} />
+      </button>
+    </span>
+  </header>
+
   <!-- Overlaid on the gated (hidden) body while the first document
        settles, so the pane shows a spinner rather than a blank. Updates
        over existing content never fade the body, so this never covers a
        visible diff. -->
   {#if bodyFaded}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div class="diff-panel-fade-spinner" aria-live="polite" aria-label="Loading diff">
+      <Spinner size={16} />
+    </div>
+  {/if}
+
+  <div class="diff-panel-body" class:is-faded={bodyFaded}>
     {#if diffState.status === "loading" && diffEntries.length === 0}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <div class="diff-panel-centered">
+        <Spinner size={16} />
+      </div>
     {:else if diffState.status === "unavailable"}
       <div class="diff-panel-centered diff-panel-message">
         <Icon name="git-branch" size={18} class="text-psx-foreground-tertiary" />
         <p>{diffState.gitMissing ? "Git is not installed." : "Not a git repository."}</p>
       </div>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    {:else if diffState.status === "error"}
+      <div class="diff-panel-centered diff-panel-message">
+        <Icon name="alert" size={16} class="text-psx-error-foreground" />
+        <p>{diffState.message}</p>
+        <button type="button" class="diff-panel-button" onclick={() => load()}>Retry</button>
+      </div>
     {:else if diffState.status === "ready" && diffEntries.length === 0 && diffState.diff.complete && diffState.diff.files.length === 0 && !diffState.diff.target}
       <div class="diff-panel-centered">
         <DesktopDiffEmptyState {scope} {gitStatus} />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </div>
     {/if}
     <!-- The displayed document plus, during a scope switch, a hidden
          incoming one settling off-screen. Keyed by epoch so the swap only
@@ -495,8 +495,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           target={entry.diff.target}
           {scope}
           {gitStatus}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          layout={diffLayoutPreference.current}
+          onOpenFile={(path) => openFullFile(path)}
           onCollapsedChange={(collapsed) => {
             entry.collapsedCount = collapsed;
             if (entry.epoch === displayedEpoch) collapsedCount = collapsed;
@@ -505,11 +505,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             if (entry.epoch === diffEntries.at(-1)?.epoch) acceptStats(stats, entry.diff.sessionId);
           }}
           onReady={() => handleEntryReady(entry.epoch)}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        />
       </div>
     {/each}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </div>
+
   <footer class="diff-panel-footer">
     <div class="diff-panel-footer-stats">
       <span class="diff-panel-footer-title">{scopeLabel} changes</span>
@@ -523,9 +523,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             files={diffStats.files}
             additions={diffStats.additions}
             deletions={diffStats.deletions}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          />
         {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      </div>
     </div>
     <div class="diff-panel-footer-actions">
       <button
@@ -547,91 +547,91 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       </button>
     </div>
   </footer>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</div>
+
+<style>
+  .diff-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    background: var(--psx-editor-background);
+    font-size: 12px;
+    color: var(--psx-foreground-primary);
+  }
+
   /* Loading hint while a replacement diff fetches/settles, centred over the
      faded-out body (matching the in-body loading spinner's position so the
      handoff between the two doesn't hop). Its own fade-in keeps the
      appearance gentle rather than a hard pop. */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .diff-panel-fade-spinner {
+    position: absolute;
     /* The body area: below the 36px header, above the 52px footer. */
     inset: 36px 0 52px;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     pointer-events: none;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    animation: diff-panel-fade-spinner-in 90ms ease;
+  }
+
+  @keyframes diff-panel-fade-spinner-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  .diff-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    height: 36px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--psx-border);
+  }
+
+  /* Equal flexible sides centre the scope switch; the left side hosts the
+     branch info, the right side the layout toggle. */
+  .diff-panel-header-side {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  .diff-panel-header-side--start {
+    justify-content: flex-start;
+  }
+
   /* Positioning context for the stacked documents; fades in when the
      first document's settle gate lifts. */
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .diff-panel-body {
     position: relative;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
   }
 
   .diff-panel-body,
   .diff-panel-footer-values {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    opacity: 1;
+    transition: opacity 90ms ease;
+  }
+
   .diff-panel-body.is-faded,
   .diff-panel-footer-values.is-faded {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    opacity: 0;
+  }
+
   /* One mounted document. During a scope switch two are stacked: the
      displayed one stays interactive while the incoming one lays out and
      settles underneath at full size, invisible and untouchable, until
@@ -655,158 +655,158 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     pointer-events: none;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /* Sticky stats footer: scope title over file count + total +/− badges on
+     the left, the Expand All / Collapse All toggle on the right. */
+  .diff-panel-footer {
     box-sizing: border-box;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     flex: 0 0 52px;
     height: 52px;
     min-height: 52px;
     max-height: 52px;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    padding: 8px 12px;
+    border-top: 1px solid var(--psx-border);
+    background: var(--psx-editor-background);
+  }
+
+  .diff-panel-footer-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     height: 44px;
     min-height: 44px;
     max-height: 44px;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    min-width: 0;
+  }
+
+  .diff-panel-footer-title {
     overflow: hidden;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    font-size: 11px;
+    color: var(--psx-foreground-secondary);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .diff-panel-footer-values {
     min-height: 20px;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  .diff-panel-footer-actions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .diff-panel-footer-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    height: 26px;
+    padding: 0 10px;
+    border: none;
+    border-radius: 6px;
+    background: var(--psx-panel);
+    color: var(--psx-foreground-primary);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .diff-panel-footer-button:hover:not(:disabled) {
+    background: var(--psx-menu-hover-background);
+  }
+
+  .diff-panel-footer-button--primary {
+    border: 1px solid var(--psx-button-primary-border, transparent);
+    background: var(--psx-button-primary-background, var(--psx-focus));
+    color: var(--psx-button-primary-foreground, #fff);
+  }
+
+  .diff-panel-footer-button--primary:hover:not(:disabled) {
+    border-color: var(--psx-button-primary-hover-border, transparent);
+    background: var(--psx-button-primary-hover-background, var(--psx-focus));
+  }
+
+  .diff-panel-footer-button:disabled {
+    color: var(--psx-foreground-secondary);
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .diff-panel-body {
+      transition: none;
+    }
+
+    .diff-panel-fade-spinner {
+      animation: none;
+    }
+  }
+
+  .diff-panel-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    margin-right: -4px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--psx-foreground-secondary);
+    cursor: pointer;
+  }
+
+  .diff-panel-icon-button:hover {
+    background: var(--psx-menu-hover-background);
+    color: var(--psx-foreground-primary);
+  }
+
+  .diff-panel-icon-button.is-active {
+    color: var(--psx-focus);
+  }
+
+  .diff-panel-centered {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+  }
+
+  .diff-panel-message {
+    color: var(--psx-foreground-secondary);
+    text-align: center;
+  }
+
+  .diff-panel-message p {
+    margin: 0;
+  }
+
+  .diff-panel-button {
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    padding: 0 10px;
+    border: 1px solid var(--psx-border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--psx-foreground-primary);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .diff-panel-button:hover {
+    background: var(--psx-menu-hover-background);
+  }
+</style>

@@ -7,7 +7,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     visibility = ["//visibility:public"],
     deps = [
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/poolside-helper/internal/shellenv",
         "@com_github_tliron_glsp//server",
     ],
 )

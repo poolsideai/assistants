@@ -5,11 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"fmt"
 	"io"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"reflect"
 	"testing"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	"time"
 
 	acpsdk "github.com/coder/acp-go-sdk"
 	"github.com/stretchr/testify/assert"
@@ -134,26 +134,26 @@ type callCapture struct {
 
 func TestNewHandler(t *testing.T) {
 	h := NewHandler(nil, nil, nil)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	require.NotNil(t, h.procs)
+	require.NotNil(t, h.clients)
 }
 
 func TestInitialize(t *testing.T) {
 	t.Run("returns cached initialize response", func(t *testing.T) {
 		h := NewHandler(dummyConfig(), nil, nil)
+		gCtx := newGlspContext(nil, nil)
+		proc, _ := h.processFor(DefaultAgentServerName, gCtx)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		proc.initResp = &acpsdk.InitializeResponse{
 			ProtocolVersion: acpsdk.ProtocolVersionNumber,
 			AuthMethods:     []acpsdk.AuthMethod{},
 		}
 
 		resp, err := h.Initialize(context.Background(), &methods.ACPInitializeParams{
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			InitializeRequest: acpsdk.InitializeRequest{
+				ProtocolVersion: acpsdk.ProtocolVersionNumber,
+			},
+		}, gCtx)
 
 		require.NoError(t, err)
 		require.NotNil(t, resp)
@@ -162,105 +162,105 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	})
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestRestartServer(t *testing.T) {
 	h := NewHandler(dummyConfig(), nil, nil)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	gCtx := newGlspContext(nil, nil)
+	proc, _ := h.processFor(DefaultAgentServerName, gCtx)
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+	proc.stdin = nopWriteCloser{}
+	proc.initResp = &acpsdk.InitializeResponse{ProtocolVersion: acpsdk.ProtocolVersionNumber}
+	proc.session = "s-123"
+
+	resp, err := h.RestartServer(context.Background(), &methods.ACPAgentServerParams{}, gCtx)
+
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+	assert.Nil(t, proc.initResp)
+	assert.Empty(t, proc.session)
+}
+
+func TestStopChangedAgentServers(t *testing.T) {
+	t.Run("keeps processes running for default-only and default-option changes", func(t *testing.T) {
+		h := NewHandler(dummyConfig(), nil, nil)
+		gCtx := newGlspContext(nil, nil)
+		poolsideProc, _ := h.processFor(DefaultAgentServerName, gCtx)
+		poolsideProc.state = processState{kind: processStateRunning}
+		poolsideProc.stdin = nopWriteCloser{}
+		codexProc, _ := h.processFor("codex-acp", gCtx)
+		codexProc.state = processState{kind: processStateRunning}
+		codexProc.stdin = nopWriteCloser{}
+
+		before := map[string]AgentServerConfig{
+			DefaultAgentServerName: {
+				Command:              "pool",
+				Args:                 []string{"acp"},
+				DefaultConfigOptions: map[string]string{"model": "old"},
+			},
+			"codex-acp": {
+				Command: "npx",
+				Args:    []string{"-y", "@zed-industries/codex-acp@0.16.0"},
+			},
+		}
+		after := map[string]AgentServerConfig{
+			DefaultAgentServerName: {
+				Command:              "pool",
+				Args:                 []string{"acp"},
+				DefaultConfigOptions: map[string]string{"model": "new"},
+			},
+			"codex-acp": {
+				Command: "npx",
+				Args:    []string{"-y", "@zed-industries/codex-acp@0.16.0"},
+			},
+		}
+
+		require.NoError(t, h.StopChangedAgentServers(before, after))
+		assert.Equal(t, processStateRunning, poolsideProc.state.kind)
+		assert.Equal(t, processStateRunning, codexProc.state.kind)
+	})
+
+	t.Run("stops only the changed server", func(t *testing.T) {
+		h := NewHandler(dummyConfig(), nil, nil)
+		gCtx := newGlspContext(nil, nil)
+		poolsideProc, _ := h.processFor(DefaultAgentServerName, gCtx)
+		poolsideProc.state = processState{kind: processStateRunning}
+		poolsideProc.stdin = nopWriteCloser{}
+		codexProc, _ := h.processFor("codex-acp", gCtx)
+		codexProc.state = processState{kind: processStateRunning}
+		codexProc.stdin = nopWriteCloser{}
+
+		before := map[string]AgentServerConfig{
+			DefaultAgentServerName: {Command: "pool", Args: []string{"acp"}},
+			"codex-acp":            {Command: "npx", Args: []string{"-y", "@zed-industries/codex-acp@0.16.0"}},
+		}
+		after := map[string]AgentServerConfig{
+			DefaultAgentServerName: {Command: "pool", Args: []string{"acp"}},
+			"codex-acp":            {Command: "npx", Args: []string{"-y", "@zed-industries/codex-acp@0.17.0"}},
+		}
+
+		require.NoError(t, h.StopChangedAgentServers(before, after))
+		assert.Equal(t, processStateRunning, poolsideProc.state.kind)
+		assert.Equal(t, processStateUnstarted, codexProc.state.kind)
+	})
+
+	t.Run("stops removed servers", func(t *testing.T) {
+		h := NewHandler(dummyConfig(), nil, nil)
+		gCtx := newGlspContext(nil, nil)
+		codexProc, _ := h.processFor("codex-acp", gCtx)
+		codexProc.state = processState{kind: processStateRunning}
+		codexProc.stdin = nopWriteCloser{}
+
+		before := map[string]AgentServerConfig{
+			DefaultAgentServerName: {Command: "pool", Args: []string{"acp"}},
+			"codex-acp":            {Command: "npx", Args: []string{"-y", "@zed-industries/codex-acp@0.16.0"}},
+		}
+		after := map[string]AgentServerConfig{
+			DefaultAgentServerName: {Command: "pool", Args: []string{"acp"}},
+		}
+
+		require.NoError(t, h.StopChangedAgentServers(before, after))
+		assert.Equal(t, processStateUnstarted, codexProc.state.kind)
+	})
 
 	t.Run("names the server that failed to stop", func(t *testing.T) {
 		h := NewHandler(dummyConfig(), nil, nil)
@@ -336,37 +336,37 @@ func (b barrierWriteCloser) Close() error {
 	b.arrived <- struct{}{}
 	<-b.release
 	return nil
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func TestAgentServerConfigIsSafeForDeepEqualRuntimeComparison(t *testing.T) {
+	assertDeepEqualSafeType(t, reflect.TypeOf(AgentServerConfig{}), map[reflect.Type]bool{})
+}
+
+func assertDeepEqualSafeType(t *testing.T, typ reflect.Type, seen map[reflect.Type]bool) {
+	t.Helper()
+	if seen[typ] {
+		return
+	}
+	seen[typ] = true
+
+	switch typ.Kind() {
+	case reflect.Func:
+		t.Fatalf("%s contains a func, which is unsafe for reflect.DeepEqual config comparisons", typ)
+	case reflect.Float32, reflect.Float64:
+		t.Fatalf("%s contains a float, which can be unsafe for reflect.DeepEqual config comparisons", typ)
+	case reflect.Pointer, reflect.Slice, reflect.Array:
+		assertDeepEqualSafeType(t, typ.Elem(), seen)
+	case reflect.Map:
+		assertDeepEqualSafeType(t, typ.Key(), seen)
+		assertDeepEqualSafeType(t, typ.Elem(), seen)
+	case reflect.Struct:
+		for i := range typ.NumField() {
+			field := typ.Field(i)
+			assertDeepEqualSafeType(t, field.Type, seen)
+		}
+	}
+}
+
 func TestMethodsRequireInitialization(t *testing.T) {
 	h := NewHandler(dummyConfig(), nil, nil)
 	gCtx := newGlspContext(nil, nil)
@@ -401,11 +401,11 @@ func TestMethodsRequireInitialization(t *testing.T) {
 
 func TestSessionMethodsRequireSession(t *testing.T) {
 	h := NewHandler(dummyConfig(), nil, nil)
+	gCtx := newGlspContext(nil, nil)
+	proc, _ := h.processFor(DefaultAgentServerName, gCtx)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	proc.conn = &acpsdk.ClientSideConnection{}
+	proc.initResp = &acpsdk.InitializeResponse{
 		ProtocolVersion: acpsdk.ProtocolVersionNumber,
 	}
 
@@ -422,103 +422,103 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 	require.ErrorContains(t, err, "call session/new first")
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestPromptRejectsConcurrentTurnForSameSession(t *testing.T) {
+	h := NewHandler(dummyConfig(), nil, nil)
+	gCtx := newGlspContext(nil, nil)
+	proc, _ := h.processFor(DefaultAgentServerName, gCtx)
+	proc.state = processState{kind: processStateRunning}
+	proc.conn = &acpsdk.ClientSideConnection{}
+	proc.initResp = &acpsdk.InitializeResponse{
+		ProtocolVersion: acpsdk.ProtocolVersionNumber,
+	}
+	proc.session = "sess-1"
+
+	// Simulate a turn already running for the session (started by any
+	// connected surface); the reservation is what Prompt takes internally.
+	turn, reserved := h.beginPromptInFlight(DefaultAgentServerName, "sess-1", "turn-1")
+	require.True(t, reserved)
+	require.NotNil(t, turn)
+
+	_, err := h.Prompt(context.Background(), &methods.ACPPromptParams{}, gCtx)
+	require.ErrorContains(t, err, "a turn is already running")
+
+	// An explicit session ID resolves to the same reservation.
+	_, err = h.Prompt(context.Background(), &methods.ACPPromptParams{
+		PromptRequest: acpsdk.PromptRequest{SessionId: "sess-1"},
+	}, gCtx)
+	require.ErrorContains(t, err, "a turn is already running")
+
+	// Other sessions are unaffected, and finishing the turn frees the session.
+	turn2, reserved2 := h.beginPromptInFlight(DefaultAgentServerName, "sess-2", "")
+	assert.True(t, reserved2)
+	require.NotNil(t, turn2)
+	h.completeTurn(DefaultAgentServerName, "sess-1", turn, nil, nil)
+	_, reserved = h.beginPromptInFlight(DefaultAgentServerName, "sess-1", "")
+	assert.True(t, reserved)
+}
+
+func TestPromptAttachesToRunningTurnWithSameTurnID(t *testing.T) {
+	h := NewHandler(dummyConfig(), nil, nil)
+	gCtx := newGlspContext(nil, nil)
+	proc, _ := h.processFor(DefaultAgentServerName, gCtx)
+	proc.state = processState{kind: processStateRunning}
+	proc.conn = &acpsdk.ClientSideConnection{}
+	proc.initResp = &acpsdk.InitializeResponse{
+		ProtocolVersion: acpsdk.ProtocolVersionNumber,
+	}
+	proc.session = "sess-1"
+
+	turn, reserved := h.beginPromptInFlight(DefaultAgentServerName, "sess-1", "turn-1")
+	require.True(t, reserved)
+
+	// A retry of the same turn (its connection dropped mid-turn) attaches and
+	// resolves with the running turn's result.
+	attached := make(chan error, 1)
+	go func() {
+		resp, err := h.Prompt(context.Background(), &methods.ACPPromptParams{
+			PromptRequest: acpsdk.PromptRequest{
+				SessionId: "sess-1",
+				Meta:      map[string]any{"poolside/turnId": "turn-1"},
+			},
+		}, gCtx)
+		if err == nil && resp != nil && resp.StopReason == acpsdk.StopReasonEndTurn {
+			attached <- nil
+		} else {
+			attached <- fmt.Errorf("unexpected attach result: %v / %v", resp, err)
+		}
+	}()
+
+	// A different turnID is still rejected while the turn runs.
+	_, err := h.Prompt(context.Background(), &methods.ACPPromptParams{
+		PromptRequest: acpsdk.PromptRequest{
+			SessionId: "sess-1",
+			Meta:      map[string]any{"poolside/turnId": "turn-other"},
+		},
+	}, gCtx)
+	require.ErrorContains(t, err, "a turn is already running")
+
+	h.completeTurn(DefaultAgentServerName, "sess-1", turn,
+		&methods.ACPPromptOutput{StopReason: acpsdk.StopReasonEndTurn}, nil)
+	select {
+	case err := <-attached:
+		require.NoError(t, err)
+	case <-time.After(2 * time.Second):
+		t.Fatal("attached retry never resolved")
+	}
+
+	// After completion the turnID resolves from the finished-turn cache
+	// without touching the agent.
+	resp, err := h.Prompt(context.Background(), &methods.ACPPromptParams{
+		PromptRequest: acpsdk.PromptRequest{
+			SessionId: "sess-1",
+			Meta:      map[string]any{"poolside/turnId": "turn-1"},
+		},
+	}, gCtx)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, acpsdk.StopReasonEndTurn, resp.StopReason)
+}
+
 func TestPromptReturnsMCPConnectorCredentialsErrorReportedOnStderr(t *testing.T) {
 	agentInR, agentInW := io.Pipe()
 	agentOutR, agentOutW := io.Pipe()
@@ -1496,15 +1496,15 @@ func TestCloseSession(t *testing.T) {
 // The process won't actually start, but ensureStarted will wire the closures
 // before attempting to spawn the subprocess.
 func dummyConfig() ConfigFn {
+	return func() HandlerConfig {
+		return HandlerConfig{
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			AgentServers: map[string]AgentServerConfig{
+				DefaultAgentServerName: {
+					Command: "/nonexistent",
+				},
+			},
+		}
 	}
 }
 
@@ -1530,19 +1530,19 @@ func TestEnsureStartedWiresEnvelope(t *testing.T) {
 		h := NewHandler(dummyConfig(), nil, nil)
 		// ensureStarted wires the closures before proc.start, which will fail
 		// (no binary) — that's fine, we only need the closures.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		_, _ = h.ensureStarted(context.Background(), gCtx, DefaultAgentServerName, nil)
+		_, client := h.processFor(DefaultAgentServerName, gCtx)
+		require.NotNil(t, client.notify, "notify should be wired after ensureStarted")
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		client.notify(context.Background(), "session/update", map[string]string{"key": "val"})
 
 		require.Len(t, captures, 1)
 		assert.Equal(t, methods.JSONRPCNotifyMethod, captures[0].method)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		bridge, ok := captures[0].params.(map[string]any)
+		require.True(t, ok)
+		assert.Equal(t, DefaultAgentServerName, bridge["agentServer"])
+		envelope, ok := bridge["message"].(map[string]any)
 		require.True(t, ok)
 		assert.Equal(t, "2.0", envelope["jsonrpc"])
 		assert.Equal(t, "session/update", envelope["method"])
@@ -1554,22 +1554,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		gCtx := newGlspContext(nil, &captures)
 
 		h := NewHandler(dummyConfig(), nil, nil)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		_, _ = h.ensureStarted(context.Background(), gCtx, DefaultAgentServerName, nil)
+		_, client := h.processFor(DefaultAgentServerName, gCtx)
+		require.NotNil(t, client.request, "request should be wired after ensureStarted")
 
 		var result any
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		_ = client.request(context.Background(), "session/request_permission", "params1", &result)
+		_ = client.request(context.Background(), "session/request_permission", "params2", &result)
 
 		require.Len(t, captures, 2)
 		for i, c := range captures {
 			assert.Equal(t, methods.JSONRPCRequestMethod, c.method, "call %d", i)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+			bridge, ok := c.params.(map[string]any)
+			require.True(t, ok, "call %d", i)
+			assert.Equal(t, DefaultAgentServerName, bridge["agentServer"], "call %d", i)
+			envelope, ok := bridge["message"].(map[string]any)
 			require.True(t, ok, "call %d", i)
 			assert.Equal(t, "2.0", envelope["jsonrpc"], "call %d", i)
 			assert.Equal(t, "session/request_permission", envelope["method"], "call %d", i)
@@ -1577,8 +1577,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		}
 
 		// IDs should be unique across calls.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		id0 := captures[0].params.(map[string]any)["message"].(map[string]any)["id"]
+		id1 := captures[1].params.(map[string]any)["message"].(map[string]any)["id"]
 		assert.NotEqual(t, id0, id1, "each request should get a unique id")
 	})
 
@@ -1590,11 +1590,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 		gCtx2 := newGlspContext(&captures2, nil)
 
 		h := NewHandler(dummyConfig(), nil, nil)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		_, _ = h.ensureStarted(context.Background(), gCtx1, DefaultAgentServerName, nil)
+		_, _ = h.ensureStarted(context.Background(), gCtx2, DefaultAgentServerName, nil)
+		_, client := h.processFor(DefaultAgentServerName, gCtx1)
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		client.notify(context.Background(), "test", nil)
 
 		assert.Len(t, captures1, 1, "should use first glsp context")
 		assert.Len(t, captures2, 0, "second glsp context should be ignored")

@@ -225,8 +225,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
               {@const isSelected = value.value === option.currentValue}
               {@const pinned = isPinnedDefault(option.id, value.value)}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+              {@const isPending = pending?.value === value.value && !pending.error}
+              {@const isFailed = pending?.value === value.value && pending.error}
               {#snippet accessories()}
                 <DefaultStarButton
                   label="Use {value.name} by default"
@@ -235,10 +235,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 />
                 {#if isSelected}
                   <Badge class="uppercase">Selected</Badge>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                {:else if isPending}
+                  <Badge class="uppercase">Switching</Badge>
+                {:else if isFailed}
+                  <Badge class="uppercase">Failed</Badge>
                 {/if}
               {/snippet}
               {#snippet valueIcon()}
