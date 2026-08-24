@@ -137,7 +137,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         },
         "poolside.defaultWorkingDirectory": {
           "default": "",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          "description": "Working directory the assistant uses when no folder is open in VS Code. Leave empty to use a scratch directory (~/.poolside/scratch, or %LOCALAPPDATA%\\poolside\\scratch on Windows) so the agent's file tools start there instead of at your home directory.",
           "type": "string"
         },
         "poolside.agentServers": {

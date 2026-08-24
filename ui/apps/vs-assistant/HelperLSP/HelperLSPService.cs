@@ -75,7 +75,7 @@ namespace Poolside.Assistant.HelperLSP
                 await EnsureStoppedAsync();
 
                 // Subscribe to events that indicate configuration changes.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                CurrentAgentStore.Instance.OnCurrentAgentChange += SendUpdatedConfiguration;
                 currentSettings = PoolsideAssistantPackage.GetInstance().GetSettings();
                 currentSettings.PropertyChanged += OnSettingsChanged;
 
@@ -167,7 +167,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 await currentProcess.StopAsync(helperLog);
             }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            CurrentAgentStore.Instance.OnCurrentAgentChange -= SendUpdatedConfiguration;
             if (currentSettings != null)
             {
                 currentSettings.PropertyChanged -= OnSettingsChanged;
@@ -226,13 +226,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 .Returning<TResponse>(CancellationToken.None);
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Sends a notification. If the LSP client isn't yet available, waits for it to be.
+        internal async Task SendNotificationAsync(string method, object parameters)
+        {
+            var client = await clientWhenStarted;
+            client.SendNotification(method, parameters);
+        }
+
         // Runs the action if there is an LSP client available, otherwise drops it.
         private void WithClientIfAvailable(Action<LanguageClient> action)
         {
@@ -405,44 +405,44 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         /// <summary>
         /// Syncs all currently visible files in VS to the helper. Must be called on UI thread.
         /// </summary>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Best-effort: a failure here must never propagate into StartInternalAsync's
+        // catch, where it would poison clientWhenStarted and fail every later
+        // request even though the helper itself is healthy.
         private void SyncVisibleFilesToHelper(LanguageClient client)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             currentDocuments = new Dictionary<string, OpenDocument>();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            try
             {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                foreach (var doc in WebViewInfrastructure.FileOperations.GetVisibleFiles())
                 {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                    // Skip if we've already seen this path (can happen with split views)
+                    if (currentDocuments.ContainsKey(doc.path))
+                        continue;
+
+                    var languageId = GetLanguageIdForPath(doc.path);
+                    var openDocument = new OpenDocument
                     {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                        langaugeId = languageId,
+                        content = doc.contents
+                    };
+                    currentDocuments.Add(doc.path, openDocument);
+                    client.SendNotification("textDocument/didOpen", new DidOpenTextDocumentParams
+                    {
+                        TextDocument = new TextDocumentItem
+                        {
+                            Uri = TranslatePathToUri(doc.path),
+                            LanguageId = languageId,
+                            Version = openDocument.version,
+                            Text = doc.contents
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                PoolsideTelemetryLogger.Instance.reportException(ex);
             }
         }
 

@@ -1,7 +1,7 @@
 .vs/
 bin/
 obj/
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Downloaded by scripts/copy_helper.sh; never committed.
+helper/
 *.csproj.user
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+.idea/

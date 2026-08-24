@@ -1319,18 +1319,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   // Two-line rows anchor their icon, star, and badge to the name, not to the
   // middle of the row: a description hanging below must not drag them down.
   const itemTopAlignedClass = `${itemBaseClass} items-start`;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Summary rows (Agent/Model/Fast Mode/Effort) pair a full-size label with a
+  // smaller, dimmed value further along the same row. Centering two different
+  // line-heights leaves them a pixel or two off each other's baseline — latent
+  // everywhere, but only visible with some UI fonts, which is why it showed up
+  // in the VS host and not VS Code or desktop. Label and value are grouped
+  // into their own baseline-aligned, justify-between box (see labelValueClass
+  // below) rather than putting items-baseline on the row itself, which would
+  // resize the row to fit the text's baseline and throw off the icon/chevron
+  // centered against it. flex-1 (not ml-auto) so the box itself stretches to
+  // fill the row — ml-auto would just shove the whole label+value pair flush
+  // right as one unit, taking the label away from the icon with it.
+  const labelValueClass = "flex min-w-0 flex-1 items-baseline justify-between gap-2";
 
   // The panels render position:fixed, but inside the chat pane they are
   // trapped in its stacking context, so surfaces later in the DOM (the bottom
@@ -1577,60 +1577,60 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <!-- Model name and effort text sit at different sizes; grouping them in
+           their own baseline-aligned box, separate from the icon/chevron
+           around it, aligns the two without disturbing that icon/chevron —
+           items-baseline on the outer row instead would size the row to fit
+           the text's baseline and throw off every icon centered against it. -->
+      <span class="flex min-w-0 items-baseline gap-1">
+        {#if model}
+          <span
+            class={[
+              "truncate",
+              // The effort text and bolt claim room the model name used to have,
+              // so its cap tightens when they are present rather than letting the
+              // trigger grow — a wider trigger collides with the compose actions
+              // sooner and the footer overflow manager drops the whole control.
+              isMobile ? "max-w-[8rem]" : showEffortLabel ? "max-w-[10rem]" : "max-w-[12rem]",
+              underlineLabel &&
+                !emptyStateDesktop &&
+                "underline decoration-dotted underline-offset-2",
+            ]}
+          >
+            {selectedValueName(model)}
+          </span>
+        {:else}
+          <span
+            class={[
+              "truncate",
+              isMobile ? "max-w-[8rem]" : "max-w-[9rem]",
+              underlineLabel &&
+                !emptyStateDesktop &&
+                "underline decoration-dotted underline-offset-2",
+            ]}
+          >
+            {serverName}
+          </span>
+        {/if}
+        {#if fastOn}
+          <Icon
+            name="bolt"
+            size={emptyStateDesktop ? 15 : 12}
+            class="text-psx-icon shrink-0 self-center"
+            aria-hidden="true"
+          />
+        {/if}
+        {#if showEffortLabel}
+          <span
+            class={[
+              "text-psx-foreground-tertiary shrink-0 truncate",
+              emptyStateDesktop ? "text-sm" : "text-xs",
+            ]}
+          >
+            {effortLabel}
+          </span>
+        {/if}
+      </span>
       {#if configLoading}
         <Spinner size={12} class="opacity-60" aria-label="Loading agent options" />
       {/if}
@@ -1739,10 +1739,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           size={16}
           {...agentPickerIconProps(registry, currentAgent)}
         />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <span class={labelValueClass}>
+          <span class="shrink-0">Agent</span>
+          <span class="text-psx-foreground-tertiary min-w-0 truncate text-xs">{serverName}</span>
+        </span>
         <Icon
           name="chevron"
           size={12}
@@ -1809,22 +1809,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         }}
       >
         <Icon name={configIcon(model)} size={16} class="shrink-0" aria-hidden="true" />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <span class={labelValueClass}>
+          <span class="shrink-0">Model</span>
           {#if showLocalModelWarmth}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            <!-- The dot has no text baseline of its own, so this can't join
+                 the label/value baseline pairing the way the plain-text
+                 branch below does — it keeps the old vertical centering. -->
+            <span
+              class="text-psx-foreground-tertiary flex min-w-0 items-center gap-1.5 self-center truncate text-xs"
+            >
+              {@render localModelWarmthDot(currentSelectValue(model) ?? "")}
+              <span class="truncate">{selectedValueName(model)}</span>
+            </span>
+          {:else}
+            <span class="text-psx-foreground-tertiary min-w-0 truncate text-xs">
+              {selectedValueName(model)}
+            </span>
           {/if}
         </span>
         <Icon
@@ -1862,10 +1862,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         }}
       >
         <Icon name={configIcon(fast)} size={16} class="shrink-0" aria-hidden="true" />
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <span class={labelValueClass}>
+          <span class="shrink-0">Fast Mode</span>
+          <span class="text-psx-foreground-tertiary min-w-0 truncate text-xs">{fastLabel}</span>
+        </span>
         <Icon
           name="chevron"
           size={12}
@@ -1894,11 +1894,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         {:else}
           <Icon name={configIcon(effort)} size={16} class="shrink-0" aria-hidden="true" />
         {/if}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <span class={labelValueClass}>
+          <span class="shrink-0">Effort</span>
+          <span class="text-psx-foreground-tertiary min-w-0 truncate text-xs">
+            {effortValueName(effort)}
+          </span>
         </span>
         <Icon
           name="chevron"

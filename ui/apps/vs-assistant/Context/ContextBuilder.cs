@@ -30,112 +30,112 @@ namespace Poolside.Assistant.Context
         internal static ActiveFileContext BuildContext()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            var recentFile = BuildActiveFile();
+            var activeFiles = BuildVisibleFiles(recentFile);
+
+            // The focused view is not always among the enumerated frames, and the
+            // webview expects the recent file to be one of the active ones.
+            if (recentFile != null &&
+                !activeFiles.Any(f => string.Equals(f.path, recentFile.path, StringComparison.OrdinalIgnoreCase)))
+            {
+                activeFiles.Insert(0, recentFile);
+            }
+
             return new ActiveFileContext
             {
                 workspaces = BuildProjectsList(),
                 homeDirectory = BuildHomeDirectory(),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                defaultCwd = BuildDefaultCwd(),
+                recentFile = recentFile,
+                activeFiles = activeFiles.ToArray()
             };
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Every on-screen document, mirroring what VS Code sends from
+        // window.visibleTextEditors. This runs on every caret move, so the focused
+        // file's already-built snapshot is reused rather than materialized twice.
+        private static List<AttachedFile> BuildVisibleFiles(AttachedFile recentFile)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            var files = new List<AttachedFile>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var frame in Util.GetAllWindowFrames())
+            {
+                frame.GetProperty((int)__VSFPROPID.VSFPROPID_pszMkDocument, out object monikerObj);
+                // Tool windows and designer surfaces are enumerated too; File.Exists
+                // keeps us to real files, as VS Code keeps to text tabs.
+                if (monikerObj is not string path || !File.Exists(path))
+                    continue;
+                frame.IsOnScreen(out int isVisible);
+                if (isVisible == 0 || !seen.Add(path))
+                    continue;
+                var file = recentFile != null && string.Equals(path, recentFile.path, StringComparison.OrdinalIgnoreCase)
+                    ? recentFile
+                    : BuildOpenTextFileContext(path);
+                if (file != null)
+                    files.Add(file);
+            }
+            return files;
+        }
+
         internal static string BuildHomeDirectory()
         {
             return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Returns the fallback working directory supplied to the helper when no
+        // workspace folder is open. Honors the DefaultWorkingDirectory user
+        // setting when set, otherwise uses a dedicated scratch directory: rooting
+        // the agent at the user's profile puts .ssh, .aws and AppData within reach
+        // of its file tools.
+        internal static string BuildDefaultCwd()
+        {
+            var configured = PoolsideAssistantPackage.GetInstance()?.GetSettings()?.DefaultWorkingDirectory;
+            if (!string.IsNullOrWhiteSpace(configured))
+            {
+                return configured.Trim();
+            }
+
+            return EnsureScratchDirectory();
+        }
+
+        // BuildDefaultCwd runs on every context refresh, so the directory is created once
+        // per session rather than on every call.
+        private static string ensuredScratchDirectory;
+
+        private static string EnsureScratchDirectory()
+        {
+            if (ensuredScratchDirectory != null)
+            {
+                return ensuredScratchDirectory;
+            }
+
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            if (string.IsNullOrEmpty(localAppData))
+            {
+                // GetFolderPath returns an empty string when the folder is not physically
+                // present. Combining onto it would yield the relative path "poolside\scratch",
+                // which CreateDirectory would happily make under the IDE's own working
+                // directory - leaving the helper with a relative cwd pointing who knows where.
+                ensuredScratchDirectory = Path.GetTempPath();
+                return ensuredScratchDirectory;
+            }
+
+            var scratch = Path.Combine(localAppData, "poolside", "scratch");
+            try
+            {
+                Directory.CreateDirectory(scratch);
+                ensuredScratchDirectory = scratch;
+            }
+            catch (Exception)
+            {
+                // The shell tool still needs somewhere writable to start; the temp
+                // directory keeps it out of the profile when scratch cannot be made.
+                ensuredScratchDirectory = Path.GetTempPath();
+            }
+            return ensuredScratchDirectory;
+        }
+
         internal static Workspace[] BuildProjectsList()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -159,17 +159,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             return result.ToArray();
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Only documents backed by a text view join the visible-files context,
+        // matching VS Code's visibleTextEditors: designer and image frames also
+        // carry real file paths, and reading those from disk would push binary
+        // content into the prompt.
+        private static AttachedFile BuildOpenTextFileContext(string path)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            var wpfTextView = GetWpfTextViewForFilePath(path);
+            return wpfTextView == null ? null : BuildFileFromTextView(wpfTextView);
+        }
+
         internal static AttachedFile BuildSingleFileContext(string path)
         {
             // See if the file is open in an editor; if so, we'll build the context from the editor.

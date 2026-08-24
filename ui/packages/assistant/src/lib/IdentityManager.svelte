@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
   import type { Snippet } from "svelte";
   import { appState } from "./store";
 
@@ -7,15 +7,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   let { children }: Props = $props();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   class="app relative flex flex-col text-base text-psx-foreground-primary"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   {@render children?.()}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</div>
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   @reference "#tailwind.css";

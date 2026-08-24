@@ -25,21 +25,21 @@ namespace Poolside.Assistant.Settings
         private string disabledEnrichments = DEFAULT_DISABLED_ENRICHMENTS;
         private bool displayedLocalSearchDisabledInfo = false;
         private bool notifyOnApproval = true;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        private bool showMermaidDiagrams = false;
+        private string toolActivity = DEFAULT_TOOL_ACTIVITY;
+        private string defaultWorkingDirectory = "";
+        private string acpAgentServersJson = "";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        internal const string DEFAULT_TOOL_ACTIVITY = "grouped";
+
         private PoolsideSettingsEditor settingsEditor;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Set when OnApply cancels because the ACP agent servers JSON is invalid: ApplyKind.Cancel
+        // makes VS re-activate this page, and OnActivate's reload would otherwise overwrite the
+        // user's (invalid) text with the last-saved value, forcing them to retype it. We skip that
+        // one reload so they can fix the JSON in place.
+        private bool suppressNextReload;
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void OnPropertyChanged(string propertyName)
@@ -88,8 +88,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                     OnPropertyChanged(nameof(ShowKeybindings));
                 }
             }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
+
         // Visual Studio's settings mechanism won't serialize a list for us, so we have to have a string property and
         // a convenience front.
         [Browsable(false)]
@@ -150,95 +150,95 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             }
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        [Category("Poolside Settings")]
+        [DisplayName("Show Mermaid Diagrams")]
+        [Description("Visualise Mermaid diagrams in code blocks (experimental)")]
+        public bool ShowMermaidDiagrams
+        {
+            get { return showMermaidDiagrams; }
+            set
+            {
+                if (showMermaidDiagrams != value)
+                {
+                    showMermaidDiagrams = value;
+                    OnPropertyChanged(nameof(ShowMermaidDiagrams));
+                }
+            }
+        }
+
+        // How much detail to show while the agent works: "detailed", "grouped", or "compact".
+        // Stored as a string so new modes are just new values; the webview treats any
+        // unrecognized value as "grouped".
+        [Category("Poolside Settings")]
+        [DisplayName("Tool Activity")]
+        [Description("How much detail to show while the agent works: detailed, grouped, or compact")]
+        public string ToolActivity
+        {
+            get { return toolActivity; }
+            set
+            {
+                if (toolActivity != value)
+                {
+                    toolActivity = value;
+                    OnPropertyChanged(nameof(ToolActivity));
+                }
+            }
+        }
+
+        [Category("Poolside Settings")]
+        [DisplayName("Default Working Directory")]
+        [Description("Working directory the assistant uses when no folder or solution is open. Leave empty to use a scratch directory (%LOCALAPPDATA%\\poolside\\scratch) so the assistant's file tools start there instead of at your profile directory.")]
+        public string DefaultWorkingDirectory
+        {
+            get { return defaultWorkingDirectory; }
+            set
+            {
+                if (defaultWorkingDirectory != value)
+                {
+                    defaultWorkingDirectory = value;
+                    OnPropertyChanged(nameof(DefaultWorkingDirectory));
+                }
+            }
+        }
+
+        // ACP agent servers as a JSON object (name -> { command, args, env, ... }), mirroring
+        // VSCode's poolside.agentServers setting. Stored as a string because VS settings can't
+        // serialize nested objects; edited via the settings editor and parsed in
+        // HelperConfiguration.Build(). Browsable(false): surfaced through the custom editor UI,
+        // not the property grid.
+        [Browsable(false)]
+        public string AcpAgentServersJson
+        {
+            get { return acpAgentServersJson; }
+            set
+            {
+                if (acpAgentServersJson != value)
+                {
+                    acpAgentServersJson = value;
+                    OnPropertyChanged(nameof(AcpAgentServersJson));
+                }
+            }
+        }
+
+        // Restores every persisted setting to its default value. Mirrors VS Code's
+        // poolside.resetConfiguration command (which clears all poolside.* config keys).
         // Each assignment fires PropertyChanged, so the reset propagates to Unified Settings
         // and the webview exactly like a manual edit; callers persist the legacy
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // store via SaveSettingsToStorage().
+        internal void ResetToDefaults()
+        {
+            Uri = "";
+            WrapLines = true;
+            ShowKeybindings = false;
+            DisabledEnrichmentsString = DEFAULT_DISABLED_ENRICHMENTS;
+            DisplayedLocalSearchDisabledInfo = false;
+            NotifyOnApproval = true;
+            ShowMermaidDiagrams = false;
+            ToolActivity = DEFAULT_TOOL_ACTIVITY;
+            DefaultWorkingDirectory = "";
+            AcpAgentServersJson = "";
+        }
+
         protected override UIElement Child
         {
             get
@@ -253,41 +253,41 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
         protected override void OnActivate(System.ComponentModel.CancelEventArgs e)
         {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            // Reload from saved settings when the page is opened so external changes show up, but
+            // not right after a cancelled apply (see suppressNextReload), where it would wipe the
+            // user's in-progress edits.
+            if (suppressNextReload)
+            {
+                suppressNextReload = false;
+            }
+            else
+            {
+                settingsEditor?.LoadSettings();
+            }
             base.OnActivate(e);
         }
 
         protected override void OnApply(PageApplyEventArgs e)
         {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            // Block saving an invalid ACP agent servers JSON. The helper would otherwise
+            // silently discard it and fall back to defaults, which looks like the setting was
+            // ignored; cancelling the apply keeps the dialog open so the user can fix it.
+            if (settingsEditor != null && !settingsEditor.IsAgentServersValid(out var error))
+            {
+                e.ApplyBehavior = ApplyKind.Cancel;
+                // Cancel re-activates this page; keep the user's text so they can fix it in place
+                // instead of having it reset to the last-saved value.
+                suppressNextReload = true;
+                System.Windows.MessageBox.Show(
+                    "ACP agent servers JSON is invalid and was not saved:\n\n" + error +
+                        "\n\nFix the JSON or clear the field.",
+                    "Poolside Assistant",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+                base.OnApply(e);
+                return;
+            }
+
             settingsEditor?.SaveSettings();
             base.OnApply(e);
         }
@@ -307,9 +307,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             {
                 uri = uri,
                 wrapLines = wrapLines,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                notifyOnApproval = notifyOnApproval,
+                showMermaidDiagrams = showMermaidDiagrams,
+                toolActivity = toolActivity
             };
         }
     }

@@ -2,13 +2,13 @@ import type { ColorTheme, FileIconTheme } from "@poolsideai/components/providers
 import type { Configuration, Keybindings, WorkspaceFolder } from "@poolsideai/rpc";
 import type { Environment } from "./src/lib/store";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export default {};
+
+/**
+ * global adds a type definition for the window.POOLSIDE_APP_STATE variable
+ * which is injected into the global scope of the webview window on start up.
+ */
+declare global {
   var POOLSIDE_INITIAL_STATE: {
     accessToken?: string | undefined;
     keybindings?: Keybindings;
@@ -48,4 +48,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     setState(state: T | undefined): void;
     postMessage(message: unknown): void;
   };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

@@ -14,7 +14,7 @@ interface ProductPlan {
 
 interface CoordinatedPlan {
   version: string | null;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  versions: Partial<Record<"vscode" | "desktop" | "vs", string>>;
   activeProducts: string[];
   products: Record<string, ProductPlan & { version?: string }>;
 }
@@ -23,7 +23,7 @@ const script = resolve(dirname(fileURLToPath(import.meta.url)), "find-version.ts
 const tsx = resolve(dirname(fileURLToPath(import.meta.url)), "../node_modules/.bin/tsx");
 const vscodeDestination = "poolside-ai.acp-assistant";
 const desktopDestination = "poolside/desktop-assistant";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const vsDestination = "Poolside.vs-acp-assistant";
 
 function git(repo: string, ...args: string[]): string {
   return execFileSync("git", args, { cwd: repo, encoding: "utf8" }).trim();
@@ -45,17 +45,17 @@ function runCli<T>(repo: string, ...args: string[]): T {
   return JSON.parse(result.stdout);
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function bootstrap(
+  repo: string,
+  product: "vscode" | "desktop" | "vs",
+  version: string,
+): ProductPlan {
+  const tagPrefix = { vscode: "vscode-assistant", desktop: "desktop", vs: "vs-assistant" }[product];
+  const destination = {
+    vscode: vscodeDestination,
+    desktop: desktopDestination,
+    vs: vsDestination,
+  }[product];
   const args = [
     "plan",
     product,
@@ -115,7 +115,7 @@ describe("coordinated product release planning", () => {
       resolve(repo, "bin/gh"),
       `#!/bin/sh
 case "$*" in
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  *vscode-assistant/v0.2.0*|*desktop/v0.8.0*|*vs-assistant/v0.4.0*) printf 'false\\n' ;;
   *) exit 1 ;;
 esac
 `,
@@ -127,19 +127,19 @@ esac
     git(repo, "config", "commit.gpgsign", "false");
     mkdirSync(resolve(repo, "app"));
     mkdirSync(resolve(repo, "desktop"));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    mkdirSync(resolve(repo, "vs"));
     writeFileSync(
       resolve(repo, "projects.yml"),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      "projects:\n  - name: vscode\n    tag: vscode-assistant\n    dirs:\n      - app\n  - name: desktop\n    tag: desktop\n    dirs:\n      - desktop\n  - name: vs\n    tag: vs-assistant\n    dirs:\n      - vs\n",
     );
     writeFileSync(resolve(repo, "app/file.txt"), "initial vscode");
     writeFileSync(resolve(repo, "desktop/file.txt"), "initial desktop");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    writeFileSync(resolve(repo, "vs/file.txt"), "initial vs");
     git(repo, "add", ".");
     git(repo, "commit", "-m", "initial");
     bootstrap(repo, "vscode", "0.2.0");
     bootstrap(repo, "desktop", "0.8.0");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    bootstrap(repo, "vs", "0.4.0");
   });
 
   afterEach(() => {
@@ -184,29 +184,29 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     });
     expect(plan.versions.desktop).toBeUndefined();
   });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  it("coordinates Visual Studio alongside the other products", () => {
+    const plan = coordinate(
+      repo,
+      "--vs",
+      "--vs-destination",
+      vsDestination,
+      "--channel",
+      "stable",
+      "--bump",
+      "patch",
+      "--sync-versions",
+    );
+
+    expect(plan).toMatchObject({
+      version: "0.8.1",
+      versions: { vscode: "0.8.1", desktop: "0.8.1", vs: "0.8.1" },
+      activeProducts: ["vscode", "desktop", "vs"],
+      products: {
+        vs: { action: "release", version: "0.8.0" },
+      },
+    });
+  });
 
   describe("first release after a history migration", () => {
     beforeEach(() => {

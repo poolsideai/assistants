@@ -41,7 +41,7 @@ namespace Poolside.Assistant.Listeners
 
                 // Build and send context so long as it is ready, otherwise retry.
                 var context = ContextBuilder.BuildContext();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                if (context.recentFile == null)
                 {
                     if (retries-- > 0)
                         Util.HandleTaskErrors(buildAndPropagateContext());

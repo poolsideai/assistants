@@ -2,30 +2,30 @@ export interface WorkspacePath {
   path: string;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export interface WorkspaceScopedConversation {
+  cwd?: string | null;
+  workingDirectories?: string[] | null;
+}
+
+// Whether the IDE sidebar shows a conversation for the folders currently open.
+// With no folder open there is nothing to scope against, so every conversation
+// stays visible: scoping against an empty folder list matches nothing and would
+// hide the user's entire history behind an empty sidebar.
+export function conversationFitsWorkspaceFolders(
+  conversation: WorkspaceScopedConversation,
+  workspaceFolders: WorkspacePath[],
+): boolean {
+  if (workspaceFolders.length === 0) return true;
+
+  const workingDirectories = conversation.workingDirectories?.length
+    ? conversation.workingDirectories
+    : [conversation.cwd ?? ""];
+
+  return workingDirectories.some((path) =>
+    workspacePathFitsWorkspaceFolders(path, workspaceFolders),
+  );
+}
+
 export function workspacePathFitsWorkspaceFolders(
   path: string,
   workspaceFolders: WorkspacePath[],

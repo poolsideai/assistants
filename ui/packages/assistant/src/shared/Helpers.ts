@@ -1,10 +1,10 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
  * Focus the prompt editor
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ */
 export function focusPrompt() {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // This is a hack to focus the textarea after the component has been hydrated
+  // FIXME: This is a hack and should be removed
+  setTimeout(() => {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     const prompt = document.getElementById("prompt-editor");
     // preventScroll: revealing the editor must not scroll ancestors — the
@@ -12,7 +12,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     // scrolled document sticks (see "command menu scroll shift", #124).
     prompt?.focus({ preventScroll: true });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
 
 /** Automatic navigation focus must not override a later user action. */
 export function focusPromptIfUnchanged(stillCurrent: () => boolean): () => void {

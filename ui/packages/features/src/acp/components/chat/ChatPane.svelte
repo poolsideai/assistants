@@ -349,17 +349,17 @@
   // Phone-sized layout: tighter transcript/composer spacing, safe-area bottom
   // padding, compact empty state.
   let isMobile = $derived($appState.environment.assistantHost === "mobile");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // The IDE hosts have no in-webview changes view; the conversation "Review"
+  // bar there opens the editor's native git UI instead (VS Code's Source
+  // Control panel, Visual Studio's Git Changes window).
   let isVscode = $derived($appState.environment.assistantHost === "vscode");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  let isVs = $derived($appState.environment.assistantHost === "vs");
   // Hosts that show the git "Review" bar at the bottom of a conversation:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // desktop (opens the custom changes view) and the IDE hosts (open native
+  // SCM via revealSourceControl). Mobile is intentionally excluded until it
+  // gets its own review surface — TODO(mobile-review): show the bar and wire
+  // a mobile changes view in a follow-up.
+  let supportsReviewBar = $derived(!readOnlyPreview && (isDesktop || isVscode || isVs));
 
   function showRenderedImageContextMenu(event: MouseEvent): void {
     if (!isDesktop) return;
@@ -383,7 +383,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   function openReview(): void {
     if (isDesktop) {
       requestDesktopChangesView(terminalScopePath || undefined);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    } else if (isVscode || isVs) {
       rpc.revealSourceControl();
     }
   }

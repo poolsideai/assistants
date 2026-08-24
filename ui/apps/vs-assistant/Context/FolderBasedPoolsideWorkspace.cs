@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security;
 using System.Text;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Poolside.Assistant.Context
@@ -38,12 +38,12 @@ namespace Poolside.Assistant.Context
             return path.StartsWith(workspacePath, StringComparison.OrdinalIgnoreCase);
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        public IEnumerable<WorkspaceItem> EnumerateWorkspaceItems(Dictionary<IgnoredContext.IgnoreTarget, HashSet<Regex>> ignored)
         {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            return EnumerateDirectory(workspacePath, ignored);
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        private IEnumerable<WorkspaceItem> EnumerateDirectory(string path, Dictionary<IgnoredContext.IgnoreTarget, HashSet<Regex>> ignored)
         {
             DirectoryInfo info;
             try
@@ -60,10 +60,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             }
             foreach (var directory in info.EnumerateDirectories())
             {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                if (ignored[IgnoredContext.IgnoreTarget.Directory].Any(r => r.IsMatch(directory.Name)))
                     continue;
                 yield return new WorkspaceItem(workspacePath, directory.FullName, WorkspaceItemKind.Directory);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                foreach (var item in EnumerateDirectory(directory.FullName, ignored))
                     yield return item;
             }
         }

@@ -15,7 +15,7 @@ on:
           - stable-minor
           - stable-major
       sync_versions:
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        description: "Align with the highest VS Code/Desktop/Visual Studio version"
         required: true
         default: true
         type: boolean

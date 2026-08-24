@@ -22,8 +22,8 @@ namespace Poolside.Assistant.ChatWindow
         internal static void setContext(ActiveFileContext context)
         {
             CallWebView("setContext", context);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            // The chat lives in per-conversation windows now, so they need the context too.
+            AcpChatToolWindow.Broadcast("setContext", context);
         }
 
         internal static void focusInput()
@@ -31,62 +31,62 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             CallWebView("focusInput");
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        internal static Task<ACPElicitationOutput> elicitation(object parameters)
         {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            return CallWebView<ACPElicitationOutput>("elicitation", parameters);
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Helper-owned pending approvals (permission prompts, elicitations) as a
+        // reconciled state push; webviews render and clear approval cards from it.
+        internal static Task acpApprovalsDidChange(object parameters)
         {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            AcpChatToolWindow.Broadcast("acpApprovalsDidChange", parameters);
+            return CallWebView("acpApprovalsDidChange", parameters);
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // The user's MCP connector store changed; webviews re-list it and re-inject
+        // connectors into their live agent sessions.
+        internal static Task mcpServersDidChange()
         {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            AcpChatToolWindow.Broadcast("mcpServersDidChange");
+            return CallWebView("mcpServersDidChange");
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        internal static Task<object> jsonrpcRequest(object parameters)
+        {
+            return CallWebView<object>("jsonrpcRequest", parameters);
+        }
+
+        internal static Task jsonrpcNotify(object parameters)
+        {
+            return CallWebView("jsonrpcNotify", parameters);
+        }
+
+        internal static Task acpAgentServerDidExit(object parameters)
+        {
+            return CallWebView("acpAgentServerDidExit", parameters);
+        }
+
+        // The ACP nav (conversation list) is owned by the sidebar webview, so nav
+        // updates always go there rather than to a per-conversation chat window.
+        internal static Task acpNavDidChange(object parameters)
+        {
+            return CallWebView("acpNavDidChange", parameters);
+        }
+
+        // Active-agent state for the sidebar (split-host): which ACP agent is active and
+        // its MCP capabilities. The sidebar has no session of its own, so it relies on
+        // this push to render its connectors UI. Always goes to the sidebar webview.
+        internal static Task acpActiveAgentDidChange(object parameters)
+        {
+            return CallWebView("acpActiveAgentDidChange", parameters);
+        }
+
         internal static Task setEditorFocused(bool focused)
         {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            // The session-bearing chat windows gate notifications on editor focus, so
+            // broadcast to them (not only the sidebar) — see #84/#106.
+            AcpChatToolWindow.Broadcast("setEditorFocused", focused);
             return CallWebView("setEditorFocused", focused);
         }
 

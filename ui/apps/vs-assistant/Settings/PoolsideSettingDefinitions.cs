@@ -33,41 +33,41 @@ namespace Poolside.Assistant.Settings
             };
 
         [VisualStudioContribution]
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        internal static Setting.Boolean ShowMermaidDiagrams { get; } =
+            new Setting.Boolean("showMermaidDiagrams", "Show Mermaid Diagrams", PoolsideAssistant, defaultValue: false)
+            {
+                Description = "Visualise Mermaid diagrams in code blocks (experimental)",
+            };
+
+        [VisualStudioContribution]
+        internal static Setting.Enum ToolActivity { get; } =
+            new Setting.Enum(
+                "toolActivity",
+                "Tool Activity",
+                PoolsideAssistant,
+                new[]
+                {
+                    new EnumSettingEntry("detailed", "Detailed"),
+                    new EnumSettingEntry("grouped", "Grouped"),
+                    new EnumSettingEntry("compact", "Compact"),
+                },
+                defaultValue: "grouped")
+            {
+                Description = "How much detail to show while the agent works. Finished replies always collapse into a summary.",
+            };
+
+        [VisualStudioContribution]
+        internal static Setting.String DefaultWorkingDirectory { get; } =
+            new Setting.String("defaultWorkingDirectory", "Default Working Directory", PoolsideAssistant, defaultValue: "")
+            {
+                Description = "Working directory the assistant uses when no folder or solution is open. Leave empty to use a scratch directory (%LOCALAPPDATA%\\poolside\\scratch) so the assistant's file tools start there instead of at your profile directory.",
+            };
+
+        [VisualStudioContribution]
+        internal static Setting.String AcpAgentServers { get; } =
+            new Setting.String("acpAgentServers", "ACP Agent Servers", PoolsideAssistant, defaultValue: "")
+            {
+                Description = "Named ACP servers available to the Poolside ACP client, as a JSON object (name -> { command, args, env, default_config_options }). Use {{SELF}} as the command for the bundled Poolside agent. Leave empty to use the default.",
+            };
     }
 }

@@ -299,7 +299,7 @@ The table preserves every unique ecosystem, package, and version record from the
 | npm | @oxc-parser/binding-win32-ia32-msvc | 0.127.0 | MIT |
 | npm | @oxc-parser/binding-win32-x64-msvc | 0.127.0 | MIT |
 | npm | @oxc-project/types | 0.127.0 | MIT |
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+| npm | @oxc-project/types | 0.144.0 | MIT |
 | npm | @oxc-resolver/binding-android-arm-eabi | 11.24.2 | MIT |
 | npm | @oxc-resolver/binding-android-arm64 | 11.24.2 | MIT |
 | npm | @oxc-resolver/binding-darwin-arm64 | 11.24.2 | MIT |
@@ -329,20 +329,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 | npm | @publint/pack | 0.1.5 | MIT |
 | npm | @quansync/fs | 0.1.5 | MIT |
 | npm | @rive-app/canvas-lite | 2.31.2 | MIT |
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+| npm | @rolldown/binding-android-arm64 | 1.2.4 | MIT |
+| npm | @rolldown/binding-darwin-arm64 | 1.2.4 | MIT |
+| npm | @rolldown/binding-darwin-x64 | 1.2.4 | MIT |
+| npm | @rolldown/binding-freebsd-x64 | 1.2.4 | MIT |
+| npm | @rolldown/binding-linux-arm-gnueabihf | 1.2.4 | MIT |
+| npm | @rolldown/binding-linux-arm64-gnu | 1.2.4 | MIT |
+| npm | @rolldown/binding-linux-arm64-musl | 1.2.4 | MIT |
+| npm | @rolldown/binding-linux-ppc64-gnu | 1.2.4 | MIT |
+| npm | @rolldown/binding-linux-s390x-gnu | 1.2.4 | MIT |
+| npm | @rolldown/binding-linux-x64-gnu | 1.2.4 | MIT |
+| npm | @rolldown/binding-linux-x64-musl | 1.2.4 | MIT |
+| npm | @rolldown/binding-openharmony-arm64 | 1.2.4 | MIT |
+| npm | @rolldown/binding-win32-arm64-msvc | 1.2.4 | MIT |
+| npm | @rolldown/binding-win32-x64-msvc | 1.2.4 | MIT |
 | npm | @rolldown/pluginutils | 1.0.1 | MIT |
 | npm | @rollup/pluginutils | 5.3.0 | MIT |
 | npm | @rollup/rollup-android-arm-eabi | 4.62.2 | MIT |
@@ -1367,7 +1367,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 | npm | rfdc | 1.4.1 | MIT |
 | npm | rimraf | 3.0.2 | ISC |
 | npm | robust-predicates | 3.0.3 | Unlicense |
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+| npm | rolldown | 1.2.4 | MIT |
 | npm | rolldown-plugin-dts | 0.16.11 | MIT |
 | npm | rollup | 4.62.2 | MIT |
 | npm | rope-sequence | 1.3.4 | MIT |

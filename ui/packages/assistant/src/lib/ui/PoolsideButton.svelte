@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
   import {
     PoolsideButton as SharedPoolsideButton,
     type ButtonProps,
@@ -6,8 +6,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   import { trackClick } from "../telemetry/interactions";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   let { children, prefix, suffix, trackClick: _trackClick, ...rest }: ButtonProps = $props();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
 <SharedPoolsideButton {...rest} {prefix} {suffix} {trackClick}>
   {@render children?.()}
 </SharedPoolsideButton>

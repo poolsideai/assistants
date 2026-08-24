@@ -1,16 +1,16 @@
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+namespace Poolside.Assistant.Telemetry
+{
     // Diagnostics are written to the "Poolside Assistant Diagnostics" output window pane and
     // are never sent to a reporting service.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    internal class PoolsideTelemetryLogger
+    {
         public static readonly PoolsideTelemetryLogger Instance = new PoolsideTelemetryLogger();
 
         private const string paneName = "Poolside Assistant Diagnostics";
@@ -19,22 +19,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         private IVsOutputWindowPane outputPane;
 
         private PoolsideTelemetryLogger() { }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+        public void reportError(Exception ex, Dictionary<string, object> data)
+        {
             Write(ex.ToString());
             if (data != null)
                 Write(JsonConvert.SerializeObject(data));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
+
         public void reportError(IDictionary<string, object> error, Dictionary<string, object> data)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {
             if (error != null)
                 Write(JsonConvert.SerializeObject(error));
             if (data != null)
                 Write(JsonConvert.SerializeObject(data));
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        }
+
         public void reportException(Exception ex) => reportError(ex, null);
 
         // Writes a diagnostic line to the output window pane. Debug.WriteLine is compiled out of
@@ -68,5 +68,5 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             outputWindow.GetPane(ref paneGuid, out outputPane);
             return outputPane;
         }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+}

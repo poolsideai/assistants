@@ -2,12 +2,12 @@
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+using Poolside.Assistant.ChatWindow;
 using Poolside.Assistant.Telemetry;
 using System;
 using System.Collections.Generic;
@@ -39,19 +39,19 @@ namespace Poolside.Assistant
             }
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        internal static async Task ShowInfoMessageAsync(string message, string type = null)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var infoBarFactory = (IVsInfoBarUIFactory)Package.GetGlobalService(typeof(SVsInfoBarUIFactory));
+            var infoBarModel = new InfoBarModel(
+                new[] { new InfoBarTextSpan(message) },
+                type == "error" ? KnownMonikers.StatusError : KnownMonikers.StatusInformation,
+                isCloseButtonVisible: true
+            );
             var poolsideToolWindow = await ChatToolWindow.GetAndShowAsync(PoolsideAssistantPackage.GetInstance());
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            poolsideToolWindow.AddInfoBar(infoBarFactory.CreateInfoBar(infoBarModel));
+        }
+
         public static System.Windows.Media.Color ToWindowsMediaColor(this System.Drawing.Color color)
         {
             return System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B);

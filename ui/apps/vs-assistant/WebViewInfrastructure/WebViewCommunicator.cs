@@ -25,12 +25,12 @@ namespace Poolside.Assistant.WebViewInfrastructure
 {
     public class WebViewCommunicator : IDisposable
     {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        private TaskCompletionSource<Nothing> readyTaskSource;
+        private Task readyTask;
+
         // We keep track of oustanding requests to the web view, with a task completion
         // source for each.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        public class Nothing { }
         internal interface WebViewResponseHandler
         {
             void HandleResponse(string responseJson);
@@ -87,20 +87,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         internal class HostRPCServerWithResponseMethods : HostRPCServer
         {
             private ConcurrentDictionary<int, WebViewResponseHandler> outstandingRequests;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            private WebViewCommunicator communicator;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            internal HostRPCServerWithResponseMethods(ConcurrentDictionary<int, WebViewResponseHandler> outstandingRequests, WebViewCommunicator webViewCommunicator)
             {
                 this.outstandingRequests = outstandingRequests;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                this.communicator = webViewCommunicator;
+            }
+
+            protected override WebViewCommunicator HostCommunicator => communicator;
+
+            public override Task ready()
+            {
+                communicator.markReady();
+                return Task.CompletedTask;
             }
 
             public Task webViewRPCSuccess(int requestId, string responseJson)
@@ -137,11 +137,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             }
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        private void markReady()
+        {
+            readyTaskSource.TrySetResult(new Nothing());
+        }
+
         // The browser instance we're communicating with.
         private ChromiumWebBrowser browser;
 
@@ -158,8 +158,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 new BindingOptions { Binder = new NewtonsoftJsonBinder() });
             VSColorTheme.ThemeChanged += OnThemeChanged;
             PoolsideAssistantPackage.GetInstance().GetSettings().PropertyChanged += OnSettingsChanged;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            readyTaskSource = new TaskCompletionSource<Nothing>();
+            readyTask = readyTaskSource.Task;
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "VSTHRD100:Avoid async void methods", Justification = "API compatibility; has try/catch")]
@@ -199,24 +199,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             public int requestId { get; set; }
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        public async Task<Nothing> CallWebView(string method, object[] arguments)
         {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            await readyTask;
             var requestId = nextRequestId++;
             var completionSource = new TaskCompletionSource<Nothing>();
             outstandingRequests.TryAdd(requestId, new OutstandingWebViewRequest(completionSource));
             SendMessageToWebView(method, arguments, requestId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            return await completionSource.Task;
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        public async Task<TResult> CallWebView<TResult>(string method, object[] arguments)
         {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            await readyTask;
             var requestId = nextRequestId++;
             var completionSource = new TaskCompletionSource<TResult>();
             outstandingRequests.TryAdd(requestId, new OutstandingWebViewRequest<TResult>(completionSource));
             SendMessageToWebView(method, arguments, requestId);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            return await completionSource.Task;
         }
 
         private void SendMessageToWebView(string method, object[] arguments, int requestId)
@@ -263,7 +263,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             public WebViewConfiguration userSettings { get; set; }
             public Workspace[] workspaces { get; set; }
             public string homeDirectory { get; set; }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            public string defaultCwd { get; set; }
             public string currentAgentId { get; set; }
             public Dictionary<string, string> keybindings { get; set; }
             public Environment environment { get; set; }
@@ -295,13 +295,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 userSettings = settings.GetWebViewConfiguration(),
                 workspaces = ContextBuilder.BuildProjectsList(),
                 homeDirectory = ContextBuilder.BuildHomeDirectory(),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                defaultCwd = ContextBuilder.BuildDefaultCwd(),
+                currentAgentId = CurrentAgentStore.Instance.CurrentAgentId,
                 keybindings = GetKeybindings(),
                 environment = BuildEnvironment(),
                 availableEnrichments = PromptContextBuilder.GetAvailableEnrichments(),
                 disabledEnrichments = settings.DisabledEnrichments,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                isAgenticMode = true,
                 isHelperSupported = true,
                 isEditorFocused = System.Windows.Application.Current?.MainWindow?.IsActive ?? true,
                 colorTheme = WebViewTheme.BuildColorTheme()
@@ -366,24 +366,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             var (ideProductName, ideVersion) = GetIDENameAndVersion();
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            var (extensionVersion, _) = GetExtensionVersion();
             return new Environment()
             {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                // The webview contract allows only "development" | "test" | "production",
+                // and error boundaries rethrow (crashing the webview) for anything except
+                // "production" — so installed preview builds must report "production",
+                // like VS Code's Marketplace pre-releases do. Preview-ness travels in the
+                // version's odd minor, not here.
+                assistantEnv = Util.IsExperimentalInstance() ? "development" : "production",
                 assistantHost = "vs",
                 assistantProduct = ideProductName,
                 assistantHostVersion = ideVersion,
                 assistantVersion = extensionVersion,
                 operatingSystem = "win32", // VS only runs on Windows; this is how it's represented in the Node.js platform enum, to match VSCode
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                // Only capabilities the shared webview actually reads. Flags for features VS
+                // does not back (runTerminalCommands, terminalPanel, openWorkspace,
+                // addFolderToWorkspace, customUI) are intentionally absent so their UI stays
+                // hidden rather than calling host methods VS lacks. See store.ts Capabilities.
                 capabilities = new Dictionary<string, bool>
                 {
                     { "header", true },

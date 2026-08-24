@@ -3,7 +3,7 @@ import { onMount } from "svelte";
 
 import { rpc } from "../../../lib/rpc/client";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Host-facing effects: global error reporting. The window focus/blur handlers
 // are pure and live on the core runtime itself.
 export function registerHostEffects() {
   onMount(() => installGlobalErrorHandlers());

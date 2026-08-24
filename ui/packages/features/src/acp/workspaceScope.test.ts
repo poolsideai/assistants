@@ -5,7 +5,7 @@ import {
   ACP_CHAT_WORKSPACE_PATH,
   ACP_IDE_WORKSPACE_PATH,
   acpProtocolCwd,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  acpSessionLoadCwd,
   acpSessionWorkspacePath,
   acpWorkingDirectories,
   acpWorkspaceFolders,
@@ -77,30 +77,30 @@ describe("workspaceScope", () => {
   });
 });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+describe("acpSessionLoadCwd", () => {
+  const openFolders = [{ path: "/currently-open", name: "currently-open", index: 0 }];
+
+  it("reopens a session in its own cwd, not the folder that happens to be open", () => {
+    expect(acpSessionLoadCwd("/where-the-session-was-created", openFolders)).toBe(
+      "/where-the-session-was-created",
+    );
+  });
+
+  it("falls back to the open folder when the session recorded no cwd", () => {
+    expect(acpSessionLoadCwd(undefined, openFolders)).toBe("/currently-open");
+    expect(acpSessionLoadCwd(null, openFolders)).toBe("/currently-open");
+    expect(acpSessionLoadCwd("   ", openFolders)).toBe("/currently-open");
+  });
+
+  it("falls back to root when there is neither a session cwd nor an open folder", () => {
+    expect(acpSessionLoadCwd("", [])).toBe("/");
+  });
+
+  it("keeps a cwd whose spaces are part of the path", () => {
+    expect(acpSessionLoadCwd(" /padded ", openFolders)).toBe(" /padded ");
+  });
+});
+
 function appStateFor(host: string, workspaces: AppState["workspaces"]) {
   return {
     environment: {

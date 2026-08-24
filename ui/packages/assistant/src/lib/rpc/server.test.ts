@@ -5,11 +5,11 @@ import {
   type WebViewRPCResponseSender,
   WebviewRPCServer,
 } from "./server";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+describe("client", () => {
+  let server: WebviewRPCServer;
+  let addEventListener: Mock;
+  let removeEventListener: Mock;
   let send: MockInstance<WebViewRPCResponseSender>;
   let acpTransport: { receive: Mock };
   let localInferenceRepo: { applyDidChange: Mock };
@@ -20,10 +20,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     terminalDidExit: Mock;
     terminalDidClose: Mock;
   };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  beforeEach(async () => {
+    addEventListener = vi.fn();
+    removeEventListener = vi.fn();
     acpTransport = { receive: vi.fn() };
     localInferenceRepo = { applyDidChange: vi.fn() };
     assistantTerminals = {
@@ -33,9 +33,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       terminalDidExit: vi.fn(),
       terminalDidClose: vi.fn(),
     };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    server = new WebviewRPCServer(
+      { addEventListener, removeEventListener },
       (_command, _payload) => {}, // We intercept calls for the test
       {} as any, // appState
       {} as any, // elicitationRepo
@@ -48,26 +48,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       undefined,
       undefined,
       localInferenceRepo as any,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    );
+
+    send = vi.spyOn(server, "sendMessage");
+  });
+
+  describe(".constructor", () => {
+    it("sets up an event listener", () => {
+      expect(addEventListener).toHaveBeenCalledWith("message", expect.anything());
+    });
+  });
+
+  describe(".dispose", () => {
+    it("removes the listener", () => {
+      const handler = addEventListener.mock.calls[0][1];
+      server.dispose();
+      expect(removeEventListener).toHaveBeenCalledWith("message", handler);
+    });
+  });
+
+  describe(".route", () => {
     it("ignores host notifications forged by an embedded frame", async () => {
       const iframe = document.createElement("iframe");
       document.body.append(iframe);
@@ -96,11 +96,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       }
     });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    it("skips when no handler is configured", async () => {
       await server.route({ data: {} } as MessageEvent<AssistantMessage>);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      expect(send).not.toHaveBeenCalled();
+    });
+
     it("applies local inference notifications to the injected repository", async () => {
       const params = {
         state: {
@@ -224,5 +224,5 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         },
       });
     });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  });
+});

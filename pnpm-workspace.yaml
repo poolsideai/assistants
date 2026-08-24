@@ -60,10 +60,10 @@ cleanupUnusedCatalogs: true
 onlyBuiltDependencies:
   - esbuild
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+packageExtensions:
+  langium@4.2.2:
+    dependencies:
+      vscode-jsonrpc: 8.2.0
 
 publicHoistPattern:
   - '*eslint*'

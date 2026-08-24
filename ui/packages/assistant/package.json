@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{
   "name": "@poolsideai/assistant",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -8,7 +8,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   "sideEffects": [
     "**/*.css"
   ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "type": "module",
   "imports": {
     "#tailwind.css": "./src/tailwind.css"
   },
@@ -49,7 +49,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "!dist/**/*.test.*",
     "!dist/**/*.stories.*"
   ],
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "scripts": {
     "build": "svelte-package --input src --tsconfig tsconfig.build.json",
     "build:storybook": "storybook build --stats-json",
     "check:format": "prettier . --check --cache --ignore-path ../../.gitignore",
@@ -68,13 +68,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "test:watch": "vitest"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
       "prettier --ignore-unknown --write"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "dependencies": {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@melt-ui/svelte": "catalog:",
     "@poolsideai/components": "workspace:*",
@@ -83,8 +83,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "@poolsideai/lib": "workspace:*",
     "@poolsideai/rpc": "workspace:*",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@vscode/webview-ui-toolkit": "^1.4.0",
+    "autosize": "^6.0.1",
     "lodash": "catalog:",
     "luxon": "catalog:",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -128,5 +128,5 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   "peerDependencies": {
     "svelte": "catalog:",
     "tailwindcss": "catalog:"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+}

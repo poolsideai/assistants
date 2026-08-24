@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Poolside.Assistant.Context
@@ -97,12 +97,12 @@ namespace Poolside.Assistant.Context
             return false;
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        public IEnumerable<WorkspaceItem> EnumerateWorkspaceItems(Dictionary<IgnoredContext.IgnoreTarget, HashSet<Regex>> ignored)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             foreach (var project in GetAllProjectsInSolution())
             {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                foreach (var workspaceItem in EnumerateProjectItems(project.Project, project.RootPath, ignored))
                 {
                     yield return workspaceItem;
                 }
@@ -185,12 +185,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             }
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        private static bool IsExternalCachePath(string fullPath)
+        {
+            return !string.IsNullOrEmpty(fullPath)
+                && fullPath.IndexOf(@"\.nuget\packages\", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
         private string GetProjectRootPath(Project project)
         {
             // See if we already calculated and cached it.
@@ -200,10 +200,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
             // No, so we need to calculate the base path by looking at all files. (We reuse the code used for file
             // searching, but put an empty string into the sub-workspace path argument, as that's what we're using
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            // the code to determine in this context). NuGet content references resolved from the global package
+            // cache (~\.nuget\packages\...) are excluded — otherwise a project that consumes such a package drags
+            // the common-prefix workspace root up to the user home directory.
+            path = GetCommonPathPrefix(EnumerateProjectItems(project, string.Empty, IgnoredContext.IGNORE_PATTERNS)
                 .Where(i => i.Kind == WorkspaceItemKind.File && !IsExternalCachePath(i.FullPath))
                 .Select(i => Path.GetDirectoryName(i.FullPath))
                 .Where(d => !string.IsNullOrEmpty(d))
@@ -215,7 +215,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             return path;
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        private IEnumerable<WorkspaceItem> EnumerateProjectItems(Project project, string rootPath, Dictionary<IgnoredContext.IgnoreTarget, HashSet<Regex>> ignored)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             var projectItems = project.ProjectItems;
@@ -231,7 +231,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             }
         }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        private IEnumerable<WorkspaceItem> EnumerateProjectItems(ProjectItem item, string subWorkspacePath, Dictionary<IgnoredContext.IgnoreTarget, HashSet<Regex>> ignored)
         {
             // Produce the workspace item.
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -240,14 +240,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 for (short i = 0; i < item.FileCount; i++)
                 {
                     var fullName = item.FileNames[i];
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                    if (!ignored[IgnoredContext.IgnoreTarget.File].Any(r => r.IsMatch(item.Name)))
+                        yield return new WorkspaceItem(subWorkspacePath, fullName, WorkspaceItemKind.File);
                 }
             }
             else if (item.Kind == EnvDTE.Constants.vsProjectItemKindPhysicalFolder)
             {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                if (ignored[IgnoredContext.IgnoreTarget.Directory].Any(r => r.IsMatch(item.Name)))
+                    yield break;
                 var fullName = item.FileNames[0];
                 yield return new WorkspaceItem(subWorkspacePath, fullName, WorkspaceItemKind.Directory);
             }

@@ -4,12 +4,12 @@ on:
     paths:
       - ui/**
       - scripts/ui/**
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      - .github/workflows/ui-ci.yml
       - .github/workflows/release-*.yml
       - .github/workflows/validate-*-release.yml
       - .github/actions/**
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      - package.json
+      - pnpm-*.yaml
     branches:
       - main
   pull_request:

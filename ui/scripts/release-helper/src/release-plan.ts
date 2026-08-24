@@ -1,6 +1,6 @@
 import semver from "semver";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export type ReleaseProduct = "vscode" | "desktop" | "vs";
 export type ReleaseChannel = "stable" | "nightly";
 export type ReleaseBump = "patch" | "minor" | "major";
 

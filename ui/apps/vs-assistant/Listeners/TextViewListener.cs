@@ -40,35 +40,35 @@ namespace Poolside.Assistant.Listeners
 
         private void OnSelectionChanged(object sender, EventArgs e)
         {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            // Coalesce caret-driven refreshes to idle, as VS Code debounces its
+            // equivalent: a full visible-files snapshot per caret step would
+            // block the UI thread on large files.
+            ScheduleContextResync();
         }
 
         // Incremented synchronously on a change, and used to cancel the background context sync if there
         // are further changes.
         private int updateContextTicket = 0;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        private void ScheduleContextResync()
+        {
+            var myUpdateContextTicket = ++this.updateContextTicket;
+            _ = ThreadHelper.JoinableTaskFactory.StartOnIdle(() =>
+            {
+                if (myUpdateContextTicket != this.updateContextTicket)
+                    return;
+                try
+                {
+                    ThreadHelper.ThrowIfNotOnUIThread();
+                    ContextBuilder.SendLatestContext();
+                }
+                catch (Exception ex)
+                {
+                    PoolsideTelemetryLogger.Instance.reportException(ex);
+                }
+            });
+        }
+
         private void OnTextBufferChanged(object sender, TextContentChangedEventArgs e)
         {
             // Dispatch the change notification to the LSP immediately, and but do the rest out of
@@ -81,7 +81,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 if (path != null)
                 {
                     SendTextDidChangeNotifications(path, e);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                    ScheduleContextResync();
                 }
             }
         }

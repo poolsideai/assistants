@@ -10,11 +10,11 @@ namespace Poolside.Assistant.Context
     {
         public Workspace[] workspaces { get; set; }
         public string homeDirectory { get; set; }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        public string defaultCwd { get; set; }
+        // Names must match ActiveFileContext in @poolsideai/rpc: the ACP webview
+        // reads only recentFile and activeFiles from setContext.
+        public AttachedFile recentFile { get; set; }
+        public AttachedFile[] activeFiles { get; set; }
     }
 
     public class Workspace

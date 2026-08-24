@@ -19,13 +19,13 @@ const trackedFiles = execFileSync("git", ["ls-files"], {
   .trim()
   .split("\n");
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+const appDirs: Record<string, string> = {
+  vscode: "ui/apps/vscode-assistant",
+  desktop: "ui/apps/desktop-assistant",
+  vs: "ui/apps/vs-assistant",
+};
+const products = Object.keys(appDirs);
+
 function dirsFor(name: string): string[] {
   const project = config.projects.find((candidate) => candidate.name === name);
   if (!project) throw new Error(`Missing ${name} project`);
@@ -34,13 +34,13 @@ function dirsFor(name: string): string[] {
 
 describe("release project ownership", () => {
   it("contains only products managed by the coordinated release flow", () => {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(config.projects.map((project) => project.name)).toEqual(["vscode", "desktop", "vs"]);
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it.each(products)("covers the %s runtime dependency graph", (product) => {
     expect(dirsFor(product)).toEqual(
       expect.arrayContaining([
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        appDirs[product],
         "cmd/poolside-helper",
         "pkg",
         "ui/apps/mobile-remote",
@@ -81,14 +81,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   it("assigns the Desktop-only MLX sidecar only to Desktop", () => {
     expect(dirsFor("desktop")).toContain("cmd/poolside-mlx-sidecar");
     expect(dirsFor("vscode")).not.toContain("cmd/poolside-mlx-sidecar");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(dirsFor("vs")).not.toContain("cmd/poolside-mlx-sidecar");
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it.each(products)("does not treat %s release automation as product code", (product) => {
+    expect(dirsFor(product).some((dir) => dir.startsWith(".github/"))).toBe(false);
+  });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it.each(products)("contains only tracked %s ownership paths", (product) => {
     for (const path of dirsFor(product)) {
       expect(
         trackedFiles.some((file) => file === path || file.startsWith(`${path}/`)),

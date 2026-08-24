@@ -141,34 +141,34 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
                 { "vs-scroll-track", ThemeColor(EnvironmentColors.ScrollBarBackgroundColorKey) },
                 { "vs-scroll-thumb", ThemeColor(EnvironmentColors.ScrollBarThumbBackgroundColorKey) },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+                // Terminal colors - using editor colors since terminal is rendered in a tool window with editor background
+                { "psx-terminal-font", "var(--psx-font-mono)" },
+                { "psx-terminal-foreground", ToHexColor(editorColors.editorForeground) ?? ThemeColor(EnvironmentColors.ToolWindowTextColorKey) },
+                { "psx-terminal-background", ToHexColor(editorColors.editorBackground) ?? ThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey) },
+                { "psx-terminal-cursor", ToHexColor(editorColors.editorForeground) ?? ThemeColor(EnvironmentColors.ToolWindowTextColorKey) },
+                { "psx-terminal-cursor-accent", ToHexColor(editorColors.editorBackground) ?? ThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey) },
+                { "psx-terminal-selection-background", ToHexColor(editorColors.selectionBackground) ?? ThemeColor(EnvironmentColors.ComboBoxSelectionColorKey) },
+                { "psx-terminal-selection-foreground", ToHexColor(editorColors.selectionForeground) ?? ThemeColor(EnvironmentColors.ToolWindowTextColorKey) },
+                { "psx-terminal-selection-inactive-background", ToHexColor(editorColors.lineHighlightBorder) ?? ToHexColor(editorColors.selectionBackground) },
+
+                // ANSI colors - VS doesn't expose these directly, so we use standard terminal colors
+                { "psx-terminal-black", isDark ? "#000000" : "#000000" },
+                { "psx-terminal-red", isDark ? "#CD3131" : "#CD3131" },
+                { "psx-terminal-green", isDark ? "#0DBC79" : "#00BC00" },
+                { "psx-terminal-yellow", isDark ? "#E5E510" : "#949800" },
+                { "psx-terminal-blue", isDark ? "#2472C8" : "#0451A5" },
+                { "psx-terminal-magenta", isDark ? "#BC3FBC" : "#BC05BC" },
+                { "psx-terminal-cyan", isDark ? "#11A8CD" : "#0598BC" },
+                { "psx-terminal-white", isDark ? "#E5E5E5" : "#555555" },
+                { "psx-terminal-bright-black", isDark ? "#666666" : "#666666" },
+                { "psx-terminal-bright-red", isDark ? "#F14C4C" : "#CD3131" },
+                { "psx-terminal-bright-green", isDark ? "#23D18B" : "#14CE14" },
+                { "psx-terminal-bright-yellow", isDark ? "#F5F543" : "#B5BA00" },
+                { "psx-terminal-bright-blue", isDark ? "#3B8EEA" : "#0451A5" },
+                { "psx-terminal-bright-magenta", isDark ? "#D670D6" : "#BC05BC" },
+                { "psx-terminal-bright-cyan", isDark ? "#29B8DB" : "#0598BC" },
+                { "psx-terminal-bright-white", isDark ? "#E5E5E5" : "#A5A5A5" },
             };
         }
 

@@ -5,7 +5,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.General;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Window;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+using Newtonsoft.Json.Linq;
 using Poolside.Assistant.ChatWindow;
 using Poolside.Assistant.Context;
 using Poolside.Assistant.Tasks;
@@ -168,44 +168,44 @@ namespace Poolside.Assistant.HelperLSP
                                     Diagnostics = await PoolsideAssistantPackage.GetInstance().GetErrorTableWatcher()
                                         .GetDiagnosticsForFileAsync(FileOperations.UriToPath(diagParams.Uri), diagParams.WaitMs, diagParams.Severity)
                                 };
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                            })
+                        .OnRequest("poolside/acp/elicitation/create", (JObject parameters) =>
                         {
                             // We need to use Task.Run here to get the processing of this off the
                             // LSP message dispatch thread, otherwise we can't process any other
                             // concurrent notifications or requests, and the assistant relies on us
                             // being able to.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                            return Task.Run(() =>
+                            {
+                                // Deliver to the chat window owning the elicitation's session,
+                                // falling back to the sidebar webview like jsonrpc/request below.
+                                var communicator = AcpChatToolWindow.RequestTarget(parameters)?.Communicator;
+                                if (communicator != null)
+                                    return communicator.CallWebView<ACPElicitationOutput>("elicitation", new object[] { parameters });
+                                return ChatWindowRPCClient.elicitation(parameters);
+                            });
+                        })
+                        .OnNotification("poolside/acp/approvals/didChange", (object parameters) =>
+                        {
+                            // Helper-owned pending approvals (permission prompts, elicitations)
+                            // as a reconciled state push; webviews render and clear approval
+                            // cards from it, including for conversations they don't have open.
+                            ChatWindowRPCClient.acpApprovalsDidChange(parameters);
+                        })
+                        .OnNotification("poolside/mcpServers/didChange", (object parameters) =>
+                        {
+                            ChatWindowRPCClient.mcpServersDidChange();
+                        })
+                        .OnShowMessage((ShowMessageParams messageParams) =>
+                        {
+                            // The helper emits window/showMessage on MCP OAuth failures and
+                            // agent restarts; without a handler they vanish at debug level.
+                            _ = Task.Run(async () =>
+                            {
+                                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                                var messageType = messageParams.Type == MessageType.Error ? "error" : null;
+                                await Util.ShowInfoMessageAsync(messageParams.Message, messageType);
+                            });
                         })
                         .OnShowMessageRequest(async (ShowMessageRequestParams requestParams) =>
                         {
@@ -240,47 +240,47 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                             var path = FileOperations.UriToPath(showDocumentRequest.uri);
                             Util.OpenFileInEditor(path);
                         })
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                        // ACP bridge: helper wraps every agent→client frame in poolside/jsonrpc/{notify,request}.
+                        // Hand them off to the webview, which feeds them to the ACP SDK via RPCTransport.
+                        // Task.Run on the request handler keeps the LSP dispatch thread free, same reason as elicitation above.
+                        .OnRequest("poolside/jsonrpc/request", (object parameters) =>
+                            Task.Run(() =>
+                            {
+                                // Route to the chat window owning this session; fall back to the
+                                // sidebar webview when no chat window matches (nothing open yet, or
+                                // the desktop all-in-one view where the sidebar hosts the chat).
+                                var communicator = AcpChatToolWindow.RequestTarget(parameters)?.Communicator;
+                                if (communicator != null)
+                                {
+                                    return communicator.CallWebView<object>("jsonrpcRequest", new object[] { parameters });
+                                }
+                                return ChatWindowRPCClient.jsonrpcRequest(parameters);
+                            }))
+                        .OnNotification("poolside/jsonrpc/notify", (object parameters) =>
+                        {
+                            if (!AcpChatToolWindow.RouteNotify(parameters))
+                            {
+                                ChatWindowRPCClient.jsonrpcNotify(parameters);
+                            }
+                        })
+                        .OnNotification("poolside/acp/serverDidExit", (object parameters) =>
+                        {
+                            if (!AcpChatToolWindow.RouteServerDidExit(parameters))
+                            {
+                                ChatWindowRPCClient.acpAgentServerDidExit(parameters);
+                            }
+                        })
+                        .OnNotification("poolside/acpNav/didChange", (object parameters) =>
+                        {
+                            // The nav (conversation list) is owned by the sidebar webview;
+                            // chat windows take their tab titles from it.
+                            ChatWindowRPCClient.acpNavDidChange(parameters);
+                            _ = AcpChatToolWindow.ApplyNavStateAsync(parameters);
+                        })
                         .OnNotification("poolside/mcpOAuthURL", (MCPOAuthURLParams parameters) =>
                         {
                             Util.OpenUrlInBrowser(parameters.AuthURL);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                        });
                 },
                     CancellationToken.None);
 
