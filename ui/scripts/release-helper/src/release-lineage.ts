@@ -66,11 +66,11 @@ function validateMetadata(value: unknown): ReleaseTagMetadata {
   if (metadata.kind !== RELEASE_LINEAGE_KIND || metadata.schema !== RELEASE_LINEAGE_SCHEMA) {
     throw new Error("Unsupported release-lineage metadata kind or schema");
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  if (
+    metadata.product !== "vscode" &&
+    metadata.product !== "desktop" &&
+    metadata.product !== "vs"
+  ) {
     throw new Error(`Unsupported release product in tag metadata: ${metadata.product}`);
   }
   if (typeof metadata.tagPrefix !== "string") {

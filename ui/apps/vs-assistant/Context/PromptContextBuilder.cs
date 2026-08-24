@@ -13,10 +13,10 @@ namespace Poolside.Assistant.Context
         {
             new DependenciesContextProvider(),
             new DiagnosticsContextProvider(),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            new ReadmePromptContextProvider(),
+            new GitBranchContextProvider(),
+            new GitRecentCommitsContextProvider(),
+            new GitDiffContextProvider()
         };
 
         internal static List<string> GetAvailableEnrichments()

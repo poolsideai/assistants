@@ -51,9 +51,9 @@
 
   <!-- Assembly references not covered by UseWPF or PackageReferences -->
   <ItemGroup>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <Reference Include="SmartReader">
+      <HintPath>bin\Debug\SmartReader.dll</HintPath>
+    </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -81,7 +81,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Build" Version="17.12.40390" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.12.2069" PrivateAssets="all">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OmniSharp.Extensions.LanguageClient" Version="0.18.3" />
@@ -100,10 +100,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    <Content Include="License.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="app\dist\*.*">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -122,7 +122,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </ItemGroup>
 
 
   <Target Name="ExcludePdbFilesAfterCompile" BeforeTargets="Compile">
@@ -134,6 +134,6 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       <_FilteredReferenceCopyLocalPaths Include="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' == '.xml'" />
       <ReferenceCopyLocalPaths Remove="@(_FilteredReferenceCopyLocalPaths)" />
     </ItemGroup>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </Target>
 
 </Project>

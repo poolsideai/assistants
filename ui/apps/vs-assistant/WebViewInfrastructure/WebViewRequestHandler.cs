@@ -37,13 +37,13 @@ namespace Poolside.Assistant.WebViewInfrastructure
 
         protected override IResourceRequestHandler GetResourceRequestHandler(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling)
         {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            // We treat requests to poolside-app://app/... specially, serving them from
             // the resources.
             var url = request?.Url;
             if (url != null)
             {
                 var parsed = new Uri(url);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                if (parsed.Scheme == "poolside-app" && parsed.Host == "app")
                 {
                     return new WebViewResourceRequestHandler(parsed.AbsolutePath, setupHTML);
                 }

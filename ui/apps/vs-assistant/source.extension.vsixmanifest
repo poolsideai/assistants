@@ -3,13 +3,13 @@
     <Metadata>
         <Identity Id="vs-acp-assistant" Version="1.4.0" Language="en-US" Publisher="Poolside" />
         <DisplayName>Poolside Assistant</DisplayName>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <Description xml:space="preserve">The power of Poolside, right in your editor</Description>
         <MoreInfo>https://poolside.ai/</MoreInfo>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <License>License.txt</License>
         <ReleaseNotes>ReleaseNotes.html</ReleaseNotes>
         <Icon>extension-icon.png</Icon>
         <Tags>ai</Tags>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        <Preview>false</Preview>
     </Metadata>
     <Installation ExtensionType="VSSDK+VisualStudio.Extensibility">
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.9,)">

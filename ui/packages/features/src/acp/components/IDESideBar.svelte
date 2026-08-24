@@ -5,7 +5,7 @@
   import { InfoMessageType, type WorkspaceFolder } from "@poolsideai/rpc";
   import { onDestroy, onMount } from "svelte";
   import type { ACPSession } from "../features/Session.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { ACP_IDE_WORKSPACE_PATH, acpProtocolCwd, acpSessionLoadCwd } from "../workspaceScope";
   import { rpc } from "../hostRpc";
   import {
     ACP_DESKTOP_CONVERSATIONS_EVENT,
@@ -14,7 +14,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   } from "../navTypes";
   import { getACPConversationRepo } from "../features/ConversationRepository.svelte";
   import { getACPLocalHistoryRepo } from "../features/LocalHistoryRepository.svelte";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { conversationFitsWorkspaceFolders } from "../workspacePaths";
   import { findVisibleNavSession, groupSessions, historySessionKey } from "./sessionPickerUtil";
   import CollapsedSidebarActions from "./sidebar/CollapsedSidebarActions.svelte";
   import { setAcpSidebarController } from "./sidebar/SidebarController.svelte";
@@ -80,7 +80,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     getActiveConversationId: () => activeConversationId,
     getActiveSession: () => activeSession,
     setActiveConversationId: (id) => onActiveConversationIdChange?.(id),
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    resolveSessionCwd: (session) => acpSessionLoadCwd(session.cwd, currentWorkspaceFolders),
     isChatActive: () => true,
   });
   onDestroy(() => sidebar.destroy());
@@ -118,7 +118,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     const query = searchQuery.trim().toLowerCase();
     return navSessions.filter((session) => {
       if (exitingConversationIds.has(session.id)) return false;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (!conversationFitsWorkspaceFolders(session, currentWorkspaceFolders)) return false;
       if (!query) return true;
       return (
         (session.title || "Untitled Conversation").toLowerCase().includes(query) ||
@@ -195,11 +195,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   }
 
   async function restoreHistorySession(session: ACPConversationSummary) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Restoring only un-archives the conversation in local nav state; it does not
+    // move the session in the agent, which still holds it under its original cwd.
+    // Re-homing the record onto the current folder here would make the next
+    // session/load look in a directory the agent never stored the session under.
+    const cwd = acpSessionLoadCwd(session.cwd, currentWorkspaceFolders);
     const workingDirectories = session.workingDirectories?.length
       ? Array.from(session.workingDirectories)
       : [cwd];
@@ -220,7 +220,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     showingHistory = false;
     await sidebar.openSession(
       navSession,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      acpSessionLoadCwd(navSession.cwd || session.cwd, currentWorkspaceFolders),
     );
   }
 
@@ -229,7 +229,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   // session's original directory no longer exists. The history overlay stays
   // open so the user can keep browsing and open other conversations.
   async function openHistorySessionReadOnly(session: ACPConversationSummary) {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    await sidebar.openSession(session, acpSessionLoadCwd(session.cwd, currentWorkspaceFolders), {
       readOnly: true,
       fallbackCwds: [acpProtocolCwd(currentWorkspaceFolders), "/"],
     });

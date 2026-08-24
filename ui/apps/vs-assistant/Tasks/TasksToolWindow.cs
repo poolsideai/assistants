@@ -80,7 +80,7 @@ namespace Poolside.Assistant.Tasks
                 foundToolWindowForTask.frame.Show();
                 if (versionId != null)
                 {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                    await foundToolWindowForTask.toolWindow.GetCommunicator().CallWebView("showTaskVersion", new object[] { task, versionId });
                 }
             }
             else

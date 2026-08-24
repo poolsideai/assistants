@@ -303,9 +303,9 @@
     ) {
       return view;
     }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Fall back to a section the host actually renders: the IDE section list
+    // (IDE_SETTINGS_SECTIONS) has no "models", so it would come up empty.
+    return isDesktop ? "preferences" : "connectors";
   }
 
   function showSettingsSection(section: DesktopSettingsSection) {

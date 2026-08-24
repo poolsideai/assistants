@@ -1,5 +1,5 @@
 import type { HostClient } from "@poolsideai/rpc";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 export type HostMessageSender = (method: string, args: any[]) => Promise<any>;
 type RawJsonRPC = Pick<HostClient, "jsonrpc" | "jsonrpcNotify">;
 export type RPCClient = Omit<HostClient, keyof RawJsonRPC>;
@@ -20,12 +20,12 @@ export function initializeStatefulModule(sender: HostMessageSender) {
   hostMessageSender = sender;
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * An RPC client used to communicate from the VSCode webview context up to the VSCode extension
+ * context.
+ *
  * @implements {HostClient}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+ */
 function getHostMessageSender() {
   if (!hostMessageSender) {
     console.error("Missing host message sender; it should be installed before the client is used");
@@ -55,9 +55,9 @@ export function createHelperApiClient(): HelperAPIClient {
 }
 
 export const rpc = new Proxy<RPCClient>({} as RPCClient, {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  get(_, method) {
+    return function (...args: any[]) {
       return getHostMessageSender()(method.toString(), args);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    };
+  },
+});

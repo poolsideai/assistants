@@ -37,7 +37,7 @@ import type {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 import { focusPrompt } from "../../shared/Helpers";
 import { type AppStore } from "../store";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 export type WebviewRPCListener = Pick<Window, "addEventListener" | "removeEventListener">;
 
 // Host-driven conversation navigation (e.g. a clicked desktop notification).
@@ -46,7 +46,7 @@ export type WebviewRPCListener = Pick<Window, "addEventListener" | "removeEventL
 export const SET_CURRENT_CONVERSATION_EVENT = "poolside:set-current-conversation";
 type RPCMessageEvent = Pick<MessageEvent<AssistantMessage>, "data"> &
   Partial<Pick<MessageEvent, "source">>;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
 export type WebViewRPCResponseSender = (
   command: string,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -61,10 +61,10 @@ interface AssistantTerminalEventSink {
 }
 
 export class WebviewRPCServer implements Assistant {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  dispose: () => void;
   sendMessage: WebViewRPCResponseSender;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  constructor(
     win: WebviewRPCListener,
     messageSender: WebViewRPCResponseSender,
     readonly appState: AppStore,
@@ -78,18 +78,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     readonly acpProjectRepo?: ACPProjectRepository,
     readonly acpConversationRepo?: ACPConversationRepository,
     readonly localInferenceRepo?: LocalInferenceRepository,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  ) {
+    const handler = this.route.bind(this);
+    win.addEventListener("message", handler);
+    this.dispose = () => win.removeEventListener("message", handler);
+    this.sendMessage = messageSender;
+  }
+
+  async route(e: RPCMessageEvent) {
     // Native hosts dispatch with no source; browser hosts use this window or
     // its parent. Embedded visualization frames must never supply host events.
     if (e.source && e.source !== window && e.source !== window.parent) return;
     if (!e.data || typeof e.data !== "object") return;
+    const { command, payload, requestId } = e.data;
+
+    // Ignore non RPC messages
+    const handler = this[command];
+    if (typeof handler !== "function") {
+      return;
+    }
+
+    try {
+      //@ts-ignore
+      const response = await handler.apply(this, payload);
+      this.sendMessage(command, { requestId, response });
+    } catch (error) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -99,22 +112,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
+  }
+
   acpNavDidChange(params: ACPNavDidChangeParams): void {
     this.acpProjectRepo?.replaceProjects(params.state.projects ?? []);
     this.acpConversationRepo?.replaceConversations(params.state.conversations ?? []);
@@ -276,4 +276,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   jsonrpcRequest(params: any): Promise<any> {
     return this.acpTransport.sendRequest(params);
   }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}

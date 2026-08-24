@@ -29,7 +29,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 2. Install Visual Studio 2022, and make sure that you pick the extension
    development workload in the setup.
 3. Create a shared drive with this repository as its root.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+4. On the host system, in the `app/` directory, first run
    `pnpm run download:binaries` to fetch the highest published `helper/v*`
    runtime produced by a VS Code or Desktop release (this needs the `gh` CLI
    authenticated), then run
@@ -41,15 +41,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+### Prebuilt VSIX from CI
+
+The **Build VSIX** workflow packages a complete extension — webview bundle and
+helper included — for every push and pull request that touches this directory.
+The `poolside-assistant-vsix` artifact on the run is installable, so reviewing
+or testing a change does not always need a local Windows build. It is unsigned
+and its version is whatever the manifest currently says, so it is for testing
+only, never for distribution.
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -114,41 +114,41 @@ published release in the independent `helper/v*` lineage. Set
 `POOLSIDE_HELPER_VERSION=helper/vM.m.p` to reproduce or test an exact helper
 release. Follow the instructions above when helper API types also changed.
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+## Nightly releases from CI
+
+The coordinated release train (`.github/workflows/release-products.yml`) can
+release the extension as the `vs` product. A nightly release is an unsigned
+VSIX published to GitHub Releases as a prerelease under a `vs-assistant/vX.Y.Z`
+tag, with the signed helper from the shared `helper/v*` runtime inside.
+Publication is gated on the `VS_RELEASES_ENABLED` and
+`NIGHTLY_RELEASES_ENABLED` repository variables. Stable Marketplace releases
+still follow the manual process below, but `make release-visual-studio`
+records their tags in the same `vs-assistant/v*` lineage, so the nightly
+planner continues from the latest stable version (for example, the first
+nightly after stable 1.6.0 is 1.7.0). The retired `vs/v*` tags are not read
+by the planner.
+
+The release planner never invents the first version. A manual release through
+`make release-visual-studio` binds the `vs-assistant/v*` tag lineage on its
+own; to start nightlies before the first such release, bootstrap the lineage
+once by planning an exact nightly version (odd minor) against the main tip and
+pushing the annotated tag it produces:
+
+```bash
+cd ui/scripts/release-helper
+plan=$(pnpm -s find-version plan vs --channel nightly --version 1.5.0 \
+  --ref origin/main --tag-prefix vs-assistant \
+  --destination "$(../../apps/vs-assistant/scripts/extension-identity.sh)" \
+  --create-lineage)
+git tag --annotate --message "$(jq -r '.tagAnnotation' <<<"$plan")" \
+  "$(jq -r '.tag' <<<"$plan")" "$(jq -r '.sourceSha' <<<"$plan")"
+git push origin "$(jq -r '.tag' <<<"$plan")"
+```
+
+Then run the **Release · Visual Studio** workflow right away, before main
+moves: it resumes the reserved tag and publishes its GitHub release. Scheduled
+nightlies take over from there.
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -212,23 +212,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
    in the pull request).
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+10. Merge the release PR. The release tag joins the managed `vs-assistant/v*`
+    lineage, whose planner requires the released commit to be on `main`.
+11. Check out `main`, pull the merged release commit, and in the repository
+    root run `make release-visual-studio`.
+12. Back in the Windows Virtual Machine, set the configuration to "Release",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+13. Sign the VSIX. In a Developer Command Prompt, run:
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     sign-vsix.bat
     ```
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+14. Close Visual Studio. Find the newly built release (in the `bin\Release\net472`
     folder, named `poolside-assistant.vsix`). Install it into your Visual
     Studio instance.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+15. Open Visual Studio. Run some test prompt to make sure it works OK after
     install.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+16. Back on your host machine, press enter to complete the automated part of
+    the release process, which pushes the annotated `vs-assistant/vX.Y.Z` tag
+    and uploads the release to GitHub.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
     be in `bin\Release`).

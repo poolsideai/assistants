@@ -23,19 +23,19 @@ export function acpProtocolCwd(workspaceFolders: WorkspaceFolder[], fallback = "
   return workspaceFolders[0]?.path || fallback || "/";
 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// The cwd a conversation must be reopened with. Agents key a stored session by the
+// cwd it was created in, so session/load has to carry that same cwd back or the
+// session cannot be found. The open workspace folder is only a fallback for
+// conversations that never recorded a cwd of their own.
+export function acpSessionLoadCwd(
+  sessionCwd: string | null | undefined,
+  workspaceFolders: WorkspaceFolder[],
+): string {
+  // Trim only to recognise a blank cwd. Surrounding spaces are legal in a POSIX path,
+  // so a trimmed cwd is a different key than the one the session was stored under.
+  return sessionCwd?.trim() ? sessionCwd : acpProtocolCwd(workspaceFolders);
+}
+
 export function acpWorkspacePath(
   appState: Pick<AppState, "environment">,
   workspaceFolders: WorkspaceFolder[],

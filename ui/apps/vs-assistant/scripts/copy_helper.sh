@@ -8,11 +8,11 @@ set -euo pipefail
 set -x
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+HELPER_DIR="$SCRIPT_DIR/../helper"
+# The helper directory holds only downloaded binaries and is not committed, so
+# create it on a fresh checkout before cd'ing into it.
+mkdir -p "$HELPER_DIR"
+cd "$HELPER_DIR"
 
 REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
 helper_version="$(bash "$REPO_ROOT/scripts/resolve-helper-release.sh")"

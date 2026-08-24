@@ -1,7 +1,7 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import * as fs from "fs";
 import * as os from "os";
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import * as path from "path";
 import * as vscode from "vscode";
 import { System } from "./system";
 import { isDiffTab, isOpenInTab, isTextTab } from "./tabs";
@@ -18,50 +18,50 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Working directory used by the assistant when no folder is open. A dedicated
+// scratch directory keeps the agent's file tools inside a throwaway folder; the
+// home directory used to serve this role, which put .ssh, .aws and AppData within
+// reach of glob/grep/shell for anyone who had not set defaultWorkingDirectory.
 export function getDefaultCwd(): string {
   const configured = vscode.workspace
     .getConfiguration("poolside")
     .get<string>("defaultWorkingDirectory");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  // A configured directory is the user's call, so it is returned as it stands - the
+  // Visual Studio host does the same. Only the fallback below is ours to create, and
+  // only the fallback may be replaced when creating it fails.
+  const cwd = configured?.trim();
+  if (cwd) return cwd;
+
+  return ensureScratchDirectory();
+}
+
+// getDefaultCwd runs on every context refresh, and a cursor move is enough to trigger
+// one, so the directory is resolved once per session rather than on every call:
+// mkdirSync is synchronous and has no business on the extension host's hot path.
+let ensuredScratchDirectory: string | undefined;
+
+function ensureScratchDirectory(): string {
+  if (ensuredScratchDirectory) return ensuredScratchDirectory;
+
+  const scratch = scratchDirectory();
+  try {
+    fs.mkdirSync(scratch, { recursive: true });
+    ensuredScratchDirectory = scratch;
+  } catch {
+    // The shell tool still needs somewhere writable to start; the temp directory
+    // keeps it out of the user's profile when the scratch dir cannot be created.
+    ensuredScratchDirectory = os.tmpdir();
+  }
+  return ensuredScratchDirectory;
+}
+
+function scratchDirectory(): string {
+  const localAppData = process.env.LOCALAPPDATA;
+  if (process.platform === "win32" && localAppData) {
+    return path.join(localAppData, "poolside", "scratch");
+  }
+  return path.join(os.homedir(), ".poolside", "scratch");
 }
 
 const symbolAvailabilityCache = new Map<string, { version: number; available: boolean }>();

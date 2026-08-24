@@ -863,7 +863,7 @@ export class DesktopHost {
         agentId: "",
         chatModelId: "",
         editorSettings: this.initialState.userSettings,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        featureFlags: {},
       },
     });
   }

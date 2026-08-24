@@ -38,19 +38,19 @@ namespace Poolside.Assistant.ChatWindow
 
         public static List<VSCodeContextElementBounds> contextElementBounds = new List<VSCodeContextElementBounds>();
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // The Visual Studio assistant window hosts the ACP nav sidebar; the webview
+        // mounts SidebarOnlyPanel (assistant.main.ts), and chats open in their own
+        // AcpChatToolWindow documents (acp-chat.html / ChatOnlyPanel).
         public ChatWindowControl() : base("assistant.html", browser => new WebViewCommunicator(browser))
         {
         }
 
         protected override ContextMenuItem[] GetContextMenuItems(IContextMenuParams parameters)
         {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            // The assistant window is now the nav sidebar (no inline conversation), so the
+            // legacy "Copy Conversation" item is gone; chat-message context items below still
+            // apply when the webview reports userMessage bounds.
+            var items = new List<ContextMenuItem>();
 
             var x = parameters.XCoord;
             var y = parameters.YCoord;

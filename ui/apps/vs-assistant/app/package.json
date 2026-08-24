@@ -21,8 +21,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     "dev": "vite",
     "download:binaries": "../scripts/copy_helper.sh",
     "fix:format": "prettier . --write --cache --ignore-path ../../../.gitignore",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "fix:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' --fix",
+    "make-release-manifest": "tsx ../scripts/make-release-manifest.ts"
   },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -31,26 +31,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
   "prettier": "@poolsideai/prettier-config",
   "dependencies": {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@poolsideai/assistant": "workspace:*",
+    "@poolsideai/components": "workspace:*",
+    "@poolsideai/features": "workspace:*",
+    "@poolsideai/helperapi": "workspace:*",
+    "@poolsideai/lib": "workspace:*",
     "@poolsideai/rpc": "workspace:*"
   },
   "devDependencies": {
     "@poolsideai/eslint-config": "workspace:*",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@poolsideai/prettier-config": "workspace:*",
+    "@poolsideai/svelte-config": "workspace:*",
+    "@poolsideai/tailwind-config": "workspace:*",
+    "@poolsideai/tsconfig": "workspace:*",
+    "@poolsideai/vite-config": "workspace:*",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "svelte": "catalog:",
     "svelte-check": "catalog:",
     "tailwindcss": "catalog:",
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "tsx": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"

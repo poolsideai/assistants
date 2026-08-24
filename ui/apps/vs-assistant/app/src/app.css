@@ -26,16 +26,16 @@
   --text-4xl: 1.5rem; /* 24px */
   --text-4xl--line-height: 2rem; /* 32px */
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+@layer theme {
+  :root {
+    /* Menu/popover surface. WebViewTheme.cs supplies --psx-panel/--psx-border
+       from the same VS combo-box colors menus should use, so these just alias
+       them rather than duplicating the color lookup — mirroring vscode.css,
+       where VS Code's menus likewise follow the panel colors. */
+    --psx-menu-background: var(--psx-panel);
+    --psx-menu-separator: var(--psx-border);
+
     /* Selected-state treatment for rows and cards that single one out (as
        opposed to merely hovered/moused-over — see --psx-menu-hover-background
        above). Reuses the same selection accent WebViewTheme.cs already gives
@@ -44,10 +44,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
        instead of collapsing into the same fill. */
     --psx-highlight-background: var(--psx-toggle-on-background);
     --psx-highlight-border: var(--psx-focus);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    /* Text selection follows the editor's own selection colors, as in
+       vscode.css. */
+    --psx-selection-background: var(--psx-editor-selection-background);
+    --psx-selection-foreground: var(--psx-editor-selection-foreground);
+  }
+}

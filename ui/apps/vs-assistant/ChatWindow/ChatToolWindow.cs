@@ -1,13 +1,13 @@
 ﻿using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+using Poolside.Assistant.Commands;
 using Poolside.Assistant.EditHighlights;
 using Poolside.Assistant.WebViewInfrastructure;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,9 +58,9 @@ namespace Poolside.Assistant.ChatWindow
         /// </summary>
         private readonly ContentControl holder;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Mirrors IDSymbol "PoolsideSidebarToolbar" in PoolsideAssistantPackage.vsct.
+        private const int SidebarToolbarId = 0x0030;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ChatToolWindow"/> class.
         /// </summary>
@@ -68,11 +68,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         {
             this.Caption = "Poolside Assistant";
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            // Attach the sidebar toolbar declared in the .vsct; this surfaces the
+            // New Conversation "+" action at the top of the tool window (mirroring
+            // VS Code's native view-title new-conversation button).
+            this.ToolBar = new CommandID(BasePoolsideToolsCommand.CommandSet, SidebarToolbarId);
+
             // This is the user control hosted by the tool window; Note that, even if this class implements IDisposable,
             // we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on
             // the object returned by the Content property.

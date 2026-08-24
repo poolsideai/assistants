@@ -116,7 +116,7 @@ namespace Poolside.Assistant.WebViewInfrastructure
             this.InitializeComponent();
             Communicator = communicatorFactory(browser);
             browser.PreviewMouseWheel += Browser_PreviewMouseWheel;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            browser.Address = "poolside-app://app/" + entrypoint;
             browser.MenuHandler = new CustomContextMenuHandler(GetContextMenuItems);
 
             // Visual Studio tool windows can be floated and docked, and when that happens they are

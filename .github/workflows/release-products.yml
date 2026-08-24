@@ -21,11 +21,11 @@ on:
         description: "Release Desktop"
         required: true
         type: boolean
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      vs:
+        description: "Release Visual Studio"
+        required: false
+        default: false
+        type: boolean
       sync_versions:
         description: "Give selected products the same exact version"
         required: true
@@ -75,11 +75,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         required: true
         default: true
         type: boolean
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      vs:
+        description: "Release Visual Studio (nightly only)"
+        required: true
+        default: false
+        type: boolean
       sync_versions:
         description: "Give selected products the same exact version"
         required: true
@@ -115,8 +115,8 @@ jobs:
       vscode_version: ${{ steps.plan.outputs.vscode_version }}
       desktop: ${{ steps.plan.outputs.desktop || 'false' }}
       desktop_version: ${{ steps.plan.outputs.desktop_version }}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      vs: ${{ steps.plan.outputs.vs || 'false' }}
+      vs_version: ${{ steps.plan.outputs.vs_version }}
     steps:
       - name: Select products and release type
         id: gate
@@ -126,18 +126,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           REQUESTED_RELEASE: ${{ inputs.release || 'preview' }}
           REQUESTED_VSCODE: ${{ inputs.vscode || false }}
           REQUESTED_DESKTOP: ${{ inputs.desktop || false }}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          REQUESTED_VS: ${{ inputs.vs || false }}
           REQUESTED_SYNC_VERSIONS: ${{ inputs.sync_versions }}
           VSCODE_ENABLED: ${{ vars.VSCODE_RELEASES_ENABLED }}
           DESKTOP_ENABLED: ${{ vars.DESKTOP_RELEASES_ENABLED }}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          VS_ENABLED: ${{ vars.VS_RELEASES_ENABLED }}
           NIGHTLY_ENABLED: ${{ vars.NIGHTLY_RELEASES_ENABLED }}
         run: |
           set -euo pipefail
           release="${REQUESTED_RELEASE}"
           vscode="${REQUESTED_VSCODE}"
           desktop="${REQUESTED_DESKTOP}"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          vs="${REQUESTED_VS}"
           sync_versions="${REQUESTED_SYNC_VERSIONS:-true}"
           scheduled=false
 
@@ -147,10 +147,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             sync_versions=true
             vscode=false
             desktop=false
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            vs=false
             [[ "${VSCODE_ENABLED}" == "true" ]] && vscode=true
             [[ "${DESKTOP_ENABLED}" == "true" ]] && desktop=true
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            [[ "${VS_ENABLED}" == "true" ]] && vs=true
             if [[ "${NIGHTLY_ENABLED}" != "true" ]]; then
               echo "proceed=false" >> "$GITHUB_OUTPUT"
               echo "### Product schedule skipped: NIGHTLY_RELEASES_ENABLED is not true" >> "$GITHUB_STEP_SUMMARY"
@@ -158,12 +158,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             fi
           fi
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          if [[ "${vs}" == "true" && "${release}" != "preview" ]]; then
+            echo "Visual Studio stable releases are not automated yet; deselect it or use the manual process." >&2
+            exit 1
+          fi
+
+          if [[ "${vscode}" != "true" && "${desktop}" != "true" && "${vs}" != "true" ]]; then
             if [[ "${scheduled}" == "true" ]]; then
               echo "proceed=false" >> "$GITHUB_OUTPUT"
               echo "### Product schedule skipped: no product releases are enabled" >> "$GITHUB_STEP_SUMMARY"
@@ -205,7 +205,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             echo "sync_versions=${sync_versions}"
             echo "vscode=${vscode}"
             echo "desktop=${desktop}"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            echo "vs=${vs}"
             echo "trigger=${EVENT_NAME}"
           } >> "$GITHUB_OUTPUT"
 
@@ -244,7 +244,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           SYNC_VERSIONS: ${{ steps.gate.outputs.sync_versions }}
           VSCODE: ${{ steps.gate.outputs.vscode }}
           DESKTOP: ${{ steps.gate.outputs.desktop }}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          VS: ${{ steps.gate.outputs.vs }}
           VSCODE_EXTENSION_NAME: ${{ vars.VSCODE_EXTENSION_NAME }}
           VSCODE_EXTENSION_DISPLAY_NAME: ${{ vars.VSCODE_EXTENSION_DISPLAY_NAME }}
           CN_APP_SLUG: ${{ vars.CN_APP_SLUG }}
@@ -268,9 +268,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           if [[ "${DESKTOP}" == "true" ]]; then
             args+=(--desktop --desktop-destination "${CN_APP_SLUG}")
           fi
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          if [[ "${VS}" == "true" ]]; then
+            args+=(--vs --vs-destination "$(ui/apps/vs-assistant/scripts/extension-identity.sh)")
+          fi
           [[ -n "${BOOTSTRAP_VERSION}" ]] && args+=(--bootstrap-version "${BOOTSTRAP_VERSION}")
           [[ "${SYNC_VERSIONS}" == "true" ]] && args+=(--sync-versions)
           [[ "${SCHEDULED}" == "true" ]] && args+=(--scheduled --skip-if-no-changes)
@@ -289,8 +289,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             echo "vscode_version=$(jq -r '.versions.vscode // ""' "$RUNNER_TEMP/product-release-plan.json")"
             echo "desktop=$(jq -r '.activeProducts | index("desktop") != null' "$RUNNER_TEMP/product-release-plan.json")"
             echo "desktop_version=$(jq -r '.versions.desktop // ""' "$RUNNER_TEMP/product-release-plan.json")"
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            echo "vs=$(jq -r '.activeProducts | index("vs") != null' "$RUNNER_TEMP/product-release-plan.json")"
+            echo "vs_version=$(jq -r '.versions.vs // ""' "$RUNNER_TEMP/product-release-plan.json")"
           } >> "$GITHUB_OUTPUT"
 
           {
@@ -302,10 +302,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
       - name: Create helper release plan
         id: helper
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if: >-
+          steps.plan.outputs.vscode == 'true' ||
+          steps.plan.outputs.desktop == 'true' ||
+          steps.plan.outputs.vs == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -333,7 +333,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     name: Build signed release runtime
     needs: plan
     if: >-
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      (needs.plan.outputs.vscode == 'true' || needs.plan.outputs.desktop == 'true' || needs.plan.outputs.vs == 'true') &&
       needs.plan.outputs.helper_action != 'reuse'
     uses: ./.github/workflows/helper-build.yml
     with:
@@ -347,7 +347,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     needs: [plan, runtime]
     if: >-
       always() &&
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      (needs.plan.outputs.vscode == 'true' || needs.plan.outputs.desktop == 'true' || needs.plan.outputs.vs == 'true') &&
       (
         needs.plan.outputs.helper_action == 'reuse' ||
         needs.runtime.result == 'success'
@@ -366,7 +366,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
     needs: [plan, runtime, helper-release]
     if: >-
       always() &&
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      (needs.plan.outputs.vscode == 'true' || needs.plan.outputs.desktop == 'true' || needs.plan.outputs.vs == 'true') &&
       (
         needs.runtime.result == 'failure' ||
         needs.runtime.result == 'cancelled' ||
@@ -434,25 +434,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       scheduled: ${{ needs.plan.outputs.scheduled == 'true' }}
       trigger: ${{ needs.plan.outputs.trigger }}
     secrets: inherit
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  vs:
+    name: Visual Studio
+    needs: [plan, runtime, helper-release]
+    if: >-
+      always() &&
+      needs.plan.outputs.vs == 'true' &&
+      needs.helper-release.result == 'success' &&
+      (
+        needs.plan.outputs.helper_action == 'reuse' ||
+        needs.runtime.result == 'success'
+      )
+    uses: ./.github/workflows/release-vs.yml
+    with:
+      release: ${{ needs.plan.outputs.release }}
+      version: ${{ needs.plan.outputs.vs_version }}
       create_lineage: ${{ needs.plan.outputs.create_lineage == 'true' }}
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      helper_tag: ${{ needs.plan.outputs.helper_tag }}
+      helper_version: ${{ needs.plan.outputs.helper_version }}
+      scheduled: ${{ needs.plan.outputs.scheduled == 'true' }}
+      trigger: ${{ needs.plan.outputs.trigger }}
+    secrets: inherit

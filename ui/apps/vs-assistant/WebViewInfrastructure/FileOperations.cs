@@ -20,25 +20,25 @@ namespace Poolside.Assistant.WebViewInfrastructure
             var visible = new List<Document>();
             foreach (EnvDTE.Document doc in dte.Documents)
             {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                string fullName;
+                string content;
+                try
+                {
+                    // Documents without a file behind them (folder view, git editors)
+                    // throw COM errors (E_INVALIDARG) from FullName; skip them rather
+                    // than letting one poison the whole enumeration.
+                    fullName = doc.FullName;
+                    content = Util.GetDocumentContent(doc);
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+                if (fullName != null && fullName.Contains("\\") && content != null)
                 {
                     visible.Add(new Document
                     {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                        path = fullName,
                         contents = Util.TransformToUnixNewlines(content)
                     });
                 }

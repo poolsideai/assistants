@@ -373,41 +373,41 @@ describe("AcpChatPane", () => {
     expect(screen.getByTestId("prompt-interaction-container")).toHaveClass("relative", "z-20");
   });
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("shows the review bar on the Visual Studio host and opens native source control", async () => {
+    const previous = get(appState);
+    appState.set({
+      ...previous,
+      environment: { ...previous.environment, assistantHost: "vs" },
+    });
+    gitStatusMock.mockResolvedValue(
+      gitStatus({
+        staged: [{ path: "changed.ts", status: "modified" }],
+        additions: 2,
+        deletions: 1,
+      }),
+    );
+
+    render(Harness, {
+      props: {
+        sessionRepo: makeSessionRepo({
+          events: [
+            {
+              eventKind: "agent_message",
+              messageId: "message-with-changes",
+              content: [{ type: "text", text: "Done" }],
+            },
+          ],
+        }),
+        conversationRepo: makeConversationRepo(),
+      },
+    });
+
+    await screen.findByTestId("desktop-git-changes-summary");
+    await fireEvent.click(screen.getByTitle("Stage and Commit..."));
+
+    expect(hostMessageSender).toHaveBeenCalledWith("revealSourceControl", []);
+  });
+
   it("hides the branch bar on the new conversation page", async () => {
     render(Harness, {
       props: {

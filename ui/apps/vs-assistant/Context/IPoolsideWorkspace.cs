@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Poolside.Assistant.Context
@@ -41,7 +41,7 @@ namespace Poolside.Assistant.Context
         /// Skips files and directories with names passed in the `ignored` set.
         /// </summary>
         /// <returns></returns>
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        IEnumerable<WorkspaceItem> EnumerateWorkspaceItems(Dictionary<IgnoredContext.IgnoreTarget, HashSet<Regex>> ignored);
 
         /// <summary>
         /// Takes any actions needed to make sure a file is registered in the workspace. For a Visual

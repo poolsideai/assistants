@@ -1,13 +1,13 @@
 ﻿using Microsoft.VisualStudio.Shell;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+using Newtonsoft.Json;
 using Poolside.Assistant.Settings;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+using Poolside.Assistant.Telemetry;
 using Poolside.Assistant.WebViewInfrastructure;
 using System;
 using System.Collections.Generic;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+using System.IO;
 using System.Linq;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,23 +19,23 @@ namespace Poolside.Assistant.HelperLSP
         private static readonly string CurrentSessionId = Guid.NewGuid().ToString();
 
         public string agentId { get; set; }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Enables the helper's ACP pipeline (acpproxy + acpNav store). The webview is always in
+        // ACP mode (acpMode returns true), and the helper still gates its ACP init on this, so
+        // it is set unconditionally - matching vscode-assistant.
+        public string agentMode { get; set; }
+        // User-authored ACP agent servers (name -> { command, args, env, ... }), mirroring
+        // VSCode's poolside.agentServers setting. The helper seeds its acpNav registry from
+        // this on first run. Null when unset/invalid so the helper falls back to its defaults.
+        // Values are kept opaque (not typed into per-field classes) so unknown/new fields pass
+        // through to the helper verbatim rather than being silently dropped on re-serialization.
+        public Dictionary<string, object> agentServers { get; set; }
         public string sessionId { get; set; }
         public string assistantHost { get; set; }
         public string assistantEnvironment { get; set; }
         public ClientCapabilities clientCapabilities { get; set; }
         public EditorSettings editorSettings { get; set; }
         public bool agentHandlerEnabled { get; set; }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        public string extensionBinaryFolderUri { get; set; }
 
         public class EditorSettings
         {
@@ -57,9 +57,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             var binaryDirectoryUri = new Uri(System.IO.Path.Combine(assemblyPath, "helper"), UriKind.Absolute).AbsoluteUri;
             return new HelperConfiguration
             {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                agentId = CurrentAgentStore.Instance.CurrentAgentId,
+                agentMode = "acp",
+                agentServers = ParseAgentServers(settings.AcpAgentServersJson),
                 sessionId = CurrentSessionId,
                 assistantHost = environment.assistantHost,
                 assistantEnvironment = environment.assistantEnv,
@@ -72,27 +72,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                     disableCompletionTelemetry = true,
                     disabledEnrichments = settings.DisabledEnrichments
                 },
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                agentHandlerEnabled = true,
+                extensionBinaryFolderUri = binaryDirectoryUri
             };
         }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+        // Parses the user's ACP agent-servers JSON setting into an object the helper can consume.
+        // Returns null for empty or malformed input so a typo never breaks helper startup - the
+        // helper then keeps its existing/default agent servers.
+        private static Dictionary<string, object> ParseAgentServers(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return null;
+            try
+            {
+                return JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+            }
+            catch (JsonException ex)
+            {
+                PoolsideTelemetryLogger.Instance.reportException(ex);
+                return null;
+            }
+        }
     }
 }

@@ -98,10 +98,10 @@ namespace Poolside.Assistant.Settings
             legacySettings.Uri = ReadString(reader, "baseUri", legacySettings.Uri);
             legacySettings.WrapLines = ReadBool(reader, "wrapLines", legacySettings.WrapLines);
             legacySettings.NotifyOnApproval = ReadBool(reader, "notifyOnApproval", legacySettings.NotifyOnApproval);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            legacySettings.ShowMermaidDiagrams = ReadBool(reader, "showMermaidDiagrams", legacySettings.ShowMermaidDiagrams);
+            legacySettings.ToolActivity = ReadString(reader, "toolActivity", legacySettings.ToolActivity);
+            legacySettings.DefaultWorkingDirectory = ReadString(reader, "defaultWorkingDirectory", legacySettings.DefaultWorkingDirectory);
+            legacySettings.AcpAgentServersJson = ReadString(reader, "acpAgentServers", legacySettings.AcpAgentServersJson);
         }
 
         private static void SyncLegacyToUnifiedIfNotSyncing(ISettingsWriter writer, PoolsideSettings legacySettings)
@@ -112,10 +112,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             writer.EnqueueChange(Moniker("baseUri"), legacySettings.Uri);
             writer.EnqueueChange(Moniker("wrapLines"), legacySettings.WrapLines);
             writer.EnqueueChange(Moniker("notifyOnApproval"), legacySettings.NotifyOnApproval);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            writer.EnqueueChange(Moniker("showMermaidDiagrams"), legacySettings.ShowMermaidDiagrams);
+            writer.EnqueueChange(Moniker("toolActivity"), legacySettings.ToolActivity);
+            writer.EnqueueChange(Moniker("defaultWorkingDirectory"), legacySettings.DefaultWorkingDirectory);
+            writer.EnqueueChange(Moniker("acpAgentServers"), legacySettings.AcpAgentServersJson);
             // Set before RequestCommit in case the callback fires synchronously during the call.
             // Cleared below for any outcome where no callback follows (so the flag doesn't
             // linger and accidentally suppress the next real unified-settings change).

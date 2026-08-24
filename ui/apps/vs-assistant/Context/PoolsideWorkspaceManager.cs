@@ -26,12 +26,12 @@ namespace Poolside.Assistant.Context
     internal class PoolsideWorkspaceManager : IDisposable
     {
         private readonly IVsSolution solution;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        private readonly Action<IPoolsideWorkspace> setWorkspace;
         private string lastFolderPath;
         private IPoolsideWorkspace currentWorkspace;
         private readonly DispatcherTimer idleTimer;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        public PoolsideWorkspaceManager(IVsSolution solution, Action<IPoolsideWorkspace> setWorkspace)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             this.solution = solution ?? throw new ArgumentNullException(nameof(solution));
@@ -65,7 +65,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
             // the shutdown.)
             if (currentWorkspace != null)
             {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                setWorkspace(null);
                 currentWorkspace = null;
             }
             Util.HandleTaskErrors(CloseTaskToolWindowAsync());
@@ -83,7 +83,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                     currentWorkspace = new FolderBasedPoolsideWorkspace(folderPath);
                 }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                setWorkspace(currentWorkspace);
                 Func<Task> start = async () =>
                 {
                     await HelperLSPService.Instance.StartForWorkspaceAsync(currentWorkspace);
@@ -131,7 +131,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                 {
                     await HelperLSPService.Instance.EnsureStoppedAsync();
                 });
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                setWorkspace(null);
                 currentWorkspace = null;
             }
         }

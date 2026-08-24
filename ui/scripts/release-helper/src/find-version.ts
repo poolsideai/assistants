@@ -120,10 +120,10 @@ class VersionFinder {
     return project;
   }
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  getProjects(): ProjectConfig[] {
+    return this.projectsConfig.projects;
+  }
+
   // Latest released version on a given channel (stable | nightly), used both to
   // seed the next nightly base and to find the previous tag for a changelog.
   async findPreviousChannelVersion(
@@ -541,13 +541,13 @@ function buildReleasePlan(
   const syncVersions = options.scheduled || customLineage ? false : options.syncVersions;
   const allProductVersions = syncVersions
     ? validNumericVersions(
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        versionFinder
+          .getProjects()
+          .flatMap(({ name, tag }) =>
+            versionFinder
+              .getProjectTags(name, tag)
+              .flatMap((projectTag) => versionFromReleaseTag(tag, projectTag) ?? []),
+          ),
       )
     : projectVersions;
   const implicitRecoveryVersion =
@@ -693,7 +693,7 @@ interface CoordinatedReleaseOptions {
   vscodeDestination: string;
   vscodeDisplayName?: string;
   desktopDestination: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  vsDestination: string;
 }
 
 function isPublishedGithubRelease(tag: string): boolean {
@@ -785,12 +785,12 @@ function buildCoordinatedReleasePlan(options: CoordinatedReleaseOptions): object
   const plans = Object.fromEntries(
     options.products.map((product) => {
       const project = versionFinder.getProject(product);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      const destinations: Record<ReleaseProduct, string> = {
+        vscode: options.vscodeDestination,
+        desktop: options.desktopDestination,
+        vs: options.vsDestination,
+      };
+      const destination = destinations[product];
       if (!destination) {
         throw new Error(`${product} coordinated releases require a destination`);
       }
@@ -927,15 +927,15 @@ program
 
 program
   .command("plan")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .description("Create a validated, machine-readable product release plan")
+  .argument("<product>", "Product to release (vscode|desktop|vs)")
   .requiredOption("--channel <channel>", "Release channel (stable|nightly)")
   .option("--ref <ref>", "Commit to release", "HEAD")
   .option("--bump <bump>", "Stable bump (patch|minor|major)", "patch")
   .option("--version <version>", "Exact bootstrap or recovery version")
   .option("--tag-prefix <prefix>", "Managed release tag prefix")
   .option("--create-lineage", "Create or explicitly adopt an unbound tag lineage", false)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .option("--sync-versions", "Align against the highest version across all products", false)
   .option("--scheduled", "Apply scheduled-release bootstrap and alignment rules", false)
   .option("--skip-if-no-changes", "Skip a schedule with no product-affecting changes", false)
   .option("--dry-run", "Mark the plan as build-only", false)
@@ -953,7 +953,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       options: ReleasePlanOptions & { channel: string; ref: string; bump: string },
     ) => {
       try {
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (product !== "vscode" && product !== "desktop" && product !== "vs") {
           throw new Error(`Unknown release product: ${product}`);
         }
         if (options.channel !== "stable" && options.channel !== "nightly") {
@@ -973,7 +973,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 
 program
   .command("plan-products")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .description("Create one retry-safe version plan for coordinated product releases")
   .option(
     "--bootstrap-version <version>",
     "Create or resume a lineage at an exact migration version",
@@ -984,14 +984,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
   .option("--main-ref <ref>", "Public mainline ref used for ancestry validation", "origin/main")
   .option("--vscode", "Include VS Code", false)
   .option("--desktop", "Include Desktop", false)
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .option("--vs", "Include Visual Studio", false)
   .option("--sync-versions", "Give every active product one exact version", false)
   .option("--scheduled", "Apply scheduled-release recovery and bootstrap rules", false)
   .option("--skip-if-no-changes", "Exclude scheduled products with no owning-path changes", false)
   .option("--vscode-destination <identity>", "VS Code Marketplace extension identity", "")
   .option("--vscode-display-name <name>", "VS Code Marketplace display name")
   .option("--desktop-destination <identity>", "CrabNebula application identity", "")
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  .option("--vs-destination <identity>", "Visual Studio Marketplace extension identity", "")
   .action(
     async (options: {
       bootstrapVersion?: string;
@@ -1001,14 +1001,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
       mainRef: string;
       vscode: boolean;
       desktop: boolean;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      vs: boolean;
       syncVersions: boolean;
       scheduled: boolean;
       skipIfNoChanges: boolean;
       vscodeDestination: string;
       vscodeDisplayName?: string;
       desktopDestination: string;
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      vsDestination: string;
     }) => {
       try {
         if (options.channel !== "stable" && options.channel !== "nightly") {
@@ -1020,7 +1020,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
         const products: ReleaseProduct[] = [];
         if (options.vscode) products.push("vscode");
         if (options.desktop) products.push("desktop");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        if (options.vs) products.push("vs");
         const plan = buildCoordinatedReleasePlan({
           products,
           bootstrapVersion: options.bootstrapVersion,
@@ -1034,7 +1034,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
           vscodeDestination: options.vscodeDestination,
           vscodeDisplayName: options.vscodeDisplayName,
           desktopDestination: options.desktopDestination,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+          vsDestination: options.vsDestination,
         });
         console.log(JSON.stringify(plan));
       } catch (error) {

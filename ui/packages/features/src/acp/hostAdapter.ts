@@ -175,10 +175,10 @@ function workspaceFromCwd(cwd: string | null | undefined): WorkspaceFolder | und
 export function currentACPHostState(): AppState {
   return get(appState);
 }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+// "Split" ACP hosts render the nav as a sidebar and each chat in its own window
+// (driven via openAcpChat), rather than the desktop all-in-one shell. VS Code and
+// Visual Studio both work this way; the desktop app does not.
+export function isSplitACPHost(assistantHost: string | undefined): boolean {
+  return assistantHost === "vscode" || assistantHost === "vs";
+}

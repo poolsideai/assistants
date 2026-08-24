@@ -51,7 +51,7 @@ namespace Poolside.Assistant
     [ProvideToolWindow(typeof(ChatToolWindow), Style = VsDockStyle.Tabbed, Window = EnvDTE.Constants.vsWindowKindSolutionExplorer)]
     [ProvideToolWindow(typeof(TasksToolWindow), MultiInstances = true, Style = VsDockStyle.MDI, Transient = true)]
     [ProvideToolWindow(typeof(RawPromptToolWindow), MultiInstances = true, Style = VsDockStyle.MDI, Transient = true)]
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+    [ProvideToolWindow(typeof(AcpChatToolWindow), MultiInstances = true, Style = VsDockStyle.MDI, Transient = true)]
     // TODO: Remove when minimum VS version is raised to 17.11+. On 17.11+ the VS.Extensibility
     // settings page (PoolsideSettingDefinitions) provides the settings UI, making this redundant.
     // Keeping it for now so 17.9/17.10 users still have a working settings dialog. The downside
@@ -130,56 +130,56 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                     ResourcesDirPath = extensionPath
                 };
                 cefSettings.CefCommandLineArgs.Add("disable-pinch", "1");
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                // Register poolside-app as a secure custom scheme. Without this, Chromium
+                // treats the webview as an insecure context and hides crypto.randomUUID,
+                // crypto.subtle, and the rest of the secure-context API surface that the
+                // shared assistant package relies on.
+                cefSettings.RegisterScheme(new CefCustomScheme
+                {
+                    SchemeName     = "poolside-app",
+                    DomainName     = "app",
+                    IsSecure       = true,
+                    IsStandard     = true,
+                    IsCorsEnabled  = true,
+                    // Required for the SPA's runtime fetch() calls (e.g. shiki loading
+                    // onig.wasm) — without this, Fetch API rejects URLs on this scheme
+                    // even though navigation and <script> tags load fine.
+                    IsFetchEnabled = true,
+                });
+                // Teach System.Uri that poolside-app follows standard scheme://host/path
+                // syntax, so WebViewRequestHandler can read Host and AbsolutePath off it.
+                if (!UriParser.IsKnownScheme("poolside-app"))
+                {
+                    UriParser.Register(
+                        new GenericUriParser(GenericUriParserOptions.GenericAuthority),
+                        "poolside-app",
+                        -1);
+                }
                 Cef.Initialize(cefSettings);
             }
 
             // Start event handlers.
             this.solutionEventHandler = new PoolsideWorkspaceManager(await GetServiceAsync(typeof(SVsSolution)) as IVsSolution,
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                (workspace) =>
+                {
+                    this.currentWorkspace = workspace;
+                });
             this.runningDocumentHandler = new RunningDocumentTableEventHandler();
             this.windowFocusHandler = new WindowFocusHandler();
             var componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
             this.errorTableWatcher = new ErrorTableWatcher(componentModel?.GetService<ITableManagerProvider>());
 
             // Initialize commands.
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            await Commands.NewConversationCommand.InitializeAsync(this);
+            await Commands.FocusInputPoolsideCommand.InitializeAsync(this);
             await Commands.TogglePlanModeCommand.InitializeAsync(this);
             await Commands.OpenAssistantDevToolsCommand.InitializeAsync(this);
             await Commands.OpenTaskDevToolsCommand.InitializeAsync(this);
             await Commands.HelperDebugLogCommand.InitializeAsync(this);
             await Commands.HelperProtocolLogCommand.InitializeAsync(this);
             await Commands.OpenPermissionSettingsCommand.InitializeAsync(this);
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            await Commands.OpenSettingsCommand.InitializeAsync(this);
+            await Commands.ResetConfigurationCommand.InitializeAsync(this);
 
             // Clean up cache directories from previous runs, if any, so we don't fill up the temp
             // directory.
@@ -257,7 +257,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                     return;
                 currentSettings.DisplayedLocalSearchDisabledInfo = true;
 
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+                // Don't show the info bar if local search is already disabled.
                 if (currentSettings.DisabledEnrichments.Contains("local_search"))
                     return;
 
@@ -332,8 +332,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
                     Directory.Delete(this.uniqueCefCachePath, recursive: true);
                 }
             }
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+            catch (Exception)
+            {
                 // Can't clean up now, usually due to file locks lingering after shutdown.
                 // Leave a `.cleanup` file behind so we can do it lazily in the future.
                 try
