@@ -3,9 +3,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+# Syft is built for the host through `go run`, then executed with a fixed target
+# environment so Go package discovery is identical on developer machines and CI.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+SYFT_ANALYSIS_GOOS="linux"
+SYFT_ANALYSIS_GOARCH="amd64"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -80,8 +84,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+DEPENDENCY_REPORT="THIRD-PARTY-DEPENDENCIES.md"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  echo "+ go run -exec 'env GOOS=${SYFT_ANALYSIS_GOOS} GOARCH=${SYFT_ANALYSIS_GOARCH}' github.com/anchore/syft/cmd/syft@${SYFT_VERSION} scan dir:. --enrich all -o syft-json=${RAW_SBOM}" >&2
+  go run \
+    -exec "env GOOS=${SYFT_ANALYSIS_GOOS} GOARCH=${SYFT_ANALYSIS_GOARCH}" \
+    "github.com/anchore/syft/cmd/syft@${SYFT_VERSION}" \
+    scan dir:. --enrich all -o "syft-json=${RAW_SBOM}"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -93,6 +103,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  "cmdk-sv@0.0.19": "MIT",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -133,6 +144,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+# Syft identifies the native esbuild executable as its embedded Go module in
+# addition to the licensed @esbuild/* npm package. Go build metadata does not
+# carry license evidence, so preserve the license declared by the same upstream
+# project. This artifact is platform-dependent and may be absent from an SBOM.
+GO_BINARY_OVERRIDES="${TMP_DIR}/go-binary-overrides.json"
+cat >"$GO_BINARY_OVERRIDES" <<'JSON'
+{
+  "github.com/evanw/esbuild": "MIT"
+}
+JSON
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -162,7 +184,63 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+# Syft's npm enrichment is unreliable. On an unchanged lockfile it leaves a
+# different package with no license evidence on nearly every run — three
+# consecutive CI runs dropped @eslint/js, then esrap, then prosemirror-codemark
+# — and Grant denies packages with no license because require-license is on.
+# Recording each casualty by hand never converges, so ask the registry again for
+# exactly the packages Syft missed. That is the same source Syft enriches from,
+# so this makes enrichment repeatable rather than trusting anything new: a
+# package the registry has no license for still falls through to the override
+# map below, and then to a failed check.
+NPM_RECOVERED="${TMP_DIR}/npm-recovered.json"
+echo '{}' >"$NPM_RECOVERED"
+
+unenriched_npm="$(
+  jq -r --slurpfile overrides "$NPM_OVERRIDES" '
+    $overrides[0] as $overrideMap
+    | .artifacts // []
+    | map(select(.type == "npm" and ((.licenses // []) | length == 0)))
+    | map(.name + "@" + .version)
+    | map(select($overrideMap[.] == null))
+    | .[]
+  ' "$RAW_SBOM"
+)"
+
+while IFS= read -r key; do
+  [[ -n "$key" ]] || continue
+  # Splits scoped names correctly: @eslint/js@9.34.0 -> @eslint/js + 9.34.0.
+  npm_name="${key%@*}"
+  npm_version="${key##*@}"
+  npm_manifest="$(
+    curl --proto '=https' --tlsv1.2 --retry 5 --retry-all-errors --location \
+      --silent --show-error --fail \
+      "https://registry.npmjs.org/${npm_name}/${npm_version}" || true
+  )"
+  # `license` is a string on modern packages; the other shapes are the legacy
+  # `license: {type}` object and the pre-npm5 `licenses: [{type}]` array.
+  npm_license="$(
+    printf '%s' "$npm_manifest" | jq -r '
+      if (.license | type) == "string" then .license
+      elif (.license | type) == "object" then (.license.type // empty)
+      elif (.licenses | type) == "array" then (.licenses | map(.type // empty) | join(" OR "))
+      else empty end
+    ' 2>/dev/null || true
+  )"
+
+  if [[ -n "$npm_license" && "$npm_license" != "null" ]]; then
+    jq --arg key "$key" --arg license "$npm_license" '.[$key] = $license' \
+      "$NPM_RECOVERED" >"${NPM_RECOVERED}.next"
+    mv "${NPM_RECOVERED}.next" "$NPM_RECOVERED"
+    echo "recovered npm license from the registry: ${key} -> ${npm_license}" >&2
+  else
+    echo "no registry license for ${key}; it needs an entry in NPM_OVERRIDES" >&2
+  fi
+done <<<"$unenriched_npm"
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+jq --slurpfile overrides "$NPM_OVERRIDES" --slurpfile recovered "$NPM_RECOVERED" '
+  ($recovered[0] + $overrides[0]) as $overrideMap
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -216,6 +294,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+GO_BINARY_PATCHED="${TMP_DIR}/go-binary-patched.json"
+jq --slurpfile overrides "$GO_BINARY_OVERRIDES" '
+  $overrides[0] as $overrideMap
+  | .artifacts = (
+      .artifacts
+      | map(
+          if .type == "go-module"
+            and .foundBy == "go-module-binary-cataloger"
+            and ((.licenses // []) | length == 0)
+            and ($overrideMap[.name] != null) then
+            .licenses = [{
+              value: $overrideMap[.name],
+              spdxExpression: $overrideMap[.name],
+              type: "declared",
+              urls: [],
+              locations: []
+            }]
+          else
+            .
+          end
+        )
+    )
+' "$RUST_PATCHED" >"$GO_BINARY_PATCHED"
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -251,6 +353,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+' "$GO_BINARY_PATCHED" >"$SWIFT_PATCHED"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -469,117 +572,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  scripts/render-license-report.sh "$PATCHED_SBOM" "$GRANT_JSON" "$DEPENDENCY_REPORT"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  echo "wrote ${DEPENDENCY_REPORT}"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

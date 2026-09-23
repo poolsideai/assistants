@@ -22,6 +22,38 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    handleDOMEvents,
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Composition state must be tracked from the DOM events, not only from
+  // transaction snapshots: a composition can end without ProseMirror
+  // dispatching a transaction (e.g. macOS predictive text cancelled by a
+  // caret move), and a snapshot-only `isComposing` then stays stale-true
+  // until some unrelated transaction happens to resync it.
+  // `compositionstart`/`compositionend` always fire in pairs, so they keep
+  // the flag honest; `dispatchTransaction` below still resyncs it as a
+  // fallback.
+  const compositionHandlers: NonNullable<EditorProps["handleDOMEvents"]> = {
+    compositionstart: (view, event) => {
+      isComposing = true;
+      return handleDOMEvents?.compositionstart?.(view, event) ?? false;
+    },
+    compositionupdate: (view, event) => {
+      isComposing = true;
+      return handleDOMEvents?.compositionupdate?.(view, event) ?? false;
+    },
+    compositionend: (view, event) => {
+      isComposing = false;
+      return handleDOMEvents?.compositionend?.(view, event) ?? false;
+    },
+  };
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (!view) return false;
+    return command(view.state, view.dispatch, view);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -48,39 +80,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        handleDOMEvents: { ...handleDOMEvents, ...compositionHandlers },
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

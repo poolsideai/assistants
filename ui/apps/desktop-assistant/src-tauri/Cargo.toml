@@ -1,9 +1,42 @@
+[package]
+name = "desktop-assistant"
+version = "0.1.0"
+description = "The Poolside desktop assistant shell."
+authors = ["Poolside <hello@poolside.ai>"]
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+edition = "2021"
+
+[lib]
+name = "desktop_assistant_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[features]
+spoolside-profiling = []
+
+[build-dependencies]
+tauri-build = { version = "2", features = ["isolation"] }
+
+# Smaller release binary (~43MB of it is code + symbols): thin LTO and one
+# codegen unit shrink and speed the shipped code; stripping debuginfo drops
+# the DWARF sections while keeping the symbol table, so macOS .ips crash
+# reports, atos, sample, and spindump still name Rust frames (no dSYM
+# pipeline exists to compensate for a full strip). A smaller binary also
+# means less first-launch Gatekeeper verification and update download.
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "debuginfo"
+
+[dependencies]
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+lsp-types = "0.97"
+notify = "8"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -11,11 +44,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+# Re-verify the staged update archive before installing it (see updater.rs).
+# The same crate the updater plugin uses for its own download verification,
+# already in the dependency tree.
+minisign-verify = "0.2"
+tauri-plugin-dialog = "2"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+tauri-plugin-opener = "2"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+tauri-plugin-shell = "2"
+tauri-plugin-window-state = "2"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+# (see settings.rs file_opener_from_db) so reads/writes never block the UI, and
+# for awaiting native menu results from the main thread (see native_menu.rs).
+tokio = { version = "1", features = ["sync", "time"] }
+
+[target.'cfg(unix)'.dependencies]
+# Polls the assistant-terminal PTY termios so the clear-screen Ctrl+L is only
+# injected once the shell's line editor is active (see terminal.rs), and
+# validates locale names before exporting them (see terminal_locale.rs).
+libc = "0.2"
+
+[target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -33,128 +85,76 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+# runtime when launched under spoolside (see SPOOLSIDE_DOCK_ICON_COLOR / _APP_NAME),
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  # Reads the user's macOS accent colour under both appearances so the webview
+  # can follow it (see src/system_accent.rs).
+  "NSAppearance",
+  # NSFontAttributeName/NSForegroundColorAttributeName and attributed-string
+  # drawing/measurement for the native menu rows' SELECTED pill text
+  # (see src/native_menu.rs).
+  "NSAttributedString",
+  # Draws the row highlight, SELECTED pill, and separator lines of the
+  # HTML-dropdown-styled native menu rows (see src/native_menu.rs).
+  "NSBezierPath",
+  # Draws the shipped app icon into a bitmap so its plate can be recoloured at
+  # runtime (see src/app_icon.rs).
+  "NSBitmapImageRep",
+  # Custom-view menu rows styled like the app's dropdowns: NSTextField labels,
+  # icon/chevron NSImageViews, a hover-tracked star NSButton, semibold pill
+  # text, wrapped sublabels, and per-view appearance (see src/native_menu.rs).
+  "NSButton",
+  "NSButtonCell",
+  "NSCell",
+  "NSColor",
+  "NSColorSpace",
+  "NSControl",
+  "NSEvent",
+  "NSFont",
+  "NSFontDescriptor",
+  "NSGraphics",
+  "NSGraphicsContext",
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "NSImageRep",
+  "NSImageView",
+  "NSMenu",
+  "NSMenuItem",
+  "NSParagraphStyle",
+  "NSPasteboard",
+  "NSPasteboardItem",
+  "NSResponder",
+  "NSStringDrawing",
+  "NSTextField",
+  # Hover tracking for the star button's image lift and hover fill
+  # (see src/native_menu.rs).
+  "NSTrackingArea",
+  "NSView",
+  "NSWorkspace",
+  "block2",
+  "objc2-core-foundation",
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+objc2-foundation = { version = "0.3", features = [
+  "NSArray",
+  # Builds and measures the SELECTED pill's attributed string for the native
+  # menu rows (see src/native_menu.rs).
+  "NSAttributedString",
+  "NSData",
+  "NSDictionary",
+  "NSError",
+  "NSGeometry",
+  # Observes NSSystemColorsDidChangeNotification for live accent updates
+  # (see src/system_accent.rs).
+  "NSNotification",
+  "NSOperation",
+  # Reads the user's macOS locale so spawned terminals get a matching LANG
+  # (see src/terminal_locale.rs).
+  "NSLocale",
+  "NSRange",
+  "NSString",
+  "NSURL",
+  "std",
+] }
+block2 = "0.6"

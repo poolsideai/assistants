@@ -26,15 +26,15 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("detects agent-owned MCP tools by their dotted title", () => {
+    expect(isMcpToolCall(tool(undefined, "mcp.codex_apps.github.create_pull_request"))).toBe(true);
+    expect(isMcpToolCall(tool(undefined, "mcp.linear.list_issues"))).toBe(true);
+
+    // A server and tool segment are both required.
+    expect(isMcpToolCall(tool(undefined, "mcp.json"))).toBe(false);
+    expect(isMcpToolCall(tool(undefined, "open mcp.linear.list_issues"))).toBe(false);
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

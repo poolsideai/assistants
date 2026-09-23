@@ -1,1 +1,1 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+window.__TAURI_ISOLATION_HOOK__ = (/** @type {unknown} */ payload) => payload;

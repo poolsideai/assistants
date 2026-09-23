@@ -95,6 +95,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+				Mode:          methods.ElicitationMode("form"),
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -123,60 +124,59 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestResolveElicitationAcceptsByIDAlone(t *testing.T) {
+	store, pushed := newPushedStore()
+	done := make(chan methods.ACPElicitationOutput, 1)
+	go func() {
+		out, _ := store.RequestElicitation(context.Background(), methods.ACPElicitationParams{
+			ACPAgentServerParams: methods.ACPAgentServerParams{AgentServer: "poolside"},
+			ElicitationRequest: methods.ElicitationRequest{
+				SessionID:     "s1",
+				ElicitationID: "e-1",
+				Mode:          methods.ElicitationMode("url"),
+			},
+		})
+		done <- out
+	}()
+	require.Len(t, <-pushed, 1)
+
+	assert.False(t, store.ResolveElicitation("poolside", ""))
+	assert.False(t, store.ResolveElicitation("poolside", "e-unknown"))
+	assert.False(t, store.ResolveElicitation("other-server", "e-1"))
+	assert.True(t, store.ResolveElicitation("poolside", "e-1"))
+
+	answer := <-done
+	assert.Equal(t, methods.ElicitationActionAccept, answer.Action)
+	assert.Empty(t, <-pushed)
+	assert.Empty(t, store.Pending())
+}
+
+func TestResolveElicitationIgnoresFormEntries(t *testing.T) {
+	store, pushed := newPushedStore()
+	done := make(chan methods.ACPElicitationOutput, 1)
+	go func() {
+		out, _ := store.RequestElicitation(context.Background(), methods.ACPElicitationParams{
+			ACPAgentServerParams: methods.ACPAgentServerParams{AgentServer: "poolside"},
+			ElicitationRequest: methods.ElicitationRequest{
+				SessionID:     "s1",
+				ElicitationID: "e-1",
+				Mode:          methods.ElicitationModeForm,
+			},
+		})
+		done <- out
+	}()
+	require.Len(t, <-pushed, 1)
+
+	// An id-colliding elicitation/complete must not accept a form on the
+	// user's behalf.
+	assert.False(t, store.ResolveElicitation("poolside", "e-1"))
+	require.Len(t, store.Pending(), 1)
+
+	store.CancelSession("poolside", "s1")
+	answer := <-done
+	assert.Equal(t, methods.ElicitationActionCancel, answer.Action)
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

@@ -1,8 +1,8 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import type { Repositories } from "./Repositories.svelte";
+  import { registerSyncEffects } from "./registerSyncEffects.svelte";
+
+  const { repositories }: { repositories: Repositories } = $props();
+
+  registerSyncEffects({ repositories });
+</script>

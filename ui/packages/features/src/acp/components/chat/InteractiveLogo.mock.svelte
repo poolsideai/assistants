@@ -1,1 +1,1 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<div data-testid="interactive-logo"></div>

@@ -1,231 +1,231 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+use std::{
+    collections::HashMap,
+    env, fs,
+    path::{Path, PathBuf},
+};
+
+use tauri::{AppHandle, Manager};
+
+const ZSH_INTEGRATION_VERSION: &str = "v1";
+
+const ZSHENV: &str = r#"# Generated by Poolside. Changes will be overwritten.
+ZDOTDIR="${POOLSIDE_ZSH_USER_ZDOTDIR:-${HOME}}"
+if [[ "${ZDOTDIR}" != "${POOLSIDE_ZSH_INTEGRATION_DIR}" && -r "${ZDOTDIR}/.zshenv" ]]; then
+  builtin source "${ZDOTDIR}/.zshenv"
+fi
+POOLSIDE_ZSH_USER_ZDOTDIR="${ZDOTDIR:-${HOME}}"
+ZDOTDIR="${POOLSIDE_ZSH_INTEGRATION_DIR}"
+"#;
+
+const ZPROFILE: &str = r#"# Generated by Poolside. Changes will be overwritten.
+ZDOTDIR="${POOLSIDE_ZSH_USER_ZDOTDIR:-${HOME}}"
+if [[ "${ZDOTDIR}" != "${POOLSIDE_ZSH_INTEGRATION_DIR}" && -r "${ZDOTDIR}/.zprofile" ]]; then
+  builtin source "${ZDOTDIR}/.zprofile"
+fi
+POOLSIDE_ZSH_USER_ZDOTDIR="${ZDOTDIR:-${HOME}}"
+ZDOTDIR="${POOLSIDE_ZSH_INTEGRATION_DIR}"
+"#;
+
+const ZSHRC: &str = r#"# Generated by Poolside. Changes will be overwritten.
+ZDOTDIR="${POOLSIDE_ZSH_USER_ZDOTDIR:-${HOME}}"
+if [[ "${ZDOTDIR}" != "${POOLSIDE_ZSH_INTEGRATION_DIR}" && -r "${ZDOTDIR}/.zshrc" ]]; then
+  builtin source "${ZDOTDIR}/.zshrc"
+fi
+POOLSIDE_ZSH_USER_ZDOTDIR="${ZDOTDIR:-${HOME}}"
+
+# A terminal emulator can only send bytes; zle decides what those bytes mean.
+# Bind Poolside's macOS text-navigation sequences in both stock editing maps
+# and in whichever map the user's configuration aliases as `main`.
+for keymap in emacs viins main; do
+  builtin bindkey -M "${keymap}" '^A' beginning-of-line 2>/dev/null
+  builtin bindkey -M "${keymap}" '^E' end-of-line 2>/dev/null
+  builtin bindkey -M "${keymap}" '^U' backward-kill-line 2>/dev/null
+  builtin bindkey -M "${keymap}" $'\eb' backward-word 2>/dev/null
+  builtin bindkey -M "${keymap}" $'\ef' forward-word 2>/dev/null
+  builtin bindkey -M "${keymap}" $'\e\x7f' backward-kill-word 2>/dev/null
+done
+
+ZDOTDIR="${POOLSIDE_ZSH_INTEGRATION_DIR}"
+"#;
+
+const ZLOGIN: &str = r#"# Generated by Poolside. Changes will be overwritten.
+ZDOTDIR="${POOLSIDE_ZSH_USER_ZDOTDIR:-${HOME}}"
+if [[ "${ZDOTDIR}" != "${POOLSIDE_ZSH_INTEGRATION_DIR}" && -r "${ZDOTDIR}/.zlogin" ]]; then
+  builtin source "${ZDOTDIR}/.zlogin"
+fi
+POOLSIDE_ZSH_USER_ZDOTDIR="${ZDOTDIR:-${HOME}}"
+ZDOTDIR="${POOLSIDE_ZSH_USER_ZDOTDIR}"
+unset POOLSIDE_ZSH_INTEGRATION_DIR POOLSIDE_ZSH_USER_ZDOTDIR
+"#;
+
+/// Environment overrides that make one Poolside-spawned zsh source its normal
+/// startup files through our wrapper, then apply Poolside-only key bindings.
+pub fn zsh_terminal_env(
+    app: &AppHandle,
+    terminal_env: Option<&HashMap<String, String>>,
+) -> Result<HashMap<String, String>, String> {
+    // Reinstall on every spawn rather than caching the first result: the cache
+    // directory can be cleared mid-session, and a zsh pointed at a missing
+    // ZDOTDIR would silently skip the user's own startup files too.
+    let integration_dir = install_zsh_integration(app)?;
+    let integration_dir = integration_dir.to_string_lossy().into_owned();
+    let user_zdotdir = env_value(terminal_env, "ZDOTDIR")
+        .filter(|value| !value.is_empty())
+        .or_else(|| env_value(terminal_env, "HOME"))
+        .unwrap_or_default();
+
+    Ok(HashMap::from([
+        ("ZDOTDIR".to_string(), integration_dir.clone()),
+        ("POOLSIDE_ZSH_INTEGRATION_DIR".to_string(), integration_dir),
+        ("POOLSIDE_ZSH_USER_ZDOTDIR".to_string(), user_zdotdir),
+    ]))
+}
+
+fn env_value(terminal_env: Option<&HashMap<String, String>>, key: &str) -> Option<String> {
+    terminal_env
+        .and_then(|values| values.get(key).cloned())
+        .or_else(|| env::var(key).ok())
+}
+
+fn install_zsh_integration(app: &AppHandle) -> Result<PathBuf, String> {
+    let directory = app
+        .path()
+        .app_cache_dir()
+        .map_err(|error| error.to_string())?
+        .join("shell-integration")
+        .join(format!("zsh-{ZSH_INTEGRATION_VERSION}"));
+    write_zsh_integration(&directory)?;
+    Ok(directory)
+}
+
+fn write_zsh_integration(directory: &Path) -> Result<(), String> {
+    fs::create_dir_all(directory).map_err(|error| error.to_string())?;
+    for (name, contents) in [
+        (".zshenv", ZSHENV),
+        (".zprofile", ZPROFILE),
+        (".zshrc", ZSHRC),
+        (".zlogin", ZLOGIN),
+    ] {
+        let path = directory.join(name);
+        if fs::read_to_string(&path).ok().as_deref() == Some(contents) {
+            continue;
+        }
+        fs::write(path, contents).map_err(|error| error.to_string())?;
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{
+        process::Command,
+        time::{SystemTime, UNIX_EPOCH},
+    };
+
+    use super::*;
+
+    #[test]
+    fn explicit_terminal_environment_wins_when_finding_user_zdotdir() {
+        let terminal_env = HashMap::from([
+            ("HOME".to_string(), "/terminal/home".to_string()),
+            ("ZDOTDIR".to_string(), "/terminal/config/zsh".to_string()),
+        ]);
+
+        assert_eq!(
+            env_value(Some(&terminal_env), "ZDOTDIR").as_deref(),
+            Some("/terminal/config/zsh")
+        );
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn zsh_wrapper_preserves_startup_files_and_binds_navigation_in_vi_mode() {
+        if !Path::new("/bin/zsh").is_file() {
+            return;
+        }
+
+        let unique = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("time after epoch")
+            .as_nanos();
+        let root = env::temp_dir().join(format!(
+            "poolside-zsh-integration-test-{}-{unique}",
+            std::process::id()
+        ));
+        let initial_zdotdir = root.join("initial");
+        let user_zdotdir = root.join("configured");
+        let integration_dir = root.join("integration");
+        fs::create_dir_all(&initial_zdotdir).expect("create initial zdotdir");
+        fs::create_dir_all(&user_zdotdir).expect("create configured zdotdir");
+        write_zsh_integration(&integration_dir).expect("write integration");
+
+        fs::write(
+            initial_zdotdir.join(".zshenv"),
+            format!(
+                "export POOLSIDE_RC_CHAIN=env\nexport ZDOTDIR='{}'\n",
+                user_zdotdir.display()
+            ),
+        )
+        .expect("write zshenv");
+        fs::write(
+            user_zdotdir.join(".zprofile"),
+            "export POOLSIDE_RC_CHAIN=${POOLSIDE_RC_CHAIN}:profile\n",
+        )
+        .expect("write zprofile");
+        fs::write(
+            user_zdotdir.join(".zshrc"),
+            "export POOLSIDE_RC_CHAIN=${POOLSIDE_RC_CHAIN}:rc\nbindkey -v\n",
+        )
+        .expect("write zshrc");
+        fs::write(
+            user_zdotdir.join(".zlogin"),
+            "export POOLSIDE_RC_CHAIN=${POOLSIDE_RC_CHAIN}:login\n",
+        )
+        .expect("write zlogin");
+
+        let command = r#"
+print -r -- "chain=${POOLSIDE_RC_CHAIN}"
+print -r -- "zdotdir=${ZDOTDIR}"
+bindkey -M main '^A'
+bindkey -M main '^E'
+bindkey -M main '^U'
+bindkey -M main $'\eb'
+bindkey -M main $'\ef'
+bindkey -M main $'\e\x7f'
+"#;
+        let output = Command::new("/bin/zsh")
+            .args(["-ilc", command])
+            .env_clear()
+            .env("HOME", &initial_zdotdir)
+            .env("TERM", "xterm-256color")
+            .env("ZDOTDIR", &integration_dir)
+            .env("POOLSIDE_ZSH_INTEGRATION_DIR", &integration_dir)
+            .env("POOLSIDE_ZSH_USER_ZDOTDIR", &initial_zdotdir)
+            .output()
+            .expect("run integrated zsh");
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+
+        assert!(output.status.success(), "zsh failed: {stderr}");
+        assert!(
+            stdout.contains("chain=env:profile:rc:login"),
+            "startup files were not preserved: {stdout}"
+        );
+        assert!(
+            stdout.contains(&format!("zdotdir={}", user_zdotdir.display())),
+            "ZDOTDIR was not restored: {stdout}"
+        );
+        for binding in [
+            "\"^A\" beginning-of-line",
+            "\"^E\" end-of-line",
+            "\"^U\" backward-kill-line",
+            "\"^[b\" backward-word",
+            "\"^[f\" forward-word",
+            "\"^[^?\" backward-kill-word",
+        ] {
+            assert!(stdout.contains(binding), "missing {binding}: {stdout}");
+        }
+
+        let _ = fs::remove_dir_all(root);
+    }
+}

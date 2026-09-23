@@ -5,8 +5,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+//!   SPOOLSIDE_DOCK_ICON_COLOR  hex colour the app icon is tinted with
+//!   SPOOLSIDE_APP_NAME         name shown in the menu bar / when hovering the dock
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+//! "Poolside" name are left untouched. The recolouring itself lives in
+//! app_icon.rs, shared with the user-facing icon tint setting.
+
+use tauri::AppHandle;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -112,17 +118,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/// Tint the dock icon from `SPOOLSIDE_DOCK_ICON_COLOR`. Safe to call after the
+/// app has launched (Tauri `setup` and `RunEvent::Ready` both run on the main
+/// thread). macOS only; a no-op elsewhere.
+pub fn set_dock_icon(app_handle: &AppHandle) {
+    if let Some(color) = crate::app_icon::spoolside_tint() {
+        crate::app_icon::apply_color(app_handle, Some(color));
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

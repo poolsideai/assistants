@@ -359,9 +359,67 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      expect.objectContaining({
+        onOutput: expect.any(Function),
+      }),
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("throws when the teardown script exits non-zero, including the output tail", async () => {
+    const assistantTerminals = {
+      createTab: vi.fn().mockResolvedValue(undefined),
+      closeProject: vi.fn().mockResolvedValue(undefined),
+      closeWorktree: vi.fn().mockResolvedValue(undefined),
+      runCommandAndWait: vi.fn().mockImplementation(async (_path, _command, _signal, options) => {
+        options?.onOutput?.("stopping services\ncommand not found: spoolside\n");
+        return 1;
+      }),
+    };
+    const runner = createAssistantTerminalCommandRunner(
+      assistantTerminals as unknown as AssistantTerminalRepository,
+    );
+
+    await expect(runner.runTeardown("/repo/worktrees/feature", "cleanup")).rejects.toThrow(
+      "Teardown script exited with code 1: cleanup\nstopping services\ncommand not found: spoolside",
+    );
+  });
+
+  it("throws when the teardown script could not run at all", async () => {
+    const assistantTerminals = {
+      createTab: vi.fn().mockResolvedValue(undefined),
+      closeProject: vi.fn().mockResolvedValue(undefined),
+      closeWorktree: vi.fn().mockResolvedValue(undefined),
+      runCommandAndWait: vi.fn().mockResolvedValue(undefined),
+    };
+    const runner = createAssistantTerminalCommandRunner(
+      assistantTerminals as unknown as AssistantTerminalRepository,
+    );
+
+    await expect(runner.runTeardown("/repo/worktrees/feature", "cleanup")).rejects.toThrow(
+      "Teardown script did not run: cleanup",
+    );
+  });
+
+  it("does not treat an aborted teardown as a failure", async () => {
+    const controller = new AbortController();
+    const assistantTerminals = {
+      createTab: vi.fn().mockResolvedValue(undefined),
+      closeProject: vi.fn().mockResolvedValue(undefined),
+      closeWorktree: vi.fn().mockResolvedValue(undefined),
+      runCommandAndWait: vi.fn().mockImplementation(async () => {
+        controller.abort();
+        return undefined;
+      }),
+    };
+    const runner = createAssistantTerminalCommandRunner(
+      assistantTerminals as unknown as AssistantTerminalRepository,
+    );
+
+    await expect(
+      runner.runTeardown("/repo/worktrees/feature", "cleanup", controller.signal),
+    ).resolves.toBeUndefined();
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -396,108 +454,50 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        reuseExisting: true,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        // Shown, never focused: the user creates a worktree to type a prompt.
+        focus: false,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  it("runs visible setup scripts in the configured placement", async () => {
+    const assistantTerminals = {
+      createTab: vi.fn().mockResolvedValue(undefined),
+      closeProject: vi.fn().mockResolvedValue(undefined),
+      closeWorktree: vi.fn().mockResolvedValue(undefined),
+      runCommandAndWait: vi.fn().mockResolvedValue(0),
+    };
+    const setupScriptOutputs = {
+      clear: vi.fn(),
+      start: vi.fn(),
+      append: vi.fn(),
+      complete: vi.fn(),
+      fail: vi.fn(),
+    };
+    const setupPlacement = vi.fn().mockReturnValue("bottomPanel");
+    const runner = createAssistantTerminalCommandRunner(
+      assistantTerminals as unknown as AssistantTerminalRepository,
+      setupScriptOutputs as unknown as AcpSetupScriptOutputRepository,
+      { setupInVisibleTerminal: true, setupPlacement },
+    );
+
+    await runner.runSetup("/repo/worktrees/feature", "setup");
+
+    expect(setupPlacement).toHaveBeenCalled();
+    expect(assistantTerminals.runCommandAndWait).toHaveBeenCalledWith(
+      "/repo/worktrees/feature",
+      "setup",
+      undefined,
+      expect.objectContaining({
+        visible: true,
+        placement: "bottomPanel",
+        reuseExisting: true,
+      }),
+    );
+  });
 __POOL_SYNTHETIC_IMPORT_BASELINE__

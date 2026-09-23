@@ -183,10 +183,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+func TestLocaleEnvDefaultsToUTF8OnlyWhenUnset(t *testing.T) {
+	assert.Equal(t, []string{"LANG=en_US.UTF-8"}, localeEnv(nil))
+	assert.Equal(t, []string{"LANG=en_US.UTF-8"}, localeEnv([]string{"TERM=xterm-256color", "LANG=", "LANGUAGE=en"}))
+	assert.Nil(t, localeEnv([]string{"LANG=de_DE.UTF-8"}))
+	assert.Nil(t, localeEnv([]string{"LC_ALL=C"}))
+}

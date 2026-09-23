@@ -1,41 +1,41 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export {
+  SplitsConfiguration,
+  compactSplitsAppearance,
+  defaultSplitsAppearance,
+  normalizeSplitsConfiguration,
+  spaciousSplitsAppearance,
+} from "./configuration.js";
+export { SplitsController } from "./controller.js";
+export { default as DefaultEmptyPane } from "./DefaultEmptyPane.svelte";
+export { default as SplitsView } from "./SplitsView.svelte";
+export type {
+  ContentViewLifecycle,
+  CreateTabObjectOptions,
+  CreateTabOptions,
+  ExternalPaneNode,
+  ExternalSplitNode,
+  ExternalTab,
+  ExternalTreeNode,
+  LayoutSnapshot,
+  NavigationDirection,
+  NewTabPosition,
+  PaneGeometry,
+  PaneID,
+  PaneNode,
+  PaneState,
+  PixelRect,
+  SerializedSplitsState,
+  SplitBranchNode,
+  SplitID,
+  SplitNode,
+  SplitOrientation,
+  SplitPaneOptions,
+  SplitsAppearance,
+  SplitsConfigurationInput,
+  SplitsConfiguration as SplitsConfigurationOptions,
+  SplitsDelegate,
+  SplitsState,
+  Tab,
+  TabID,
+  UpdateTabOptions,
+} from "./types.js";

@@ -1,5 +1,5 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export {
+  imageFilePathFromUri,
+  isPreviewableImagePath,
+  isPreviewableImageUrl,
+} from "@poolsideai/components/assistant-ui";

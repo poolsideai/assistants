@@ -280,31 +280,31 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+// A turn's EndTurn is queued behind its final publishes, so it can arrive
+// after the next turn's BeginTurn. The late EndTurn must close its own turn,
+// not the one now in flight.
+func TestOverlappingTurnBoundariesKeepSessionActive(t *testing.T) {
+	log := NewSessionLog(NewHub())
+	log.BeginTurn("poolside", "s1")
+	log.BeginTurn("poolside", "s1")
+	log.EndTurn("poolside", "s1")
+
+	assert.True(t, log.Cursor("poolside", "s1").TurnActive,
+		"the second turn must stay active after the first turn's late EndTurn")
+	for i := 0; i < sessionLogMaxSessions+10; i++ {
+		log.Publish("poolside", fmt.Sprintf("s%d", i+2), "", false, testMessage(i))
+	}
+	log.mu.Lock()
+	_, kept := log.sessions[sessionLogKey{agentServer: "poolside", sessionID: "s1"}]
+	log.mu.Unlock()
+	assert.True(t, kept, "session with an in-flight turn must not be evicted")
+
+	log.EndTurn("poolside", "s1")
+	assert.False(t, log.Cursor("poolside", "s1").TurnActive)
+	// An unmatched EndTurn (e.g. a replayed boundary) must not underflow into
+	// marking a future turn ended.
+	log.EndTurn("poolside", "s1")
+	log.BeginTurn("poolside", "s1")
+	assert.True(t, log.Cursor("poolside", "s1").TurnActive)
+}

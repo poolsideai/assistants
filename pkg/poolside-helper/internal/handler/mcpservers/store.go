@@ -38,6 +38,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	Enabled           bool                      `json:"enabled"`
+	AuthMode          methods.MCPServerAuthMode `json:"authMode,omitempty"`
+	OAuthScopes       string                    `json:"oauthScopes,omitempty"`
+	OAuthClientID     string                    `json:"oauthClientId,omitempty"`
+	OAuthCallbackPort int                       `json:"oauthCallbackPort,omitempty"`
+	OAuthDeepLink     bool                      `json:"oauthDeepLink,omitempty"`
+	BuiltinID         string                    `json:"builtinID,omitempty"`
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -58,6 +65,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+// Path returns the connectors file location, for external-change watching.
+func (s *Store) Path() string {
+	return s.path
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -244,61 +256,49 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	// Migrate catalog Slack installs persisted before the deep-link redirect:
+	// they carry a loopback callback port that Slack's OAuth app no longer has
+	// registered, so authenticating would open a browser flow that can never
+	// redirect back. The catalog has no edit mode, so without this rewrite such
+	// entries stay stranded until deleted and re-added. Read-path migration
+	// keeps List/Get/Authenticate consistent without a store write.
+	if rec.BuiltinID == "slack" && rec.AuthMode == methods.MCPServerAuthModeOAuth && !rec.OAuthDeepLink {
+		rec.OAuthDeepLink = true
+		rec.OAuthCallbackPort = 0
+	}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		Name:              name,
+		Enabled:           rec.Enabled,
+		Command:           rec.Command,
+		Args:              rec.Args,
+		Env:               rec.Env,
+		URL:               rec.URL,
+		Headers:           rec.Headers,
+		BearerToken:       rec.BearerToken,
+		AuthMode:          rec.AuthMode,
+		OAuthScopes:       rec.OAuthScopes,
+		OAuthClientID:     rec.OAuthClientID,
+		OAuthCallbackPort: rec.OAuthCallbackPort,
+		OAuthDeepLink:     rec.OAuthDeepLink,
+		BuiltinID:         rec.BuiltinID,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		Command:           e.Command,
+		Args:              e.Args,
+		Env:               e.Env,
+		URL:               e.URL,
+		Headers:           e.Headers,
+		BearerToken:       e.BearerToken,
+		Enabled:           e.Enabled,
+		AuthMode:          e.AuthMode,
+		OAuthScopes:       e.OAuthScopes,
+		OAuthClientID:     e.OAuthClientID,
+		OAuthCallbackPort: e.OAuthCallbackPort,
+		OAuthDeepLink:     e.OAuthDeepLink,
+		BuiltinID:         e.BuiltinID,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

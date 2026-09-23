@@ -28,6 +28,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/internal/handler/localinference"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -59,9 +60,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	// methods that should not inherit the default request deadline
+	noDeadlineMethods map[string]struct{}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	huma                huma.API
+	schemaMu            sync.Mutex
+	schemaRegistrations []func(huma.API)
+	cachedFS            overlayFs
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	docLocks map[string]*sync.Mutex
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -84,10 +92,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	acpProxyHandler            *acpproxy.Handler
+	acpNavHandler              *acpnav.Server
+	fileSearchHandler          *filesearch.Server
+	localInferenceHandler      *localinference.Server
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	secretsHandler             *secretshandler.Server
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	clientSupportsWatchedFiles bool
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -104,6 +118,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+func New() *PoolsideHandler {
+	handler := newHandlerBaseState()
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -166,6 +182,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.SearchFilesParams{}.MethodName(),
+		Description: methods.SearchFilesParams{}.Description(),
+	}, handler.fileSearchHandler.Search)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -181,6 +202,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.MCPOAuthCallbackParams{}.MethodName(),
+		Description: "Complete a pending MCP OAuth flow with a deep-link redirect callback URL",
+	}, handler.MCPOAuthCallback)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -261,6 +287,36 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.GitDiffOpenParams{}.MethodName(),
+		Description: methods.GitDiffOpenParams{}.Description(),
+	}, handler.gitHandler.DiffOpen)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.GitDiffListParams{}.MethodName(),
+		Description: methods.GitDiffListParams{}.Description(),
+	}, handler.gitHandler.DiffList)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.GitDiffReadParams{}.MethodName(),
+		Description: methods.GitDiffReadParams{}.Description(),
+	}, handler.gitHandler.DiffRead)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.GitDiffContentsParams{}.MethodName(),
+		Description: methods.GitDiffContentsParams{}.Description(),
+	}, handler.gitHandler.DiffContents)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.GitDiffStatsParams{}.MethodName(),
+		Description: methods.GitDiffStatsParams{}.Description(),
+	}, handler.gitHandler.DiffStats)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.GitDiffCloseParams{}.MethodName(),
+		Description: methods.GitDiffCloseParams{}.Description(),
+	}, handler.gitHandler.DiffClose)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -326,13 +382,55 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.LocalInferenceGetStateMethod,
+		Description: "returns local on-device inference state and catalog",
+	}, handler.localInferenceHandler.GetState)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.LocalInferenceSetDefaultModelMethod,
+		Description: "updates the default local on-device model",
+	}, handler.localInferenceHandler.SetDefaultModel)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.LocalInferenceSearchModelsMethod,
+		Description: "searches Hugging Face for installable local on-device models",
+	}, handler.localInferenceHandler.SearchModels)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.LocalInferenceDownloadModelMethod,
+		Description: "starts downloading a local on-device model",
+	}, handler.localInferenceHandler.DownloadModel)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.LocalInferenceCancelDownloadMethod,
+		Description: "cancels the download of a local on-device model",
+	}, handler.localInferenceHandler.CancelDownload)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.LocalInferenceDeleteModelMethod,
+		Description: "deletes a local on-device model from disk",
+	}, handler.localInferenceHandler.DeleteModel)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.LocalInferenceUnloadModelMethod,
+		Description: "releases the model resident in the local sidecar's memory",
+	}, handler.localInferenceHandler.UnloadModel)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	}, handler.ACPNavList)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.ACPNavCreateChatMethod,
+		Description: "creates the XDG state working directory for a chat session",
+	}, handler.acpNavHandler.CreateChat)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	}, handler.ACPNavUpsertProject)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -377,20 +475,38 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	}, handler.ACPNavCreateWorktree)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	}, handler.ACPNavRemoveProject)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	}, handler.ACPNavRemoveWorktree)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.ACPNavPrepareConversationHandoffMethod,
+		Description: "durably freezes the current ACP session leg before handing a conversation to another agent",
+	}, handler.acpNavHandler.PrepareConversationHandoff)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.ACPNavAbortConversationHandoffMethod,
+		Description: "discards an uncommitted ACP conversation handoff",
+	}, handler.acpNavHandler.AbortConversationHandoff)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.ACPNavGetConversationHistoryMethod,
+		Description: "loads completed ACP agent legs for a conversation",
+	}, handler.acpNavHandler.GetConversationHistory)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -411,10 +527,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.ACPNavListAgentServersMethod,
+		Description: "lists locally enabled ACP agent servers",
+	}, handler.ACPNavListAgentServers)
+
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.ACPNavCheckAgentRuntimesMethod,
+		Description: "reports whether the runtimes registry ACP agent distributions launch through are available",
+	}, handler.CheckACPNavAgentRuntimes)
+
+	registerExtensionMethodNoDeadline(handler, JSONRPCOperation{
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.ACPNavSetAgentServersMethod,
+		Description: "replaces the locally enabled ACP agent servers",
+	}, handler.SetACPNavAgentServers)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -425,6 +557,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.ACPNavSetConversationViewStateMethod,
+		Description: "updates transient editor view state for an ACP conversation",
+	}, handler.acpNavHandler.SetConversationViewState)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -455,6 +592,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	publishClientSideTypes(handler, methods.ACPNavDidChangeMethod, methods.ACPNavDidChangeParams{},
+		"notifies the client when ACP navigation state changes")
+
+	publishClientSideTypes(handler, methods.LocalInferenceDidChangeMethod, methods.LocalInferenceDidChangeParams{},
+		"notifies the client when local on-device inference state changes")
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -469,7 +612,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	// ACP proxy methods
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		Method:      methods.ACPInitializeMethod,
+		Description: "initializes the ACP agent subprocess",
+	}, handler.acpProxyHandler.Initialize)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -485,19 +633,71 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	// NewSession, LoadSession, and ResumeSession can take well over the default 5s serialized
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		Method:      methods.ACPNewSessionMethod,
+		Description: "creates a new ACP session",
+	}, handler.acpProxyHandler.NewSession)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		Method:      methods.ACPLoadSessionMethod,
+		Description: "loads an existing ACP session",
+	}, handler.acpProxyHandler.LoadSession)
+
+	registerUnserializedExtensionMethodUntypedNoDeadline(handler, JSONRPCOperation{
+		Method:      methods.ACPResumeSessionMethod,
+		Description: "resumes an existing ACP session without replaying its transcript",
+	}, handler.acpProxyHandler.ResumeSession)
+
+	registerExtensionMethodUntyped(handler, JSONRPCOperation{
+		Method:      methods.ACPListSessionsMethod,
+		Description: "lists ACP sessions",
+	}, handler.acpProxyHandler.ListSessions)
+
+	registerUnserializedExtensionMethodUntypedNoDeadline(handler, JSONRPCOperation{
+		Method:      methods.ACPPromptMethod,
+		Description: "sends a prompt to the ACP agent subprocess",
+	}, handler.acpProxyHandler.Prompt)
+
+	registerUnserializedExtensionMethodUntypedNoDeadline(handler, JSONRPCOperation{
+		Method:      methods.ACPSteerMethod,
+		Description: "steers an ongoing ACP agent turn through its native extension",
+	}, handler.acpProxyHandler.Steer)
+
+	registerUnserializedExtensionMethodUntyped(handler, JSONRPCOperation{
+		Method:      methods.ACPCodexGoalControlMethod,
+		Description: "pauses or clears a Codex goal through its native extension",
+	}, handler.acpProxyHandler.CodexGoalControl)
+
+	registerUnserializedExtensionMethodUntyped(handler, JSONRPCOperation{
+		Method:      methods.ACPCancelMethod,
+		Description: "cancels an ongoing ACP operation",
+	}, handler.acpProxyHandler.Cancel)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		Method:      methods.ACPSetModeMethod,
+		Description: "changes the ACP session mode",
+	}, handler.acpProxyHandler.SetMode)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		Method:      methods.ACPSetConfigOptionMethod,
+		Description: "sets a session config option",
+	}, handler.acpProxyHandler.SetConfigOption)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	registerExtensionMethod(handler, JSONRPCOperation{
+		Method:      methods.ACPCloseSessionMethod,
+		Description: "closes an ACP session's agent-side resources, keeping it reopenable",
+	}, handler.acpProxyHandler.CloseSession)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -531,6 +731,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		"publishes the response schema for ACP elicitation requests")
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -547,6 +748,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	publishClientSideTypes(handler, methods.ACPTurnEndedMethod, methods.ACPTurnEndedNotification{},
+		"notifies every surface that an ACP turn has ended")
+	publishClientSideTypes(handler, methods.MCPServersDidChangeParams{}.MethodName(), methods.MCPServersDidChangeParams{},
+		"notifies every surface that the user's MCP connector set changed")
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -557,16 +762,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+func newHandlerBaseState() *PoolsideHandler {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		noDeadlineMethods: make(map[string]struct{}),
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		docLocks: map[string]*sync.Mutex{},
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -578,15 +786,35 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		acpNavHandler:         acpnav.NewServer(),
+		localInferenceHandler: localinference.NewServer(),
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		secretsHandler:        secretshandler.NewServer(),
+		githubHandler:         githubhandler.NewServer(http.DefaultClient),
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		mcpServersHandler:     mcpservers.NewServer(),
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	h.fileSearchHandler = filesearch.NewServer(h.searchFileWorkspaceFolders)
+	h.acpNavHandler.SetStateFilter(h.acpNavStateForHost)
+	h.mcpServersHandler.SetDeepLinkOAuthCapable(func() bool {
+		h.mx.Lock()
+		defer h.mx.Unlock()
+		return h.config != nil && h.config.ClientCapabilities.MCPOAuthDeepLink
+	})
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	// Reuse the Hugging Face MCP connector's OAuth token for Hugging Face API
+	// requests (e.g. downloading gated models that require TOS acceptance).
+	h.localInferenceHandler.SetHuggingFaceTokenSource(h.mcpServersHandler.HuggingFaceTokenSource())
+	h.localInferenceHandler.SetHuggingFaceTokenInvalidator(h.mcpServersHandler.InvalidateHuggingFaceToken)
+
+	h.acpProxyHandler = acpproxy.NewHandler(
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+			if folders := h.GetWorkspaceFolders(); len(folders) > 0 {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+			}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -597,7 +825,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+			cfg.AgentServerEnvProvider = h.localInferenceHandler.AgentServerEnv
+			cfg.AgentServerReady = h.localInferenceHandler.AgentServerReady
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		},
+		h.ReadFile,
+		h.acpNavHandler,
+	)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -614,19 +849,56 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	// The connector store is shared on disk across helper instances, but change
+	// listeners are in-memory per client — broadcast every mutation, and watch
+	// the store for other instances' writes, so every surface re-injects its
+	// live agent sessions with the current connector set.
+	h.mcpServersHandler.SetChangeNotifier(func() {
+		h.remoteHub.NotifyAll(methods.MCPServersDidChangeParams{}.MethodName(), methods.MCPServersDidChangeParams{})
+	})
+	h.cleanupFns = append(h.cleanupFns, h.mcpServersHandler.WatchStoreForExternalChanges())
+
+	// Models placed in the local models directory outside the app download
+	// flow are only discovered by a state read; watch the directory so they
+	// reach every client without waiting for one (PE-2474).
+	h.cleanupFns = append(h.cleanupFns, h.localInferenceHandler.WatchModelsDirectory())
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	h.cleanupFns = append(h.cleanupFns, h.acpProxyHandler.Close)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	h.cleanupFns = append(h.cleanupFns, h.localInferenceHandler.Close)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	h.schemaMu.Lock()
+	defer h.schemaMu.Unlock()
+	if h.huma == nil {
+		h.huma = humachi.New(chi.NewMux(), huma.DefaultConfig("poolside helper", "0.1.0"))
+		for _, register := range h.schemaRegistrations {
+			register(h.huma)
+		}
+		h.schemaRegistrations = nil
+	}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+// Runtime dispatch needs only typed handlers. Build documentation schemas on
+// first OpenAPI access (including development validation), not every launch.
+func (h *PoolsideHandler) registerSchema(register func(huma.API)) {
+	h.schemaMu.Lock()
+	defer h.schemaMu.Unlock()
+	if h.huma == nil {
+		h.schemaRegistrations = append(h.schemaRegistrations, register)
+	} else {
+		register(h.huma)
+	}
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -658,6 +930,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	ctx, cancel := h.newRequestContext(req.Method)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -724,290 +997,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+
+func (h *PoolsideHandler) newRequestContext(method string) (context.Context, context.CancelFunc) {
+	if _, ok := h.noDeadlineMethods[method]; ok {
+		return context.WithCancel(context.Background())
+	}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

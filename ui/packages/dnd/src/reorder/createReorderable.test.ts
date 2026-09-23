@@ -117,36 +117,36 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("reports pointer and item geometry while dragging", () => {
+    const { zone, handles } = buildThreeRowZone(true);
+    const onDragMove = vi.fn();
+    handle = createReorderable(zone, {
+      handleSelector: "[data-reorderable-handle]",
+      autoScrollThreshold: 0,
+      onReorder: vi.fn(),
+      onDragMove,
+    });
+
+    fire(handles[0], "pointerdown", { clientX: 10, clientY: 10 });
+    fire(window, "pointermove", { clientX: 14, clientY: 80 });
+
+    expect(onDragMove).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        from: 0,
+        clientX: 14,
+        clientY: 80,
+        pointerOffsetX: 10,
+        pointerOffsetY: 10,
+        itemRect: expect.objectContaining({ top: 0, left: 0, width: 100, height: 30 }),
+        itemRects: [
+          expect.objectContaining({ top: 0, height: 30 }),
+          expect.objectContaining({ top: 30, height: 30 }),
+          expect.objectContaining({ top: 60, height: 30 }),
+        ],
+      }),
+    );
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

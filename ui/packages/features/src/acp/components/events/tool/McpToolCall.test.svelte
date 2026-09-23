@@ -1,17 +1,17 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import { EnvironmentProvider, LogProvider } from "@poolsideai/components/providers";
+  import type { ToolCall } from "../../../types";
+  import ToolCallComponent from "../ToolCall.svelte";
+
+  interface Props {
+    event: ToolCall;
+  }
+
+  let { event }: Props = $props();
+</script>
+
+<EnvironmentProvider name="test">
+  <LogProvider onInfo={() => {}} onError={() => {}}>
+    <ToolCallComponent {event} />
+  </LogProvider>
+</EnvironmentProvider>

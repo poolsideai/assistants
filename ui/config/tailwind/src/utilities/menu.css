@@ -1,51 +1,51 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/*
+ * Menus and the popovers that behave like them (anchored lists of rows), styled
+ * after the native macOS menu so ours sit beside the system's without reading as
+ * a web widget: a neutral elevated surface, 10px corners, the NSMenu shadow, and
+ * 13px system text that rows inherit rather than re-declaring.
+ *
+ * Modals, tooltips and the mobile sheets are deliberately not part of this
+ * family — they follow their own platform idiom and keep --shadow-overlay.
+ */
+@utility menu-surface {
+  background-color: var(--psx-menu-background);
+  border-radius: var(--radius-menu);
+  box-shadow: var(--shadow-menu);
+  font-size: var(--text-menu);
+  line-height: var(--text-menu--line-height);
+
+  @variant dark {
+    box-shadow: var(--shadow-menu-dark);
+  }
+
+  /* Rows highlight with the same tinted fill the settings cards use. They
+     already paint their hover/keyboard state from --psx-menu-hover-background,
+     so re-pointing that token inside the surface converts every menu at once —
+     leaving the sidebar and nav rows that share the token outside untouched. */
+  --psx-menu-hover-background: var(--psx-highlight-background);
+
+  /* ...and the ring around it. Drawn as an inset shadow rather than a border so
+     rows keep their geometry — the same trick --shadow-overlay uses for its
+     hairline. Text colors are left alone: the fill is light enough to read on. */
+  &
+    :where([role="menuitem"], button):not(
+      :disabled,
+      [aria-disabled="true"],
+      :where([role="menuitem"] *)
+    ):is(:hover, :focus, [data-highlighted]) {
+    box-shadow: inset 0 0 0 1px var(--psx-highlight-border);
+  }
+}
+
+/*
+ * A menu's group divider. Inset 8px past the surface's own 4px padding so the
+ * line starts and ends under the row label, as macOS draws it, and rendered as a
+ * hairline (one device pixel) rather than a full 1px rule.
+ */
+@utility menu-separator {
+  flex: none;
+  block-size: var(--psx-hairline, 1px);
+  margin-block: 4px;
+  margin-inline: 8px;
+  background-color: var(--psx-menu-separator);
+}

@@ -1,286 +1,286 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+**Poolside Assistant performance audit — 7 September 2026**
+
+Audited checkout: `1a648b18350ada8b6f8a8b7f362dbed70e7c5a07`. This is an audit and implementation proposal; application source has not been changed. The companion [measurements](performance-audit/measurements.json), [bundle experiments](performance-audit/bundle-experiments.mjs), and [CPU scaling probe](performance-audit/pure-function-bench.mjs) preserve the quantitative evidence and make the principal experiments repeatable.
+
+The largest opportunities are concrete: remove an accidentally bundled logo catalogue; restore the intended lightweight startup boundary; let the shell become interactive before agents and history finish loading; stop continuously laying out pane contents during panel animations; and make streaming work proportional to the changed tail rather than the accumulated conversation. On the backend, bound the complete notification pipeline, replace replay-buffer copying with a ring, move blocking native commands off the application thread, and consolidate repeated Git and navigation work.
+
+The code already contains substantial performance work. This report distinguishes remaining work from existing safeguards and gives lower priority to plausible optimizations that the measurements do not support.
+
+**Evidence and limits**
+
+I traced launch, streaming, rendering, layout, worker, persistence, transport, file/Git, and memory lifecycles across the desktop TypeScript/Svelte and Rust host, shared UI packages, Go helper/ACP proxy/remote server, mobile client, VS Code extension, Visual Studio host, and Swift MLX sidecar. Production web builds were run for desktop and mobile; isolated desktop bundle experiments and synthetic CPU probes were also run. The IDE and inference paths received source review, not Windows or GPU runtime profiling. This is repository-wide coverage of architecture and performance-sensitive paths, not a claim that every source line or third-party implementation was executed.
+
+The running desktop target used WKWebView, but it was hidden during the frame probe. `requestAnimationFrame` produced no frames and timers were throttled. Those results are invalid for jank measurement and are excluded. Development navigation timing is also excluded from launch conclusions. There is no measured production launch-to-interactive baseline or trustworthy before/after FPS result in this audit. Predicted latency improvements below are engineering judgments; measured byte reductions are actual builds.
+
+A quiet helper sample captured 11.65 MiB of sampled live Go heap and 30 ms of CPU samples over 10.10 seconds. That is neither total app memory nor a streaming profile. It excludes native allocations, SQLite C allocations, JavaScript, browser processes, GPU resources, and agent/model processes. The running helper binary was not proven identical to the audited checkout. Its low sampled CPU cannot rule out busy-workload bottlenecks.
+
+Build tools were Node 24.7.0 and pnpm 10.15.1. Missing generated workspace exports initially prevented builds; building the relevant workspace dependencies resolved that. Desktop `build:web` and mobile `build` then completed. No dependency upgrade or application fix was made. Values use decimal MB unless explicitly marked KiB/MiB; gzip figures describe compressed artifacts, not measured transfer on Tauri's local asset protocol.
+
+| Measured artifact or experiment                                    |                                                                           Result | Interpretation                                                                                |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------: | --------------------------------------------------------------------------------------------- |
+| Desktop frontend distribution, after existing deduplication        |                                                      37,286,694 bytes; 469 files | Frontend assets only; excludes native executables, helper, bundled runtimes and model weights |
+| Desktop JavaScript within that distribution                        |                                                                 26,113,827 bytes | Includes lazy chunks; not all evaluated at launch                                             |
+| Desktop largest main chunk                                         |                                          10,492,196 bytes; Vite gzip 3,601.54 kB | Startup entry contains much of the application                                                |
+| Desktop startup static JavaScript closure                          |                                                                 12,119,544 bytes | Entry plus its transitive static imports, excluding CSS                                       |
+| Desktop closure including the directly imported application module |                                                                 12,506,122 bytes | Useful comparison for actual app code loading, beyond the splash                              |
+| Logo-only experiment: retain the 14 referenced logos               |                                  Main chunk 3,033,498 bytes; Vite gzip 911.07 kB | Saves 7,458,698 bytes, or 71.1% of that chunk; about 74.7% gzip reduction                     |
+| Splash-only experiment: narrow one barrel import                   |                                              Startup static closure 70,752 bytes | About 99.4% fewer static startup JS bytes; the application still loads dynamically            |
+| Combined logo and splash experiments                               | 70,752-byte splash closure; 5,048,089 bytes including direct dynamic app imports | About 59.6% below the original app-loading closure; substantial work remains                  |
+| Mobile production distribution                                     |                                                      35,837,534 bytes; 755 files | Before helper embedding/compression                                                           |
+| Mobile main chunk                                                  |                                          11,485,506 bytes; Vite gzip 3,878.82 kB | Paid even to enter the pairing/authentication flow                                            |
+
+The independent experiments must not be added as if both removed the same bytes from total distribution size. Logo subsetting removes data. Splash isolation mostly changes when code must load and execute. The combined experiment verifies their interaction, but does not measure interactive latency or validate all UI behavior.
+
+**Recommended order**
+
+P0 means the first implementation tranche, not a security severity. Effort estimates are relative: small is a localized change; medium spans a subsystem; large changes ownership or protocol contracts. Confidence refers to the mechanism, not an unmeasured speedup.
+
+| Order | Change                                                                            | Main benefit                           | Evidence / confidence                                                           | Effort                                  |
+| ----- | --------------------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------- |
+| 1     | B1: subset connector logos; remove Storybook runtime import                       | Launch, bundle, memory                 | Direct attribution and successful subset build / high                           | Small                                   |
+| 2     | L1–L2: isolate startup and reveal a usable shell independently of agent readiness | Launch and perceived readiness         | Import experiment plus explicit readiness gates / high                          | Medium                                  |
+| 3     | S1–S2: compositor-friendly panel transitions and decoupled pane silhouettes       | Sidebars, splits and tab motion        | Explicit layout transitions and per-frame geometry reads / high; trace required | Medium–large                            |
+| 4     | S4–S6: incremental transcript/status/metadata work                                | Smooth interaction under streaming     | Source-confirmed repeated scans and allocations / high                          | Large, separable into small first steps |
+| 5     | H1–H2: end-to-end bounded delivery and replay ring buffer                         | Streaming latency, memory stability    | Explicit queues and copy-on-overflow / high                                     | Medium–large                            |
+| 6     | H3 and S8: background native I/O and viewport-driven diff loading                 | File/split responsiveness, memory      | Blocking commands and eager loading / high                                      | Medium                                  |
+| 7     | B2–B4: lazy renderers, fine-grained Shiki, mobile startup and IDE minification    | Remaining bundle and launch costs      | Build attribution and source / high                                             | Medium                                  |
+| 8     | H4–H6: share Git/search/nav work and use incremental snapshots                    | Large repositories, tool-heavy streams | Repeated subprocess/database/serialization work / high                          | Medium–large                            |
+| 9     | S7 and M1–M3: worker admission, cache budgets, bounded warm views                 | Snappiness without growing footprint   | Existing caches plus uncovered queues/maps / high                               | Medium                                  |
+| 10    | L4–L6, H7–H8: native cold paths, schema construction, inference and speech        | Cold start and secondary workloads     | Source and limited helper profile / medium                                      | Workload-dependent                      |
+
+**Launch to interactive**
+
+**L1 — Restore the startup import boundary. P0, high confidence.** [DesktopStartupFrame.svelte:11](../ui/apps/desktop-assistant/src/DesktopStartupFrame.svelte) imports two small values through `@poolsideai/features/acp`. [startup.ts:98](../ui/apps/desktop-assistant/src/startup.ts) then dynamically imports `main`, apparently intending to keep startup independent. The production import graph defeats that intention: the startup entry pulls the 10.49 MB main chunk and a 1.63 MB shared Markdown chunk before its own code can execute. A temporary transform importing the two leaf modules directly reduced the static closure to 70.8 KB.
+
+Expose supported, narrow package exports for the roundel and streaming indicator, or keep a tiny startup-specific primitive in the host. Do not ship imports into another package's generated `dist` internals; that was only the diagnostic experiment. Keep diagnostics and recovery controls in this small boundary. Add a build assertion on transitive startup imports and their total bytes, including shared runtime chunks. A small entry filename alone is insufficient. This makes early feedback possible and lets the watchdog start earlier; it does not alone make the main application interactive. Explicitly allow the first splash paint before competing heavy evaluation: a dynamic import is not itself a guarantee of a paint opportunity.
+
+**L2 — Separate shell readiness from agent and transcript readiness. P0, high confidence.** [DesktopRuntime.svelte.ts:455](../ui/packages/assistant/src/acp/runtime/DesktopRuntime.svelte.ts) waits for projects, conversations and agent-server loading, then typically for a selected session to finish loading. [startup.ts:151](../ui/apps/desktop-assistant/src/startup.ts) keeps the app concealed until that signal, waits two animation frames, and performs a 240 ms handoff. Agent startup/authentication/history latency is therefore coupled to the whole shell's visibility.
+
+Introduce separate milestones: shell mounted, shell interactive, conversation available, agent ready. Show navigation and layout controls from a small local snapshot; let the user type and retain a draft while the active agent connects. Gate sending on agent readiness, with a local status indication. Load the selected transcript incrementally and avoid replaying hidden panes before shell readiness. Preserve the existing failure/retry/report controls and prevent a late load from overwriting a draft or stealing focus. Validate by injecting a ten-second agent delay: navigation, splits, tabs and draft editing should remain responsive throughout. Shortening the fade is a finishing improvement, not the main fix.
+
+**L3 — Consolidate and parallelize native bootstrap reads. P1, high confidence.** [main.ts:301](../ui/apps/desktop-assistant/src/main.ts) serially awaits boot settings, version, home directory, theme application, accent reconciliation, focus and fullscreen state before mounting the application. Independent native queries pay separate round trips and serialize unnecessarily.
+
+Return a compact bootstrap snapshot from one command where practical. Otherwise start independent reads concurrently and reconcile focus/accent/other nonessential state after the shell is mounted. Seed theme and font from the existing cache to avoid a visual flash. Keep dependency ordering only where real, such as interpreting a theme preference after reading it. Measure time in each existing startup diagnostic phase and the number of native round trips before mount; do not estimate the saving by counting `await` statements alone.
+
+**L4 — Remove shell environment discovery from window creation's critical path safely. P1, medium confidence on prevalence.** [lib.rs:44](../ui/apps/desktop-assistant/src-tauri/src/lib.rs) applies the user's shell environment before constructing the Tauri application. [shell_env.rs](../ui/apps/desktop-assistant/src-tauri/src/shell_env.rs) already caches the result and refreshes it intelligently, but a cache miss can invoke a login shell with a five-second timeout. First launch, changed shell configuration and slow shell startup deserve separate baselines.
+
+Create the visible lightweight window independently of child-process environment discovery. Prefer an immutable resolved environment passed explicitly to helper/agent spawns. Do not casually move process-global environment mutation to a background thread after other threads exist. Retain the cache and its invalidation; benchmark Finder launch with both cache hit and cache miss. A warm terminal-launched build can conceal this entire cost.
+
+**L5 — Give the helper a measured minimal-ready phase. P1, medium confidence.** [initialize.go:137](../pkg/poolside-helper/internal/handler/initialize.go) and the later initialization sequence include configuration, SQLite/WAL setup and migrations, assistant configuration migration/seeding, and runtime-install repair. Some must finish before dependent requests; other maintenance may not need to delay navigation and basic settings.
+
+Add spans around these phases, keep schema migration and correctness-critical setup blocking, and defer independent repair/discovery behind explicit readiness capabilities. Avoid simply parallelizing SQLite migrations or exposing partially initialized state. Measure empty data, large existing history, and upgrade launch separately. The settings boot cache and detached helper startup paths already reduce some launch work; preserve them.
+
+> Implementation follow-up: runtime-install repair was already asynchronous in the audited source. The [L5 measurements](performance-audit/implementation.md#l5--verify-the-helpers-existing-minimal-ready-boundary) found sub-millisecond existing-store readiness and small fresh/upgrade costs in the tested fixtures. Required migrations remain blocking; phase diagnostics were added, with no claimed speedup or new readiness protocol.
+
+**L6 — Trim IDE host initialization and separate entry points. P1, medium confidence.** [VS Code state.ts:46](../ui/apps/vscode-assistant/src/extension/state.ts) builds initial state through sequential keybinding, theme and file-icon work. [getWebviewHtml.ts](../ui/apps/vscode-assistant/src/extension/views/getWebviewHtml.ts) reads the manifest and awaits initial state for webview creation. Cache release manifests, parallelize independent state reads, and send large or optional theme/icon state after a small initial shell where compatible with CSP and host messaging. Helper startup is already detached in [extension/main.ts](../ui/apps/vscode-assistant/src/extension/main.ts); do not recommend making that asynchronous again.
+
+The Visual Studio host switches to the IDE main thread before `Cef.Initialize` in [PoolsideAssistantPackage.cs:115,158](../ui/apps/vs-assistant/PoolsideAssistantPackage.cs). Profile package activation, Cef initialization and browser creation separately on Windows. Defer browser creation until the view is needed and move unrelated file/configuration work off the IDE thread. Cef's required initialization/thread ownership must be respected; an arbitrary background-thread move or host rewrite is not justified by this audit.
+
+**L7 — Treat mobile pairing as its own small application entry. P0/P1, high confidence.** [mobile main.ts:1](../ui/apps/mobile-remote/src/main.ts) statically imports `MobilePanel`, shared initialization and feature state before mounting `PairScreen`. Its measured 11.49 MB main file is excessive for pairing or showing offline/reconnect controls. Load the authenticated application after authentication or deliberately prefetch it once pairing is underway. Share minimal appearance/router primitives without importing the full assistant barrel. Test first pair, expired credentials, offline reopen and token handoff. Existing hashed-asset service-worker caching helps repeat visits but cannot solve cold parse/evaluation or first pairing.
+
+**Animation, input and streaming**
+
+**S1 — Stop continuously changing the layout of expensive pane contents during open/close. P0, high confidence.** [DesktopSidebarChrome.svelte:243](../ui/packages/features/src/acp/components/sidebar/DesktopSidebarChrome.svelte) animates width and margin over 140 ms. [DesktopSplitsPane.svelte:4703,4967](../ui/packages/features/src/acp/components/chat/DesktopSplitsPane.svelte) similarly animates bottom-panel height/margin and right-sidebar width/margin. These change the available size of chat, diff and terminal contents every frame. Text rewrap, virtualized height measurements and pane geometry follow the changing layout. Project expansion also animates grid rows in [DesktopSideBar.svelte](../ui/packages/features/src/acp/components/DesktopSideBar.svelte).
+
+Prototype a transition that measures initial/final geometry, commits final layout once, and animates a separate chrome/content presentation with transforms and opacity. Use an overlay or clipped reveal when a simple FLIP scale would blur or stretch text. Avoid a continuous scale of the live editor or transcript. A short-lived layer or retained old view can spend memory to protect interaction. Keep accessibility/focus on the actual destination, preserve selection and scroll anchoring, and support interrupted/reversed transitions. Use temporary layer promotion only for active motion. Compositor eligibility must be verified in WebKit; declaring a CSS transition does not guarantee it. WebKit documents its [Web Animations implementation](https://webkit.org/blog/10266/web-animations-in-safari-13-1/).
+
+For divider dragging, coalesce to the latest pointer position once per frame and do at most one layout update per frame. [SplitsDivider.svelte:114](../ui/packages/splits/src/SplitsDivider.svelte) already does this. Continuous resize has a real layout requirement; use a resize preview for particularly expensive content if the measured cost remains excessive. Validate with four populated panes, long wrapped text and an active terminal, not empty panels.
+
+**S2 — Decouple pane silhouettes from per-frame DOM measurement. P0, high confidence.** [PaneShape.svelte:90–245](../ui/packages/splits/src/PaneShape.svelte) finds the selected tab, reads up to four rectangles and two computed styles, and updates SVG shape geometry for each pane during motion. Its comment explicitly notes forced layout inside `requestAnimationFrame`. Multiple panes can interleave framework writes, reads and SVG updates; putting work in rAF does not make it free or move it off the main thread.
+
+Prefer a silhouette built from independently positioned CSS surfaces, or interpolate cached start/end geometry without consulting the DOM every frame. If exact geometry must remain, use one shared read phase followed by one write phase, cache selected-tab references and style constants, and measure only invalidated panes. The code already uses a cheaper shadow while moving; retain that. Test shadow clipping, fractional scaling, selected tabs partly outside the viewport and rapid reversal. Compare the current SVG silhouette with a simplified motion-only outline to establish the actual visual/performance tradeoff.
+
+**S3 — Reuse drag geometry and make pointer handlers constant-work. P1, high confidence.** [createReorderable.ts:60,98,152](../ui/packages/dnd/src/reorder/createReorderable.ts) queries items and measures their rectangles during pointer moves. [TabBar.svelte:406–467,640](../ui/packages/splits/src/TabBar.svelte) also computes drag targets and scans tab bounds. This competes directly with the same layout being animated.
+
+Snapshot hit-test rectangles at drag start, update them on actual scroll/resize/layout invalidation, and translate cached coordinates by scroll delta. Keep only the latest pointer position for one shared frame callback. Update reactive drag/target state only when its value changes; let the drag preview move via transform. Preserve autoscroll, cross-pane drops and keyboard reorder. A performance test should count geometry reads per pointer move and per frame at 20/100/500 tabs, including a scrolled tab strip.
+
+**S4 — Make transcript publication incremental. P0, high confidence.** [SessionTranscript.ts:107](../ui/packages/features/src/acp/features/session/SessionTranscript.ts) applies every incoming update to the materializer. Visible text publication is already batched, but [Session.svelte.ts:714](../ui/packages/features/src/acp/features/session/Session.svelte.ts) rebuilds the combined historical/current events array, filters/maps materializer turns, and refreshes metadata at publication. Non-text updates can publish immediately. [SessionEventsState.svelte.ts](../ui/packages/features/src/acp/components/SessionEventsState.svelte.ts) derives grouping, turn lookup and fold state through additional full-list traversals.
+
+Keep completed turns and their rendered rows stable, maintain incremental indexes, and expose a separate active-tail revision. Apply append/update patches to the affected event or turn rather than rebuilding all historical projections. Coalesce tool progress too, while publishing approval, completion and error boundaries promptly. Keep durable/protocol ingestion separate from visual publication so a rendering budget does not lose events. Use the existing materializer as the semantic authority and verify replay/live equivalence; a wholesale rewrite of Svelte stores is unnecessary.
+
+The intended scaling is approximately proportional to changed data and visible content per visual update, not total historical events. Benchmark the same stream after 60, 600 and 6,000 historical events. Existing batching uses a visible cadence around 32 ms and a slower hidden cadence; increasing debounce alone would trade away freshness while retaining the repeated work.
+
+**S5 — Publish status changes when status changes. P0, high confidence.** At the end of every accepted session update, [SessionTranscript.ts](../ui/packages/features/src/acp/features/session/SessionTranscript.ts) calls `publishLiveStatuses`. [SessionRepository.svelte.ts:461](../ui/packages/features/src/acp/features/SessionRepository.svelte.ts) binds requests, checks eviction, collects approvals and constructs status projections over live sessions. Equality guards already suppress unchanged downstream state assignments, but the scans and temporary objects have already been created.
+
+Update only the changed session's working/waiting state. Trigger approval aggregation on permission/elicitation changes and eviction on lifecycle/recency transitions or the existing sweep, rather than every text chunk. Preserve multiple visible conversation claims and pending approvals for sessions without a live record. With several streams, measure calls, allocations and total status-publication CPU, not just component render counts. This is a smaller first step toward S4 and should precede a larger incremental transcript refactor.
+
+**S6 — Extract and persist sidebar metadata only when relevant input changes. P0/P1, high confidence.** [SessionMetadata.ts:68,139](../ui/packages/features/src/acp/features/session/SessionMetadata.ts) filters all events for tool calls, walks them backwards and serializes metadata for comparison on refresh—even for text-only publication. Persistence is conditional, so it is not correct to say every token writes SQLite. However, changed snapshots form a serialized promise chain; the persistence helper first calls a full `acpNav/list` to find the conversation, then upserts a complete row.
+
+Maintain metadata incrementally from tool/configuration changes and keep the known conversation ID. Use a server-side metadata patch that cannot overwrite a simultaneous rename/archive change. Coalesce replaceable intermediate metadata snapshots to the latest pending value while ensuring the final snapshot is persisted. Retain read-only session protection. Verify a tool-heavy run against a large navigation database, including an archive/rename race, and assert that text-only streams cause no metadata scans or navigation RPCs.
+
+**S7 — Bound highlight work and avoid a failure-triggered main-thread surge. P1, high confidence.** [codeHighlight.ts:25–83](../ui/packages/components/src/lib/components/assistant-ui/codeHighlight.ts) already moves Shiki to a worker and bounds its completed result cache to 12 MiB. The `pendingHighlights` map retains full source strings without an admission byte limit, timeout or cancellation. On worker error, all pending jobs fall back to main-thread highlighting and remain there. Stale UI-result guards elsewhere do not cancel queued computation.
+
+Use visible-first admission with a maximum pending byte count, one latest job per changing block, cancellation of unstarted jobs and a timeout/restart policy. Under worker failure or saturation, present escaped plain text and retry selected visible blocks after recovery. Preserve sanitization and source-copy correctness. Transfer large binary/token buffers when it reduces copies, but measure the serialization cost before changing representations. Do not run an arbitrary backlog of expensive work synchronously just to maintain colorization.
+
+The diff pool in [diffWorkerPool.ts:33](../ui/packages/components/src/lib/components/file-diff/diffWorkerPool.ts) creates four workers. [assistant/main.ts:28](../ui/packages/assistant/src/main.ts) schedules warmup, using a fixed two-second timeout on WebKit. That can coincide with initial history loading, typing or streaming. Warm one worker once the usable shell has settled, expand on demand, and budget worker count across windows. Idle callbacks are a scheduling hint, not a memory or concurrency policy. Measure first-diff latency before reducing warmup; a bounded warm worker is a sensible use of memory.
+
+**S8 — Load diffs according to visibility and user intent. P1, high confidence.** [DesktopDiffDocument.svelte:274–409](../ui/packages/features/src/acp/components/chat/DesktopDiffDocument.svelte) prioritizes a requested file, then pumps through all remaining files with three concurrent patch reads. It joins every chunk into a whole-file patch. Each eligible loaded file starts a separate asynchronous before/after-content request outside that three-read counter. Line virtualization limits DOM size, but does not eliminate full patch parsing, source allocation, content matching or enrichment requests.
+
+Read the manifest first, then the revealed file, visible files and a small adjacent prefetch window. Load full before/after contents when context expansion needs them, or prefetch within the same bounded budget. Keep a byte-bounded MRU of whole patches/contents, cancel obsolete requests when leaving a document, and preserve content/patch consistency validation. Retain the current convenience of immediate revisit for recent files. Test hundreds of changed files and several multi-megabyte patches while toggling panels; measure total bytes fetched and retained as well as first-visible-file time.
+
+**S9 — Make Markdown scanning incremental and handle oversized indivisible blocks. P1, high confidence; measured scale matters.** [streamingMarkdown.ts:153](../ui/packages/components/src/lib/components/markdown/streamingMarkdown.ts) rescans the full message and recreates segment descriptors at each call, even though segment keys are stable. [StreamingMarkdown.svelte](../ui/packages/components/src/lib/components/markdown/StreamingMarkdown.svelte) also switches to a canonical completed representation at stream end. Cache scanner continuation state and immutable segment descriptors, with a conservative fallback for source replacement. Plan the final canonical render so it does not remount an entire large message in one urgent task; reference definitions and other document-wide semantics must remain correct.
+
+The current 32,768-character mutable-Markdown fallback, append-only code text, settled chunking and virtualization are valuable. They do not bound a single large fence, list, table or HTML block; documents with reference definitions intentionally stay canonical. [SettledMarkdown.svelte](../ui/packages/components/src/lib/components/markdown/SettledMarkdown.svelte) cannot window a one-chunk document, and [HighlightedCode.svelte](../ui/packages/components/src/lib/components/markdown/HighlightedCode.svelte) can create rows for every line. Add line virtualization for huge code blocks, specialized large-table handling, and deferred/budgeted completion rendering without silently truncating copied source.
+
+The synthetic Node probe found p95 scanning times of 0.23 ms / 0.94 ms / 4.28 ms for paragraph documents of 32 / 256 / 1,024 KiB. A 1 MiB open fence scanned in 0.60 ms but remained one settled chunk. These are V8 pure-function measurements, not WebKit or DOM timings. They support incremental scanning for very large/multiple streams and identify the separate large-block rendering risk; they do not establish Markdown scanning as the dominant cost of ordinary messages.
+
+**S10 — Keep terminal output efficient while preserving the optimizations already present. P1, medium confidence on impact.** [terminal.rs:474,711](../ui/apps/desktop-assistant/src-tauri/src/terminal.rs) emits output from an 8 KiB read loop and retains a string buffer with prefix removal. [AssistantTerminalRepository.svelte.ts:286](../ui/packages/features/src/acp/features/AssistantTerminalRepository.svelte.ts) concatenates output into capped 200,000-character strings and replaces buffer maps. The frontend then passes appended text into xterm. Native replay, JS replay and xterm scrollback are separate memory costs.
+
+Batch output by a small time/byte budget, use chunk/ring buffers for replay storage, and avoid replacing unrelated terminal buffer records. Budget pending xterm writes and avoid rendering hidden terminals while retaining their ordered data. Preserve UTF-8 boundaries, escape-sequence ordering and input/capability-response handling. [AssistantTerminalView.svelte:208,304](../ui/packages/features/src/acp/components/AssistantTerminalView.svelte) already uses CanvasAddon, an 80 ms resize-settle debounce, a shared one-fit-per-frame queue, and disposal/replay guards. Do not repeat those as new recommendations. Measure high-volume output and tail latency, including the first frame after opening a hidden terminal.
+
+**S11 — Virtualization indexes are a later optimization, not an immediate rewrite. P2.** [virtualWindow.ts:49](../ui/packages/components/src/lib/components/virtual-list/virtualWindow.ts) scans all heights, and [VirtualList.svelte](../ui/packages/components/src/lib/components/virtual-list/VirtualList.svelte) has additional metadata/offset work. Prefix sums or a Fenwick tree could improve large variable-height lists. However, the isolated synthetic 100,000-item arithmetic pass took only 0.094 ms at p95 with a cheap height callback. Prioritize actual reactive lookups, observer churn, row rendering and large-block DOM over replacing this simple loop. Preserve the generous overscan until fast-scroll tests show it can shrink without blanking or anchor jumps.
+
+**Bundle size and dependency boundaries**
+
+**B1 — Replace the complete connector-logo JSON with an explicit subset. P0, measured.** [ConnectorServiceIcon.svelte:2,32](../ui/packages/features/src/acp/components/mcp/ConnectorServiceIcon.svelte) imports the entire `@iconify-json/logos/icons.json`, then indexes it through a map containing 14 logo names. Dynamic indexing retains the catalogue. Rollup attribution assigns 7,598,257 bytes of rendered module code before final minification to this import. A build-time subset containing the referenced icons cut the actual main chunk by 7,458,698 bytes.
+
+Generate a small checked-in or build-generated icon module containing those 14 definitions, default dimensions and required aliases, or use supported per-icon imports. Keep attribution/licensing and existing official SVG assets. Assert that every mapped connector has a logo, and visually verify light/dark backgrounds and fallback icons. The experiment checked that all 14 names existed and built successfully; it did not replace that UI validation. This is the clearest large, localized optimization in the audit and benefits every host that includes this shared component.
+
+Separately, [leg.svelte:2,25](../ui/packages/components/src/lib/components/icon/glyphs/leg.svelte) imports `color` from `storybook/theming` and passes it as an SVG path class. Storybook theming contributes about 59.5 kB of pre-minification rendered code in the shared Markdown chunk. Replace the inappropriate runtime import with the intended application styling. Add a production dependency rule preventing Storybook/test tooling from entering shipping module graphs. Do not blindly mark whole UI packages side-effect-free: CSS and intentional initialization still matter.
+
+**B2 — Establish genuinely lazy renderer and feature boundaries. P1, high confidence.** The original statically required Markdown chunk is 1,626,822 bytes. Its attribution includes KaTeX (about 608 kB before minification), the CommonJS lodash module (about 578 kB), Mermaid core/chunks, DOMPurify, Shiki, and multiple `marked` versions. These numbers describe individual rendered source modules before minification and cannot be summed as final compressed savings. The graph, not package reputation, identifies the problem.
+
+Load math only for math-bearing content and Mermaid only when a diagram becomes visible. Keep plain/ordinary Markdown rendering available without importing the full rich-renderer graph. Use a compact release-notes renderer in chrome where the content contract permits it, so merely importing a sidebar does not establish a dependency on every renderer. Keep sanitization on every path; removing DOMPurify to save bytes would change the trust boundary. Trace which dependency brings the whole lodash module and choose supported ESM/per-function imports or an upstream fix. Investigate the two `marked` versions without forcing an incompatible transitive override.
+
+Create supported narrow entries for terminal/xterm, rich prompt editing, diffs/file trees, settings and provider/connector configuration. Prefetch likely next features after first interaction or on user intent; use a stable placeholder while an uncommon feature loads. Do not make the first terminal/diff click feel broken to improve a startup metric. The 571 kB Logo3D chunk is already dynamic, so it is a distribution-size opportunity only if the feature can be simplified—not a primary static startup blocker. Validate each route's import closure and execution cost, not just `manualChunks` output filenames.
+
+**B3 — Use fine-grained syntax-highlighter bundles and unify worker build assets. P1, high confidence.** [codeHighlightCore.ts](../ui/packages/components/src/lib/components/assistant-ui/codeHighlightCore.ts) imports the general Shiki API, bundled languages and both engine paths. The build emits the broad grammar/theme set even though grammar loading is lazy. The desktop distribution includes large individual chunks such as emacs-lisp (~780 kB), C++ (~626 kB) and WASM (~622 kB). Shiki supports smaller/core bundles and fine-grained language selection in its [official bundle documentation](https://shiki.style/guide/bundles).
+
+Define an explicit theme set and common-language manifest using the core API; retain optional language loading and a plain-text fallback for unknown languages. Choose the engine deliberately after checking grammar compatibility and supported WebViews. Avoid shipping duplicate engine assets merely to cover an untested fallback. Keep a common source of language aliases so chat, files and diffs behave consistently.
+
+The desktop already runs [the original dedupe-worker-chunks.mjs](https://github.com/poolsideai/assistant/blob/1a648b18350ada8b6f8a8b7f362dbed70e7c5a07/ui/apps/desktop-assistant/scripts/dedupe-worker-chunks.mjs), which removed 300 duplicate chunks and approximately 9.4 MB in this build. That saving is already included in the 37.29 MB baseline. The script partly matches by basename and size within 2%, which is not proof of semantic equivalence. Prefer shared, deterministic worker asset production or exact/normalized-content equivalence and exercise every redirected worker import. Mobile does not run that post-build script; its output contains duplicate grammar chunks, for example two ~780 kB emacs-lisp files and two ~626 kB C++ files. Generalize the underlying asset solution across hosts rather than copying desktop's naming-dependent heuristic unchanged.
+
+**B4 — Enable production minification for the VS Code webview and extension. P1, high confidence on configuration, unmeasured saving.** [vite.config.ts:44](../ui/apps/vscode-assistant/vite.config.ts) explicitly sets `minify: false` in the build configuration, and [tsdown.config.ts:12](../ui/apps/vscode-assistant/tsdown.config.ts) does the same for the extension host bundle. Produce minified release builds with separate diagnostic source maps if required, keeping readable development builds. Validate extension activation, stack trace symbolication, CSP, dynamic imports and packaged asset paths. Measure the resulting VSIX and both parse/evaluation paths. The desktop measurements must not be presented as VS Code or Visual Studio release sizes.
+
+**B5 — Remove authoring assets from runtime distribution and audit font usage. P1/P2, measured assets.** Desktop `public` copying ships the source app-icon directory, including two PNGs totalling 3,462,584 bytes. Move authoring resources outside the web public directory while preserving the native icon build inputs. Audit all public assets against actual runtime URLs; a Vite tree-shake cannot remove blindly copied files. Keep changelog/licenses assets required by the product and dependency obligations.
+
+The desktop frontend also contains 2,346,952 bytes of WOFF2, 303,116 bytes of WOFF and 513,664 bytes of TTF. Nerd Font regular and bold account for approximately 2.09 MB of WOFF2. Load terminal fonts only when needed; remove duplicate/unused formats if every supported engine accepts the retained format. Subset only with a clear glyph contract—terminal users depend on symbols and private-use glyphs. Compare packaging compression and signed installer size, not raw sums alone. Production sourcemaps are already disabled for desktop, mobile and Visual Studio; enabling that existing setting again is not a new saving.
+
+**Helper, native host, transport and repository work**
+
+**H1 — Apply backpressure across the entire stream pipeline. P0, high confidence.** [acpproxy/client.go:358–443](../pkg/poolside-helper/internal/handler/acpproxy/client.go) maintains an asynchronous notification queue with no item/byte admission cap. The queue intentionally keeps agent SDK dispatch free to receive requests and responses; blocking it naively risks permission/cancellation deadlocks. A bounded downstream stage cannot constrain this upstream accumulation by itself.
+
+The Rust bridge in [helper.rs](../ui/apps/desktop-assistant/src-tauri/src/helper.rs) already has a bounded queue, ordered batches, byte/count limits, a coalescing window and acknowledgement timeout. However, [server.ts](../ui/packages/assistant/src/lib/rpc/server.ts) acknowledges a notification batch after forwarding it into the client path; [RPCTransport.ts:119](../ui/packages/features/src/acp/RPCTransport.ts) enqueues into a `ReadableStream` without using its demand as an admission signal. An acknowledgement need not mean the transcript has drained or painted. Track outstanding bytes/age at each stage, including the SDK queue, rather than assuming the Rust cap bounds total retained work.
+
+Introduce a protocol-aware delivery budget with bounded memory, explicit overflow behavior and a durable/replay-backed spool if lossless producers can outrun consumers. Reserve capacity for control/approval/cancel traffic while preserving each session's ordering and prompt/response barriers. Coalesce only semantically compatible adjacent text deltas; never drop tool transitions or permission requests. Yield bulk replay/ingestion in short real tasks. Forbid an unlimited number of pending batches in the webview and acknowledge the chosen consumption boundary explicitly. This is an architectural change requiring slow-consumer and interruption tests, not a channel-capacity tweak.
+
+The queue goroutine also has no shutdown path. Clients are cached by agent server in [handler.go:275](../pkg/poolside-helper/internal/handler/acpproxy/handler.go), so the source does **not** establish a new leak on every process restart. Add explicit lifecycle shutdown when clients/handlers are actually retired, and test configuration churn instead of reporting an unproven restart leak.
+
+**H2 — Replace replay compaction with a byte-budgeted ring. P0/P1, high confidence.** [sessionlog.go:21,100,231](../pkg/poolside-helper/internal/handler/remoteaccess/sessionlog.go) keeps up to 2,048 events per session and copies the retained slice whenever it overflows. After filling the log, each new event can allocate/copy another full retained window under the log mutex. This is sustained work even when no remote client is replaying.
+
+Use circular indexing or fixed-size segments and iterate logical sequence order during replay. Clear overwritten payload references. Add per-session and total byte accounting because 2,048 text/image/tool events have radically different sizes. The configured 128-session policy has protections for active sessions; keep those rather than evicting live work to satisfy a count. Preserve epoch/sequence ordering, replay-gap detection and reconnect semantics. Benchmark allocations and mutex time after steady-state saturation, with small text deltas and large tool payloads. The O(window-size) copy is source-confirmed; no throughput multiplier is claimed without that benchmark.
+
+**H3 — Move blocking file and directory commands off the native main thread. P0/P1, high confidence.** [settings.rs:708–765](../ui/apps/desktop-assistant/src-tauri/src/settings.rs) exposes synchronous Tauri commands for reading text, building directory trees/subtrees and reading/base64-encoding images. File-tree work can include filesystem traversal and Git subprocesses. Tauri's [official command documentation](https://v2.tauri.app/develop/calling-rust/) explains that synchronous commands run on the main thread unless explicitly configured otherwise.
+
+Use asynchronous commands with a bounded blocking-work executor for filesystem/process work. Returning an async promise in JavaScript is not enough. Prefer lazy subtree reads and compact responses; coalesce refreshes by canonical root. Keep existing path validation and text-size checks, and add an image-size/decode budget. Serve large image bytes through an appropriate local resource URL or binary mechanism where possible instead of duplicating them as base64 JSON and DOM strings. Account for concurrent windows so a default blocking pool cannot launch hundreds of scans. Profile native thread stalls during a file tree refresh and large image open while dragging a split.
+
+**H4 — Consolidate Git status work per canonical worktree. P1, high confidence.** [git/git.go:82–157](../pkg/poolside-helper/internal/handler/git/git.go) performs several serial subprocess queries for worktree identity/status/stashes/tracked changes, then scans untracked files for line counts. [DesktopGitChangesState.svelte.ts](../ui/packages/features/src/acp/features/DesktopGitChangesState.svelte.ts) debounces and rejects stale results, but repeated consumers/refreshes can still run duplicate work. A stale-result guard saves incorrect UI writes, not the underlying Git processes.
+
+Create a helper-owned per-worktree service with in-flight deduplication, cached stable identity, revisioned results and bounded subprocess concurrency. Return fast branch/status information first; compute tracked statistics and untracked line counts lazily or incrementally by file revision. Share it among sidebars, chat panes and file/diff views. Keep `GIT_OPTIONAL_LOCKS=0` and existing measures that avoid watcher feedback loops. Test large dirty repositories, many untracked files, two views of the same worktree, renames and worktree removal. Track subprocesses per user action and per filesystem burst.
+
+**H5 — Make file-search index construction single-flight and root-aware. P1, high confidence.** [filesearch/server.go:96](../pkg/poolside-helper/internal/handler/filesearch/server.go) caches an index but can construct it outside the lock after a miss; concurrent misses can duplicate construction. [filesearch/index.go:105](../pkg/poolside-helper/internal/handler/filesearch/index.go) invokes multiple Git commands to obtain candidates. A single cached index also does not serve rapid switching among several repositories efficiently.
+
+Use a byte-bounded cache keyed by canonical root and relevant ignore/configuration revision, with single-flight construction and a generation check before installing results. Update from filesystem deltas where reliable; retain a full rebuild escape hatch. Reuse repository enumeration with the file tree/Git service where semantics match. For large candidate sets, rank top results without sorting everything if profiling justifies it. Preserve ignored/untracked behavior and avoid making the cache permanently stale after a watcher overflow.
+
+**H6 — Replace frequent whole-navigation snapshots with revisioned changes. P1, high confidence.** [registerSyncEffects.svelte.ts:65](../ui/packages/assistant/src/acp/runtime/shared/registerSyncEffects.svelte.ts) polls navigation every five seconds while visible, despite push notifications. The initial refresh is already consolidated into one RPC. [acpnav/store.go:100](../pkg/poolside-helper/internal/handler/acpnav/store.go) loads projects/conversations, including history data, and decodes metadata; [acpnav/server.go](../pkg/poolside-helper/internal/handler/acpnav/server.go) returns/broadcasts full snapshots on mutations. Metadata updates from S6 can amplify this cost.
+
+Give navigation a monotonic revision and push small row/field changes. Keep a conditional reconciliation request on reconnect, focus or a longer watchdog interval. Separate active sidebar summaries from paginated archived history. Apply an unchanged revision without rebuilding objects or retransmitting the entire database. Add database indexes only after inspecting actual query plans and realistic row counts; an index cannot remove the cost of selecting, encoding and transmitting every row. Measure 100/10,000/100,000 stored conversations, several surfaces and a tool-heavy stream. Verify reconnect recovery and multi-window rename/archive ordering.
+
+**H7 — Avoid duplicate JSON decoding and production-only schema overhead. P1/P2, high confidence on work, workload-dependent benefit.** [jsonrpc.go:114,155](../pkg/poolside-helper/internal/handler/jsonrpc.go) unmarshals parameters into an untyped value and then into the typed request, including in the explicitly unvalidated path. In ordinary registration, the generic tree is constructed even when validation is disabled. Decode once into the typed structure when the generic tree is unnecessary; keep malformed-JSON/error behavior and enabled validation intact. Benchmark large tool/file payloads, since tiny RPCs may not justify a broad serializer change.
+
+The same registration path eagerly constructs Huma/OpenAPI schemas. The quiet heap sample attributes roughly 2.5 MiB of cumulative sampled live allocations to the Huma schema registry path; nested cumulative entries overlap and must not be added together. Separate runtime method dispatch from documentation/type-generation registration, or generate static schemas for production if runtime validation needs them. Confirm which release endpoints consume the registry first. This is a credible helper startup/memory reduction, not evidence that Huma dominates streaming CPU. Avoid replacing JSON-RPC or switching JSON libraries before removing this definite redundant decode.
+
+**H8 — Bound inference admission and SSE delivery while retaining useful MLX caches. P1/P2, source review only.** [Engine.swift](../cmd/poolside-mlx-sidecar/Sources/PoolsideMLXSidecar/Engine.swift) intentionally serializes generation and keeps two KV-cache slots, allowing a small side request to coexist with a warm conversation prefix. Those are latency optimizations to preserve. Its generation waiters are continuations in an array without an explicit admission policy/cancellation removal. [HTTPServer.swift:88,447](../cmd/poolside-mlx-sidecar/Sources/PoolsideMLXSidecar/HTTPServer.swift) accumulates request bodies and schedules/flushes an SSE write for each emitted item without awaiting channel writability.
+
+Add body limits and a bounded, cancellation-aware generation queue with priorities for interactive work versus optional title/background work. Bound pending outbound bytes, observe NIO writability/disconnects, and consider a very short SSE coalescing interval only if token-latency measurements permit it. Measure cancellation-to-release and queue wait separately from prefill/decode. Preserve cache-prefix correctness and generation serialization until GPU profiling supports an alternative.
+
+[Runtime.swift](../cmd/poolside-mlx-sidecar/Sources/PoolsideMLXSidecar/Runtime.swift) already manages model residency, idle unload and memory pressure, dropping KV caches before expensive weights where appropriate. Use measured current pressure, GPU/MLX allocation and foreground needs to tune that policy; physical RAM alone does not describe available headroom. Report model weights/KV allocations separately from app overhead. No recommendation to unload after every turn or increase simultaneous model generations follows from this audit.
+
+**H9 — Move recording-finalization CPU off the UI thread. P2, source review only.** [recorder.ts](../ui/packages/features/src/acp/components/chat/speech/recorder.ts) collects PCM in a ScriptProcessor path and concatenates it at stop; [wav.ts](../ui/packages/features/src/acp/components/chat/speech/wav.ts) loops through samples to produce WAV and a base64 string. A five-minute recording limit already exists in [voiceInputStore.svelte.ts:19](../ui/packages/features/src/acp/components/chat/speech/voiceInputStore.svelte.ts), so this is bounded but can still cause a large stop-time allocation/CPU burst.
+
+Use an AudioWorklet for capture where supported and transfer chunks to a worker/native encoder. Avoid a second complete binary-string copy for base64 if the host API can accept bytes or a resource reference. Keep the recording indicator and stop action responsive while encoding/upload proceeds. Benchmark short dictation and the five-minute maximum, with cancellation, permission denial and device changes. This is lower priority than ordinary chat/layout because it affects a narrower workflow.
+
+**Memory, caching and lifecycle**
+
+**M1 — Budget retained data by bytes and retain recent views deliberately. P1.** [SessionRepository.svelte.ts:73](../ui/packages/features/src/acp/features/SessionRepository.svelte.ts) already retains up to three inactive sessions and suspends idle agent-side resources after ten minutes while keeping warm records. Keep that useful distinction. Three unusually large transcripts can still be expensive; active sessions, historical arrays, materializer data, render projections and each additional window add to the footprint. Arrays can share event objects, so a shallow array copy should not be misreported as a deep duplicate of every message.
+
+Add approximate retained-byte accounting for transcript content, derived representations, replay buffers and active caches. Evict inactive data by recency under a byte budget while protecting visible/running/approval-bearing sessions and preserving drafts. Keep recently used parsed turns, file contents and editor state warm when the budget permits. Use memory-pressure signals to trim optional caches before sacrificing active state. Validate that repeated tab switches do not repeatedly deserialize the same history or recreate a rich editor.
+
+[desktopTabContentPool.ts](../ui/packages/features/src/acp/components/chat/desktopTabContentPool.ts) already preserves/reparents tab content for some layout moves. Extend its guarantees carefully instead of replacing it with unconditional unmount/remount. A bounded short-lived retained view can smooth closing/reopening, but every retained view must suspend timers, observers, rendering and unnecessary subscriptions when hidden. Add invariants for focus, selection, IME, xterm lifetime and moving a tab between splits.
+
+**M2 — Put a byte budget and lifecycle on image caches. P1.** [GithubRepository.svelte.ts:52,214](../ui/packages/features/src/acp/features/GithubRepository.svelte.ts) uses an image cache map without a visible eviction budget. The helper's per-image limit does not bound the sum of cached images. Large images can exist as response bytes, base64 strings, data URLs and decoded pixel surfaces; compressed file size alone understates memory.
+
+Use a byte-bounded LRU with in-flight deduplication, revision-aware keys and cleanup at account/workspace lifecycle boundaries. Prefer object/resource URLs with revocation when safe, cap decoded dimensions, and lazy-load offscreen images. Keep commonly seen avatars/logos warm. Measure image-heavy review sessions and repeated account/repository navigation; distinguish retained JS strings from decoded/native image memory.
+
+**M3 — Keep layout persistence off interaction-critical work and bound history maps. P2.** [DesktopRuntime.svelte.ts](../ui/packages/assistant/src/acp/runtime/DesktopRuntime.svelte.ts) stores per-conversation panel state by serializing the map to localStorage during updates. [DesktopSplitsPane.svelte](../ui/packages/features/src/acp/components/chat/DesktopSplitsPane.svelte) already debounces layout persistence and caps retained layouts, while sidebar resizing persists on completion. It is inaccurate to say every resize pixel writes localStorage.
+
+Coalesce related panel changes and persist a compact latest snapshot after the visual update. Bound/prune conversation preference maps and instrument serialized size and write duration. For large persisted state, prefer asynchronous storage with an explicit durability policy. Keep a small synchronous bootstrap snapshot only where it materially speeds launch. Do not defer writes so long that a normal close loses the user's last layout; flush the latest compact state on a reliable host lifecycle boundary.
+
+**M4 — Bound pending remote requests independently of notification queues. P1.** [wsRpc.ts](../ui/packages/remote-client/src/wsRpc.ts) retains an outbound queue and pending request map while connecting/awaiting replies. Close handling rejects pending work, but a connection that stalls without closing can retain it indefinitely without per-request deadlines/admission. The helper's [hub.go:24](../pkg/poolside-helper/internal/handler/remoteaccess/hub.go) already bounds each remote notification queue to 1,024 items and disconnects slow consumers; that is useful but count-based and separate from RPC request memory.
+
+Add operation-appropriate deadlines, cancellation, maximum outstanding bytes and reconnect deduplication. Coalesce replaceable reads, while preserving exactly the required semantics of prompts, approvals and writes. Large/bulk transfers should not monopolize control delivery. Test a socket that remains open but stops reading, a helper that never responds, repeated reconnects and device suspension. A blanket short timeout for all operations would break legitimately long agent prompts; use operation classes and explicit cancellation.
+
+The existing 8 MiB Markdown HTML and 12 MiB highlight LRUs are sensible. Retain them, account for temporary/pending data outside them, and measure per-window multiplication. Similarly, the helper's existing 512 MiB Go soft memory limit is not a process-group RSS cap. Lowering it blindly can increase garbage-collection work and make interaction worse. Tune GC/cache budgets only from busy allocation and process-footprint profiles.
+
+**Applying the linked article to this codebase**
+
+The useful sequence is to eliminate redundant work, batch related updates, defer optional work, move suitable computation to workers, and give presentation work a predictable frame budget. Moving every operation into rAF would still occupy the thread before paint; yielding does not reduce the work itself. Panel transforms also need independent chrome/content geometry to avoid falling back to continuous layout. These principles follow the user's [main-thread article](https://kciter.so/posts/the-expensive-main-thread/en/); the priorities above come from this repository's source and experiments.
+
+Use a small shared scheduler for bulk replay, indexing and nonurgent presentation work, with a measured time budget and a real task boundary between slices. In the observed WKWebView, `scheduler` and `requestIdleCallback` were absent. Feature-detect scheduler APIs and use a supported fallback such as a task posted through MessageChannel or a timer; `await Promise.resolve()` alone is a microtask continuation and does not provide the needed paint opportunity. Reserve rAF for brief, coordinated visual reads/writes. Do not wait on rAF to drain essential background protocol work in a hidden window.
+
+A proposed starting budget is 2–4 ms of nonurgent main-thread work per slice, tuned using release traces. This is a hypothesis to test, not a guarantee. A 60 Hz frame is 16.67 ms and a 120 Hz frame is 8.33 ms, including browser work; a 49 ms task avoids the usual 50 ms long-task threshold while still visibly missing several frames. Controls must acknowledge input immediately, and ongoing animations must not depend on a new transcript render finishing.
+
+**Validation plan and acceptance criteria**
+
+Establish release-mode baselines before structural changes. Use the actual target engines: WKWebView on macOS, the Windows desktop WebView, VS Code's webview, Cef/Visual Studio and mobile Safari/Chromium. A browser Storybook test is useful for deterministic behavior but is not a replacement for profiling the native packaged app. Keep the user-visible window foregrounded, record display refresh rate, and record whether developer tools are attached.
+
+| Workload                              | Measurements and instrumentation                                                                                               | Proposed acceptance condition                                                                                                                                                                                |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Cold/warm launch                      | Native process start → window creation → startup JS → shell mounted → first accepted input/paint → history ready → agent ready | Shell readiness is independent of delayed agent/history. Report p50/p95 separately for cold/warm, shell-env cache hit/miss, first-run and upgrade. Set absolute launch targets after measuring the baseline. |
+| Repeated sidebar/bottom-panel toggles | Input timestamps, next paint, frame interval distribution, style/layout/paint and native main-thread stacks                    | Immediate feedback; proposed p95 input-to-feedback under 50 ms, p99 under 100 ms. Track missed 60/120 Hz frame deadlines during the entire transition, including its completion.                             |
+| Reorder and resize                    | Same, with 20/100/500 tabs and one/four populated splits                                                                       | Geometry work scales with dirty panes and frames, not raw pointer-event frequency; no large end-of-drag fit or persistence burst.                                                                            |
+| Text streaming                        | Deterministic captured/replayed events at several rates, 60/600/6,000 prior events, one/four concurrent sessions               | No event loss; input latency and frame pacing stay near idle baselines. Record ingestion, publication, materialization, grouping, Markdown and commit costs separately.                                      |
+| Tool-heavy streaming                  | Fast tool updates, output bursts, permissions, errors and completion boundaries                                                | Metadata/status/navigation work tracks meaningful changes. Approvals/cancel remain responsive; completion never overtakes preceding updates.                                                                 |
+| Large content                         | Single huge fence/table/list, reference links, HTML, 32 KiB/256 KiB/1 MiB messages and image-heavy history                     | DOM and active work remain bounded where content permits; exact copy/export and Markdown semantics preserved; no abrupt completion stall.                                                                    |
+| Git/diff/file workloads               | Large dirty repo, many untracked files, hundreds of changed files, slow storage; several views of one root                     | One shared in-flight root refresh; first-visible data arrives before offscreen enrichment; requests/bytes/allocations match the visibility budget.                                                           |
+| Backpressure/reconnect                | Slow or stopped readers, delayed acknowledgements, saturated replay buffers, suspended mobile device                           | Queue bytes and age have explicit bounds/overflow behavior; replay gap/order tests pass; approvals and cancellation cannot deadlock behind bulk data.                                                        |
+| Memory soak                           | Repeat open/close/switch cycles, worker failures, large images/diffs and several windows; settle after workload                | Retained footprint reaches a bounded plateau. Report peak and settled memory per process group, pending queue bytes, cache bytes, workers, DOM nodes, observers and goroutines.                              |
+| Local inference and speech            | Warm/cold model, cache reuse, queued/cancelled request, pressure event; short/max dictation                                    | Record prefill/decode/queue wait, cancel-to-release, GPU memory and encoding time separately; optional work yields to interactive use.                                                                       |
+
+Capture at least enough launch/interaction samples to characterize variability, not one favorable run; 20–30 release launches per important condition is a reasonable initial plan. Compare distributions on the same machine, OS, display and representative data. Include constrained machines and mobile because desktop V8 microbenchmarks can hide scheduling and memory costs. Use traces to explain regressions, then keep automated gates deterministic and lightweight.
+
+Extend existing startup diagnostics rather than creating a competing timing system. Add spans/counters around transcript publication, event grouping, Markdown scan/render, DOM geometry, native commands, Git subprocesses and each queue boundary. Use byte counts and anonymous workload identifiers; avoid recording full conversation bodies in routine performance telemetry. Native/Go profiling should capture allocations, CPU, mutex/blocking time and process-group footprint during the same workload as the UI trace.
+
+Bundle CI should record compressed and uncompressed sizes for the startup transitive closure, app-loading closure, each worker, largest assets and total release distribution. Add assertions preventing the full logo catalogue and Storybook runtime from returning. Check dynamic import/worker resolution in the packaged native app and all supported IDEs; a build success alone cannot establish CSP, asset-path or worker execution correctness. Keep legal attribution and private diagnostic maps outside the public runtime package as appropriate.
+
+**Implementation tranches**
+
+1. **Establish measurements and remove accidental bytes.** Land B1, the narrow L1 export, B4 release minification and B5 public-asset cleanup as independently reviewable changes. Add size gates. Verify all connector icons, splash recovery, worker imports and release entry points. These are the safest large wins and create a cleaner baseline.
+2. **Protect interaction under load.** Implement S5 and S6 first, then prototype S1/S2 with a populated four-pane scene. Add bounded worker admission and fix native file commands. Measure before extending the animation approach throughout the app. Keep before/after traces and screenshots for layout changes.
+3. **Reduce accumulated work.** Implement incremental transcript/turn projections, viewport-driven diff loading, lazy renderers and the minimal shell readiness contract. Share Git/nav/search work. Each should have an explicit scaling benchmark and preserve the existing semantic/correctness tests.
+4. **Make long sessions predictable.** Introduce end-to-end delivery budgets and replay rings, byte-aware cache policies and soak tests. Tune warm views, worker counts, model residency and background refresh policies from the measured latency/memory tradeoff.
+
+Prefer separate changes with visible acceptance criteria over a framework rewrite, a native-host rewrite, blanket memoization, aggressive cache eviction, or speculative GC tuning. The concrete import mistakes offer immediate large savings; the sustained snappiness work is about keeping expensive histories, hidden content and bulk transport from taking time away from the user's next interaction.
+
+**Reproducing the evidence**
+
+These bundle comparisons require the audited `1a648b183` inputs. Later revisions already remove the imports that the experiment overrides, so the runner rejects them before starting Vite. Use the current runner with a separate baseline worktree and rebuild that checkout's dependencies. Run from this repository root with the project's prescribed Node/pnpm versions:
+
+```sh
+audit_runner="$PWD/docs/performance-audit/bundle-experiments.mjs"
+audit_checkout="$(mktemp -d "${TMPDIR:-/tmp}/poolside-audit.XXXXXX")"
+git worktree add --detach "$audit_checkout" 1a648b183
+pnpm --dir "$audit_checkout" install --frozen-lockfile --filter '@poolsideai/desktop-assistant...' --filter '@poolsideai/mobile-remote...'
+pnpm --dir "$audit_checkout" exec turbo build --filter='@poolsideai/desktop-assistant^...' --filter='@poolsideai/mobile-remote^...'
+pnpm --dir "$audit_checkout" -F @poolsideai/desktop-assistant build:web
+pnpm --dir "$audit_checkout" -F @poolsideai/mobile-remote build
+node "$audit_runner" baseline --root "$audit_checkout"
+node "$audit_runner" logos --root "$audit_checkout"
+node "$audit_runner" splash --root "$audit_checkout"
+node "$audit_runner" combined --root "$audit_checkout"
+node docs/performance-audit/pure-function-bench.mjs
+```
+
+The experiment script creates a temporary output directory, prints its path and stores an import-graph report with the baseline and checkout commit IDs. It changes Vite inputs in memory only. It does not run desktop's post-build worker deduplication or isolation build; use `build:web` for distribution totals. The few-byte differences caused by post-build rewrites, chunk naming and minifier changes must not be interpreted as meaningful regressions. Gzip level 6 in the JSON is separately identified from Vite's printed gzip results. The experiment's direct generated-module imports are evidence of the boundary problem, not a recommended production API.
+
+With an already-running spoolside desktop target, `spoolside profile go heap -o /tmp/poolside-heap.pprof` and `spoolside profile go cpu --seconds 10 -o /tmp/poolside-cpu.pprof` reproduce the profile type. Use the workload matrix for meaningful busy samples. Do not use a backgrounded webview's rAF/timer measurements as animation evidence.

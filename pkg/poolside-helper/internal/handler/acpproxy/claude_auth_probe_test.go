@@ -130,22 +130,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	t.Run("logged-out on a non-first-party provider never blocks and caches the result", func(t *testing.T) {
+		// FIX 3 (recurring-probe review): a non-firstParty provider
+		// (Bedrock/Vertex/gateway) is stable configuration, not a login
+		// state, so it must be cached like a positive login result.
+		// Otherwise every recurring config probe (roughly every 10 minutes
+		// while a draft conversation is open) respawns the 30s
+		// `--cli auth status` subprocess for no reason.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+		assert.True(t, p.claudeAuthVerified,
+			"a non-firstParty provider is stable configuration and must be latched")
+		assert.Nil(t, h.maybeProbeClaudeAuthStatus(t.Context(), p, "claude-acp", probeMeta()),
+			"a verified non-firstParty subprocess skips further checks")
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

@@ -6,6 +6,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+file before editing a domain you have not touched before. `CLAUDE.md` files are
+symlinks to `AGENTS.md` — edit `AGENTS.md`, never add a separate `CLAUDE.md`.
+
+New to the repo? Set up with [`INSTALL.md`](INSTALL.md#build-from-source)
+(tool versions come from [`.tool-versions`](.tool-versions)), then read
+[`CONTRIBUTING.md`](CONTRIBUTING.md) for how changes land.
+
+## The protocol
+
+Poolside Assistant is a client for agents speaking the
+[Agent Client Protocol](https://agentclientprotocol.com/) (ACP). Upstream
+protocol and schema documentation live there. Poolside's `_poolside/*`
+extension methods are defined in `pkg/acp/README.md`.
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+| Helper implementation and JSON-RPC handlers | `pkg/poolside-helper/README.md` |
+| ACP types and extensions | `pkg/acp/README.md` |
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -19,6 +40,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+| Working with coding agents (spoolside, worktrees) | `docs/coding-with-agents.md` |
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -32,39 +54,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+For UI changes, verify in the running app with spoolside and attach
+before/after screenshots as PR evidence — see
+[`docs/coding-with-agents.md`](docs/coding-with-agents.md).
+
+## Ways of working
+
+- PRs, issue flow, and where to discuss changes: [`CONTRIBUTING.md`](CONTRIBUTING.md).
+- CI lives in `.github/workflows`. Dependency license checks:
+  [`docs/license-checks.md`](docs/license-checks.md).
+- Run `pnpm fix:format` before pushing UI changes; `gofmt` is enforced for Go.
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

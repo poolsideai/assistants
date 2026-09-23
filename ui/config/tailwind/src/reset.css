@@ -9,13 +9,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  /* Menus keep the arrow cursor, as every native menu does — the rule above
+     would otherwise hand every row a pointer. Disabled rows still pick up their
+     own cursor-not-allowed utility, which sits in a later layer. */
+  .menu-surface button,
+  .menu-surface [role="button"],
+  .menu-surface [role="menuitem"] {
+    cursor: default;
+  }
 __POOL_SYNTHETIC_IMPORT_BASELINE__

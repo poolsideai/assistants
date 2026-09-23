@@ -1,75 +1,75 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{
+  "name": "@poolsideai/desktop-assistant",
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "description": "The Poolside desktop assistant shell.",
+  "repository": {
+    "type": "git",
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  },
+  "author": {
+    "name": "Poolside",
+    "email": "hello@poolside.ai",
+    "url": "https://poolside.ai"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:frontend": "node --max-old-space-size=8192 ./node_modules/vite/bin/vite.js build",
+    "build:isolation": "node scripts/build-isolation.mjs",
+    "build:web": "pnpm build:frontend && pnpm build:isolation",
+    "check:format": "prettier . --check --cache --ignore-path .gitignore --ignore-path ../../.gitignore --ignore-path .prettierignore",
+    "check:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' './isolation/**/*.{js,mjs,cjs,ts,tsx,svelte}'",
+    "check:types": "svelte-check --tsconfig tsconfig.check.json --fail-on-warnings --compiler-warnings \"state_referenced_locally:ignore,a11y_no_static_element_interactions:ignore\"",
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "dev:web": "pnpm build:isolation && vite --host 127.0.0.1",
+    "download:binaries": "node scripts/copy-helper.mjs",
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "fix:format": "prettier . --write --cache --ignore-path .gitignore --ignore-path ../../.gitignore --ignore-path .prettierignore --list-different",
+    "fix:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' './isolation/**/*.{js,mjs,cjs,ts,tsx,svelte}' --fix",
+    "icons:macos": "node scripts/compile-macos-icon.mjs",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "test:unit": "node --test src/desktopBootstrap.test.ts"
+  },
+  "lint-staged": {
+    "*": [
+      "prettier --ignore-unknown --write"
+    ]
+  },
+  "prettier": "@poolsideai/prettier-config",
+  "dependencies": {
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@poolsideai/assistant": "workspace:*",
+    "@poolsideai/components": "workspace:*",
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@poolsideai/helperapi": "workspace:*",
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    "@poolsideai/rpc": "workspace:*",
+    "@tauri-apps/api": "2",
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  },
+  "devDependencies": {
+    "@poolsideai/eslint-config": "workspace:*",
+    "@poolsideai/prettier-config": "workspace:*",
+    "@poolsideai/svelte-config": "workspace:*",
+    "@poolsideai/tailwind-config": "workspace:*",
+    "@poolsideai/tsconfig": "workspace:*",
+    "@poolsideai/vite-config": "workspace:*",
+    "@tauri-apps/cli": "2",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "svelte": "catalog:",
+    "svelte-check": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  }
+}

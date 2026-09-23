@@ -68,25 +68,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("exposes isRepoFor, undefined until the status arrives", async () => {
+    const { poolsideGithubWorktreeStatuses } = await import("@poolsideai/helperapi");
+    vi.mocked(poolsideGithubWorktreeStatuses).mockResolvedValue({
+      configured: false,
+      statuses: [
+        { ...worktreeStatus("/repo", false, prStatus({ state: "none" })), isRepo: true },
+        { ...worktreeStatus("/plain", false, prStatus({ state: "none" })), isRepo: false },
+      ],
+    });
+
+    const repo = new ACPGithubRepositoryWriter();
+    expect(repo.isRepoFor("/repo")).toBeUndefined();
+    await repo.refresh(["/repo", "/plain"]);
+
+    expect(repo.isRepoFor("/repo")).toBe(true);
+    expect(repo.isRepoFor("/plain")).toBe(false);
+    expect(repo.isRepoFor("/missing")).toBeUndefined();
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

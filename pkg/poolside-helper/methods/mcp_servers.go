@@ -4,6 +4,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	MCPServerAuthModeOAuth MCPServerAuthMode = "oauth"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -23,6 +24,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	AuthMode          MCPServerAuthMode `json:"authMode,omitempty"`
+	OAuthScopes       string            `json:"oauthScopes,omitempty"`
+	OAuthClientID     string            `json:"oauthClientId,omitempty"`
+	OAuthCallbackPort int               `json:"oauthCallbackPort,omitempty"`
+	// OAuthDeepLink opts the server into the poolside://oauth/callback redirect
+	// when the client can receive OS deep links (the desktop app). The deep-link
+	// redirect URI must be registered with the OAuth provider. Hosts without
+	// deep-link support fall back to the loopback callback (OAuthCallbackPort
+	// for pre-registered clients).
+	OAuthDeepLink bool `json:"oauthDeepLink,omitempty"`
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -162,29 +173,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+// --- poolside/mcpServers/didChange (helper notification) ---
+
+// MCPServersDidChangeParams is broadcast to every surface (primary + remotes)
+// after the user's MCP connector store mutates (upsert/delete/toggle/sign-in/
+// sign-out). The store is shared on disk across helper instances but change
+// listeners are in-memory per client, so without this push a connector changed
+// on one surface never reaches live sessions hosted by another. The payload is
+// empty: receivers re-list the store, which keeps coalesced or reordered
+// notifications idempotent.
+type MCPServersDidChangeParams struct{}
+
+func (p MCPServersDidChangeParams) MethodName() string {
+	return "poolside/mcpServers/didChange"
+}

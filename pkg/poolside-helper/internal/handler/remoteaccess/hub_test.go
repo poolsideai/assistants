@@ -233,22 +233,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+func TestNotifyRemotesSkipsPrimary(t *testing.T) {
+	hub := NewHub()
+
+	primary := newRecordedNotify(1)
+	hub.SetPrimary(primary.fn)
+	remote := newRecordedNotify(1)
+	unregister := hub.RegisterRemote("remote:a", remote.fn, nil)
+	defer unregister()
+
+	hub.NotifyRemotes("poolside/test", map[string]any{"enabled": true})
+
+	got := remote.wait(t, 1)
+	require.Len(t, got, 1)
+	assert.Equal(t, "poolside/test", got[0].method)
+	primary.mu.Lock()
+	defer primary.mu.Unlock()
+	assert.Empty(t, primary.calls)
+}

@@ -1,73 +1,73 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{
+  "name": "@poolsideai/splits",
+  "version": "2.3.53",
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "description": "Svelte split-pane tab controller and view components.",
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "svelte": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "dist",
+    "NOTICE.md",
+    "!src/**/*.test.*",
+    "!dist/**/*.test.*"
+  ],
+  "scripts": {
+    "build": "POOLSIDE_SKIP_STORYBOOK_VITE=1 svelte-package --input src --tsconfig tsconfig.build.json",
+    "build:storybook": "storybook build --stats-json",
+    "check:format": "prettier . --check --cache --ignore-path ../../.gitignore",
+    "check:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}'",
+    "check:types": "svelte-check --tsconfig tsconfig.check.json",
+    "fix:format": "prettier . --write --cache --ignore-path ../../.gitignore --list-different",
+    "fix:lint": "eslint --no-error-on-unmatched-pattern './src/**/*.{js,mjs,cjs,ts,tsx,svelte}' --fix",
+    "prepublishOnly": "turbo build",
+    "storybook": "storybook dev -p 6009",
+    "test": "POOLSIDE_SKIP_STORYBOOK_VITE=1 vitest run",
+    "test:unit": "POOLSIDE_SKIP_STORYBOOK_VITE=1 vitest run --project unit",
+    "test:unit:watch": "POOLSIDE_SKIP_STORYBOOK_VITE=1 vitest --project unit",
+    "test:watch": "vitest"
+  },
+  "lint-staged": {
+    "*": [
+      "prettier --ignore-unknown --write"
+    ]
+  },
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  "devDependencies": {
+    "@chromatic-com/storybook": "catalog:",
+    "@poolsideai/eslint-config": "workspace:*",
+    "@poolsideai/prettier-config": "workspace:*",
+    "@poolsideai/storybook-config": "workspace:*",
+    "@poolsideai/svelte-config": "workspace:*",
+    "@poolsideai/tailwind-config": "workspace:*",
+    "@poolsideai/tsconfig": "workspace:*",
+    "@poolsideai/vite-config": "workspace:*",
+    "@storybook/addon-a11y": "catalog:",
+    "@storybook/addon-svelte-csf": "catalog:",
+    "@storybook/addon-vitest": "catalog:",
+    "@storybook/svelte-vite": "catalog:",
+    "@sveltejs/package": "catalog:",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "storybook": "catalog:",
+    "svelte-check": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "svelte": "catalog:"
+  }
+}

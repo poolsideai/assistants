@@ -1,28 +1,76 @@
+<script lang="ts">
+  import Icon from "@poolsideai/components/icon";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  import BadgedIcon from "./BadgedIcon.svelte";
+  import { appState } from "../hostAdapter";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  import DesktopArchivedChatsSection from "./DesktopArchivedChatsSection.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  import DesktopPreferencesSection from "./DesktopPreferencesSection.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  import LocalInferenceSettingsSection from "./LocalInferenceSettingsSection.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  import DesktopSettingsPanelFrame from "./settings/DesktopSettingsPanelFrame.svelte";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  import {
+    DESKTOP_SETTINGS_SECTIONS,
+    SETTINGS_HEADINGS,
+    SETTINGS_NAV_ITEMS,
+    type DesktopSettingsSection,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  } from "./settings/settingsSections";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  // sectionNav=false suppresses that left nav for hosts too narrow to fit it
+  // (the IDE sidebar); the header then names the section itself.
+  interface Props {
+    centerHeader?: boolean;
+    sidebarWidth?: number;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    availableSections?: readonly DesktopSettingsSection[];
+    sectionNav?: boolean;
+    onSectionChange?: (section: DesktopSettingsSection) => void;
+    onShowConnectors?: () => void;
+    onShowChat?: () => void;
+    activeConversationId?: string | null;
+    onActiveConversationIdChange?: (id: string | null) => void;
+    onDone?: () => void;
+    desktopFrame?: boolean;
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    availableSections = DESKTOP_SETTINGS_SECTIONS,
+    sectionNav = true,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    onShowConnectors,
+    onShowChat,
+    activeConversationId = null,
+    onActiveConversationIdChange,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    desktopFrame = false,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  let isDesktop = $derived($appState.environment.assistantHost === "desktop");
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  let heading = $derived(SETTINGS_HEADINGS[section]);
+  let showSectionNav = $derived(
+    sectionNav && !desktopFrame && section !== "all" && availableSections.length > 1,
+  );
+  let headerTitle = $derived(sectionNav ? SETTINGS_HEADINGS.all.title : heading.title);
+  let headerSubtitle = $derived(
+    !sectionNav || section === "all" ? heading.subtitle : "Configure Poolside Assistant.",
+  );
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -33,9 +81,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    {#if isDesktop}
+      <LocalInferenceSettingsSection {onShowConnectors} />
+    {/if}
+  {:else if sectionName === "voice"}
+    {#if isDesktop}
+      <VoiceRecognitionSettingsSection />
+    {/if}
+  {:else if sectionName === "archived"}
+    <DesktopArchivedChatsSection
+      {onShowChat}
+      {activeConversationId}
+      {onActiveConversationIdChange}
+    />
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      pill={SETTINGS_NAV_ITEMS[sectionName].pill}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -47,37 +109,97 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+{#snippet settingsContent()}
+  {#if section === "all"}
+    {#if isDesktop}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    {/if}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    {#if isDesktop}
+      {@render settingsSection("models")}
+      {@render settingsSection("voice")}
+    {/if}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      {@render settingsSection("archived")}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  {:else if section === "preferences"}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  {:else if section === "shortcuts"}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  {:else if section === "models"}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  {:else if section === "voice"}
+    {@render settingsSection("voice")}
+  {:else if section === "connectors"}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  {:else if section === "agents"}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  {:else if section === "archived"}
+    {#if isDesktop}
+      {@render settingsSection("archived")}
+    {/if}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  {/if}
+{/snippet}
+
+{#if desktopFrame}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      {@render settingsContent()}
+    </div>
+  </DesktopSettingsPanelFrame>
+{:else}
+  <section
+    class="bg-psx-editor-background text-psx-foreground-primary flex h-full min-w-0 flex-col"
+  >
+    <div
+      class={[
+        "border-psx-border relative flex h-12 shrink-0 items-center justify-between border-b py-1.5 pr-4",
+        isDesktop && !centerHeader ? "pl-[var(--desktop-window-controls-space,88px)]" : "pl-4",
+      ]}
+      data-tauri-drag-region={isDesktop ? "deep" : undefined}
+    >
+      {#if centerHeader}
+        <div
+          class="pointer-events-none relative z-10 shrink-0"
+          style={`width: ${sidebarWidth}px;`}
+          aria-hidden="true"
+        ></div>
+      {/if}
+
+      <div
+        class={[
+          "pointer-events-none relative z-10 min-w-0",
+          centerHeader ? "flex-1 text-center" : "",
+        ]}
+      >
+        <h1 class="truncate text-base font-semibold">{headerTitle}</h1>
+        <p class="text-psx-foreground-secondary truncate text-[13px]/[18px]">
+          {headerSubtitle}
+        </p>
+      </div>
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        >
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -89,10 +211,55 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    </div>
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    <div class="flex min-h-0 flex-1">
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        <aside class="border-psx-border bg-psx-panel w-[232px] shrink-0 border-r p-2">
+          <nav class="flex flex-col gap-1" aria-label="Settings sections">
+            {#each availableSections as item}
+              <button
+                type="button"
+                class={[
+                  "outline-hidden focus-visible:outline-psx-focus flex w-full items-center gap-2 rounded-[8px] px-2 py-1.5 text-left text-sm focus-visible:outline-2",
+                  // Source-list selection, as in the conversations sidebar: the
+                  // selected section had been painting the same fill as hover.
+                  // Straight off the --psx-highlight-* tokens rather than the
+                  // desktop stylesheet, because this nav also renders in the
+                  // sidebar-only panel — in VS Code they resolve to the neutral
+                  // list hover and a transparent ring, which is today's look.
+                  section === item
+                    ? "bg-psx-highlight-background text-psx-foreground-primary shadow-[inset_0_0_0_1px_var(--psx-highlight-border)]"
+                    : "text-psx-foreground-primary hover:bg-psx-menu-hover-background",
+                ]}
+                aria-current={section === item ? "page" : undefined}
+                onclick={() => onSectionChange?.(item)}
+              >
+                {#if SETTINGS_NAV_ITEMS[item].badge}
+                  <BadgedIcon
+                    icon={SETTINGS_NAV_ITEMS[item].icon}
+                    badge={SETTINGS_NAV_ITEMS[item].badge}
+                    size={16}
+                    class="shrink-0"
+                  />
+                {:else}
+                  <Icon name={SETTINGS_NAV_ITEMS[item].icon} size={16} class="shrink-0" />
+                {/if}
+                <span class="min-w-0 truncate">{SETTINGS_NAV_ITEMS[item].label}</span>
+                {#if SETTINGS_NAV_ITEMS[item].pill}
+                  <span
+                    class="bg-psx-chrome-hover text-psx-foreground-secondary shrink-0 rounded-full px-1.5 py-px text-[10px]/[14px]"
+                  >
+                    {SETTINGS_NAV_ITEMS[item].pill}
+                  </span>
+                {/if}
+              </button>
+            {/each}
+          </nav>
+        </aside>
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      <div class="min-h-0 min-w-0 flex-1 overflow-y-auto">
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -101,174 +268,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      </div>
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  </section>
+{/if}

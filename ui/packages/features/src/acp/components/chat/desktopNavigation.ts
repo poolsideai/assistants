@@ -1,14 +1,14 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { PaneID, TabID } from "@poolsideai/splits";
+import type { DesktopSplitSurface } from "./desktopSplitsCache";
+
+export interface DesktopSplitNavigationLocation {
+  layoutKey: string;
+  surface: DesktopSplitSurface;
+  paneId: PaneID;
+  tabId?: TabID;
+}
+
+export interface DesktopSplitNavigationRequest {
+  location: DesktopSplitNavigationLocation;
+  token: number;
+}

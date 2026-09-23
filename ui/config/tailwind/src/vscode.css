@@ -43,11 +43,64 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    /* Unfocused-tab colors are often 50% alpha; keep tertiary copy readable at small text sizes. */
+    --psx-foreground-tertiary: color-mix(
+      in srgb,
+      var(--vscode-descriptionForeground) 95%,
+      var(--vscode-tab-unfocusedInactiveForeground)
+    );
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    /* Glyphs read at primary-text contrast (see --color-psx-icon). */
+    --psx-icon: var(--psx-foreground-primary);
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    --psx-tab-active-background: var(
+      --vscode-tab-activeBackground,
+      var(--vscode-tab-selectedBackground, var(--psx-editor-background))
+    );
+    --psx-tab-active-foreground: var(
+      --vscode-tab-activeForeground,
+      var(--vscode-tab-selectedForeground, var(--psx-foreground-primary))
+    );
+    --psx-tab-inactive-background-source: var(
+      --vscode-tab-inactiveBackground,
+      var(--vscode-tab-unfocusedInactiveBackground, var(--psx-chrome))
+    );
+    --psx-tab-inactive-background: color-mix(
+      in srgb,
+      var(--psx-tab-inactive-background-source) 86%,
+      var(--psx-foreground-primary)
+    );
+    --psx-tab-inactive-foreground: var(
+      --vscode-tab-inactiveForeground,
+      var(--psx-foreground-secondary)
+    );
+    --psx-tab-hover-background: var(
+      --vscode-tab-hoverBackground,
+      var(
+        --vscode-tab-unfocusedHoverBackground,
+        var(
+          --vscode-toolbar-hoverBackground,
+          var(
+            --vscode-list-hoverBackground,
+            color-mix(
+              in srgb,
+              var(--psx-tab-inactive-background) 90%,
+              var(--psx-foreground-primary)
+            )
+          )
+        )
+      )
+    );
+    --psx-tab-border: color-mix(
+      in srgb,
+      var(--psx-tab-inactive-background) 88%,
+      var(--psx-foreground-primary)
+    );
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -111,6 +164,29 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    /* Menu/popover surface. Hosts that own their chrome (the desktop app)
+       override these with native menu values; inside VS Code the menus follow
+       the editor theme instead, so they default to the panel colors. */
+    --psx-menu-background: var(--psx-panel);
+    --psx-menu-separator: var(--psx-border);
+    /* Hover/highlight treatment for rows and cards that single one out: a tinted
+       fill inside a colored hairline. Hosts that own their palette (the desktop
+       app) point these at their accent; inside VS Code the equivalent theme
+       colors are user-supplied and can be highly saturated, so it stays the
+       neutral list hover with no ring.
+
+       Reads --vscode-list-hoverBackground directly rather than the
+       --psx-menu-hover-background token it also feeds: menu surfaces re-point
+       that token at this one, and going through it would close the loop. */
+    --psx-highlight-background: var(--vscode-list-hoverBackground);
+    --psx-highlight-border: transparent;
+
+    /* Text selection. Follows the editor's own selection colors so a webview
+       embedded in VS Code selects the way the editor beside it does; the
+       desktop app overrides these with the OS selection colors. */
+    --psx-selection-background: var(--psx-editor-selection-background);
+    --psx-selection-foreground: var(--psx-editor-selection-foreground);
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -124,147 +200,71 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    --psx-terminal-font: var(--vscode-terminal-font-family, var(--psx-font-mono));
+    --psx-terminal-font-size: var(--vscode-terminal-font-size, var(--vscode-editor-font-size));
+    --psx-terminal-line-height: var(
+      --vscode-terminal-line-height,
+      var(--vscode-editor-line-height)
+    );
+    --psx-terminal-foreground: var(--vscode-terminal-foreground, var(--vscode-editor-foreground));
+    --psx-terminal-background: var(--vscode-terminal-background, var(--vscode-editor-background));
+    --psx-terminal-cursor: var(
+      --vscode-terminalCursor-foreground,
+      var(--vscode-editorCursor-foreground)
+    );
+    --psx-terminal-cursor-accent: var(
+      --vscode-terminalCursor-background,
+      var(--vscode-editorCursor-background)
+    );
+    --psx-terminal-selection-background: var(
+      --vscode-terminal-selectionBackground,
+      var(--vscode-editor-selectionBackground)
+    );
+    --psx-terminal-selection-foreground: var(
+      --vscode-terminal-selectionForeground,
+      var(--vscode-editor-selectionForeground)
+    );
+    --psx-terminal-selection-inactive-background: var(
+      --vscode-editor-inactiveSelectionBackground,
+      var(--vscode-editor-selectionBackground)
+    );
+    --psx-terminal-black: var(--vscode-terminal-ansiBlack);
+    --psx-terminal-red: var(--vscode-terminal-ansiRed);
+    --psx-terminal-green: var(--vscode-terminal-ansiGreen);
+    --psx-terminal-yellow: var(--vscode-terminal-ansiYellow);
+    --psx-terminal-blue: var(--vscode-terminal-ansiBlue);
+    --psx-terminal-magenta: var(--vscode-terminal-ansiMagenta);
+    --psx-terminal-cyan: var(--vscode-terminal-ansiCyan);
+    --psx-terminal-white: var(--vscode-terminal-ansiWhite);
+    --psx-terminal-bright-black: var(
+      --vscode-terminal-ansiBrightBlack,
+      var(--vscode-terminal-ansiBlack)
+    );
+    --psx-terminal-bright-red: var(--vscode-terminal-ansiBrightRed, var(--vscode-terminal-ansiRed));
+    --psx-terminal-bright-green: var(
+      --vscode-terminal-ansiBrightGreen,
+      var(--vscode-terminal-ansiGreen)
+    );
+    --psx-terminal-bright-yellow: var(
+      --vscode-terminal-ansiBrightYellow,
+      var(--vscode-terminal-ansiYellow)
+    );
+    --psx-terminal-bright-blue: var(
+      --vscode-terminal-ansiBrightBlue,
+      var(--vscode-terminal-ansiBlue)
+    );
+    --psx-terminal-bright-magenta: var(
+      --vscode-terminal-ansiBrightMagenta,
+      var(--vscode-terminal-ansiMagenta)
+    );
+    --psx-terminal-bright-cyan: var(
+      --vscode-terminal-ansiBrightCyan,
+      var(--vscode-terminal-ansiCyan)
+    );
+    --psx-terminal-bright-white: var(
+      --vscode-terminal-ansiBrightWhite,
+      var(--vscode-terminal-ansiWhite)
+    );
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

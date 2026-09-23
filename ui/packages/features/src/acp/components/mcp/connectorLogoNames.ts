@@ -1,16 +1,16 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export const connectorLogoNames: Record<string, string> = {
+  slack: "slack-icon",
+  github: "github-icon",
+  linear: "linear-icon",
+  notion: "notion-icon",
+  huggingface: "hugging-face-icon",
+  sentry: "sentry-icon",
+  cloudflare: "cloudflare-icon",
+  vercel: "vercel-icon",
+  "prisma-postgres": "prisma",
+  "new-relic": "new-relic-icon",
+  postgres: "postgresql",
+  supabase: "supabase-icon",
+  netlify: "netlify-icon",
+  coda: "coda-icon",
+};

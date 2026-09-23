@@ -6,6 +6,24 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+/**
+ * The one place the app's editor background enters pierre's world. Every diff
+ * surface sets this as `--diffs-background`, the top of pierre's own chain
+ * (`--diffs-background` → `--diffs-light-bg`/`--diffs-dark-bg` → `--diffs-bg`),
+ * so the card fill, the separator bars, the sticky-header backdrop and the
+ * shiki theme all read one derived value instead of re-deriving from
+ * `--psx-editor-background` in six places.
+ *
+ * Alpha is stripped (`/ 1`). Pierre mixes this into the accent to make the
+ * added/removed line fills — `color-mix(in lab, <this> 85%, <accent>)` — so a
+ * translucent editor background (the desktop vibrancy surfaces mix one) drags
+ * those fills down to a few percent alpha and the diff renders with coloured
+ * gutter numbers over uncoloured lines. Relative color syntax keeps the origin
+ * alpha unless it is stated, hence the explicit `/ 1`.
+ */
+export const DIFF_SURFACE_BACKGROUND =
+  "rgb(from var(--psx-editor-background, light-dark(#ffffff, #1b1f23)) r g b / 1)";
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -44,28 +62,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      // Defers to the surface's DIFF_SURFACE_BACKGROUND rather than naming the
+      // app token again; if that ever fails to resolve, pierre's own
+      // `--diffs-bg` fallback (#fff/#000) is the opaque last resort.
+      background: "var(--diffs-background)",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

@@ -1,4 +1,4 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Keep this entry independent of the ACP feature barrel: startup diagnostics
+// must be usable before the full assistant (and its renderers) is evaluated.
+export { default as StreamingIndicator } from "./components/ui/StreamingIndicator.svelte";
+export { POOLSIDE_ROUNDEL_ICON_URL } from "./localAgentIcon";

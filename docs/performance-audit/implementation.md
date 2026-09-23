@@ -1,110 +1,110 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# Low-risk performance test build
+
+This build starts from `1a648b183` and includes the ten commits classified as lowest risk plus `b692acb0a` (L2), explicitly requested for earlier shell reveal. Evidence below is historical evidence from each original change; this combination receives separate build and smoke validation. Excluded findings are not implemented in this branch.
+
+### B1 — connector logos and accidental Storybook dependency
+
+- Before: main JS 10,492,196 bytes; desktop frontend distribution 37,286,694 bytes (after existing deduplication).
+- After: main JS 3,033,502 bytes; distribution 29,784,001 bytes. Main reduction 71.09%; distribution reduction 7,502,693 bytes.
+- Generated the same 14 upstream SVG definitions, preserving collection dimensions and component rendering. `check:connector-logos` compares every definition exactly and now runs during the feature-package build. Removed the inert Storybook object used as a glyph CSS class; `currentColor` remains unchanged.
+- Verification: production `build:web` passed; features `check:types` found zero errors/warnings; all 14 upstream comparisons passed. Foreground WKWebView connector screenshots `/tmp/poolside-b1-before-settled.png` and `/tmp/poolside-b1-after-settled.png` are pixel-identical. The initial baseline screenshot was captured before async connector loading settled and was replaced with the settled baseline.
+- Baseline audit commit: `4ceb43727`. Local commits are unsigned because the configured signing key is unavailable; no Git configuration changed.
+
+
+### L1 — independent startup entry
+
+- Before this commit (after B1): static startup JavaScript closure 4,616,851 bytes.
+- After: 70,752 bytes in emitted files (98.47% reduction); app-loading closure 5,004,114 bytes. This removes eager dependency work; it does not claim a measured TTI reduction.
+- Added a supported `@poolsideai/features/acp/startup` entry with the same roundel and indicator. No startup/recovery markup or callback logic changed. Production builds now fail if the transitive startup JS exceeds 100,000 bytes or includes the full logo catalogue/Storybook theming.
+- Production `build:web` and desktop `check:types` passed (zero errors/warnings). The previous and current recovery components were mounted in the foreground WKWebView using identical props; `/tmp/poolside-l1-before-recovery.png` and `/tmp/poolside-l1-after-recovery.png` are pixel-identical. Full-reload failure injection exposed a spoolside reconnect limitation, so component behavior was verified separately; normal boot was restored and the simulation flag cleared.
+- Fixed the audit script's app-loading closure selection: count the real `main.ts` module, not every on-demand language/theme import attached to a shared entry chunk.
+- Recovery interaction verification passed in WKWebView: copy feedback, logs callback, continue callback, retry callback, keep-waiting dismissal, failed-state retry focus and absence of continue on failure. Observed callbacks: `copy, logs, continue, retry, wait, retry`.
+
+
+### H7 — single production decode and lazy schemas
+
+- Identical 368 KB RPC payload, three runs: registered production decoding median 2.605 ms → 1.379 ms (47.05% less time); unvalidated decoding 2.616 ms → 1.374 ms (47.48% less). Allocated bytes approximately 1,443 KB → 721 KB per request. Development validation still receives its required generic representation.
+- Runtime handler construction, three runs of 20 iterations with isolated remote-access settings: median 2.339 ms → 0.156 ms (93.35% less); approximately 3.349 MB → 79 KB allocated. This measures helper handler construction, not process launch/desktop TTI. Production keeps schema registration closures until first documentation/validation access, then releases them.
+- Complete generated OpenAPI output is unchanged: 174,331 bytes; SHA-256 `687f67aff30c29056ad464a3cb2bc4461f18d3ad983a77417d23e7b2e99afc36` before and after, in all three runs. Development validation and late method registration still work.
+- Full handler package tests passed. New semantic checks preserve invalid-JSON versus invalid-type errors, `ErrInvalidParams`, null input and unknown-field handling. Concurrent first-schema-access and validation tests passed five times under the race detector; production requests do not instantiate Huma.
+- Reproduce with `BenchmarkJSONRPCDecodeLargePayload`, `BenchmarkJSONRPCStartupRegistration -benchtime=20x`, and `TestJSONRPCSchemaDiagnostic`. Evidence: `/tmp/poolside-h7-{before,after,regression,race}.log` and `/tmp/poolside-h7-startup-{before,after}.log`.
+
+
+### L3 — overlap independent bootstrap reads
+
+- The measured original `main.ts` block has seven serial phases. The new snapshot loader overlaps settings, version, home and accent; theme/font/vibrancy preparation depends on settings. Focus/fullscreen probes run together after that preparation to keep the initial window state current after slow reads. Required failures still enter startup recovery; native-theme/accent fallback behavior is unchanged.
+- Five runs with identical 20 ms fixture latency per operation: original source block median 153.95 ms; new loader 65.91 ms (57.19% less). Every run returns the same complete snapshot. This isolates native round-trip serialization and does not measure process launch or app TTI. The benchmark extracts the original block from `bf702a7d5` instead of relying on a hand-written baseline.
+- The final ordering suite fails two checks with the extracted sequential implementation; all six tests pass after the change. Coverage includes settings-dependent appearance, final focus/fullscreen sampling, complete initial values, required-read failures and early/late parallel rejections. Desktop type checks/source lint and production `build:web` pass. The L1 startup boundary remains within budget at 70,430 emitted bytes.
+- Real development startup diagnostics still complete the native phase (observed after runs: 20, 42 and 17 ms; recent before runs: 21, 23 and 42 ms). This small noisy warm sample does not establish a reliable real-launch speedup. Foreground startup/theme/recovery comparison remains pending alongside H3 because the rebuilt test window remains hidden. No theme defaults, opener-icon policy, callback wiring or app mount target changed.
+- Reproduce with `node docs/performance-audit/bootstrap-bench.mjs bf702a7d5` and `pnpm -F @poolsideai/desktop-assistant test:unit`. Evidence: `/tmp/poolside-l3-{before,after}-tests.log`, `/tmp/poolside-l3-measurements.json`, `/tmp/poolside-l3-{types,lint,build}.log`.
+
+
+### B5 — remove duplicated authoring assets and redundant font formats
+
+- Remove the public Icon Composer copy: 3,462,584 PNG bytes plus 8,577 JSON bytes. Both images are byte-identical to the existing canonical `src-tauri/icons/icon.icon` images; the JSON documents are structurally identical. Native icon compilation, embedded PNGs, generated icons and Tauri bundle inputs are unchanged. No source artwork is lost.
+- The shared Vite transform keeps all twenty original KaTeX WOFF2 faces and removes only their alternate WOFF/TTF source URLs before asset emission. Installed unminified/minified stylesheets retain identical face metadata and every non-source declaration; unknown future source-list syntax is preserved conservatively. Font files, glyphs, shaping and metrics are unchanged. WOFF2 is supported by the target engines; see [WebKit's format support](https://webkit.org/blog/6643/improved-font-loading/) and the [W3C implementation report](https://www.w3.org/Fonts/WG/WOFF2/Implementation.html). This removes 816,780 redundant font bytes per frontend build that includes KaTeX.
+- Matched desktop production builds: frontend distribution 29,798,004 → 25,507,489 bytes (14.40% smaller); controlled ZIP_DEFLATED level-9 archive 12,308,701 → 8,263,420 bytes (32.86% smaller). This is frontend packaging, not a signed installer/VSIX measurement. All retained WOFF2 hashes match. License and changelog pages remain emitted.
+- Public-file audit: `icon.png` is referenced by the HTML entries; `poolside-logo.glb` and `poolside-face-logo.glb` are runtime Logo3D fallbacks. The two Nerd Font WOFF2 faces retain all private-use glyphs and already load on font use; terminal views explicitly await their selected regular/bold faces. No terminal-font latency saving is claimed. Storybook's mono face belongs to its development config, and the VS Code contribution font remains required by its manifest.
+- Before/after Chrome math captures are RGB pixel-identical: [before](b5-before-fonts.png), [after](b5-after-fonts.png). All twenty faces loaded in both fixtures; fallback source count changed 20 → 0. In the actual WKWebView, all twenty production WOFF2 sources (nineteen files and one inlined data URI) also decoded successfully. This confirms decoding and unchanged Chrome rendering; the desktop window remains hidden, so it is not a foreground WebKit screenshot claim. Temporary fixtures are removed after validation.
+- Shared config build, type checking, lint, two upstream-font equivalence tests, desktop frontend/isolation build and mobile production build pass. Reproduce font equivalence after building config with `node --test ui/config/vite/src/katexFonts.node.test.ts`. Evidence: `/tmp/poolside-b5-{before,after}-build.log`, `/tmp/poolside-b5-{before,after}-files.json`, `/tmp/poolside-b5-{before,after}-sizes.json`, `/tmp/poolside-b5-font-tests-final.log`, `/tmp/poolside-b5-config-types-final.log`, `/tmp/poolside-b5-config-lint.log`, `/tmp/poolside-b5-mobile-build.log`.
+
+
+### B4 — minified IDE release bundles with separate diagnostics
+
+- Matched production builds at S1's revision: shared VS Code webview JS **8,264,508 → 4,166,641 bytes (49.6%)**; extension host **2,391,029 → 986,266 bytes (58.8%)**. Total runtime distribution **39,304,247 → 29,958,825 bytes (23.8%)**, with the same 737 files. The local VSIX decreases from **8.39 to 7.31 MiB**. These local packages exclude native helper/runtime binaries, so this is not the percentage reduction of a complete production VSIX. Raw bytes, five alternating cold-process parse trials, source-map checks and browser results are in [b4-measurements.json](b4-measurements.json).
+- Median Node/V8 compile-only time for the shared webview module **61.32 → 49.97 ms (18.5%)**; host bundle **15.22 → 11.94 ms (21.5%)**. Each sample uses a fresh process to avoid a reused compilation cache. This is a parsing proxy, not browser evaluation or launch-to-interactive. Isolated VS Code 1.134.0 extension-host activation smoke tests pass for both bundles; single activation readings of 49.9/43.9 ms are recorded without claiming a startup speedup. Browser mount readings also vary and do not establish a TTI improvement.
+- Production Vite/tsdown output is minified; development serving/watch output stays readable. The Vite build now awaits the extension-host build so its failures reach the caller. Hidden maps retain original sources, with round-trip generated/original position checks for the real host activation and chat mount lines. CI retains maps with immutable release provenance for 90 days, outside the VSIX. No remote release or artifact upload was performed locally.
+- Packaging verification caught vsce's include-precedence behavior: a broad `!dist` overrides later map exclusions. The corrected include pattern preserves every runtime file while excluding maps. The new `check:release-build` verifies all static/dynamic manifest edges, packaged workers/resources, separate diagnostic maps and 5 MB/1.2 MB shared-webview/host budgets; the release workflow runs it. The original unminified build exceeds both budgets.
+- Both actual compiled webview entry points were served unchanged as static assets on the existing test server, with isolated host responses and no real agent requests. Conversation opening, history/back navigation, settings, real draft typing, selection and focus match. Host command sequences match exactly; neither version has page errors or failed resource requests. The dynamic 3D logo and worker resources load successfully. Settled captures are pixel-identical: [sidebar before](b4-before-assistant.png) / [after](b4-after-assistant.png), [chat before](b4-before-acp-chat.png) / [after](b4-after-acp-chat.png). The first chat screenshot pair caught different pointer-driven logo positions; the clean repeat settles the same pointer position before comparison.
+- All 149 VS Code unit tests pass, types report zero errors/warnings, lint/format/build/package checks pass. Native activation uses separate temporary profiles with telemetry disabled; the helper binary is deliberately absent, so this does not claim a native agent-conversation test. Browser QA exercises compiled Chromium webviews; it is not a native webview screenshot claim. Reproduction inputs are [fixture setup](b4-fixture-setup.mjs), [host fixture](b4-host-fixture.js), [browser scenarios](b4-browser-scenarios.js), [activation runner](b4-native-runner.cjs) and [parse benchmark](b4-measure.mjs). Logs: `/tmp/poolside-b4-{before,after}-{build,package}.log`, `/tmp/poolside-b4-{unit,types,lint,assets}.log`. Temporary static assets were removed after validation.
+
+
+### L6 — concurrent IDE state preparation and reusable release metadata
+
+- In an isolated **native VS Code 1.134.0 extension host**, five alternating before/after pairs with the built-in 2026 Dark theme and **383 file-icon definitions** reduce median `getWebviewHtml` preparation **10.37 → 5.41 ms (47.9%)**. With 423,446 bytes of additional serialized Unicode state, median preparation falls **18.84 → 5.96 ms (68.4%)**. HTML output is byte-identical for every matched pair, including both entry points and all encoded state. OS caches were not flushed; first readings are colder, so this is not a cold-start/TTI claim. Raw timings, hashes, actual payload sizes and browser results are in [l6-measurements.json](l6-measurements.json).
+- Keybindings, color theme and file-icon reads now overlap. Release manifest loading also overlaps state preparation; simultaneous/repeated views share one immutable manifest per extension context. Failed reads/parses are evicted for retry. Mutable settings, themes, icons and development port-forwarding URLs remain fresh. Node's UTF-8/base64 encoder replaces per-byte JS string/array construction, preserving the existing safe encoded bootstrap format. Keybinding updates call their narrow loader without rebuilding theme/icon state. Type-only system imports keep these preparation entry points independent of runtime initialization.
+- Controlled 20 ms I/O tests confirm initial-state preparation completes in one interval rather than three; manifest/state preparation takes one interval rather than two. Three budget assertions fail against the baseline and pass after implementation. All **157 extension unit tests** pass, including manifest sharing/retry/context isolation, fresh state, development URL changes, error propagation and exact Unicode/script-delimiter round trips. Types report zero errors/warnings; lint, formatting, production build and release asset/map checks pass. The final production extension also passes native activation, command registration, plan-mode toggle and settings checks in an isolated VS Code profile; its single 48.6 ms activation reading is diagnostic, not a before/after speedup claim. The helper is deliberately absent. The host adds approximately 202 bytes; webview runtime entries are unchanged.
+- Browser checks use the actual native-generated before/after HTML, replacing its resource base URL and injecting isolated host responses. Conversation routing, history/back navigation, settings, typed draft, selection and focus match, with no page errors or failed requests. Both settled captures are pixel-identical: [sidebar before](l6-before-assistant.png) / [after](l6-after-assistant.png), [chat before](l6-before-acp-chat.png) / [after](l6-after-acp-chat.png). This is browser rendering of native-generated HTML, not a native webview screenshot claim. Native app screenshot limitations remain documented separately.
+- Complete themes/icons remain in the first rendered state to preserve its appearance; measured preparation is approximately 5–6 ms here, so this change does not introduce late icon/theme flashes to improve the startup metric. Existing separate assistant/chat entries and detached helper startup remain intact. **The Visual Studio/Cef portion remains pending Windows profiling**: this macOS environment cannot confirm its package/Cef/browser timings or lifecycle behavior, so no unverified CEF thread/lifecycle change is included.
+- Reproduce with [bundle preparation](l6-prepare.mjs), [native runner](l6-native-runner.cjs), [browser fixture](l6-browser-fixture.mjs) and [scenarios](l6-browser-scenarios.js). Point `POOLSIDE_L6_EXTENSION` to the built VS Code app directory and use the native runner as `--extensionTestsPath` with a separate test profile and a helper-free extension-development directory. Set `VSCODE_USER_DATA_DIR` to that profile to isolate keybinding reads. `POOLSIDE_L6_CAPTURE=1` writes the matched HTML for browser QA. Temporary source/static fixtures were removed and the test browser returned to `about:blank`. Logs: `/tmp/poolside-l6-{before,after}-tests.log`, `/tmp/poolside-l6-unit-final.log`, `/tmp/poolside-l6-{types,lint,build,release-guard,native,native-capture}.log`.
+
+
+### L5 — verify the helper's existing minimal-ready boundary
+
+- **Correction to the original audit:** runtime-install repair already ran asynchronously in the audited revision (`2416922d06` introduced that behavior). Moving it out of `initialize` would not be a new improvement. The blocking path consists of configuration, SQLite/WAL/schema setup and agent configuration migration/seeding. Those correctness prerequisites stay before readiness; initial navigation history is read by a later request.
+- Three alternating original/instrumented pairs, 20 iterations each, give median request preparation **2.99 → 3.21 ms for a fresh DB**, **0.459 → 0.450 ms for an existing DB**, and **0.437 → 0.468 ms with 10,000 conversations and approximately 9 MiB of metadata**. A separate May-schema upgrade with 10,000 conversations takes **7.29 → 7.17 ms**, retaining all rows. Timings overlap and vary; there is **no claimed speedup**. These in-process measurements exclude handler construction (measured separately in H7), process launch, host transport and later navigation serialization. They do not rule out slower disks, lock contention or much larger upgrades.
+- Added opt-in debug phase durations and Go execution-trace regions for configuration, navigation DB opening/migrations, and agent config migration/seeding. Timing/log construction is skipped when debug logging and tracing are disabled. A real startup trace confirms the regions, including the malformed-config fallback. The initial sequential samples showed a small timing difference; the recorded final comparison alternates the actual original and instrumented production files to reduce order effects. [Raw measurements](l5-measurements.json) retain those earlier samples separately.
+- This finding is closed as a measured audit correction, with diagnostics retained to investigate slower customer launches. No required state becomes partially available, no new readiness protocol is introduced, and existing background repair remains unchanged. Deferring required migrations or adding extra readiness states is not justified by this workload.
+- Full helper, navigation and migration race suites pass; all three Bazel test targets pass. Existing coverage includes malformed configuration recovery, migrated defaults, forward-version tolerance, dirty schema handling and conversation/history preservation. No UI output changes. Benchmarks use temporary databases/configuration, disable test pprof listeners, and configure a local fixture agent so they perform no registry/network repair or agent launch.
+- Reproduce with [the alternating runner](l5-measure.mjs), or directly run `go test ./pkg/poolside-helper/internal/handler ./pkg/poolside-helper/internal/handler/acpnav -run '^$' -bench 'Benchmark(InitializeReady|OpenUpgrade)' -benchtime=20x -benchmem -count=3`. Keep `POOLSIDE_REMOTE_ACCESS_STATE` pointed at a temporary file when running broader handler tests. The runner temporarily changes the two named production files and restores them in a `finally` block; avoid concurrent edits. Local evidence: `/tmp/poolside-l5-matched-{0,1,2}-{before,after}.log`, `/tmp/poolside-l5-after-tests.log`, `/tmp/poolside-l5-root-final.log`, `/tmp/poolside-l5-bazel-final.log` and `/tmp/poolside-l5-startup.trace` (`go tool trace -d=parsed` on Go 1.26).
+
+
+### B3 — shared worker assets and narrow highlighter imports
+
+- Production runtime output (source maps excluded): **mobile 27,547,059 → 18,391,584 bytes**, a **9,155,475-byte / 33.2% reduction**; **VS Code 29,962,592 → 20,179,520 bytes**, a **9,783,072-byte / 32.7% reduction**. Desktop, whose baseline already included its old deduplication pass, falls **25,532,311 → 25,127,714 bytes** (404,597 bytes / 1.6%). Sum of independently gzipped assets falls 6,649,173 → 4,986,664 / 7,549,515 → 5,656,908 / 8,252,199 → 8,123,915 bytes respectively. These are local runtime asset measurements, **not installer/VSIX sizes**. [Measurements](b3-measurements.json) include every trial and the worker import closures.
+- The shared Vite configuration emits both DOM-free highlighting workers into the window's Rollup module graph. Grammars/engines then share output URLs in every host. This replaces the desktop's filename/size heuristic entirely; no emitted import rewriting or approximate equivalence matching remains. Module workers keep separate execution contexts and caches. The constructor resolves Worker only when called, preserving import-time fallback in hosts without Worker; a final-review prototype failure is covered by a before-failing/after-passing production-bundle test. Vite's original window preloading stays intact, with a worker-only branch using native dynamic imports and rejection. Source maps compose through that branch; an incompatible Vite helper or a worker importing CSS fails the build. Development retains Vite's normal worker pipeline.
+- Chat uses Shiki core with its explicit app theme and loads full grammar data on demand. UI language lookup imports a generated, checked **332-name/alias registry**, independently of grammar loaders and tokenizer initialization. A pinned Pierre patch uses narrow Shiki entries and its core constructor, matching Pierre's existing worker design. Existing resolved-language/theme attachment remains responsible for optional grammars, app themes and upstream theme compatibility; the optional theme catalogue is retained. Both regex engines remain supported. Modified upstream JS omits stale upstream source-map links so final maps describe the patched JS accurately.
+- **All 332 names/aliases produce byte-identical highlighted output in Chrome and standalone WebKit for each desktop, mobile and VS Code production build.** Every case produces highlighted spans, with zero worker errors. Real CSP responses denying WASM also preserve 24 representative languages in both browsers. Additional cold typed-source checks explicitly verify both workers reject WASM compilation and produce identical output. A separate original/patched Pierre no-worker comparison matches **110 file-render cases** across WASM/JS, ordinary/embedded/plain-text languages, built-in Pierre/Shiki themes and a registered custom theme.
+- Five alternating healthy-throughput pairs (32 distinct 16-line TypeScript blocks) remain stable: median completion **22.8 → 22.5 ms in Chrome**, **28 → 28 ms in WebKit**; first-result medians **3.7 → 3.8 ms**, **5 → 5 ms**. Fresh-worker first-highlight medians with local warm HTTP/OS caches are **57.6 → 57.7 ms**, **79 → 80 ms**. This establishes preserved throughput, **not a TTI/FPS speedup**. For mobile, chat's initial static worker closure is 207,457 → 207,374 bytes; Pierre's is 206,984 → 212,212 bytes, now across shared chunks. The measured benefit is distribution size, not reduced worker heap.
+- Real shared code, shell, file and diff components retain typed draft, selection `[2,12]`, focus, streamed updates, dark theme, split layout and unmount behavior. Worker file/diff results match exactly, with no page errors. All four final screenshot pairs are RGB-identical: [Chrome initial before](b3-chrome-before-initial.png)/[after](b3-chrome-after-initial.png), [Chrome updated before](b3-chrome-before-updated.png)/[after](b3-chrome-after-updated.png), [WebKit initial before](b3-webkit-before-initial.png)/[after](b3-webkit-after-initial.png), [WebKit updated before](b3-webkit-before-updated.png)/[after](b3-webkit-after-updated.png). An earlier WebKit screenshot differed because it retained a restrictive CSP-test worker response on one side; worker-context inspection identified the mismatched engines. Final normal screenshots use separate URLs and verify WASM availability in all five workers. The independent JS/CSP comparisons also pass.
+- Validation: all **169 focused component tests** pass; four shared-build tests cover lazy constructor import without Worker support, actual chunk sharing, source maps, worker rejection, unchanged window preloading and CSS boundary failures. Component/config types and lint pass with zero type errors/warnings. Frozen scoped dependency installation succeeds without unrelated upgrades. Component, desktop web/isolation, mobile, VS Code and Visual Studio frontend production builds pass; VS Code's release guard verifies **439 runtime files** and separate maps. Startup budgets remain satisfied: desktop 70,483 → 70,560 bytes; pairing JS 44,222 → 44,470 bytes, CSS unchanged at 1,819 bytes. Initial prototype output using stale intermediate package files was discarded; reported final builds use the freshly built shared package.
+- Native/Windows follow-up remains explicit. The desktop bridge stopped responding and `spoolside --desktop status` reports **Desktop: not running / Webview: not available**, while its Vite server is running. The existing managed Vite services were restarted to load the changed build configuration. These browser screenshots do not establish native host/compositor behavior, and the Visual Studio result is a frontend build, not a Windows/Cef runtime check.
+- Reproduce with [asset measurement](b3-measure.mjs), [fixture installer](b3-browser-fixture.mjs), [compiled-worker benchmark](b3-browser-bench.js), [UI scenarios](b3-browser-scenarios.js), [CSP scenarios](b3-csp-scenarios.js) and [no-worker comparison](b3-main-fallback.mjs). Archive the baseline/current host `dist` directories as `output/performance/b3-{before,after}-{desktop,mobile,vscode}`. Use an existing managed mobile dev server; clean the fixture before building production. The test browsers returned to `about:blank` and temporary application fixtures were removed. Local evidence: `/tmp/poolside-b3-{browser,final-size}.json`, `/tmp/poolside-b3-*-ui.json`, `/tmp/poolside-b3-csp-verified.log`, `/tmp/poolside-b3-main-fallback-final.json`, `/tmp/poolside-b3-{unit,types,lint}.log`, `/tmp/poolside-b3-config-{tests,types,lint}.log` and `/tmp/poolside-b3-*-verified-build.log`. Final emitted-constructor checks pass with and without Worker; all 243/242/241 files in the desktop/mobile/VS Code worker import closures remain byte-identical to the browser-tested assets after that constructor correction.
+
+### L2 — reveal the shell independently of agent and history readiness
+
+- Reveal after DesktopPanel's mount callback, once its chrome/navigation handlers are installed. Keep the two-frame/240 ms handoff and the existing watchdog, retry and diagnostic-report controller. Continue recording conversation settlement and add a separate agent-ready-for-prompt checkpoint; neither gates shell visibility. Agent discovery, authentication and send readiness remain explicit.
+- Prepare a stable local desktop draft while its agent configuration probe runs. Wait for its ID before mounting a fresh editor, avoiding a short-lived draft key that would discard text, attachments or undo state. Existing/unresolved conversations use the selected conversation ID from the outset. History loading now occupies the transcript area while the same composer stays mounted and editable; sending stays disabled until setup/configuration succeeds. Initial navigation/configuration failures have a local Try again action.
+- Allow New conversation while the old agent session is loading, using already-loaded agent configuration. Keep the navigation-data gate. Automatic no-project chat creation no longer refreshes configuration redundantly or changes the active conversation after the user moves to Settings. Automatic prompt focus runs on selection, checks that selection/focus are still current, and cancels on cleanup; history completion cannot trigger it.
+- Matched real DesktopPanel browser fixture with a controlled ten-second agent probe: original reveal dependency settled at 10,029.1 ms; new shell callback at 13.8 ms and local conversation at 22.1 ms. This isolates the removed dependency after module loading; it is not a cold native-launch TTI measurement. Sending remained disabled during the probe, and the real editor retained identical text, identity and focus through completion. New Files and terminal-split commands also worked during the pending probe (three tabs), with the original draft preserved; terminal creation was mocked and spawned no process.
+- Real history-loading UI: [before](l2-before-history.png), [after](l2-after-history.png). Typing while history loads preserves the same editor and text; focusing Search before history arrives keeps focus in Search. Settled conversation [before](l2-before-restored.png)/[after](l2-after-restored.png) captures are RGB pixel-identical after blur styling settles. The fixture uses the actual DesktopPanel/splits/Prompt components, synthetic repositories and the existing managed mobile Vite server. Temporary copies of the original source provide the baseline.
+- Separately exercise the actual desktop startup.ts/StartupFrame in Chrome, mocking only main initialization and native commands: the original controller covers an already-mounted shell until its conversation callback; the new controller reveals on its shell callback. Failure-once silently retries and clears the retry counter. Repeated failure performs two automatic retries, then offers working report copying, logs and manual Retry without Continue. The 25-second stall watchdog still offers working Continue. [Failure recovery](l2-recovery.png) and [local agent recovery](l2-agent-recovery.png) captures are retained. The failure simulation was removed afterward. An early test-only failure object lacked its required error field; the final recovery run uses the real response shape and completes without that fixture exception.
+- Regression coverage includes editable/identity-stable history loading, selected-ID draft keys, first-send streaming, read-only/authentication states, send guards, early local drafts, separate readiness signals, navigation during delayed chat creation, focus cancellation and cached/user-selected session configuration. Before implementation, four new checks failed (shell callback, early draft, missing composer and unstable draft key); after, all pass. All 352 focused tests pass (107 assistant/runtime, 70 chat/submission, 175 session-repository; two existing opt-in benchmarks skipped). Desktop and feature type checking report zero errors/warnings; focused production-source lint and desktop frontend/isolation builds pass. Logs: /tmp/poolside-l2-validated-assistant.log, /tmp/poolside-l2-final-chat.log, /tmp/poolside-l2-session-tests.log, /tmp/poolside-l2-desktop-types-final.log, /tmp/poolside-l2-features-types.log, /tmp/poolside-l2-lint.log and /tmp/poolside-l2-build.log.
+- The actual desktop WKWebView mounts the updated shell, but remains document.hidden; foreground host-specific visual follow-up is still constrained by the existing visibility request. Browser captures and native DOM checks do not establish native compositor/frame-rate performance. No actual agent prompts, private fixture content or real recovery/report actions were used.
+- Evidence: /tmp/poolside-l2-before-{assistant,chat}.log, /tmp/poolside-l2-before-browser-timed-final.log, /tmp/poolside-l2-after-browser-timed.log, /tmp/poolside-l2-history-browser.log, /tmp/poolside-l2-layout-browser.log, /tmp/poolside-l2-{retry,failure,stall}-browser.log. Temporary fixture sources are archived locally under /tmp/poolside-l2-fixtures and removed from the repository; the isolated browser is returned to about:blank.
+
+### Low-risk build startup addition — 2026-09-14
+
+Added only L2 (`b692acb0a`) to the tested low-risk base `e1e444a18`. The production change applies without source conflicts. The existing runtime test fixture now supplies the complete successful load result; no highlighting changes accompany that fixture correction.
+
+Fresh before checks against `e1e444a18` fail because shell readiness is not signalled during pending agent configuration and the composer is absent during history loading. With L2 applied, all 107 focused shell/runtime/focus tests and 224 chat/submission/session tests pass, including those two checks. These establish removal of the readiness dependency and preserve tested interactions; they do not measure Finder launch time.

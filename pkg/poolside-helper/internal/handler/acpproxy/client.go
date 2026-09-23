@@ -1,12 +1,42 @@
+package acpproxy
+
+import (
+	"context"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+
+	acpsdk "github.com/coder/acp-go-sdk"
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/tliron/glsp"
+)
+
+// notifyFn sends an ACP notification (wrapped in a JSON-RPC 2.0 envelope)
+// to the VS Code extension client via the generic jsonrpc/notify bridge.
+type notifyFn func(ctx context.Context, method string, params any)
+
+// requestFn sends an ACP request (wrapped in a JSON-RPC 2.0 envelope)
+// to the VS Code extension client via the generic jsonrpc/request bridge
+// and unmarshals the result.
+type requestFn func(ctx context.Context, method string, params any, result any) error
+
+// ReadFileFn reads a file by URI, returning unsaved editor content when available.
+type ReadFileFn func(ctx context.Context, uri protocol.DocumentURI) ([]byte, error)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+// acpClient implements acpsdk.Client, handling callbacks from the ACP agent
+// subprocess. Notifications are forwarded to the VS Code extension as raw ACP types.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -14,6 +44,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+type acpClient struct {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -26,8 +57,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+var _ acpsdk.Client = (*acpClient)(nil)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+// The SDK dispatches the unstable elicitation methods through runtime
+// interface assertions with exactly these signatures; a mismatch would report
+// method-not-found to the agent instead of failing to compile.
+var _ interface {
+	UnstableCreateElicitation(context.Context, acpsdk.UnstableCreateElicitationRequest) (acpsdk.UnstableCreateElicitationResponse, error)
+	UnstableCompleteElicitation(context.Context, acpsdk.UnstableCompleteElicitationNotification) error
+} = (*acpClient)(nil)
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -51,7 +93,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		resp, err := c.requestElicitation(ctx, req.ElicitationRequest)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+			return nil, err
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -60,12 +104,80 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		// Legacy agents omit sessionId. Keep those notifications unscoped:
+		// guessing from the process's active session is both ambiguous during a
+		// concurrent session/load and unsafe while that operation holds proc.mu.
+		// The UI has a conservative live-prompt fallback for this legacy shape.
+		c.asyncNotifications.enqueue(c.routeCompactionUpdate, methods.ACPCompactionUpdateMethod, notif)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	case methods.ACPClaudeSDKMessageMethod:
+		var notif methods.ACPClaudeSDKMessageNotification
+		if err := json.Unmarshal(params, &notif); err != nil {
+			slog.Debug("acpproxy: ignored malformed Claude SDK message", "error", err)
+			return nil, nil
+		}
+		if notif.SessionID == "" || !validClaudeSDKMessage(notif.Message) {
+			return nil, nil
+		}
+		c.asyncNotifications.enqueue(c.routeClaudeSessionEvent, method, notif)
+		return nil, nil
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+func validClaudeSDKMessage(message methods.ACPClaudeSDKPromptMessage) bool {
+	switch message.Type {
+	case methods.ACPClaudeSDKPromptSuggestionType:
+		return strings.TrimSpace(message.Suggestion) != ""
+	case methods.ACPClaudeSDKActiveGoalType:
+		if len(message.Value) == 0 {
+			return false
+		}
+		if strings.TrimSpace(string(message.Value)) == "null" {
+			return true
+		}
+		var goal methods.ACPClaudeSDKActiveGoal
+		if err := json.Unmarshal(message.Value, &goal); err != nil {
+			return false
+		}
+		return strings.TrimSpace(goal.Condition) != "" &&
+			goal.Iterations != nil && *goal.Iterations >= 0 &&
+			goal.SetAt != nil && *goal.SetAt >= 0 &&
+			goal.TokensAtStart != nil && *goal.TokensAtStart >= 0
+	default:
+		return false
+	}
+}
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+	// Observe Claude's result-boundary usage update before queueing the
+	// notification for UI delivery. The adapter can settle its original ACP
+	// prompt immediately after an injected steer while the continuation keeps
+	// streaming; prompt lifecycle bookkeeping must see the boundary in wire
+	// order even if the async delivery queue is busy.
+	if c.handler != nil {
+		c.handler.observeSessionUpdate(c.agentServer, string(params.SessionId), params.Update)
+	}
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+	return nil
+}
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -73,6 +185,89 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	if ok {
+		c.persistSessionTitle(ctx, notif)
+	}
+	if !ok {
+		c.notify(ctx, method, params)
+		return
+	}
+	c.routeSessionEvent(ctx, method, string(notif.SessionId), params)
+}
+
+func (c *acpClient) routeClaudeSessionEvent(ctx context.Context, method string, params any) {
+	notif, ok := params.(methods.ACPClaudeSDKMessageNotification)
+	if !ok {
+		c.notify(ctx, method, params)
+		return
+	}
+	c.routeSessionEvent(ctx, method, notif.SessionID, params)
+}
+
+func (c *acpClient) routeCompactionUpdate(ctx context.Context, method string, params any) {
+	notif, ok := params.(methods.ACPCompactionNotification)
+	if !ok {
+		c.notify(ctx, method, params)
+		return
+	}
+	if notif.SessionID == "" {
+		// Legacy agents cannot identify the session. Broadcast the unscoped
+		// update so the surface that owns the one live prompt can conservatively
+		// claim it; notifying only the primary loses remote-origin compactions.
+		if c.handler != nil && c.handler.events != nil {
+			message := map[string]any{"jsonrpc": "2.0", "method": method, "params": params}
+			c.handler.events.NotifyAll(
+				methods.JSONRPCNotifyMethod,
+				bridgeMessage(c.agentServer, message),
+			)
+			return
+		}
+		c.notify(ctx, method, params)
+		return
+	}
+	c.routeSessionEvent(ctx, method, string(notif.SessionID), params)
+}
+
+// enqueueTurnEnded places the helper-owned terminal boundary behind every
+// agent notification already observed for the turn. This closes compaction
+// state on all surfaces even when the agent omits phase=completed, and avoids
+// a queued phase=started racing after the prompting surface's local finally.
+func (c *acpClient) enqueueTurnEnded(sessionID acpsdk.SessionId) {
+	c.asyncNotifications.enqueue(c.routeTurnEnded, methods.ACPTurnEndedMethod, methods.ACPTurnEndedNotification{
+		SessionID: sessionID,
+	})
+}
+
+func (c *acpClient) routeTurnEnded(ctx context.Context, method string, params any) {
+	notif, ok := params.(methods.ACPTurnEndedNotification)
+	if !ok {
+		c.notify(ctx, method, params)
+		return
+	}
+	if c.handler == nil || c.handler.events == nil {
+		c.notify(ctx, method, params)
+		return
+	}
+	events := c.handler.events
+	defer events.EndTurn(c.agentServer, string(notif.SessionID))
+
+	// This is always live helper traffic, never session/load replay. Broadcast
+	// it even if a load begins after the prompt returns but before this queued
+	// callback runs; scoping it to the loader would strand other surfaces.
+	message := map[string]any{"jsonrpc": "2.0", "method": method, "params": params}
+	events.PublishSessionUpdate(c.agentServer, string(notif.SessionID), "", false, message)
+}
+
+// routeSessionEvent preserves the agent connection's event order while
+// delivering session-scoped extension notifications through the same
+// multi-surface fan-out and load scoping as standard session/update traffic.
+func (c *acpClient) routeSessionEvent(
+	ctx context.Context,
+	method string,
+	sessionID string,
+	params any,
+) {
+	if c.handler == nil || c.handler.events == nil {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -89,6 +284,67 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+func (c *acpClient) persistSessionTitle(ctx context.Context, notif acpsdk.SessionNotification) {
+	update := notif.Update.SessionInfoUpdate
+	if update == nil || update.Title == nil || c.liveStatus == nil {
+		return
+	}
+	title := sanitizeSessionTitle(*update.Title)
+	if title == "" {
+		return
+	}
+	if err := c.liveStatus.UpdateConversationTitle(ctx, c.gCtx, c.agentServer, string(notif.SessionId), title); err != nil {
+		slog.Debug("acpproxy: failed to persist session title", "server", c.agentServer, "session_id", string(notif.SessionId), "error", err)
+	}
+}
+
+// injectedTitlePatterns strip the same Poolside-specific context markers that
+// stripInjectedContextFromText removes from replayed user messages (see
+// ui/packages/features/src/acp/features/session/hostContext.ts). Agents that
+// flatten history into plain text on session/load may derive a replayed title
+// from that flattened first message, gluing injected context (handoff or
+// host-context resources) onto the user's text either before or after it.
+// Each pattern is anchored to a Poolside-specific marker so it cannot match
+// genuine user text, and each tolerates a missing closing tag (truncated
+// histories).
+var injectedTitlePatterns = []*regexp.Regexp{
+	// Cross-agent handoff resources use a session-specific URI, optionally
+	// preceded by a bare copy of the same link (claude-code-acp glues the
+	// link and the wrapper together when it flattens history).
+	regexp.MustCompile(`(?:poolside://handoff/[^\s"]+\.md\s*)?<context\s+ref="poolside://handoff/[^"]+">[\s\S]*?(?:</context>|$)`),
+	regexp.MustCompile(`<poolside-handoff>[\s\S]*?(?:</poolside-handoff>|$)`),
+	// A bare handoff resource link left at either end of the flattened text
+	// (e.g. a title truncated before the <context> wrapper).
+	regexp.MustCompile(`^\s*poolside://handoff/[^\s"]+\.md\s*|\s*poolside://handoff/[^\s"]+\.md\s*$`),
+	// claude-code-acp replays the host-context resource as its URI followed
+	// by a <context ref="..."> wrapper around the resource text.
+	regexp.MustCompile(`(?:poolside://host-context\.md\s*)?<context\s+ref="poolside://host-context\.md">[\s\S]*?(?:</context>|$)`),
+	// Any agent that inlines the raw resource text.
+	regexp.MustCompile(`<poolside-system-instructions>[\s\S]*?(?:</poolside-system-instructions>|$)`),
+	// A bare host-context resource link left at either end of the flattened
+	// text.
+	regexp.MustCompile(`^\s*poolside://host-context\.md\s*|\s*poolside://host-context\.md\s*$`),
+}
+
+// sanitizeSessionTitle strips injected context markers (handoff and
+// host-context resources) from an agent-authored title, keeping any real
+// user text on either side of the marker. Agents that flatten history into
+// plain text on session/load may glue the marker onto the user's text at
+// the start, the end, or (for wrapped markers) both. Unlike the TypeScript
+// equivalent (stripInjectedContextFromText, which only trims surrounding
+// whitespace when a marker actually matched, to leave ordinary chat text
+// byte-for-byte untouched), titles are always trimmed: they are short,
+// display-only strings where leading/trailing whitespace is never
+// meaningful. An empty result means the title was nothing but injected
+// context and must not overwrite the stored title.
+func sanitizeSessionTitle(title string) string {
+	result := title
+	for _, pattern := range injectedTitlePatterns {
+		result = pattern.ReplaceAllString(result, "")
+	}
+	return strings.TrimSpace(result)
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -184,454 +440,198 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+func (c *acpClient) RequestPermission(ctx context.Context, params acpsdk.RequestPermissionRequest) (acpsdk.RequestPermissionResponse, error) {
+	sessionID := string(params.SessionId)
+	if sessionID != "" && c.liveStatus != nil {
+		if err := c.liveStatus.SetConversationLiveStatus(ctx, c.gCtx, c.agentServer, sessionID, acpnav.ConversationLiveStatusPatch{
+			WaitingForUser: acpnav.Bool(true),
+			Unread:         acpnav.Bool(false),
+		}); err != nil {
+			slog.Debug("acpproxy: failed to mark permission pending", "server", c.agentServer, "session_id", sessionID, "error", err)
+		}
+		defer func() {
+			if err := c.liveStatus.SetConversationLiveStatus(context.Background(), c.gCtx, c.agentServer, sessionID, acpnav.ConversationLiveStatusPatch{
+				WaitingForUser: acpnav.Bool(false),
+			}); err != nil {
+				slog.Debug("acpproxy: failed to clear permission pending", "server", c.agentServer, "session_id", sessionID, "error", err)
+			}
+		}()
+	}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		return acpsdk.RequestPermissionResponse{
+			Outcome: acpsdk.NewRequestPermissionOutcomeCancelled(),
+		}, nil
+	}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+// UnstableCreateElicitation handles the standard (unstable) ACP
+// elicitation/create request, routing it through the same approval store as
+// the pool extension elicitation so every surface renders and answers it the
+// same way.
+func (c *acpClient) UnstableCreateElicitation(ctx context.Context, params acpsdk.UnstableCreateElicitationRequest) (acpsdk.UnstableCreateElicitationResponse, error) {
+	request, err := elicitationRequestFromStandard(params)
+	if err != nil {
+		return acpsdk.UnstableCreateElicitationResponse{}, err
+	}
+	resp, err := c.requestElicitation(ctx, request)
+	if err != nil {
+		return acpsdk.UnstableCreateElicitationResponse{}, err
+	}
+	return standardElicitationResponse(resp), nil
+}
+
+// UnstableCompleteElicitation resolves a pending URL elicitation once the
+// agent reports its out-of-band flow finished: the blocked elicitation/create
+// request unblocks as accepted and the prompt drops from every surface.
+func (c *acpClient) UnstableCompleteElicitation(_ context.Context, params acpsdk.UnstableCompleteElicitationNotification) error {
+	store := c.approvalStore()
+	if store == nil {
+		return nil
+	}
+	if !store.ResolveElicitation(c.agentServer, string(params.ElicitationId)) {
+		slog.Debug("acpproxy: elicitation/complete for unknown elicitation", "server", c.agentServer, "elicitation_id", string(params.ElicitationId))
+	}
+	return nil
+}
+
+// requestElicitation registers an elicitation as helper-owned state, same as
+// permissions: register and block on the approval store instead of racing an
+// RPC across surfaces. Shared by the pool extension method and the standard
+// (unstable) elicitation/create request.
+func (c *acpClient) requestElicitation(ctx context.Context, request methods.ElicitationRequest) (methods.ACPElicitationOutput, error) {
+	if request.SessionID == "" {
+		// Attribute untagged elicitations to the connection's active
+		// session so surfaces can route the prompt to the right chat.
+		request.SessionID = c.currentSessionID()
+	}
+	sessionID := request.SessionID
+	if sessionID != "" && c.liveStatus != nil {
+		if err := c.liveStatus.SetConversationLiveStatus(ctx, c.gCtx, c.agentServer, sessionID, acpnav.ConversationLiveStatusPatch{
+			WaitingForUser: acpnav.Bool(true),
+			Unread:         acpnav.Bool(false),
+		}); err != nil {
+			slog.Debug("acpproxy: failed to mark elicitation pending", "server", c.agentServer, "session_id", sessionID, "error", err)
+		}
+		defer func() {
+			if err := c.liveStatus.SetConversationLiveStatus(context.Background(), c.gCtx, c.agentServer, sessionID, acpnav.ConversationLiveStatusPatch{
+				WaitingForUser: acpnav.Bool(false),
+			}); err != nil {
+				slog.Debug("acpproxy: failed to clear elicitation pending", "server", c.agentServer, "session_id", sessionID, "error", err)
+			}
+		}()
+	}
+	store := c.approvalStore()
+	if store == nil {
+		return methods.ACPElicitationOutput{}, fmt.Errorf("acpproxy: approval store not configured for elicitation")
+	}
+	resp, err := store.RequestElicitation(ctx, methods.ACPElicitationParams{
+		ACPAgentServerParams: methods.ACPAgentServerParams{AgentServer: c.agentServer},
+		ElicitationRequest:   request,
+	})
+	if err != nil {
+		return methods.ACPElicitationOutput{}, fmt.Errorf("acpproxy: elicitation request failed: %w", err)
+	}
+	return resp, nil
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
+func (c *acpClient) currentSessionID() string {
+	if c.activeSession == nil {
+		return ""
+	}
+	return string(c.activeSession())
+}
+
+func (c *acpClient) ReadTextFile(ctx context.Context, params acpsdk.ReadTextFileRequest) (acpsdk.ReadTextFileResponse, error) {
+	if !filepath.IsAbs(params.Path) {
+		return acpsdk.ReadTextFileResponse{}, fmt.Errorf("path must be absolute: %s", params.Path)
+	}
+
+	uri := protocol.URIFromPath(params.Path)
+	b, err := c.readFile(ctx, uri)
+	if err != nil {
+		return acpsdk.ReadTextFileResponse{}, fmt.Errorf("read %s: %w", params.Path, err)
+	}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	content := string(b)
+
+	if params.Line != nil || params.Limit != nil {
+		lines := strings.Split(content, "\n")
+		start := 0
+		if params.Line != nil && *params.Line > 0 {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		}
+		end := len(lines)
+		if params.Limit != nil && *params.Limit > 0 {
+			if start+*params.Limit < end {
+				end = start + *params.Limit
+			}
+		}
+		content = strings.Join(lines[start:end], "\n")
+	}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	return acpsdk.ReadTextFileResponse{Content: content}, nil
+}
+
+func (c *acpClient) WriteTextFile(ctx context.Context, params acpsdk.WriteTextFileRequest) (acpsdk.WriteTextFileResponse, error) {
+	if !filepath.IsAbs(params.Path) {
+		return acpsdk.WriteTextFileResponse{}, fmt.Errorf("path must be absolute: %s", params.Path)
+	}
+
+	dir := filepath.Dir(params.Path)
+	if dir != "" {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return acpsdk.WriteTextFileResponse{}, fmt.Errorf("mkdir %s: %w", dir, err)
+		}
+	}
+
+	if err := os.WriteFile(params.Path, []byte(params.Content), 0o644); err != nil {
+		return acpsdk.WriteTextFileResponse{}, fmt.Errorf("write %s: %w", params.Path, err)
+	}
+
+	return acpsdk.WriteTextFileResponse{}, nil
+}
+
+func (c *acpClient) CreateTerminal(_ context.Context, params acpsdk.CreateTerminalRequest) (acpsdk.CreateTerminalResponse, error) {
+	slog.Debug("acpproxy: CreateTerminal (stub)")
+	return acpsdk.CreateTerminalResponse{TerminalId: "term-stub-1"}, nil
+}
+
+func (c *acpClient) TerminalOutput(_ context.Context, _ acpsdk.TerminalOutputRequest) (acpsdk.TerminalOutputResponse, error) {
+	return acpsdk.TerminalOutputResponse{}, nil
+}
+
+func (c *acpClient) ReleaseTerminal(_ context.Context, _ acpsdk.ReleaseTerminalRequest) (acpsdk.ReleaseTerminalResponse, error) {
+	return acpsdk.ReleaseTerminalResponse{}, nil
+}
+
+func (c *acpClient) WaitForTerminalExit(_ context.Context, _ acpsdk.WaitForTerminalExitRequest) (acpsdk.WaitForTerminalExitResponse, error) {
+	return acpsdk.WaitForTerminalExitResponse{}, nil
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+}
