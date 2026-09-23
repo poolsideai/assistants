@@ -52,6 +52,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	// PoolsideErrorCodeAgentInstallFailed is a PoolsideErrorCode of type Agent_install_failed.
+	PoolsideErrorCodeAgentInstallFailed PoolsideErrorCode = iota + 1497
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+const _PoolsideErrorCodeName = "entity_not_foundconflictentity_invaliduser_config_invalidinternal_erroragent_install_failed"
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+	PoolsideErrorCodeEntityNotFound:     _PoolsideErrorCodeName[0:16],
+	PoolsideErrorCodeConflict:           _PoolsideErrorCodeName[16:24],
+	PoolsideErrorCodeEntityInvalid:      _PoolsideErrorCodeName[24:38],
+	PoolsideErrorCodeUserConfigInvalid:  _PoolsideErrorCodeName[38:57],
+	PoolsideErrorCodeInternalError:      _PoolsideErrorCodeName[57:71],
+	PoolsideErrorCodeAgentInstallFailed: _PoolsideErrorCodeName[71:91],
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -75,18 +88,5 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	_PoolsideErrorCodeName[71:91]: PoolsideErrorCodeAgentInstallFailed,
 __POOL_SYNTHETIC_IMPORT_BASELINE__

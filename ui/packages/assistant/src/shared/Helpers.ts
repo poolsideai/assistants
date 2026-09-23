@@ -7,23 +7,23 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    // preventScroll: revealing the editor must not scroll ancestors — the
+    // document can transiently overflow during conversation switches, and a
+    // scrolled document sticks (see "command menu scroll shift", #124).
+    prompt?.focus({ preventScroll: true });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+/** Automatic navigation focus must not override a later user action. */
+export function focusPromptIfUnchanged(stillCurrent: () => boolean): () => void {
+  const focused = document.activeElement;
+  const editingElsewhere =
+    focused?.closest("input, textarea, [contenteditable=true]") && focused.id !== "prompt-editor";
+  if (editingElsewhere) return () => {};
+  const timer = setTimeout(() => {
+    if (stillCurrent() && document.activeElement === focused) {
+      document.getElementById("prompt-editor")?.focus({ preventScroll: true });
+    }
+  }, 100);
+  return () => clearTimeout(timer);
+}

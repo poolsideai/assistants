@@ -48,6 +48,47 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+func registerExtensionMethodNoDeadline[In any, Out any](
+	h *PoolsideHandler,
+	operation JSONRPCOperation,
+	handler func(ctx context.Context, req *In, lspReq *glsp.Context) (Out, error),
+) {
+	registerJSONRPCMethod(h, operation, handler)
+	h.concurrentMethods[operation.Method] = struct{}{}
+	h.noDeadlineMethods[operation.Method] = struct{}{}
+}
+
+// Like registerExtensionMethod but skips huma schema registration/validation.
+func registerExtensionMethodUntyped[In any, Out any](
+	h *PoolsideHandler,
+	operation JSONRPCOperation,
+	handler func(ctx context.Context, req *In, lspReq *glsp.Context) (Out, error),
+) {
+	registerSerializedJSONRPCUnvalidated(h, operation, handler)
+}
+
+// Like registerExtensionMethodUntyped but marks the method as safe to run concurrently.
+func registerUnserializedExtensionMethodUntyped[In any, Out any](
+	h *PoolsideHandler,
+	operation JSONRPCOperation,
+	handler func(ctx context.Context, req *In, lspReq *glsp.Context) (Out, error),
+) {
+	registerSerializedJSONRPCUnvalidated(h, operation, handler)
+	h.concurrentMethods[operation.Method] = struct{}{}
+}
+
+// Like registerUnserializedExtensionMethodUntyped, but leaves the request uncapped so long-running operations can
+// manage their own lifetime and still be cancelled explicitly by the client.
+func registerUnserializedExtensionMethodUntypedNoDeadline[In any, Out any](
+	h *PoolsideHandler,
+	operation JSONRPCOperation,
+	handler func(ctx context.Context, req *In, lspReq *glsp.Context) (Out, error),
+) {
+	registerSerializedJSONRPCUnvalidated(h, operation, handler)
+	h.concurrentMethods[operation.Method] = struct{}{}
+	h.noDeadlineMethods[operation.Method] = struct{}{}
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -71,6 +112,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		typed, err := decodeJSONRPCInput[In](lspReq.Params)
+		if err != nil {
+			return nil, err
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -90,9 +134,26 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	h.registerSchema(func(api huma.API) {
+		huma.Register[wrapJSONRPCBody[*In], wrapJSONRPCBody[Out]](api, huma.Operation{
+			OperationID: operation.Method,
+			Method:      http.MethodPost,
+			Path:        "/" + operation.Method,
+			Summary:     operation.Summary,
+			Description: operation.Description,
+			// N.B. We can't use Hidden, as then we can't reflect the schema
+			//Hidden: false
+			// we don't use huma as the actual handler, that's handled by the glsp server.
+		}, nil)
+	})
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+			var decoded any
+			if err := json.Unmarshal(lspReq.Params, &decoded); err != nil {
+				return nil, errors.Join(fmt.Errorf("could not parse input as json: %w", err), ErrInvalidParams)
+			}
+			openapi := h.OpenAPI().OpenAPI()
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -102,6 +163,9 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+		typed, err := decodeJSONRPCInput[In](lspReq.Params)
+		if err != nil {
+			return nil, err
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -109,83 +173,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// Keep invalid-JSON and invalid-type errors distinct without allocating an
+// untyped object graph on every successful production request.
+func decodeJSONRPCInput[In any](params json.RawMessage) (*In, error) {
+	typed := new(In)
+	if err := json.Unmarshal(params, &typed); err != nil {
+		if !json.Valid(params) {
+			return nil, errors.Join(fmt.Errorf("could not parse input as json: %w", err), ErrInvalidParams)
+		}
+		return nil, errors.Join(fmt.Errorf("could not decode input as %T: %w", typed, err), ErrInvalidParams)
+	}
+	return typed, nil
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

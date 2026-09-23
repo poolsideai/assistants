@@ -52,20 +52,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  if (editedFiles.size > 0) parts.push(`edited ${countOf(editedFiles.size, "file")}`);
+  if (commandCount > 0) parts.push(`ran ${countOf(commandCount, "command")}`);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Every count was zero and the turn had no duration (e.g. a group of only
+  // read/search tools): fall back to a plain step count like the live label —
+  // "think" filler stays out of the count unless it is all there is, matching
+  // how the live label filters think steps from mixed groups.
+  if (parts.length === 0) {
+    const realSteps = tools.filter((tool) => tool.kind !== "think").length;
+    return sentenceCase(countOf(realSteps > 0 ? realSteps : tools.length, "step"));
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

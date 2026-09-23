@@ -1,6 +1,6 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+package remoteterminal
+
+import "syscall"
+
+// ioctlReadTermios is the ioctl request that reads the termios of a tty.
+const ioctlReadTermios = syscall.TCGETS

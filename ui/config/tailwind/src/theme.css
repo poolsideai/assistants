@@ -5,6 +5,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+@import "./utilities/menu.css";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -15,10 +16,22 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  /* Default glyph colour. Sits at primary-text contrast so icons read as solid
+     as the label beside them; kept as its own token so it can diverge from text
+     later without a repo-wide sweep. */
+  --color-psx-icon: var(--psx-icon);
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  --color-psx-tab-active-background: var(--psx-tab-active-background);
+  --color-psx-tab-active-foreground: var(--psx-tab-active-foreground);
+  --color-psx-tab-inactive-background: var(--psx-tab-inactive-background);
+  --color-psx-tab-inactive-foreground: var(--psx-tab-inactive-foreground);
+  --color-psx-tab-hover-background: var(--psx-tab-hover-background);
+  --color-psx-tab-border: var(--psx-tab-border);
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -73,6 +86,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  --color-psx-menu-background: var(--psx-menu-background);
+  --color-psx-menu-separator: var(--psx-menu-separator);
+  --color-psx-highlight-background: var(--psx-highlight-background);
+  --color-psx-highlight-border: var(--psx-highlight-border);
+  --color-psx-selection-background: var(--psx-selection-background);
+  --color-psx-selection-foreground: var(--psx-selection-foreground);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -112,6 +131,29 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  /* Elevation for floating overlays: popovers, pickers, menus and modals. The
+     1px hairline is the FIRST shadow layer, not a separate border/outline, so
+     the stroke and the drop shadow stack as one crisp paint instead of two
+     near-coincident 1px edges fuzzing against each other. Tune here once. */
+  --shadow-overlay:
+    0 0 0 var(--psx-hairline, 1px) rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.06),
+    0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-overlay-dark:
+    0 0 0 var(--psx-hairline, 1px) var(--psx-overlay-stroke-dark), 0 1px 2px rgba(0, 0, 0, 0.3),
+    0 10px 30px rgba(0, 0, 0, 0.45);
+
+  /* Elevation for menus and the popovers that behave like them, modelled on
+     NSMenu: a hairline edge, a tight contact shadow, and a wide soft one that
+     carries most of the depth. Deeper and more diffuse than --shadow-overlay so
+     a menu reads as floating clear of the window, the way the system menus
+     beside it do. Consumed through the `menu-surface` utility. */
+  --shadow-menu:
+    0 0 0 var(--psx-hairline, 1px) rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.08),
+    0 10px 30px rgba(0, 0, 0, 0.18);
+  --shadow-menu-dark:
+    0 0 0 var(--psx-hairline, 1px) rgba(255, 255, 255, 0.12), 0 1px 3px rgba(0, 0, 0, 0.35),
+    0 12px 34px rgba(0, 0, 0, 0.5);
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -134,10 +176,38 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+/* Menu metrics, kept out of the inline block so components can read the raw
+   custom properties (e.g. h-[var(--text-menu--line-height)] to align a glyph
+   with the first line of a two-line row). */
+@theme {
+  /* macOS draws menu items in the 13px system font; our --text-sm is 12px, so
+     menu rows opt into their own step rather than borrowing one from the scale.
+     The 16px line box keeps rows at the height they had at text-sm. */
+  --text-menu: 0.8125rem; /* 13px */
+  --text-menu--line-height: 1rem; /* 16px */
+
+  /* NSMenu corner radius. */
+  --radius-menu: 10px;
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    /* Grid-line wash behind the new-conversation roundel (ChatEmptyState's
+       .grid-background and ChatPane's .desktop-hero-grid). Mixed with
+       --psx-foreground-primary, which is dark in light mode, so the light grid
+       reads as a darker mesh than the same mix does over a dark field — ease
+       the light grid back a touch while leaving dark mode untouched. Tuned
+       through this single token. */
+    --psx-grid-line-color: color-mix(in srgb, var(--psx-foreground-primary) 4%, transparent);
+
+    /* Solid stroke for elevated dark-mode surfaces — slightly lighter than the
+       dark panel so the edge reads as raised. Shared by the overlay shadow
+       (popovers/menus/modals) and the desktop splits pane outline so they
+       match. Only consumed in dark contexts. */
+    --psx-overlay-stroke-dark: #3a4046;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -146,77 +216,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      --psx-grid-line-color: color-mix(in srgb, var(--psx-foreground-primary) 6%, transparent);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

@@ -58,6 +58,18 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+function renderChangelog(repo: string, ...args: string[]): string {
+  const result = spawnSync(
+    tsx,
+    [script, "render-changelog", "vscode", "--head", "HEAD", "--out", "-", ...args],
+    { cwd: repo, encoding: "utf8", env: { ...process.env, FORCE_COLOR: "0" } },
+  );
+  if (result.status !== 0) {
+    throw new Error(result.stderr || `changelog renderer exited ${result.status}`);
+  }
+  return result.stdout;
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -86,77 +98,65 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("starts changelog history at 1.0.0", { timeout: 20_000 }, () => {
+    git(repo, "tag", "vscode-assistant/v0.14.1");
+    commit(repo, "Add the initial release");
+    git(repo, "tag", "vscode-assistant/v1.0.0");
+    commit(repo, "Add a post-1.0 improvement");
+
+    const changelog = renderChangelog(repo, "--version", "1.1.0");
+
+    expect(changelog).toContain("## 1.1.0 (Preview)");
+    expect(changelog).toContain("- Add a post-1.0 improvement");
+    expect(changelog).toContain("## 1.0.0");
+    expect(changelog).toContain("_Initial release._");
+    expect(changelog).not.toContain("0.14.1");
+    expect(changelog).not.toContain("Add the initial release");
+  });
+
+  it("itemizes each earlier release in a nightly changelog", { timeout: 20_000 }, () => {
+    commit(repo, "Add the initial release");
+    git(repo, "tag", "vscode-assistant/v1.0.0");
+    commit(repo, "Add the first nightly change");
+    git(repo, "tag", "vscode-assistant/v1.1.0");
+    commit(repo, "Add the second nightly change");
+    git(repo, "tag", "vscode-assistant/v1.1.1");
+    commit(repo, "Add the third nightly change");
+
+    const changelog = renderChangelog(repo, "--version", "1.1.2");
+
+    const sections = changelog.split(/^## /mu).slice(1);
+    expect(sections.map((section) => section.split(" — ")[0])).toEqual([
+      "1.1.2 (Preview)",
+      "1.1.1 (Preview)",
+      "1.1.0 (Preview)",
+      "1.0.0",
+    ]);
+    expect(sections[0]).toContain("- Add the third nightly change");
+    expect(sections[0]).not.toContain("second nightly");
+    expect(sections[1]).toContain("- Add the second nightly change");
+    expect(sections[1]).not.toContain("first nightly");
+    expect(sections[2]).toContain("- Add the first nightly change");
+    expect(sections[3]).toContain("_Initial release._");
+  });
+
+  it("rolls nightly releases up into a stable changelog", { timeout: 20_000 }, () => {
+    commit(repo, "Add the initial release");
+    git(repo, "tag", "vscode-assistant/v1.0.0");
+    commit(repo, "Add the first nightly change");
+    git(repo, "tag", "vscode-assistant/v1.1.0");
+    commit(repo, "Add the second nightly change");
+    git(repo, "tag", "vscode-assistant/v1.1.1");
+
+    const changelog = renderChangelog(repo, "--version", "1.2.0");
+
+    const sections = changelog.split(/^## /mu).slice(1);
+    expect(sections.map((section) => section.split(" — ")[0])).toEqual(["1.2.0", "1.0.0"]);
+    expect(sections[0]).toContain("- Add the first nightly change");
+    expect(sections[0]).toContain("- Add the second nightly change");
+    expect(sections[1]).toContain("_Initial release._");
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

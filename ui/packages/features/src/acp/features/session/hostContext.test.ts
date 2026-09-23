@@ -1,10 +1,12 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+import { handoffContextContent } from "./handoffContext";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+import { EMPTY_ACP_SESSION_METADATA } from "./SessionMetadata";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -79,43 +81,41 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  it("strips embedded and flattened cross-agent handoff context", () => {
+    const handoff = handoffContextContent(
+      {
+        agentServer: "poolside",
+        sessionId: "source-session",
+        cwd: "/repo",
+        events: [],
+        plan: null,
+        metadata: EMPTY_ACP_SESSION_METADATA,
+      },
+      "codex-acp",
+      false,
+    );
+    if (handoff.type !== "text") throw new Error("expected text fallback");
+
+    expect(stripInjectedContextFromText(`Continue\n${handoff.text}`)).toBe("Continue");
+    expect(
+      stripInjectedContextFromText(
+        `Continuepoolside://handoff/source-session.md\n<context ref=\"poolside://handoff/source-session.md\">\n${handoff.text}\n</context>`,
+      ),
+    ).toBe("Continue");
+  });
+
+  it("strips a bare handoff link at either end", () => {
+    // An agent-derived title can be truncated before the <context> wrapper,
+    // leaving only the flattened resource link glued to the user's text.
+    expect(stripInjectedContextFromText("continuepoolside://handoff/56a2ba59.md")).toBe("continue");
+    expect(stripInjectedContextFromText("poolside://handoff/56a2ba59.md\ncontinue")).toBe(
+      "continue",
+    );
+  });
+
+  it("keeps a handoff link in the middle of user text", () => {
+    const text = "why does poolside://handoff/abc.md show up in my title?";
+    expect(stripInjectedContextFromText(text)).toBe(text);
+  });
 __POOL_SYNTHETIC_IMPORT_BASELINE__

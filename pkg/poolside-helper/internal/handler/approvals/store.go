@@ -189,45 +189,45 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// ResolveElicitation answers a pending URL elicitation as accepted,
+// identified by its id alone: URL elicitations complete out-of-band via the
+// agent's elicitation/complete notification, which carries no session. Only
+// url-mode entries qualify — form ids are helper-synthesized and never leave
+// the helper, so an id collision from a buggy agent must not accept a form on
+// the user's behalf. Returns false when no such elicitation is pending.
+func (s *Store) ResolveElicitation(agentServer, elicitationID string) bool {
+	if elicitationID == "" {
+		return false
+	}
+	s.mu.Lock()
+	var resolved *entry
+	var resolvedKey key
+	for k, e := range s.entries {
+		if k.agentServer == agentServer && k.kind == methods.ACPApprovalKindElicitation && k.id == elicitationID &&
+			e.approval.Elicitation != nil && e.approval.Elicitation.Mode == methods.ElicitationModeURL {
+			resolved, resolvedKey = e, k
+			break
+		}
+	}
+	if resolved == nil {
+		s.mu.Unlock()
+		return false
+	}
+	delete(s.entries, resolvedKey)
+	pending := s.pendingLocked()
+	s.mu.Unlock()
+
+	resolved.resolve <- methods.ACPApprovalsRespondParams{
+		AgentServer: resolvedKey.agentServer,
+		SessionID:   resolvedKey.sessionID,
+		Kind:        resolvedKey.kind,
+		ID:          resolvedKey.id,
+		Action:      string(methods.ElicitationActionAccept),
+	}
+	s.push(pending)
+	return true
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

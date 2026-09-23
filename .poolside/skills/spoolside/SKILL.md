@@ -125,17 +125,17 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+### Debug / Profile
+| Command | Description |
+|---------|-------------|
+| `debug go [--port PORT]` | Restart the desktop `poolside-helper` under headless Delve and print `dlv connect` attach guidance. |
+| `profile go <cpu\|heap\|goroutine\|trace> [--seconds N] [-o PATH]` | Capture helper pprof output. Defaults to `/tmp/spoolside-profiles`. |
+| `debug rust` | Print the desktop Tauri shell PID, executable path, and LLDB attach commands. Requires a desktop target. |
+| `profile rust cpu [--seconds N] [-o PATH] [--format pprof\|svg]` | Report Rust profiling availability. The pprof bridge currently fails fast as unavailable while it is being stabilized. Requires a desktop target. |
+
+Go diagnostics target `poolside-helper`; Rust diagnostics target the desktop Tauri
+shell.
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

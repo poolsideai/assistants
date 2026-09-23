@@ -34,6 +34,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("scopes working conversations to their agent across local and remote surfaces", () => {
+    const repo = new ACPConversationStatusRepositoryWriter();
+    syncSession(repo, {
+      conversationId: "conversation-1",
+      sessionId: sessionId("session-1"),
+      working: true,
+    });
+    repo.syncRemoteStatuses([
+      {
+        sessionId: sessionId("remote-session"),
+        agentServer: "agent-b",
+        liveStatus: { working: true, waitingForUser: false, unread: false },
+      },
+    ]);
+    expect(repo.hasWorkingConversationForAgent("agent-a")).toBe(true);
+    expect(repo.hasWorkingConversationForAgent("agent-b")).toBe(true);
+    expect(repo.hasWorkingConversationForAgent("agent")).toBe(false);
+    repo.syncRemoteStatuses([]);
+    expect(repo.hasWorkingConversationForAgent("agent-b")).toBe(false);
+    expect(repo.hasWorkingConversationForAgent("agent-a")).toBe(true);
+    repo.syncLiveSessions([]);
+    expect(repo.hasWorkingConversationForAgent("agent-a")).toBe(false);
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -160,59 +184,35 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("keeps status identity stable when a sync changes nothing", () => {
+    const repo = new ACPConversationStatusRepositoryWriter();
+    syncSession(repo, {
+      conversationId: "conversation-1",
+      sessionId: sessionId("session-1"),
+      working: true,
+    });
+    const before = repo.getConversationStatus(sessionId("session-1"), "agent-a");
+
+    syncSession(repo, {
+      conversationId: "conversation-1",
+      sessionId: sessionId("session-1"),
+      working: true,
+    });
+
+    // Same object, not just equal: syncLiveSessions runs on every session
+    // update, and a fresh identity would re-derive every status reader.
+    expect(repo.getConversationStatus(sessionId("session-1"), "agent-a")).toBe(before);
+
+    syncSession(repo, {
+      conversationId: "conversation-1",
+      sessionId: sessionId("session-1"),
+      working: false,
+    });
+
+    expect(repo.getConversationStatus(sessionId("session-1"), "agent-a")).not.toBe(before);
+    expect(repo.getConversationStatus(sessionId("session-1"), "agent-a").working).toBe(false);
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

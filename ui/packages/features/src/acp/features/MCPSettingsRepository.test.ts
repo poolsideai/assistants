@@ -78,6 +78,30 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(repo.activeSessionAllowsCustomMCPServers()).toBe(true);
+  });
+
+  it("exposes the active session's custom MCP policy but not a config probe's", async () => {
+    const activeRepo = new ACPMCPSettingsRepositoryWriter(createACPContext(), {
+      getActiveSession: () => ({ agentServer: "pool", sessionId: "session-1" }),
+    });
+    const probeRepo = new ACPMCPSettingsRepositoryWriter(
+      createACPContext({
+        agents: {
+          configProbeSessionIdsByAgentServer: { pool: "config-session-1" },
+        },
+      }),
+    );
+    rawACPHostRpc.jsonrpc.mockResolvedValue({
+      mcpServers: [],
+      allowCustomMCPServers: false,
+    });
+
+    await activeRepo.fetchSettings();
+    await probeRepo.fetchSettings();
+
+    expect(activeRepo.activeSessionAllowsCustomMCPServers()).toBe(false);
+    expect(probeRepo.activeSessionAllowsCustomMCPServers()).toBeNull();
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -162,77 +186,53 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  it("applies connector toggles globally and to the active conversation", async () => {
+    const repo = new ACPMCPSettingsRepositoryWriter(createACPContext(), {
+      getActiveSession: () => ({ agentServer: "pool", sessionId: "session-1" }),
+    });
+    rawACPHostRpc.jsonrpc.mockResolvedValue({});
+
+    await repo.persistServerDisabled("Linear", false);
+
+    expect(rawACPHostRpc.jsonrpc).toHaveBeenNthCalledWith(
+      1,
+      "poolside/mcpServers/setPoolServerDisabled",
+      { serverName: "Linear", disabled: false },
+    );
+    expect(rawACPHostRpc.jsonrpc).toHaveBeenNthCalledWith(
+      2,
+      "poolside/acp/_poolside/mcp/set_server_disabled",
+      {
+        agentServer: "pool",
+        sessionId: "session-1",
+        serverName: "Linear",
+        disabled: false,
+      },
+    );
+    expect(repo.disabledState.Linear).toBe(false);
+  });
+
+  it("rolls back the global toggle when the active conversation update fails", async () => {
+    const repo = new ACPMCPSettingsRepositoryWriter(createACPContext(), {
+      getActiveSession: () => ({ agentServer: "pool", sessionId: "session-1" }),
+    });
+    repo.servers = [createMockServer({ serverName: "Linear", disabled: true })];
+    rawACPHostRpc.jsonrpc
+      .mockResolvedValueOnce({})
+      .mockRejectedValueOnce(new Error("session unavailable"))
+      .mockResolvedValueOnce({});
+
+    await expect(repo.persistServerDisabled("Linear", false)).rejects.toThrow(
+      "session unavailable",
+    );
+
+    expect(rawACPHostRpc.jsonrpc).toHaveBeenNthCalledWith(
+      3,
+      "poolside/mcpServers/setPoolServerDisabled",
+      { serverName: "Linear", disabled: true },
+    );
+    expect(repo.disabledState.Linear).toBeUndefined();
+    expect(repo.isServerDisabled(repo.servers[0]!)).toBe(true);
+  });
 __POOL_SYNTHETIC_IMPORT_BASELINE__

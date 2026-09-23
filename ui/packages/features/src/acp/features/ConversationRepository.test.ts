@@ -12,6 +12,40 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("previews a pending conversation before its nav upsert resolves", async () => {
+    const upsert = deferredPromise<ReturnType<typeof pendingNavState>>();
+    initializeHelperApi({
+      jsonrpcCall: vi.fn().mockReturnValue(upsert.promise),
+      jsonrpcNotify: vi.fn().mockResolvedValue(undefined),
+    });
+
+    const repo = new ACPConversationRepositoryWriter();
+    const pending = repo.upsertConversation("/workspace", {
+      id: "conversation:new",
+      sessionId: null,
+      agentServer: DEFAULT_AGENT_SERVER,
+      cwd: "/workspace",
+      workingDirectories: ["/workspace"],
+      title: "New conversation",
+      updatedAt: "2026-03-30T10:00:00Z",
+      source: "native_session",
+      readOnly: false,
+      errorMessage: null,
+      cancellationReason: null,
+      conversationId: null,
+      conversationKind: null,
+      agentId: null,
+      _meta: {},
+    });
+
+    expect(repo.sessions.map((session) => session.id)).toEqual(["conversation:new"]);
+
+    upsert.resolve(pendingNavState());
+    await pending;
+
+    expect(repo.sessions.map((session) => session.id)).toEqual(["conversation:new"]);
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -60,6 +94,44 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("keeps chat scope while persisting turn and generated-title updates", async () => {
+    const jsonrpcCall = vi.fn().mockImplementation((method: string, params: unknown) => {
+      if (method !== "poolside/acpNav/upsertConversation") {
+        return Promise.resolve({ projects: [], conversations: [] });
+      }
+      const conversation = (params as { conversation: ReturnType<typeof navConversation> })
+        .conversation;
+      return Promise.resolve({ projects: [], conversations: [conversation] });
+    });
+    initializeHelperApi({
+      jsonrpcCall,
+      jsonrpcNotify: vi.fn().mockResolvedValue(undefined),
+    });
+    const repo = new ACPConversationRepositoryWriter();
+    repo.replaceConversations([
+      {
+        ...navConversation("chat-1", DEFAULT_AGENT_SERVER, "session-1"),
+        workspacePath: "CHAT",
+        cwd: "/state/poolside/chat-1",
+        workingDirectories: ["/state/poolside/chat-1"],
+      },
+    ]);
+
+    repo.touchSession("chat-1");
+    await vi.waitFor(() => expect(jsonrpcCall).toHaveBeenCalledTimes(1));
+    repo.updateSessionTitle("chat-1", "Generated title");
+    await vi.waitFor(() => expect(jsonrpcCall).toHaveBeenCalledTimes(2));
+
+    for (const [, params] of jsonrpcCall.mock.calls) {
+      expect(params).toEqual(
+        expect.objectContaining({
+          conversation: expect.objectContaining({ workspacePath: "CHAT" }),
+        }),
+      );
+    }
+    expect(repo.sessions[0]?.workspacePath).toBe("CHAT");
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -229,7 +301,13 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    // list + 2 archives + session/close for the one conversation with a session
+    expect(jsonrpcCall).toHaveBeenCalledTimes(4);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    expect(jsonrpcCall).toHaveBeenCalledWith("poolside/acp/session/close", {
+      agentServer: "echo",
+      sessionId: "s-echo",
+    });
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -266,6 +344,55 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  it("closes the agent session when archiving", async () => {
+    const jsonrpcCall = vi.fn().mockResolvedValue({ projects: [], conversations: [] });
+    initializeHelperApi({
+      jsonrpcCall,
+      jsonrpcNotify: vi.fn().mockResolvedValue(undefined),
+    });
+    const repo = new ACPConversationRepositoryWriter();
+
+    await repo.archiveSession("/repo", "s-echo", "echo", "echo-conv");
+
+    expect(jsonrpcCall).toHaveBeenCalledWith("poolside/acp/session/close", {
+      agentServer: "echo",
+      sessionId: "s-echo",
+    });
+  });
+
+  it("does not call session/close when archiving a pending conversation", async () => {
+    const jsonrpcCall = vi.fn().mockResolvedValue({ projects: [], conversations: [] });
+    initializeHelperApi({
+      jsonrpcCall,
+      jsonrpcNotify: vi.fn().mockResolvedValue(undefined),
+    });
+    const repo = new ACPConversationRepositoryWriter();
+
+    await repo.archiveSession("/repo", null, "echo", "echo-pending");
+
+    expect(jsonrpcCall).not.toHaveBeenCalledWith("poolside/acp/session/close", expect.anything());
+  });
+
+  it("still archives and emits the close event when session/close fails", async () => {
+    const jsonrpcCall = vi.fn().mockImplementation((method: string) => {
+      if (method === "poolside/acp/session/close") {
+        return Promise.reject(new Error("close failed"));
+      }
+      return Promise.resolve({ projects: [], conversations: [] });
+    });
+    initializeHelperApi({
+      jsonrpcCall,
+      jsonrpcNotify: vi.fn().mockResolvedValue(undefined),
+    });
+    const repo = new ACPConversationRepositoryWriter();
+    const closed = vi.fn();
+    repo.emitter.addEventListener(ACP_SESSION_CLOSE_EVENT, closed);
+
+    await repo.archiveSession("/repo", "s-echo", "echo", "echo-conv");
+
+    expect(closed).toHaveBeenCalled();
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -446,152 +573,25 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function pendingNavState() {
+  return {
+    projects: [],
+    conversations: [
+      {
+        id: "conversation:new",
+        workspacePath: "/workspace",
+        agentServer: DEFAULT_AGENT_SERVER,
+        cwd: "/workspace",
+        title: "New conversation",
+        updatedAt: "2026-03-30T10:00:00Z",
+        active: true,
+        archived: false,
+        workingDirectories: ["/workspace"],
+      },
+    ],
+  };
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

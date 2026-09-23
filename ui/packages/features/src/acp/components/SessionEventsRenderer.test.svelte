@@ -1,72 +1,72 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import {
+    ClipboardProvider,
+    DisplayProvider,
+    EnvironmentProvider,
+    LogProvider,
+  } from "@poolsideai/components/providers";
+  import { vi } from "vitest";
+  import {
+    setACPChatSessionScope,
+    type ACPChatSessionScope,
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { setACPAgentRegistryContext } from "../features/AgentRegistryRepository.svelte";
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import type { GroupedItem, ToolActivityMode } from "./SessionEventsState.svelte";
+  import type { SessionEvent } from "../types";
+  import SessionEventsRenderer from "./SessionEventsRenderer.svelte";
+
+  interface Props {
+    events: SessionEvent[];
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    isPrompting?: boolean;
+    toolActivity?: ToolActivityMode;
+    scrollElement?: HTMLElement;
+    preserveScrollAnchor?: boolean;
+  }
+
+  let {
+    events,
+    items,
+    isPrompting = false,
+    toolActivity,
+    scrollElement,
+    preserveScrollAnchor = false,
+  }: Props = $props();
+
+  setACPAgentRegistryContext();
+  setACPChatSessionScope(
+    {
+      getSessionByConversationId: () => null,
+      agents: {
+        get defaultAgentServer() {
+          return undefined;
+        },
+        get nonSessionError() {
+          return null;
+        },
+        authInProgressForAgent: () => false,
+        getInitializeResponse: () => undefined,
+        isConfigCacheLoadingFor: () => false,
+      },
+    } as unknown as ACPSessionRepository,
+    () => null,
+  ) as ACPChatSessionScope;
+</script>
+
+<EnvironmentProvider name="test">
+  <LogProvider onError={vi.fn()} onInfo={vi.fn()}>
+    <ClipboardProvider onWrite={vi.fn()}>
+      <DisplayProvider>
+        <SessionEventsRenderer
+          {events}
+          {items}
+          {isPrompting}
+          {...toolActivity ? { toolActivity } : {}}
+          {scrollElement}
+          {preserveScrollAnchor}
+        />
+      </DisplayProvider>
+    </ClipboardProvider>
+  </LogProvider>
+</EnvironmentProvider>

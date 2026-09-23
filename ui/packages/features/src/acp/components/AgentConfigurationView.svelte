@@ -19,7 +19,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+      class="text-psx-foreground-primary outline-hidden focus-visible:outline-psx-focus relative z-10 flex shrink-0 -translate-x-1 items-center gap-1 py-1.5 text-sm transition-colors duration-200 ease-out focus-visible:outline-2"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

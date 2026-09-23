@@ -1,12 +1,91 @@
+import type { ACPAgentServerConfig } from "@poolsideai/rpc";
+
+export const ACP_AGENT_REGISTRY_URL =
+  "https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json";
+
+export interface ACPAgentRegistry {
+  version: string;
+  agents: ACPRegistryAgent[];
+}
+
+export interface ACPRegistryAgent {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  repository?: string;
+  website?: string;
+  authors?: string[];
+  license?: string;
+  icon?: string;
+  distribution: ACPRegistryDistribution;
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+export const TESTED_REGISTRY_AGENT_IDS = new Set(["claude-acp", "codex-acp"]);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+export interface ACPRegistryDistribution {
+  binary?: Record<string, ACPRegistryBinaryDistribution>;
+  npx?: ACPRegistryPackageDistribution;
+  uvx?: ACPRegistryPackageDistribution;
+}
+
+export interface ACPRegistryPackageDistribution {
+  package: string;
+  args?: string[];
+  env?: Record<string, string>;
+}
+
+export interface ACPRegistryBinaryDistribution {
+  archive: string;
+  sha256?: string;
+  cmd: string;
+  args?: string[];
+  env?: Record<string, string>;
+}
+
+export function registryIconUrl(agent: Pick<ACPRegistryAgent, "icon">): string | undefined {
+  if (!agent.icon) return undefined;
+  try {
+    return new URL(agent.icon, ACP_AGENT_REGISTRY_URL).toString();
+  } catch {
+    return undefined;
+  }
+}
+
+export function agentServerConfigFromRegistryAgent(
+  agent: Pick<ACPRegistryAgent, "distribution">,
+): ACPAgentServerConfig | null {
+  if (agent.distribution.npx) {
+    return {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      command: "npx",
+      args: ["-y", agent.distribution.npx.package, ...(agent.distribution.npx.args ?? [])],
+      env: agent.distribution.npx.env,
+    };
+  }
+
+  if (agent.distribution.uvx) {
+    return {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      command: "uvx",
+      args: [agent.distribution.uvx.package, ...(agent.distribution.uvx.args ?? [])],
+      env: agent.distribution.uvx.env,
+    };
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    return {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    };
+  }
+
+  return null;
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -128,89 +207,10 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+export function registryAgentsById(agents: ACPRegistryAgent[]): Map<string, ACPRegistryAgent> {
+  return new Map(agents.map((agent) => [agent.id, agent]));
+}
+
+export function sortRegistryAgents(agents: ACPRegistryAgent[]): ACPRegistryAgent[] {
+  return [...agents].sort((left, right) => left.name.localeCompare(right.name));
+}

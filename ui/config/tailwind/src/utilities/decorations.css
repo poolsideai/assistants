@@ -1,9 +1,9 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /* The outer silhouette (tip + right edge + top curve) matches the original
+     tail design; the inner edge is filled all the way to the bottom-left of
+     the viewBox so the tail solidly overlaps the bubble's rounded corner
+     instead of relying on exact tangency (which left a hairline gap). */
+  mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="9.27824727px" height="11.9929812px" viewBox="0 0 9.27824727 11.9929812"><path d="M8.57200196,0.0598078007 C8.78740196,-0.124572199 9.16990196,0.152484801 9.06070196,0.414231801 C7.86501585,3.28112192 7.91620405,8.27970274 9.27824727,11.9929812 L0,11.9929812 L0,3.49763732 C0.0808101114,3.50982125 0.190575218,3.53006181 0.335088143,3.56237387 C3.07835424,4.17574854 6.34549703,1.96489272 8.57200196,0.0598078007 Z" fill="black"></path></svg>');
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

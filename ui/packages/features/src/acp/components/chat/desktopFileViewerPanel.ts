@@ -1,13 +1,13 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { AttachedFile } from "@poolsideai/rpc";
+
+export interface DesktopFileViewerPanelProps {
+  path: string;
+  cwd?: string;
+  line?: number;
+  column?: number;
+  openToken: number;
+  focusToken: number;
+  initialCodeFontFamily?: string;
+  initialCodeFontSize?: number;
+  onFileContextChange?: (file: AttachedFile) => void;
+}

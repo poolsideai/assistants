@@ -199,19 +199,19 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+Changelogs are user-facing: first-parent commit subjects scoped to product
+ownership from `projects.yml`, grouped into Improvements and Fixes, with
+chore-type and docs/lockfile-only commits dropped. The same markdown feeds the
+GitHub release notes, the CrabNebula release notes, and each product's
+`CHANGELOG.md`, which is regenerated from the release tag history and stamped
+into the build (committed files stay placeholders). The same ownership mapping
+lets the coordinator decide which products participate in a scheduled Preview
+release. It tracks shipped and build inputs, not release automation; workflow
+changes should be exercised through the validation workflows.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+Stamped changelog history starts at `1.0.0`, labeled `Initial release`.
+Pre-1.0 releases are omitted; later releases retain their normal scoped notes.
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

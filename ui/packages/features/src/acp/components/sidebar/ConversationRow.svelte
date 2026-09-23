@@ -1,188 +1,188 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+<script lang="ts">
+  import Icon from "@poolsideai/components/icon";
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import { formatRelativeTimeWithoutAgo } from "../../shared/time";
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import RegistryAgentIcon from "../RegistryAgentIcon.svelte";
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  import RenamableLabel from "./RenamableLabel.svelte";
+  import { getAcpSidebarController } from "./SidebarController.svelte";
+
+  interface Props {
+    session: ACPConversationSummary;
+    agentName: string;
+    iconUrl?: string;
+    iconClass?: string;
+    titleClass?: string;
+    iconSize?: number;
+    iconSlotSize?: number;
+    leadingPaddingClass?: string;
+    desktop?: boolean;
+    working?: boolean;
+    waitingForUser?: boolean;
+    unread?: boolean;
+    // ⌘1–9 hint shown in place of the time column while ⌘ is held.
+    shortcutHint?: string;
+    onOpen: () => void | Promise<void>;
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
+
+  let {
+    session,
+    agentName,
+    iconUrl,
+    iconClass = "text-psx-foreground-secondary",
+    titleClass = "",
+    iconSize = 14,
+    iconSlotSize = iconSize,
+    leadingPaddingClass = "pl-2",
+    desktop = false,
+    working = false,
+    waitingForUser = false,
+    unread = false,
+    shortcutHint,
+    onOpen,
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  }: Props = $props();
+
+  const sidebar = getAcpSidebarController();
+  const renaming = $derived(sidebar.isRenamingConversation(session.id));
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  const updatedAtLabel = $derived(
+    session.updatedAt ? formatRelativeTimeWithoutAgo(session.updatedAt) : null,
+  );
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  // Waiting for user input (elicitation / permission prompt) shows an amber dot
+  // rather than the working spinner: the agent is blocked on the user, not busy.
+  const showTimeColumnIndicator = $derived(working && !waitingForUser);
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+</script>
+
+<div
+  class={[
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    leadingPaddingClass,
+  ]}
+>
+  {#snippet agentIconSlot()}
+    <span
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {/snippet}
+  {#if renaming}
+    <!-- py compensates for the input's border box so the row keeps its height. -->
+    <div class="flex min-w-0 flex-1 items-center gap-2 py-[5px] text-left">
+      {@render agentIconSlot()}
+      <RenamableLabel
+        value={title}
+        ariaLabel={`Rename ${title}`}
+        class={desktop ? "text-[13px]/[16px]" : "text-sm"}
+        onSubmit={(name) => sidebar.commitRename(name)}
+        onCancel={() => sidebar.cancelRename()}
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </div>
+  {:else}
+    <button
+      type="button"
+      data-testid="acp-conversation-row"
+      class="outline-hidden focus-visible:outline-psx-focus flex min-w-0 flex-1 select-none items-center gap-2 rounded-[6px] py-1.5 text-left after:absolute after:inset-0 after:content-[''] focus-visible:outline-2"
+      aria-label={`${title} - ${agentName}`}
+      onclick={() => onOpen()}
+      onauxclick={(event) => {
+        if (event.button === 1) onArchiveNow?.(event);
+      }}
+      oncontextmenu={(event) => onContextMenu?.(event)}
+    >
+      {@render agentIconSlot()}
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+          "flex min-w-0 flex-1 items-center gap-1",
+          desktop ? "text-[13px]/[16px]" : "text-sm",
+          working && !waitingForUser && !desktop && !titleClass && "font-semibold",
+          isDraft && "text-psx-foreground-secondary",
+          titleClass,
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+        {#if showDraftIcon}
+          <Icon name="pencil" size={12} class="shrink-0" aria-hidden="true" />
+        {/if}
+        <span class="min-w-0 truncate">{title}</span>
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    </button>
+
+    <!-- Keep the action gutter stable so hovering never relayouts the row. -->
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+      class="pointer-events-none relative z-10 flex min-w-[2rem] shrink-0 items-center justify-end"
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+      {#if shortcutHint}
+        <Kbd
+          label={shortcutHint}
+          class="text-psx-foreground-secondary text-[11px]/[16px] group-focus-within:invisible group-hover:invisible"
+          aria-hidden="true"
+        />
+      {:else if waitingForUser}
+        <span
+          class="flex w-4 items-center justify-center group-focus-within:invisible group-hover:invisible"
+          role="img"
+          aria-label="Waiting for your input"
+        >
+          <span class="bg-psx-warning-foreground block size-[7px] rounded-full"></span>
+        </span>
+      {:else if showTimeColumnIndicator}
+        <span
+          class="text-psx-info-foreground flex size-4 items-center justify-center group-focus-within:invisible group-hover:invisible"
+        >
+          <StreamingSequenceLoader size={16} ariaLabel="Conversation responding" />
+        </span>
+      {:else if unread}
+        <span
+          class="flex w-4 items-center justify-center group-focus-within:invisible group-hover:invisible"
+          role="img"
+          aria-label="Unread conversation"
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+          <span class="block size-[7px] rounded-full" style="background: #3794ff;"></span>
+        </span>
+      {:else if updatedAtLabel && !desktop}
+        <span
+          class="text-psx-foreground-secondary block text-[13px]/[16px] group-focus-within:invisible group-hover:invisible"
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+          {updatedAtLabel}
+        </span>
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+      <div
+        class="pointer-events-none absolute inset-y-0 -right-1 flex items-center justify-end gap-0.5 opacity-0 group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100"
+      >
+        <button
+          type="button"
+          class={actionButtonClass}
+          aria-label={`Archive ${title}`}
+          title="Archive Conversation"
+          onclick={(event: MouseEvent) => onArchive?.(event)}
+        >
+          <Icon name="archive" size={14} />
+        </button>
+      </div>
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  {/if}
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    width: var(--sidebar-agent-icon-slot-size, var(--sidebar-agent-icon-size));
+    height: var(--sidebar-agent-icon-slot-size, var(--sidebar-agent-icon-size));
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

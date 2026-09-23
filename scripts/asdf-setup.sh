@@ -18,6 +18,11 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+# mr boxington (mbx) wraps cargo with a machine-wide build cache so every
+# worktree shares compiled artifacts: https://mr-boxington.jdx.dev
+# It is the desktop assistant's cargo runner (tauri.conf.json > build.runner).
+MBX_VERSION="1.11.1"
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -60,6 +65,54 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+setup_mbx() {
+    echo ""
+    echo -e "${BOLD}${CYAN}=== mr boxington Setup (shared Rust build cache) ===${RESET}"
+
+    if command -v mbx >/dev/null 2>&1; then
+        echo -e "  ${GREEN}✓${RESET} $(mbx --version)"
+        return
+    fi
+
+    local triple=""
+    case "$(uname -s)-$(uname -m)" in
+        Darwin-arm64) triple="aarch64-apple-darwin" ;;
+        Linux-x86_64) triple="x86_64-unknown-linux-gnu" ;;
+        Linux-aarch64 | Linux-arm64) triple="aarch64-unknown-linux-gnu" ;;
+    esac
+
+    if [ -z "$triple" ]; then
+        echo -e "${CYAN}No mbx release archive for this platform; building with cargo...${RESET}"
+        cargo install mbx --locked
+        echo -e "  ${GREEN}✓${RESET} $(mbx --version)"
+        return
+    fi
+
+    echo -e "${CYAN}Installing mbx ${MBX_VERSION} to ~/.local/bin...${RESET}"
+    local archive="mbx-${triple}.tar.gz"
+    local release="https://github.com/jdx/mr-boxington/releases/download/v${MBX_VERSION}"
+    local tmpdir
+    tmpdir=$(mktemp -d)
+    curl -fsSLo "${tmpdir}/${archive}" "${release}/${archive}"
+    curl -fsSLo "${tmpdir}/SHA256SUMS" "${release}/SHA256SUMS"
+    if command -v sha256sum >/dev/null 2>&1; then
+        (cd "$tmpdir" && grep "  ${archive}\$" SHA256SUMS | sha256sum --check --strict -)
+    else
+        (cd "$tmpdir" && grep "  ${archive}\$" SHA256SUMS | shasum -a 256 --check --strict -)
+    fi
+    mkdir -p "${HOME}/.local/bin"
+    tar -xzf "${tmpdir}/${archive}" -C "${HOME}/.local/bin"
+    rm -rf "$tmpdir"
+
+    echo -e "  ${GREEN}✓${RESET} $("${HOME}/.local/bin/mbx" --version)"
+    case ":${PATH}:" in
+        *":${HOME}/.local/bin:"*) ;;
+        *)
+            echo -e "  ${YELLOW}⚠${RESET} ~/.local/bin is not on your PATH; desktop builds need to find mbx there"
+            ;;
+    esac
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -167,57 +220,4 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+setup_mbx

@@ -1,8 +1,8 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+{
+  "extends": "@poolsideai/tsconfig/svelte",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true
+  },
+  "include": ["**/*.js", "**/*.ts", "**/*.svelte"],
+  "exclude": ["dist", "dist-isolation", "src-tauri/target"]
+}

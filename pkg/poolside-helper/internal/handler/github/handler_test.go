@@ -4,10 +4,12 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	"os/exec"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	"github.com/poolsideai/assistant/pkg/poolside-helper/methods"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -90,58 +92,56 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestWorktreeStatusesIncludesBranchWithoutGitHubRemote(t *testing.T) {
+	ctx := context.Background()
+	dir := t.TempDir()
+	command := exec.CommandContext(ctx, "git", "init", "-b", "feature/local-only", dir)
+	require.NoError(t, command.Run())
+	command = exec.CommandContext(
+		ctx,
+		"git",
+		"-C",
+		dir,
+		"-c",
+		"user.name=Poolside Test",
+		"-c",
+		"user.email=test@poolside.ai",
+		"commit",
+		"--allow-empty",
+		"-m",
+		"initial",
+	)
+	require.NoError(t, command.Run())
+
+	s := NewServerWithDeps(&fakeDoer{}, &fakeStore{})
+	result, err := s.WorktreeStatuses(ctx, &methods.GitHubWorktreeStatusesParams{
+		Paths: []string{dir},
+	}, nil)
+	require.NoError(t, err)
+	require.Len(t, result.Statuses, 1)
+	assert.Equal(t, "feature/local-only", result.Statuses[0].Branch)
+	assert.False(t, result.Statuses[0].Supported)
+	assert.True(t, result.Statuses[0].IsRepo)
+}
+
+func TestWorktreeStatusesReportsIsRepo(t *testing.T) {
+	ctx := context.Background()
+	plainDir := t.TempDir()
+	emptyRepoDir := t.TempDir()
+	command := exec.CommandContext(ctx, "git", "init", emptyRepoDir)
+	require.NoError(t, command.Run())
+
+	s := NewServerWithDeps(&fakeDoer{}, &fakeStore{})
+	result, err := s.WorktreeStatuses(ctx, &methods.GitHubWorktreeStatusesParams{
+		Paths: []string{plainDir, emptyRepoDir},
+	}, nil)
+	require.NoError(t, err)
+	require.Len(t, result.Statuses, 2)
+	assert.False(t, result.Statuses[0].IsRepo)
+	// A freshly-initialized repo has an unborn HEAD but is still a repo.
+	assert.True(t, result.Statuses[1].IsRepo)
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

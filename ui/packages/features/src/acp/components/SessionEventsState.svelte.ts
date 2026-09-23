@@ -1,6 +1,94 @@
+import { getContext, setContext } from "svelte";
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+import type { SessionEvent, ToolCall } from "../types";
+
+export type SessionEventGroupItem = { event: SessionEvent; index: number };
+
+/**
+ * User expand/collapse choices for a transcript's tool-call blocks, keyed by
+ * `toolCallId` so they survive the remounts streaming causes: a tool's row is
+ * re-keyed when it moves between standalone and grouped rendering, and
+ * virtualization unmounts off-screen rows, either of which would reset
+ * component-local state back to collapsed (PE-2402).
+ *
+ * A tool expanded while it renders standalone is also *pinned*: the live fold
+ * boundary freezes at the earliest pinned tool, so the block the user is
+ * reading — and every step streaming in after it — stays out of the fold until
+ * the user collapses it again. Tools expanded inside an already-open group are
+ * not pinned: the group keeps them visible, and pinning them would pop
+ * already-folded rows back out of the fold under the reader.
+ *
+ * Both collections are plain immutable values reassigned on change, never
+ * deep-reactive: `SessionEventsState`'s deriveds read `pinnedToolCallIds`, and
+ * reading a reactive collection from inside a derived has caused infinite
+ * reactive loops in this codebase before (see `interruptedFoldCache`).
+ */
+export class ToolCallExpansionState {
+  private openById = $state<ReadonlyMap<string, boolean>>(new Map());
+  private pinned = $state<ReadonlySet<string>>(new Set());
+
+  /** The user's last explicit open/closed choice for a tool, if any. */
+  openStateFor(toolCallId: string): boolean | undefined {
+    return this.openById.get(toolCallId);
+  }
+
+  get pinnedToolCallIds(): ReadonlySet<string> {
+    return this.pinned;
+  }
+
+  setOpen(toolCallId: string, open: boolean, options: { pin?: boolean } = {}): void {
+    if (this.openById.get(toolCallId) !== open) {
+      const nextOpen = new Map(this.openById);
+      nextOpen.set(toolCallId, open);
+      this.openById = nextOpen;
+    }
+    const pin = open && (options.pin ?? false);
+    if (pin !== this.pinned.has(toolCallId)) {
+      const nextPinned = new Set(this.pinned);
+      if (pin) nextPinned.add(toolCallId);
+      else nextPinned.delete(toolCallId);
+      this.pinned = nextPinned;
+    }
+  }
+}
+
+const EXPANSION_CONTEXT_KEY = Symbol("acp-tool-call-expansion");
+const IN_GROUP_CONTEXT_KEY = Symbol("acp-tool-call-in-group");
+
+/**
+ * Provides the transcript's expansion state to every tool block below. Set by
+ * `SessionEventsRenderer` with the state owned by whichever
+ * `SessionEventsState` produced the rendered rows, so user pins reach that
+ * instance's fold logic. A getter rather than the instance itself: the
+ * producing state can switch (the pane's timeline state vs the renderer's
+ * fallback) after the context is set.
+ */
+export function setToolCallExpansionContext(get: () => ToolCallExpansionState): void {
+  setContext(EXPANSION_CONTEXT_KEY, get);
+}
+
+/** Undefined outside a transcript (stories, previews): tools fall back to local state. */
+export function getToolCallExpansionContext(): (() => ToolCallExpansionState) | undefined {
+  return getContext(EXPANSION_CONTEXT_KEY);
+}
+
+/** Marks a subtree as rendered inside a ToolCallGroup, so expanding there does not pin. */
+export function markInsideToolCallGroup(): void {
+  setContext(IN_GROUP_CONTEXT_KEY, true);
+}
+
+export function isInsideToolCallGroup(): boolean {
+  return getContext<boolean | undefined>(IN_GROUP_CONTEXT_KEY) ?? false;
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+ * default) folds every contiguous run of finished tools and settled thoughts —
+ * whatever their kind, errors included — into one collapsed group, so only
+ * agent messages and the tools still running break the transcript up (a
+ * markdown reply renders in full and a fresh group starts beneath it), and
+ * keeps the same two-slot tail
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -8,6 +96,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+ * migration. Finished turns summarize regardless of the mode — except
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -29,6 +118,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+export type GroupedItem =
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -41,9 +131,14 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+
+export interface SessionEventsProps {
+  readonly events: SessionEvent[];
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -67,13 +162,46 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+export class SessionEventsState {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+   * group. Explicitly tagged steer messages are bufferable in settled turns;
+   * live steers remain visible chronological boundaries (see `grouped`).
+   * Ordinary user messages are always hard turn boundaries. Thoughts fold on
+   * their own terms (see `groupModeForThought`); they stay listed here so
+   * look-ahead can still see *through* them to a following tool.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  private static readonly BUFFERABLE_KINDS = new Set<SessionEvent["eventKind"]>([
+    "agent_message",
+    "agent_thought",
+  ]);
+
+  private static isBufferable(event: SessionEvent): boolean {
+    return SessionEventsState.BUFFERABLE_KINDS.has(event.eventKind) || isSteerMessage(event);
+  }
+
+  constructor(private readonly props: SessionEventsProps) {}
+
+  /**
+   * Expand/collapse choices for this transcript's tool calls. The fold logic
+   * below reads its pins: a user-expanded standalone tool holds the fold
+   * boundary so streaming cannot collapse the block being read (PE-2402).
+   */
+  readonly expansion = new ToolCallExpansionState();
+
+  readonly grouped = $derived.by(() => {
+    const result: GroupedItem[] = [];
+    const events = this.props.events;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    const compactFolds = this.compactFoldsFor(events, liveTail);
+    const interruptedCompactFolds = this.interruptedCompactFoldsFor(events);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+
+    // Every thought renders — standalone or inside a fold. The latest one,
+    // while it is still trailing and a prompt is in flight, renders live
+    // (streaming); every earlier thought is settled. Locate the live one here.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -86,16 +214,38 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    function flushGroup() {
+      if (!currentGroup) return;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (tools.length >= 2) {
+        result.push({
+          // Anchor the id on the first tool, matching the compact folds, so an
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+          kind: "event_group",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        });
+      } else {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+          result.push({
+            id: `event-${item.index}`,
+            kind: "event",
+            event: item.event,
+            index: item.index,
+            // A thought only joins a group once it has settled; if the group
+            // was too small to render, it falls out as a settled row.
+            ...(item.event.eventKind === "agent_thought" ? { liveThought: false } : {}),
+          });
+        }
+      }
+      currentGroup = null;
+    }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -104,25 +254,148 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    // A steer can be the last event in a settled tool sequence when the agent
+    // interrupts its active tool instead of continuing with another one. Keep
+    // that terminal steer inside the completed fold too. The active turn is
+    // handled separately below: its steers must stay at their chronological
+    // position in the visible transcript.
+    const addSteerToExistingGroup = (item: SessionEventGroupItem): boolean => {
+      if (currentGroup) {
+        currentGroup.events.push(item);
+        return true;
+      }
+      for (let j = result.length - 1; j >= 0; j--) {
+        const previous = result[j];
+        if (
+          previous.kind === "event" &&
+          previous.event.eventKind === "user_message" &&
+          !previous.event.steer
+        ) {
+          return false;
+        }
+        if (previous.kind === "event_group") {
+          previous.events.push(item);
+          return true;
+        }
+      }
+      return false;
+    };
+
+    // Agents echo the session's starting mode (the one the user just picked
+    // in the composer) as a mode update at session start — sometimes before
+    // the first prompt, sometimes just after it — so a "Mode switched to" row
+    // before any agent activity is noise. A genuine mid-chat switch always
+    // follows some agent output, so those still render.
+    const firstAgentActivityIndex = events.findIndex(
+      (e) =>
+        e.eventKind === "tool_call" ||
+        e.eventKind === "agent_thought" ||
+        (e.eventKind === "agent_message" && !isBlankAgentMessage(e)),
+    );
+
+    for (let i = 0; i < events.length; i++) {
+      const event = events[i];
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (
+        event.eventKind === "mode_change" &&
+        (firstAgentActivityIndex === -1 || i < firstAgentActivityIndex)
+      ) {
+        continue;
+      }
+
+      // A steer is appended to the active turn immediately. Render it at that
+      // exact position instead of moving it backward into an existing fold;
+      // tools arriving later then render below it and naturally push it up.
+      // Once the turn settles, its summary may absorb the steer as before.
+      if (
+        isPrompting &&
+        i > latestUserMessageIndex &&
+        isSteerMessage(event) &&
+        !this.findTurnForIndex(i)
+      ) {
+        flushGroup();
+        result.push({ id: `event-${i}`, kind: "event", event, index: i });
+        continue;
+      }
+
+      // "compact": each live span between steer prompts folds its tools and
+      // interim narration into a group anchored where that span's first tool
+      // sits. Check membership before the thought path below so completed
+      // reasoning between tools folds too.
+      const compactFold = compactFolds.get(i);
+      if (compactFold) {
+        if (!compactFold.pushed) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+          result.push(compactFold.item);
+          compactFold.pushed = true;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (event.eventKind === "agent_thought") {
+        const live = isPrompting && i === lastThoughtIndex && i > lastRealEventIndex;
+        // Settled thoughts fold with the tools around them; only the live
+        // (streaming) thought always renders standalone.
+        const mode = live ? null : this.groupModeForThought(i, latestUserMessageIndex, liveTail);
+        if (mode) {
+          addToGroup({ event, index: i }, mode);
+        } else {
+          flushGroup();
+          result.push({ id: `event-${i}`, kind: "event", event, index: i, liveThought: live });
+        }
+        continue;
+      }
+
+      // Blank streaming placeholders render nothing; skip them so they don't
+      // wedge empty nodes between dropped thoughts. They come back with content.
+      if (isBlankAgentMessage(event)) continue;
+
+      // Interrupted "compact" turns keep one membership-based fold per turn,
+      // pushed at its first member. When the interrupt settles the automatic
+      // tail joins that fold without re-keying it; interleaved thoughts still
+      // do not split it, and folded interim messages stay absorbed.
+      const interruptedFold = interruptedCompactFolds.get(i);
+      if (interruptedFold) {
+        if (!interruptedFold.pushed) {
+          flushGroup();
+          result.push(interruptedFold.item);
+          interruptedFold.pushed = true;
+        }
+        continue;
+      }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      } else if (SessionEventsState.isBufferable(event)) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        // thing that splits a tool run). Active steers were handled above; a
+        // steer in an already-settled interrupted turn may still bridge its
+        // live-layout group to the next foldable tool. End-of-turn summaries
+        // keep absorbing all bufferable events. Interrupted "compact" turns
+        // absorb via their membership fold above, never here.
+        const absorbs = nextMode && (!nextMode.live || isSteerMessage(event));
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        } else if (isSteerMessage(event) && addSteerToExistingGroup({ event, index: i })) {
+          continue;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      } else {
+        flushGroup();
+        result.push({ id: `event-${i}`, kind: "event", event, index: i });
+      }
+    }
+
+    flushGroup();
+    return result;
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -152,6 +425,20 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      // folds at all. Once the interrupt settles, the automatic two-slot tail
+      // joins the fold: it was only kept out to stabilize the live transcript.
+      // A tool the user explicitly expanded still pins the fold boundary, so
+      // it and its successors remain visible. The final reply was cut off, so
+      // the in-flight structure — rather than a whole-turn summary — remains
+      // the record of what happened (PE-2401, PE-2402).
+      if (turn.interrupted) {
+        // "compact" interrupted turns fold membership-wise instead (see
+        // `interruptedCompactFoldsFor`); their tools never group here.
+        if (this.props.toolActivity !== "grouped") return null;
+        if (!this.isFinishedTool(event)) return null;
+        const fold = this.interruptedTurnFolds.get(turn);
+        if (fold && !this.foldsBehindTail(event, index, fold)) return null;
+        return { turn, live: true };
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -174,6 +461,50 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * `groupModeForTool`'s counterpart for settled thoughts: thoughts collapse
+   * with the tools around them rather than splitting the fold. Once the turn
+   * finishes they join the turn summary regardless of the mode; while the turn
+   * streams, "grouped" folds a thought as soon as anything visible follows it
+   * (the same rule "think" pseudo-steps use), so only agent messages break a
+   * run of activity up. Interrupted "grouped" turns keep the same trailing
+   * thought visibility rule while their finished tools settle into the fold.
+   * The live "compact" fold absorbs thoughts by membership before this is
+   * consulted (see `compactGroupFor`), interrupted "compact" turns keep
+   * thoughts beside their fold (see
+   * `interruptedCompactFoldsFor`), and "detailed" folds nothing live.
+   */
+  private groupModeForThought(
+    index: number,
+    latestUserMessageIndex: number,
+    liveTail: LiveTail | null,
+  ): GroupMode | null {
+    const turn = this.findTurnForIndex(index);
+    if (turn) {
+      if (turn.interrupted) {
+        if (this.props.toolActivity !== "grouped") return null;
+        const fold = this.interruptedTurnFolds.get(turn);
+        if (fold && !fold.visibleAfter[index - fold.start]) return null;
+        return { turn, live: true };
+      }
+      return { turn };
+    }
+    if (this.props.isPrompting) {
+      // Thoughts from earlier turns stay summarized with their tools while a
+      // new reply streams, matching `groupModeForTool`.
+      if (index < latestUserMessageIndex) return {};
+      if (
+        this.props.toolActivity === "grouped" &&
+        liveTail &&
+        liveTail.visibleAfter[index - liveTail.start]
+      ) {
+        return { live: true };
+      }
+      return null;
+    }
+    return {};
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -207,6 +538,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (!isBlankAgentMessage(events[i]) && !isSteerMessage(events[i])) seenVisible = true;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -218,6 +550,35 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    return {
+      foldBoundary: this.clampFoldBoundaryToPinned(events, realToolIndices, foldBoundary),
+      start,
+      visibleAfter,
+    };
+  }
+
+  /**
+   * Freezes the fold boundary at the earliest pinned (user-expanded
+   * standalone) tool: it and every tool after it stay out of the fold until
+   * the user collapses it, at which point the boundary jumps forward to
+   * wherever the tail computation has advanced. Tools already folded when
+   * pinning happens (expanded from inside an open group) never appear here —
+   * `ToolCallExpansionState` only pins standalone expands — so the boundary
+   * still never moves backward.
+   */
+  private clampFoldBoundaryToPinned(
+    events: SessionEvent[],
+    realToolIndices: number[],
+    foldBoundary: number,
+  ): number {
+    const pinned = this.expansion.pinnedToolCallIds;
+    if (foldBoundary === -1 || pinned.size === 0) return foldBoundary;
+    for (const index of realToolIndices) {
+      if (index >= foldBoundary) break;
+      const event = events[index];
+      if (event.eventKind === "tool_call" && pinned.has(event.toolCallId)) return index;
+    }
+    return foldBoundary;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -226,22 +587,107 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    // A pinned tool never folds: the user expanded it standalone and is
+    // reading it. Real calls are already covered by the boundary clamp; this
+    // check also keeps a pinned "think" step out, since those fold by
+    // trailing visibility rather than the boundary.
+    if (this.expansion.pinnedToolCallIds.has(event.toolCallId)) return false;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Each interrupted turn's settled fold boundary and trailing-visibility map.
+   * The live two-slot tail is an automatic layout-stability affordance, so once
+   * the interrupt settles every finished tool becomes foldable. Explicitly
+   * expanded tools still clamp the boundary: the earliest pin and every tool
+   * after it remain visible (PE-2401, PE-2402). `visibleAfter` keeps trailing
+   * thoughts and "think" steps on their existing streaming visibility rules.
+   */
+  private readonly interruptedTurnFolds = $derived.by(() => {
+    const folds = new Map<TurnMetadata, LiveTail>();
+    const turns = this.props.turns;
+    const mode = this.props.toolActivity;
+    if (!turns || (mode !== "grouped" && mode !== "compact")) return folds;
+    const events = this.props.events;
+    for (const turn of turns) {
+      if (!turn.interrupted) continue;
+      const start = turn.startIndex;
+      const end = Math.min(turn.endIndex, events.length - 1);
+      const realToolIndices: number[] = [];
+      for (let i = start; i <= end; i++) {
+        const event = events[i];
+        if (event.eventKind !== "tool_call") continue;
+        if (event.kind !== "think") realToolIndices.push(i);
+      }
+      const visibleAfter: boolean[] = new Array(Math.max(0, end - start + 1));
+      let seenVisible = false;
+      for (let i = end; i >= start; i--) {
+        visibleAfter[i - start] = seenVisible;
+        if (!isBlankAgentMessage(events[i]) && !isSteerMessage(events[i])) seenVisible = true;
+      }
+      // Every real tool is behind the settled boundary unless an explicit pin
+      // pulls it back. `end + 1` is outside the turn, so every in-range index
+      // satisfies `index < foldBoundary`.
+      const foldBoundary = end + 1;
+      folds.set(turn, {
+        foldBoundary: this.clampFoldBoundaryToPinned(events, realToolIndices, foldBoundary),
+        start,
+        visibleAfter,
+      });
+    }
+    return folds;
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+   * Membership and shared group items for "compact" mode: each live span
+   * between steer prompts folds into a summary line above the two-slot tail.
+   * Unlike "grouped" it absorbs interim messages and allows single-tool folds;
+   * steer prompts remain visible chronological boundaries between the spans.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  private compactFoldsFor(
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  ): Map<number, { item: Extract<GroupedItem, { kind: "event_group" }>; pushed: boolean }> {
+    const folds = new Map<
+      number,
+      { item: Extract<GroupedItem, { kind: "event_group" }>; pushed: boolean }
+    >();
+    if (!liveTail || this.props.toolActivity !== "compact") return folds;
+
+    // A live steer is a visible chronological boundary. Build an independent
+    // compact fold on each side so no later tool can be rendered above it.
+    let segmentStart = liveTail.start;
+    for (let i = segmentStart; i <= events.length; i++) {
+      const isBoundary =
+        i === events.length || (isSteerMessage(events[i]) && !this.findTurnForIndex(i));
+      if (!isBoundary) continue;
+      this.addCompactFoldForRange(folds, events, liveTail, segmentStart, i - 1);
+      segmentStart = i + 1;
+    }
+    return folds;
+  }
+
+  private addCompactFoldForRange(
+    folds: Map<number, { item: Extract<GroupedItem, { kind: "event_group" }>; pushed: boolean }>,
+    events: SessionEvent[],
+    liveTail: LiveTail,
+    start: number,
+    end: number,
+  ): void {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    for (let i = start; i <= end; i++) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      // Earlier turns keep their own rendering (a summary, or expanded when
+      // interrupted); only the live turn folds here.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (lastToolIndex === -1) return;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    for (let i = start; i <= end; i++) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -251,662 +697,216 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    if (items.length === 0) return;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    // Interim narration and reasoning fold too — matching how the end-of-turn
+    // summary absorbs them — as soon as any tool call follows them, kept or
+    // folded. Only trailing activity after every tool stays out: it is the
+    // current thought or streaming/final reply. Agents narrate and reason
+    // constantly between tools, which otherwise buries the summary line.
+    for (let i = start; i <= end; i++) {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      if (i >= lastToolIndex) continue;
+      if (!SessionEventsState.isBufferable(event)) continue;
+      if (isBlankAgentMessage(event)) continue;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    const fold = {
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        kind: "event_group" as const,
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    for (const i of indices) folds.set(i, fold);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  /**
+   * Per-turn cache for `interruptedCompactFoldsFor`, keyed by the turn's
+   * `startIndex`. `Session.svelte.ts`'s `flushTranscript` rebuilds `turns`
+   * (and every `TurnMetadata` object in it) on every transcript flush —
+   * up to every `VISIBLE_TRANSCRIPT_FLUSH_MS` while a reply streams — so
+   * caching by object reference would never hit; `startIndex` is the stable,
+   * effectively-unique stand-in (turns don't overlap and offsets are
+   * preserved across history rotation). An interrupted turn's own event range
+   * is frozen the moment it finishes (`TurnMaterializer.finishCurrentTurn`
+   * never revisits a pushed turn), so once computed, a fold never needs to
+   * change — except if this `SessionEventsState` instance outlives a session
+   * switch (it does; see `ChatSessionScope.svelte.ts`) and a new session's
+   * turn reuses the same small `startIndex`. `startedAt`/`endIndex` are
+   * stored alongside the fold to detect that case and recompute instead of
+   * serving a stale fold. The fold also depends on the user's pins (a pinned
+   * tool stays out of it), so the pinned set — reassigned wholesale on every
+   * change — is stored by reference and any pin change recomputes. A plain
+   * `Map`, not reactive state: reading a reactive collection from inside a
+   * derived has caused infinite reactive loops in this codebase before.
+   */
+  private readonly interruptedFoldCache = new Map<
+    number,
+    {
+      startedAt: string;
+      endIndex: number;
+      pinned: ReadonlySet<string>;
+      item: Extract<GroupedItem, { kind: "event_group" }>;
+      indices: Set<number>;
+    }
+  >();
+
+  /**
+   * Each interrupted "compact" turn's settled fold: the same membership rules
+   * as `compactGroupFor`, expanded to include the automatic tail once
+   * streaming ends. Finished tools before the earliest explicit pin and
+   * interim messages with a later tool form one group per turn, anchored on
+   * its first folded tool; single-tool folds remain allowed. Membership rather
+   * than contiguity means interleaved thoughts render beside the fold without
+   * splitting it into re-keyed groups, and folded interim messages stay in it.
+   *
+   * Folds are computed once per turn and cached in `interruptedFoldCache`
+   * (see its doc comment): an interrupted turn's event range never changes,
+   * so re-scanning it on every transcript flush would be O(interrupted turns
+   * × their event ranges) on every flush during streaming, for turns whose
+   * answer can never change. Steady state is an O(1) cache lookup per turn.
+   */
+  private interruptedCompactFoldsFor(
+    events: SessionEvent[],
+  ): Map<number, { item: Extract<GroupedItem, { kind: "event_group" }>; pushed: boolean }> {
+    const folds = new Map<
+      number,
+      { item: Extract<GroupedItem, { kind: "event_group" }>; pushed: boolean }
+    >();
+    if (this.props.toolActivity !== "compact") return folds;
+    const liveKeys = new Set<number>();
+    for (const [turn, foldPlan] of this.interruptedTurnFolds) {
+      const key = turn.startIndex;
+      liveKeys.add(key);
+      const pinned = this.expansion.pinnedToolCallIds;
+      let cached = this.interruptedFoldCache.get(key);
+      if (
+        !cached ||
+        cached.startedAt !== turn.startedAt ||
+        cached.endIndex !== turn.endIndex ||
+        cached.pinned !== pinned
+      ) {
+        const computed = this.computeInterruptedFold(events, turn, foldPlan);
+        if (!computed) {
+          this.interruptedFoldCache.delete(key);
+          continue;
+        }
+        cached = { startedAt: turn.startedAt, endIndex: turn.endIndex, pinned, ...computed };
+        this.interruptedFoldCache.set(key, cached);
+      }
+      const fold = { item: cached.item, pushed: false };
+      for (const i of cached.indices) folds.set(i, fold);
+    }
+    // Drop entries for turns no longer among the interrupted folds (a full
+    // transcript rewrite removed one, or this instance moved to a different
+    // session) so the cache cannot grow unboundedly over the component's
+    // lifetime.
+    for (const key of this.interruptedFoldCache.keys()) {
+      if (!liveKeys.has(key)) this.interruptedFoldCache.delete(key);
+    }
+    return folds;
+  }
+
+  /** Computes one interrupted turn's "compact" fold; see `interruptedCompactFoldsFor`. */
+  private computeInterruptedFold(
+    events: SessionEvent[],
+    turn: TurnMetadata,
+    foldPlan: LiveTail,
+  ): { item: Extract<GroupedItem, { kind: "event_group" }>; indices: Set<number> } | null {
+    const start = turn.startIndex;
+    const end = Math.min(turn.endIndex, events.length - 1);
+    let lastToolIndex = -1;
+    for (let i = start; i <= end; i++) {
+      if (events[i].eventKind === "tool_call") lastToolIndex = i;
+    }
+    if (lastToolIndex === -1) return null;
+    const items: SessionEventGroupItem[] = [];
+    const indices = new Set<number>();
+    for (let i = start; i <= end; i++) {
+      const event = events[i];
+      if (event.eventKind !== "tool_call" || !this.isFinishedTool(event)) continue;
+      if (!this.foldsBehindTail(event, i, foldPlan)) continue;
+      items.push({ event, index: i });
+      indices.add(i);
+    }
+    if (items.length === 0) return null;
+    const idIndex = items[0].index;
+    for (let i = start; i <= end; i++) {
+      const event = events[i];
+      if (i >= lastToolIndex && !isSteerMessage(event)) continue;
+      if (
+        (event.eventKind !== "agent_message" && !isSteerMessage(event)) ||
+        isBlankAgentMessage(event)
+      ) {
+        continue;
+      }
+      items.push({ event, index: i });
+      indices.add(i);
+    }
+    items.sort((a, b) => a.index - b.index);
+    return {
+      item: {
+        id: `group-${idIndex}`,
+        kind: "event_group" as const,
+        events: items,
+        turn,
+        live: true,
+      },
+      indices,
+    };
+  }
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    for (let j = from + 1; j < events.length; j++) {
+      const e = events[j];
+      if (SessionEventsState.isBufferable(e)) continue;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  }
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  private readonly turnByIndex = $derived.by(() => {
+    const turns = this.props.turns;
+    const lookup = new Map<number, TurnMetadata>();
+    if (!turns) return lookup;
+    for (const turn of turns) {
+      for (let i = turn.startIndex; i <= turn.endIndex; i++) {
+        if (!lookup.has(i)) lookup.set(i, turn); // preserve first-match semantics of .find()
+      }
+    }
+    return lookup;
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    return this.turnByIndex.get(index);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+      const event = events[i];
+      if (event.eventKind === "user_message" && !event.steer) return i;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+}
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+function isSteerMessage(event: SessionEvent): boolean {
+  return event.eventKind === "user_message" && event.steer === true;
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

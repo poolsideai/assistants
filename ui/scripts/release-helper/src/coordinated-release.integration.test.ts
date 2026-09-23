@@ -16,6 +16,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  products: Record<string, ProductPlan & { version?: string }>;
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -206,97 +207,96 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+
+  describe("first release after a history migration", () => {
+    beforeEach(() => {
+      git(
+        repo,
+        "tag",
+        "--delete",
+        "vscode-assistant/v0.2.0",
+        "desktop/v0.8.0",
+        "vs-assistant/v0.4.0",
+      );
+    });
+
+    it("plans all three products without creating tags or importing old history", () => {
+      const sourceSha = git(repo, "rev-parse", "HEAD");
+      const plan = coordinate(
+        repo,
+        "--channel",
+        "nightly",
+        "--bootstrap-version",
+        "1.7.0",
+        "--sync-versions",
+        "--vs",
+        "--vs-destination",
+        vsDestination,
+      );
+
+      expect(plan).toMatchObject({
+        bootstrapVersion: "1.7.0",
+        version: "1.7.0",
+        versions: { vscode: "1.7.0", desktop: "1.7.0", vs: "1.7.0" },
+        activeProducts: ["vscode", "desktop", "vs"],
+        sourceSha,
+      });
+      for (const product of plan.activeProducts) {
+        expect(plan.products[product]).toMatchObject({ action: "release", previousTag: null });
+        expect(plan.products[product]?.tagAnnotation).toContain(sourceSha);
+      }
+      expect(git(repo, "tag", "--list")).toBe("");
+    });
+
+    it("keeps the exact bootstrap version when retrying a partially reserved release", () => {
+      const args = ["--channel", "nightly", "--bootstrap-version", "1.7.0", "--sync-versions"];
+      const initial = coordinate(repo, ...args);
+      const vscode = initial.products.vscode;
+      expect(vscode).toBeDefined();
+      git(repo, "tag", "--annotate", vscode!.tag, "--message", vscode!.tagAnnotation);
+
+      expect(coordinate(repo, ...args)).toMatchObject({
+        version: "1.7.0",
+        versions: { vscode: "1.7.0", desktop: "1.7.0" },
+        products: { vscode: { action: "resume" }, desktop: { action: "release" } },
+      });
+
+      const desktop = initial.products.desktop;
+      expect(desktop).toBeDefined();
+      git(repo, "tag", "--annotate", desktop!.tag, "--message", desktop!.tagAnnotation);
+      commitFile(repo, "desktop/file.txt", "next desktop change");
+      expect(coordinate(repo, "--channel", "nightly", "--sync-versions")).toMatchObject({
+        bootstrapVersion: null,
+        version: "1.7.1",
+        versions: { vscode: "1.7.1", desktop: "1.7.1" },
+      });
+    });
+
+    it("does not bootstrap implicitly or from a schedule", () => {
+      expect(() => coordinate(repo, "--channel", "nightly")).toThrow("is not bound");
+      expect(coordinate(repo, "--channel", "nightly", "--scheduled")).toMatchObject({
+        activeProducts: [],
+      });
+      expect(() =>
+        coordinate(repo, "--channel", "nightly", "--bootstrap-version", "1.7.0", "--scheduled"),
+      ).toThrow("Scheduled releases cannot bootstrap");
+    });
+
+    it("rejects a bootstrap version from the wrong channel", () => {
+      expect(() =>
+        coordinate(repo, "--channel", "nightly", "--bootstrap-version", "1.6.0"),
+      ).toThrow("does not belong to the nightly channel");
+    });
+
+    it("refuses to move a bootstrap reservation to a different source", () => {
+      const args = ["--channel", "nightly", "--bootstrap-version", "1.7.0"];
+      const initial = coordinate(repo, ...args);
+      const vscode = initial.products.vscode;
+      expect(vscode).toBeDefined();
+      git(repo, "tag", "--annotate", vscode!.tag, "--message", vscode!.tagAnnotation);
+      commitFile(repo, "app/file.txt", "later source");
+
+      expect(() => coordinate(repo, ...args)).toThrow("not planned source");
+    });
+  });
 __POOL_SYNTHETIC_IMPORT_BASELINE__

@@ -55,16 +55,16 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+// MCPOAuthCallback completes a pending deep-link OAuth flow with the redirect
+// URL the client received from the OS (poolside://oauth/callback?…). Flows
+// wait on this only when they were started with a deep-link redirect.
+func (h *PoolsideHandler) MCPOAuthCallback(_ context.Context, params *methods.MCPOAuthCallbackParams, _ *glsp.Context) (*methods.MCPOAuthCallbackOutput, error) {
+	if err := mcp.DeliverOAuthCallback(params.URL); err != nil {
+		return nil, pkgerrors.Wrap(err, "MCP OAuth callback")
+	}
+	return &methods.MCPOAuthCallbackOutput{}, nil
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

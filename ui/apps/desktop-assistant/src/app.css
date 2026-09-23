@@ -1,3 +1,645 @@
+@import "tailwindcss";
+@import "@poolsideai/tailwind-config/vscode.css";
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+@import "@poolsideai/tailwind-config";
+@import "@poolsideai/assistant/theme.css";
+@import "@poolsideai/assistant/syntax-theme.css";
+
+@source "../../../packages/assistant";
+@source "../../../packages/components";
+@source "../../../packages/features";
+@source "../../../packages/web-components";
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+@font-face {
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /* swap: terminal text renders immediately in the fallback mono instead of
+     staying invisible for up to 3s while the 2.5MB TTF loads. */
+  font-display: swap;
+  font-style: normal;
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  src: url("/fonts/JetBrainsMonoNerdFontMono-Regular.woff2") format("woff2");
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  /* swap: terminal text renders immediately in the fallback mono instead of
+     staying invisible for up to 3s while the 2.5MB TTF loads. */
+  font-display: swap;
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  src: url("/fonts/JetBrainsMonoNerdFontMono-Bold.woff2") format("woff2");
+}
+
+@layer base {
+  body {
+    --desktop-window-controls-space: 88px;
+  }
+
+  body.desktop-window-fullscreen {
+    --desktop-window-controls-space: 0px;
+  }
+
+  /*
+   * Hairline stroke width: one device pixel. On 2x (retina) displays a 0.5px
+   * length rasterizes to a single device pixel, so dividers and fine borders
+   * read as true hairlines instead of two-device-pixel lines. Shared
+   * components consume this as var(--psx-hairline, 1px); hosts that don't
+   * load this stylesheet (VS Code, web) never define it and keep 1px.
+   */
+  :root {
+    --psx-hairline: 1px;
+
+    /*
+     * The desktop app ships its own palette rather than inheriting a user's
+     * editor theme, so its highlight can safely be the blue pair the settings
+     * cards were designed around: a light blue fill inside a blue hairline.
+     * Both resolve per theme (#dbedff/#2188ff light, #044289/#005cc5 dark).
+     *
+     * This is the fallback for when the accent block below is not in play — the
+     * setting off, or off macOS. With it on, the pair follows the user's accent.
+     */
+    --psx-highlight-background: var(--psx-info-background);
+    --psx-highlight-border: var(--psx-focus);
+
+    /*
+     * Text selection, for when the accent block below is not in play. These are
+     * WebKit's own built-in selection colors, not the OS's: WKWebView resolves
+     * `Highlight` to a fixed rgba(128 188 254 / 60%) and ignores the system
+     * Highlight color entirely, so this is a blue close to the macOS default
+     * rather than whatever the user picked. The accent block overrides both with
+     * the real thing. Set only here, where the runtime is known to be WKWebView:
+     * an override of a custom property does not fall back to the earlier
+     * declaration the way a plain one would, so a host that could not resolve
+     * these would select in nothing at all.
+     */
+    --psx-selection-background: Highlight;
+    --psx-selection-foreground: HighlightText;
+  }
+
+  @media (min-resolution: 2dppx) {
+    :root {
+      --psx-hairline: 0.5px;
+    }
+  }
+
+  /*
+   * The user's macOS accent color.
+   *
+   * WKWebView gives CSS no way to reach it: `AccentColor`,
+   * `-webkit-focus-ring-color` and `Highlight` are all hardcoded blue in the web
+   * process and stay blue when the accent changes in System Settings. So the
+   * colors are read from AppKit and pushed in as --desktop-system-accent-*
+   * custom properties (src-tauri/src/system_accent.rs, src/desktopAccent.ts).
+   * The class is present only on macOS, and updates live when the accent
+   * changes in System Settings.
+   *
+   * Three values are bridged rather than one accent plus CSS-derived tints,
+   * because two of them are decisions rather than mixes:
+   *
+   * - the accent (`NSColor.controlAccentColor`);
+   * - the selection fill (`NSColor.selectedTextBackgroundColor`), which follows
+   *   the separate Highlight color setting and is Apple's own tint of the
+   *   accent, not a mix we would have to guess at;
+   * - on-accent text, which is a luminance decision AppKit makes and CSS gets
+   *   wrong — `contrast-color()` maximises contrast, so it flips the default
+   *   blue to black text where macOS uses white.
+   *
+   * Both appearances are published because the values differ (a purple accent is
+   * #953D96 in light and #A550A7 in dark), so the theme class picks a pair and
+   * light/dark stays in step without re-reading anything. Fallbacks are the
+   * stock blue accent, for the window between the class landing and the values.
+   */
+  :root.desktop-system-accent.vscode-light {
+    --psx-accent: var(--desktop-system-accent-light, #007aff);
+    --psx-accent-foreground: var(--desktop-system-accent-foreground-light, #ffffff);
+    --psx-accent-selection: var(--desktop-system-accent-selection-light, #b3d7ff);
+
+    /*
+     * selectedTextBackgroundColor is tuned for dragging through text, where the
+     * fill only ever covers a few words. Behind a whole row or card it reads a
+     * step too heavy — the blue accent's #b3d7ff is visibly darker than the
+     * #dbedff the settings cards were designed around. Half-mixing it into the
+     * page lands within a channel or two of that original, and scales the same
+     * way for every accent instead of hardcoding a second pastel per color.
+     */
+    --psx-accent-fill: color-mix(in srgb, var(--psx-accent-selection) 50%, #ffffff);
+  }
+
+  :root.desktop-system-accent.vscode-dark {
+    --psx-accent: var(--desktop-system-accent-dark, #007aff);
+    --psx-accent-foreground: var(--desktop-system-accent-foreground-dark, #ffffff);
+    --psx-accent-selection: var(--desktop-system-accent-selection-dark, #3f638b);
+
+    /*
+     * Not lightened in dark mode: the dark selection fills are already the
+     * lighter half of the pair (blue is #3f638b against the old #044289), and
+     * mixing toward white would drop 85%-white label text to around 2.4:1. The
+     * AppKit value is the one tuned to carry that text, so it stands as-is.
+     */
+    --psx-accent-fill: var(--psx-accent-selection);
+  }
+
+  :root.desktop-system-accent {
+    /*
+     * Light-appearance defaults, overridden by the higher-specificity theme
+     * blocks above. They cover the startup window where the class is already on
+     * (seeded from cache at module scope, before the first paint) but no theme
+     * class is yet — index.html ships none, applyDesktopTheme adds them. Without
+     * these, every token below would resolve against an undefined value and
+     * become guaranteed-invalid rather than falling back to the non-accent
+     * declarations, exactly as warned above.
+     */
+    --psx-accent: #007aff;
+    --psx-accent-foreground: #ffffff;
+    --psx-accent-selection: #b3d7ff;
+    --psx-accent-fill: color-mix(in srgb, var(--psx-accent-selection) 50%, #ffffff);
+
+    /* Focus rings. ~200 call sites, all of them through this one token. */
+    --psx-focus: var(--psx-accent);
+
+    /*
+     * The tinted-fill-inside-a-hairline highlight. One pair for every surface
+     * that singles a row out this way — the selected conversation in the
+     * sidebar, menu and popover rows, the settings cards — so they cannot drift
+     * apart. Takes the eased-back fill rather than the raw selection color; see
+     * --psx-accent-fill above. Replaces the derivation from
+     * --psx-info-background above, which leaves info banners and the file tree's
+     * git-modified marks on their own blue — those are status colors, not accent
+     * ones, and AppKit does not tint them either.
+     */
+    --psx-highlight-background: var(--psx-accent-fill);
+    --psx-highlight-border: var(--psx-accent);
+
+    /*
+     * Prose selection. selectedTextBackgroundColor is designed to be read
+     * against the ordinary label color, which is what AppKit draws on it, so the
+     * foreground follows the text rather than flipping to white — and unlike
+     * `HighlightText` above it stays legible on the dark-mode fill.
+     */
+    --psx-selection-background: var(--psx-accent-selection);
+    --psx-selection-foreground: var(--psx-foreground-primary);
+
+    /* Switches and unread badges: solid accent, contrasting glyphs. */
+    --psx-toggle-on-background: var(--psx-accent);
+    --psx-bubble-background: var(--psx-accent);
+    --psx-bubble-foreground: var(--psx-accent-foreground);
+  }
+
+  :root.vscode-light,
+  body.vscode-light {
+    color-scheme: light;
+
+    --vscode-font-family:
+      system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+      sans-serif;
+    --vscode-font-size: 13px;
+    --vscode-font-weight: normal;
+    --font-sans: var(--vscode-font-family);
+    --vscode-editor-font-family:
+      Menlo, Monaco, Consolas, "Ubuntu Mono", "Liberation Mono", monospace;
+    --vscode-editor-font-size: 12px;
+    --vscode-editor-line-height: 18px;
+
+    /*
+     * Primary text at native macOS contrast (NSColor.labelColor: 85% black /
+     * 85% white). The GitHub theme's #444d56/#d1d5da read a step softer than
+     * every native app around us. Alpha-based like labelColor, so glyphs let
+     * the frost through under window vibrancy. Secondary/tertiary keep the
+     * theme's values — they already sit at or above macOS secondaryLabelColor
+     * contrast, and lifting them would flatten the text hierarchy.
+     */
+    --vscode-foreground: rgb(0 0 0 / 85%);
+    --vscode-descriptionForeground: #6a737d;
+    --vscode-disabledForeground: rgb(97 97 97 / 50%);
+    --vscode-errorForeground: #cb2431;
+    --vscode-focusBorder: #2188ff;
+
+    /*
+     * Menu surface. The GitHub panel gray is faintly blue; the AppKit menu
+     * material renders as a neutral light gray, and our menus sit right next to
+     * real ones (the title bar, the right-click menus the host draws), so they
+     * take the native color rather than the theme's. Separator matches NSMenu's
+     * 10% black hairline.
+     */
+    --psx-menu-background: #f6f6f6;
+    --psx-menu-separator: rgb(0 0 0 / 10%);
+
+    --vscode-sideBar-background: #f6f8fa;
+    --vscode-sideBar-foreground: #586069;
+    --vscode-sideBar-border: #e1e4e8;
+    --vscode-sideBarTitle-background: #f6f8fa;
+    --vscode-sideBarTitle-foreground: #2f363d;
+    --vscode-sideBarSectionHeader-background: #f6f8fa;
+    --vscode-sideBarSectionHeader-foreground: #2f363d;
+    --vscode-sideBarSectionHeader-border: #e1e4e8;
+    --vscode-panel-background: #f6f8fa;
+    --vscode-panel-border: #e1e4e8;
+    /* A cool off-white pane fill gives the white inner rim contrast.
+       Tabs, editors, and terminal canvases all derive their surface from it. */
+    --vscode-editor-background: #fbfcfd;
+    --vscode-editor-foreground: #24292e;
+    --vscode-editorGroup-border: #e1e4e8;
+    --vscode-editor-lineHighlightBackground: #f6f8fa;
+    --vscode-editor-lineHighlightBorder: #eeeeee;
+    --vscode-editor-inactiveSelectionBackground: rgb(3 102 214 / 7%);
+    --vscode-editor-selectionBackground: rgb(3 102 214 / 14%);
+    --vscode-editor-selectionForeground: #24292e;
+    --vscode-editorLineNumber-foreground: rgb(27 31 35 / 30%);
+    --vscode-editorLineNumber-activeForeground: #24292e;
+    --vscode-editorGutter-background: var(--vscode-editor-background);
+    --vscode-editorGutter-commentRangeForeground: #e1e4e8;
+    --vscode-editorGutter-itemGlyphForeground: #24292e;
+    --vscode-editorGutter-itemBackground: #e8eaed;
+    --vscode-editorInfo-foreground: #1a85ff;
+    --vscode-editorWarning-foreground: #f9c513;
+    --vscode-editorError-foreground: #cb2431;
+    --vscode-editorCursor-foreground: #005cc5;
+    --vscode-editorCursor-background: #d1d5da;
+    --vscode-editorWhitespace-foreground: #d1d5da;
+    --vscode-editorIndentGuide-background: #eff2f6;
+    --vscode-editorIndentGuide-activeBackground: #d7dbe0;
+    --vscode-editor-foldBackground: rgb(106 115 125 / 10%);
+    --vscode-editorBracketMatch-background: rgb(52 208 88 / 25%);
+    --vscode-editorBracketMatch-border: rgb(52 208 88 / 0%);
+    --vscode-editorBracketHighlight-unexpectedBracket-foreground: #6a737d;
+
+    --vscode-tab-unfocusedInactiveForeground: rgb(88 96 105 / 50%);
+    --vscode-toolbar-hoverBackground: rgb(184 184 184 / 31%);
+    --vscode-toolbar-activeBackground: rgb(166 166 166 / 31%);
+    --vscode-list-hoverBackground: #ebf0f4;
+    --vscode-list-highlightForeground: #0066bf;
+    --vscode-list-inactiveSelectionForeground: #2f363d;
+    --vscode-list-activeSelectionForeground: #2f363d;
+    --vscode-list-activeSelectionBackground: #e2e5e9;
+    --vscode-list-focusHighlightForeground: #0066bf;
+
+    --vscode-button-foreground: #ffffff;
+    --vscode-button-background: #159739;
+    --vscode-button-hoverBackground: #138934;
+    --vscode-button-secondaryForeground: #1b1f23;
+    --vscode-button-secondaryBackground: #e1e4e8;
+    --vscode-button-secondaryHoverBackground: #d1d5da;
+
+    --vscode-checkbox-background: #fafbfc;
+    --vscode-checkbox-border: #d1d5da;
+    --vscode-checkbox-foreground: #2f363d;
+
+    --vscode-input-background: #fafbfc;
+    --vscode-input-border: #e1e4e8;
+    --vscode-input-foreground: #2f363d;
+    --vscode-input-placeholderForeground: #959da5;
+    --vscode-inputValidation-errorBackground: #f2dede;
+
+    --vscode-textLink-foreground: #0366d6;
+    --vscode-badge-background: #dbedff;
+    --vscode-badge-foreground: #005cc5;
+    --vscode-activityBarBadge-background: #2188ff;
+    --vscode-activityBarBadge-foreground: #ffffff;
+    --vscode-activityErrorBadge-background: #e51400;
+    --vscode-activityWarningBadge-background: #bf8803;
+    --vscode-problemsErrorIcon-foreground: #cb2431;
+    --vscode-problemsWarningIcon-foreground: #f9c513;
+    --vscode-problemsInfoIcon-foreground: #1a85ff;
+    --vscode-banner-iconForeground: #1a85ff;
+
+    --vscode-editorHoverWidget-background: #f6f8fa;
+    --vscode-editorHoverWidget-border: #c8c8c8;
+    --vscode-editorHoverWidget-foreground: var(--vscode-foreground);
+
+    --vscode-diffEditor-insertedTextBackground: rgb(52 208 88 / 13%);
+    --vscode-diffEditor-removedTextBackground: rgb(215 58 73 / 13%);
+    --vscode-diffEditor-unchangedRegionBackground: #f6f8fa;
+    --vscode-diffEditor-unchangedRegionForeground: #444d56;
+
+    --vscode-terminal-font-family: Menlo, var(--vscode-editor-font-family);
+    --vscode-terminal-font-size: var(--vscode-editor-font-size);
+    --vscode-terminal-line-height: 1;
+    --vscode-terminal-foreground: #586069;
+    --vscode-terminal-background: var(--vscode-editor-background);
+    --vscode-terminalCursor-foreground: #005cc5;
+    --vscode-terminalCursor-background: #d1d5da;
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --vscode-terminal-selectionForeground: #24292e;
+    --vscode-terminal-ansiBlack: #24292e;
+    --vscode-terminal-ansiRed: #d73a49;
+    --vscode-terminal-ansiGreen: #28a745;
+    --vscode-terminal-ansiYellow: #dbab09;
+    --vscode-terminal-ansiBlue: #0366d6;
+    --vscode-terminal-ansiMagenta: #5a32a3;
+    --vscode-terminal-ansiCyan: #1b7c83;
+    --vscode-terminal-ansiWhite: #6a737d;
+    --vscode-terminal-ansiBrightBlack: #959da5;
+    --vscode-terminal-ansiBrightRed: #cb2431;
+    --vscode-terminal-ansiBrightGreen: #22863a;
+    --vscode-terminal-ansiBrightYellow: #b08800;
+    --vscode-terminal-ansiBrightBlue: #005cc5;
+    --vscode-terminal-ansiBrightMagenta: #5a32a3;
+    --vscode-terminal-ansiBrightCyan: #3192aa;
+    --vscode-terminal-ansiBrightWhite: #d1d5da;
+  }
+
+  :root.vscode-dark,
+  body.vscode-dark {
+    color-scheme: dark;
+
+    --vscode-font-family:
+      system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+      sans-serif;
+    --vscode-font-size: 13px;
+    --vscode-font-weight: normal;
+    --font-sans: var(--vscode-font-family);
+    --vscode-editor-font-family:
+      Menlo, Monaco, Consolas, "Ubuntu Mono", "Liberation Mono", monospace;
+    --vscode-editor-font-size: 12px;
+    --vscode-editor-line-height: 18px;
+
+    /* Native macOS labelColor — see the light theme block for rationale. */
+    --vscode-foreground: rgb(255 255 255 / 85%);
+    --vscode-descriptionForeground: #959da5;
+    --vscode-disabledForeground: rgb(204 204 204 / 50%);
+    --vscode-errorForeground: #f97583;
+    --vscode-focusBorder: #005cc5;
+
+    /* Menu surface — see the light theme block. Lifted well clear of the panel
+       (#1f2428) so a menu reads as elevated, at roughly the lightness AppKit's
+       dark menu material settles at. */
+    --psx-menu-background: #2f363d;
+    --psx-menu-separator: rgb(255 255 255 / 13%);
+
+    --vscode-sideBar-background: #1f2428;
+    --vscode-sideBar-foreground: #d1d5da;
+    --vscode-sideBar-border: #1b1f23;
+    --vscode-sideBarTitle-background: #1f2428;
+    --vscode-sideBarTitle-foreground: #e1e4e8;
+    --vscode-sideBarSectionHeader-background: #1f2428;
+    --vscode-sideBarSectionHeader-foreground: #e1e4e8;
+    --vscode-sideBarSectionHeader-border: #1b1f23;
+    --vscode-panel-background: #1f2428;
+    --vscode-panel-border: #1b1f23;
+    --vscode-editor-background: #1b1f23;
+    --vscode-editor-foreground: #e1e4e8;
+    --vscode-editorGroup-border: #1b1f23;
+    --vscode-editor-lineHighlightBackground: #2b3036;
+    --vscode-editor-lineHighlightBorder: #282828;
+    --vscode-editor-inactiveSelectionBackground: rgb(51 146 255 / 13%);
+    --vscode-editor-selectionBackground: rgb(51 146 255 / 27%);
+    --vscode-editor-selectionForeground: #e1e4e8;
+    --vscode-editorLineNumber-foreground: #444d56;
+    --vscode-editorLineNumber-activeForeground: #e1e4e8;
+    --vscode-editorGutter-background: var(--vscode-editor-background);
+    --vscode-editorGutter-commentRangeForeground: #444d56;
+    --vscode-editorGutter-itemGlyphForeground: #d1d5da;
+    --vscode-editorGutter-itemBackground: #2f363d;
+    --vscode-editorInfo-foreground: #3794ff;
+    --vscode-editorWarning-foreground: #ffea7f;
+    --vscode-editorError-foreground: #f97583;
+    --vscode-editorCursor-foreground: #c8e1ff;
+    --vscode-editorCursor-background: #24292e;
+    --vscode-editorWhitespace-foreground: #444d56;
+    --vscode-editorIndentGuide-background: #2f363d;
+    --vscode-editorIndentGuide-activeBackground: #444d56;
+    --vscode-editor-foldBackground: rgb(106 115 125 / 10%);
+    --vscode-editorBracketMatch-background: rgb(52 208 88 / 25%);
+    --vscode-editorBracketMatch-border: rgb(52 208 88 / 0%);
+    --vscode-editorBracketHighlight-unexpectedBracket-foreground: #959da5;
+
+    --vscode-tab-unfocusedInactiveForeground: rgb(149 157 165 / 50%);
+    --vscode-toolbar-hoverBackground: rgb(90 93 94 / 31%);
+    --vscode-toolbar-activeBackground: rgb(99 102 103 / 31%);
+    --vscode-list-hoverBackground: #282e34;
+    --vscode-list-highlightForeground: #2aaaff;
+    --vscode-list-inactiveSelectionForeground: #e1e4e8;
+    --vscode-list-activeSelectionForeground: #e1e4e8;
+    --vscode-list-activeSelectionBackground: #39414a;
+    --vscode-list-focusHighlightForeground: #2aaaff;
+
+    --vscode-button-foreground: #dcffe4;
+    --vscode-button-background: #176f2c;
+    --vscode-button-hoverBackground: #22863a;
+    --vscode-button-secondaryForeground: #ffffff;
+    --vscode-button-secondaryBackground: #444d56;
+    --vscode-button-secondaryHoverBackground: #586069;
+
+    --vscode-checkbox-background: #444d56;
+    --vscode-checkbox-border: #1b1f23;
+    --vscode-checkbox-foreground: #e1e4e8;
+
+    --vscode-input-background: #2f363d;
+    --vscode-input-border: #1b1f23;
+    --vscode-input-foreground: #e1e4e8;
+    --vscode-input-placeholderForeground: #959da5;
+    --vscode-inputValidation-errorBackground: #5a1d1d;
+
+    --vscode-textLink-foreground: #79b8ff;
+    --vscode-badge-background: #044289;
+    --vscode-badge-foreground: #c8e1ff;
+    --vscode-activityBarBadge-background: #0366d6;
+    --vscode-activityBarBadge-foreground: #ffffff;
+    --vscode-activityErrorBadge-background: #f14c4c;
+    --vscode-activityWarningBadge-background: #cca700;
+    --vscode-problemsErrorIcon-foreground: #f97583;
+    --vscode-problemsWarningIcon-foreground: #ffea7f;
+    --vscode-problemsInfoIcon-foreground: #3794ff;
+    --vscode-banner-iconForeground: #3794ff;
+
+    --vscode-editorHoverWidget-background: #1f2428;
+    --vscode-editorHoverWidget-border: #454545;
+    --vscode-editorHoverWidget-foreground: var(--vscode-foreground);
+
+    --vscode-diffEditor-insertedTextBackground: rgb(40 167 69 / 19%);
+    --vscode-diffEditor-removedTextBackground: rgb(215 58 73 / 19%);
+    --vscode-diffEditor-unchangedRegionBackground: #1f2428;
+    --vscode-diffEditor-unchangedRegionForeground: #d1d5da;
+
+    --vscode-terminal-font-family: Menlo, var(--vscode-editor-font-family);
+    --vscode-terminal-font-size: var(--vscode-editor-font-size);
+    --vscode-terminal-line-height: 1;
+    --vscode-terminal-foreground: #d1d5da;
+    --vscode-terminal-background: var(--vscode-editor-background);
+    --vscode-terminalCursor-foreground: #c8e1ff;
+    --vscode-terminalCursor-background: #24292e;
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+    --vscode-terminal-selectionForeground: #e1e4e8;
+    --vscode-terminal-ansiBlack: #24292e;
+    --vscode-terminal-ansiRed: #f14c4c;
+    --vscode-terminal-ansiGreen: #23d18b;
+    --vscode-terminal-ansiYellow: #f5f543;
+    --vscode-terminal-ansiBlue: #3b8eea;
+    --vscode-terminal-ansiMagenta: #d670d6;
+    --vscode-terminal-ansiCyan: #29b8db;
+    --vscode-terminal-ansiWhite: #d1d5da;
+    --vscode-terminal-ansiBrightBlack: #586069;
+    --vscode-terminal-ansiBrightRed: #f97583;
+    --vscode-terminal-ansiBrightGreen: #85e89d;
+    --vscode-terminal-ansiBrightYellow: #ffea7f;
+    --vscode-terminal-ansiBrightBlue: #79b8ff;
+    --vscode-terminal-ansiBrightMagenta: #b392f0;
+    --vscode-terminal-ansiBrightCyan: #56d4dd;
+    --vscode-terminal-ansiBrightWhite: #fafbfc;
+  }
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  /* clip, not hidden: none of the top-level boxes may become a scroll
+     container. In standards mode document.scrollingElement is <html>, so a
+     stray focus()/scrollIntoView can scroll the root and permanently shift the
+     whole UI up (~50px, one titlebar) since users can't scroll it back — every
+     element stays put except position:fixed ones. clip makes it a true
+     non-scroll-container (programmatic scrolls become no-ops); hidden would
+     still allow them. All real scrolling lives in inner containers. */
+  overflow: clip;
+}
+
+#app {
+  opacity: 1;
+  transition: opacity 240ms ease-out;
+}
+
+body.desktop-app-starting #app {
+  opacity: 0;
+}
+
+#desktop-startup-frame {
+  overflow: hidden;
+  background: transparent;
+  opacity: 1;
+  transition: opacity 240ms ease-out;
+}
+
+#desktop-startup-logo {
+  position: absolute;
+  inset: 0;
+}
+
+body.desktop-app-ready #desktop-startup-frame {
+  pointer-events: none;
+  opacity: 0;
+}
+
+body.desktop-app-starting {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #app,
+  #desktop-startup-frame {
+    transition: none;
+  }
+}
+
+body {
+  background: var(--psx-panel);
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  font-weight: var(--vscode-font-weight);
+  padding: 0;
+}
+
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+ * Both themes fold a trace of the accent into the wash so the frost picks up the
+ * user's color rather than reading as a neutral gray/white — the same thing the
+ * system's own sidebars do. Falls back to a true blue where there is no accent
+ * (the setting off, or off macOS) rather than the --psx-brand token, which is
+ * indigo (#6670fe) and reads purple even in small amounts. Kept very low so it
+ * stays a hint, not a color cast: at these strengths the tint shifts the wash by
+ * roughly two channel percent, so even a saturated accent stays a suggestion.
+ *
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+ * solid white content card (Tower-style), with a trace of the accent mixed in.
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  background-color: color-mix(in srgb, var(--psx-accent, #3b82f6) 1.5%, rgb(255 255 255 / 78%));
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  background-color: color-mix(
+    in srgb,
+    var(--psx-accent, #3b82f6) 2%,
+    color-mix(in srgb, var(--psx-editor-background) 75%, transparent)
+  );
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -15,6 +657,27 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+ * Source-list selection. The selected row had been painting the same fill as
+ * hover, which left the open conversation indistinguishable from whichever row
+ * the pointer happened to be over; it now takes the same blue pair the menus and
+ * settings cards highlight with.
+ *
+ * AppKit would draw this emphasized only while the list holds key focus and drop
+ * to a neutral fill otherwise. That was tried and does not transfer: selecting a
+ * conversation here hands focus straight to the prompt editor, by design, so the
+ * sidebar never holds focus for longer than the click and the emphasized state
+ * was effectively unreachable. The selection is what the whole window is showing
+ * — it earns the emphasis whether or not the list has focus.
+ */
+.desktop-sidebar-panel .desktop-sidebar-row-selected {
+  background-color: var(--psx-highlight-background);
+  box-shadow: inset 0 0 0 1px var(--psx-highlight-border);
+}
+
+/*
+ * Sidebar row hover fills. `--psx-menu-hover-background` drives the pointer
+ * hover for sidebar rows and nav buttons (all inside .desktop-sidebar-panel).
+ * Over the frosted sidebar, the theme's solid hover
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -22,6 +685,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+  --psx-menu-hover-background: color-mix(in srgb, var(--psx-foreground-primary) 6%, transparent);
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -67,6 +731,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+ * stays comfortably below `--psx-foreground-primary` (85% white) so the
+ * hierarchy holds. Base dark value is #959da5.
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -77,797 +743,131 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+/* Expanded thoughts use the roomier desktop treatment. Keep collapsed thoughts
+ * at the shared component's compact 24px height so they occupy the same row as
+ * collapsed tool calls while the transcript streams. */
+:root body [data-chat-progress].expanded {
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+[data-chat-progress].expanded .thinking-header {
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+/* Wavy rule for the end-of-turn tool fold: the svg squiggle masks the fill.
+   ToolCallGroup owns the box and the pinning; while the fold is open this line
+   is also where the contents are cut, and the fill doing the cutting repeats the
+   same path from the same origin — keep the two in step.
+
+   The two states are carried on separate layers and cross-faded, because a
+   gradient cannot be transitioned to another gradient. Both are clipped to the
+   squiggle by the mask here, so only their paint differs. */
+[data-tool-group-rule] {
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+  mask-position: left top;
+}
+
+[data-tool-group-rule]::before,
+[data-tool-group-rule]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transition: opacity 200ms ease-out;
+}
+
+/* At rest the rule reads as running from the summary label out to the right
+   edge (its left length is hidden behind the label's own background), so it
+   starts at full strength and ramps away across the whole span. */
+[data-tool-group-rule]::before {
+  background: linear-gradient(to right, rgb(0 0 0 / 12%), transparent);
+  opacity: 1;
+}
+
+/* Pinned, with contents passing under it: the label has moved up off the rule
+   and it now spans the whole column, so it wants an edge at BOTH ends instead of
+   starting hard against the left. */
+[data-tool-group-rule]::after {
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgb(0 0 0 / 12%) 20%,
+    rgb(0 0 0 / 12%) 80%,
+    transparent
+  );
+  opacity: 0;
+}
+
+[data-tool-group-rule][data-stuck]::before {
+  opacity: 0;
+}
+
+[data-tool-group-rule][data-stuck]::after {
+  opacity: 1;
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+/* The cut's shadow: a tight contact edge with a short diffuse tail, falling from
+   the wave itself. Two mask layers INTERSECTED — the same squiggle again, this
+   time closed downwards so it fills below the curve and the shadow follows the
+   line's contour, and the end fade on the same stops as the pinned line, so it
+   stops exactly where the rule does instead of running past the column. The
+   falloff is measured from the curve's midline (3px), not the band's top. */
+[data-tool-group-rule-shadow] {
+  background: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 5.5%) 3px,
+    rgb(0 0 0 / 2%) 8px,
+    rgb(0 0 0 / 0%) 18px
+  );
+  mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='24' viewBox='0 0 12 24'%3E%3Cpath d='M0 3q3-3 6 0t6 0V24H0Z' fill='%23000'/%3E%3C/svg%3E"),
+    linear-gradient(to right, transparent, #000 20%, #000 80%, transparent);
+  mask-repeat: repeat-x, no-repeat;
+  mask-size:
+    12px 24px,
+    100% 100%;
+  mask-position:
+    left top,
+    left top;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+:root.vscode-dark [data-tool-group-rule-shadow] {
+  background: linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 19%) 3px,
+    rgb(0 0 0 / 6.5%) 8px,
+    rgb(0 0 0 / 0%) 18px
+  );
+}
+
+:root.vscode-dark [data-tool-group-rule]::before {
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+__POOL_SYNTHETIC_IMPORT_BASELINE__
+:root.vscode-dark [data-tool-group-rule]::after {
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgb(255 255 255 / 12%) 20%,
+    rgb(255 255 255 / 12%) 80%,
+    transparent
+  );
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

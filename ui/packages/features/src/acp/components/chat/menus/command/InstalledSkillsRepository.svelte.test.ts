@@ -1,11 +1,11 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+import { describe, expect, it, vi } from "vitest";
+import { installedSkills } from "./InstalledSkillsRepository.svelte";
+
+vi.mock("@poolsideai/helperapi", () => ({}));
+
+describe("InstalledSkillsRepository", () => {
+  it("treats a missing helper method as unavailable", async () => {
+    await expect(installedSkills.refresh()).resolves.toBeUndefined();
+    expect(installedSkills.commands).toEqual([]);
+  });
+});

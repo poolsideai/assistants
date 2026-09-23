@@ -1,3 +1,8 @@
+import {
+  FILE_PATH_REGEX,
+  isFilePath,
+  parseFilePathWithLine,
+} from "@poolsideai/components/markdown";
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -177,48 +182,43 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+  describe("quoted paths", () => {
+    it("should match double-quoted relative paths", () => {
+      expect(extractPaths('Update "ui/packages/foo/bar.ts" next')).toEqual([
+        "ui/packages/foo/bar.ts",
+      ]);
+    });
+
+    it("should match single-quoted paths", () => {
+      expect(extractPaths("Check 'src/main.ts' now")).toEqual(["src/main.ts"]);
+    });
+
+    it("should match curly-quoted paths", () => {
+      expect(extractPaths("Check “src/main.ts” and ‘lib/util.go’")).toEqual([
+        "src/main.ts",
+        "lib/util.go",
+      ]);
+    });
+
+    it("should match quoted paths with line numbers", () => {
+      expect(extractMatches('See "src/main.ts:42:5" for details')).toEqual([
+        { path: "src/main.ts", line: "42", column: "5" },
+      ]);
+    });
+
+    it("should match a quoted path at the start of text", () => {
+      expect(extractPaths('"src/main.ts" is the entry point')).toEqual(["src/main.ts"]);
+    });
+
+    it("should match quoted paths followed by punctuation", () => {
+      expect(extractPaths('Open "src/main.ts".')).toEqual(["src/main.ts"]);
+    });
+
+    it("should match multiple quoted paths", () => {
+      expect(extractPaths('Compare "a/b.ts" with "c/d.ts"')).toEqual(["a/b.ts", "c/d.ts"]);
+    });
+  });
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

@@ -1,6 +1,7 @@
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	"context"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -215,64 +216,63 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	// Non-JSON output (the macOS GUI binary prints "The Tailscale GUI failed
+	// to start" when it doesn't detect a shell) is quoted in the error so the
+	// settings UI shows what the CLI actually said, not a JSON parse error.
+	_, _, _, err = parseTailscaleStatus([]byte("The Tailscale GUI failed to start\n"))
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), `"The Tailscale GUI failed to start"`)
+
+	_, _, _, err = parseTailscaleStatus(nil)
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+func TestTailscaleCommandForcesCLIMode(t *testing.T) {
+	cmd := tailscaleCommand(context.Background(), "/usr/bin/true", "status")
+	assert.Contains(t, cmd.Env, "TERM=dumb")
+}
+
+func TestSplitCertPEM(t *testing.T) {
+	chain := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: []byte("leaf")})
+	chain = append(chain, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: []byte("intermediate")})...)
+
+	// The key block type varies by key algorithm; all must be recognized.
+	for _, keyType := range []string{"PRIVATE KEY", "EC PRIVATE KEY", "RSA PRIVATE KEY"} {
+		key := pem.EncodeToMemory(&pem.Block{Type: keyType, Bytes: []byte("key")})
+		certPEM, keyPEM, err := splitCertPEM(append(append([]byte{}, chain...), key...))
+		require.NoError(t, err, keyType)
+		assert.Equal(t, chain, certPEM, keyType)
+		assert.Equal(t, key, keyPEM, keyType)
+	}
+
+	// An unexpected block is ignored rather than absorbed as key material, so
+	// a chain plus only a stray block is treated as "no key".
+	stray := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE REQUEST", Bytes: []byte("csr")})
+	_, _, err := splitCertPEM(append(append([]byte{}, chain...), stray...))
+	assert.Error(t, err, "stray block must not count as a key")
+
+	_, _, err = splitCertPEM(chain)
+	assert.Error(t, err, "missing key")
+	_, _, err = splitCertPEM(pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: []byte("key")}))
+	assert.Error(t, err, "missing certificate")
+	_, _, err = splitCertPEM([]byte("The Tailscale GUI failed to start\n"))
+	assert.Error(t, err)
+}
+
+func TestWriteCertCacheRemovesBothOnKeyFailure(t *testing.T) {
+	dir := t.TempDir()
+	certPath := filepath.Join(dir, "tailscale-cert.pem")
+	// Make the key path un-writable by creating a directory in its place.
+	keyPath := filepath.Join(dir, "tailscale-key.pem")
+	require.NoError(t, os.Mkdir(keyPath, 0o700))
+
+	err := writeCertCache(certPath, keyPath, []byte("cert"), []byte("key"))
+	require.Error(t, err)
+	// The cert must not survive without its key, or a later reuse would load a
+	// mismatched pair.
+	assert.NoFileExists(t, certPath)
+}
+
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__

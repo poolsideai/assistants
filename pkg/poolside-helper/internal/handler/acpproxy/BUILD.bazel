@@ -1,65 +1,65 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "acpproxy",
+    srcs = [
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        "client.go",
+        "elicitation.go",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        "handler.go",
+        "process.go",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        "registry_cache.go",
+        "registry_transport.go",
+        "runtime_check.go",
+    ],
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+    visibility = ["//pkg/poolside-helper:__subpackages__"],
+    deps = [
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/common/version",
+        "//pkg/poolside-helper/gopls/pkg/protocol",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/poolside-helper/internal/handler/acpnav",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/poolside-helper/methods",
+        "@com_github_coder_acp_go_sdk//:acp-go-sdk",
+        "@com_github_google_uuid//:uuid",
+        "@com_github_tliron_glsp//:glsp",
+    ],
+)
+
+go_test(
+    name = "acpproxy_test",
+    srcs = [
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        "client_test.go",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        "handler_test.go",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        "process_test.go",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+        "registry_transport_test.go",
+        "runtime_check_test.go",
+    ],
+    embed = [":acpproxy"],
+    deps = [
+        "//pkg/acp",
+        "//pkg/poolside-helper/gopls/pkg/protocol",
+        "//pkg/poolside-helper/internal/handler/acpnav",
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+        "//pkg/poolside-helper/internal/handler/approvals",
+        "//pkg/poolside-helper/methods",
+        "@com_github_coder_acp_go_sdk//:acp-go-sdk",
+        "@com_github_stretchr_testify//assert",
+        "@com_github_stretchr_testify//require",
+        "@com_github_tliron_glsp//:glsp",
+    ],
+)

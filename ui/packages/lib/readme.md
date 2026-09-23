@@ -1,3 +1,3 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+# @poolsideai/lib
+
+Contains non-domain specific helper functions, e.g. `Array#compact` and `memoize`.

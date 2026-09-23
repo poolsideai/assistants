@@ -6,6 +6,7 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
+	ExtensionMethodElicitation string = "_poolside/elicitation"
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
@@ -105,9 +106,8 @@ __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
 __POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+	SessionID acpsdk.SessionId `json:"sessionId,omitempty"` // routes the notification to its ACP session
+	ID        string           `json:"id"`                  // correlates started↔completed
+	Phase     CompactionPhase  `json:"phase"`               // "started" | "completed"
+	Summary   string           `json:"summary,omitempty"`   // populated on "completed" only
 __POOL_SYNTHETIC_IMPORT_BASELINE__

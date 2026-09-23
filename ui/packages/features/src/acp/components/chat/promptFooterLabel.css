@@ -1,15 +1,15 @@
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
-__POOL_SYNTHETIC_IMPORT_BASELINE__
+/* Labels and icons in the promptbox footer are both centred on their line box,
+   which lines their geometric middles up exactly — measured, an icon and its
+   label share a centre to within a tenth of a pixel. The eye centres text on
+   its x-height band instead, which sits above that middle, so a label reads as
+   riding high next to a solid glyph. A pixel down settles the pair; the offset
+   is painted, so the row's layout is untouched.
+
+   Visual Studio renders the webview with its own UI font, whose metrics differ
+   from the system-ui stack every other host uses — the same reason its
+   label/value baselines needed their own handling in PromptConfigControls — so
+   that host keeps the untouched centring. */
+.prompt-footer-label {
+  position: relative;
+  top: 1px;
+}
