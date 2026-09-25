@@ -5,7 +5,7 @@
   "description": "Mobile remote-control web UI for the Poolside desktop assistant, served by poolside-helper over Tailscale.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/poolsideai/assistant"
+    "url": "https://github.com/poolsideai/assistants"
   },
   "author": {
     "name": "Poolside",

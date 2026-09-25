@@ -120,7 +120,7 @@ Other:
 * SUMMARY - [#NNN](URL) @user
 ```
 
-- URL form: `https://github.com/poolsideai/assistant/pull/NNN`.
+- URL form: `https://github.com/poolsideai/assistants/pull/NNN`.
 - `@user` is the PR author's GitHub login (`.author.login`).
 - **Group** related PRs into one entry when they form a coherent story; place each
   PR link next to its author:

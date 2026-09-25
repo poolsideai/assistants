@@ -98,7 +98,7 @@ concurrency:
 jobs:
   plan:
     name: Plan release train
-    if: github.repository == 'poolsideai/assistant'
+    if: github.repository == 'poolsideai/assistants'
     runs-on: ubuntu-latest
     outputs:
       release: ${{ steps.gate.outputs.release }}

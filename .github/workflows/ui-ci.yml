@@ -40,12 +40,12 @@ jobs:
 
   affected:
     timeout-minutes: 15
-    # Canonical repo runs on the org's GitHub-hosted 4-core runner (ubuntu-24.04-4);
+    # Canonical repo runs on the assistants group's GitHub-hosted 4-core runner;
     # any other repo (forks) falls back to standard ubuntu-24.04 — a free 4-core once
     # the repo is public. The 4-core box roughly halves these jobs vs the 2-core default
     # (Build ~5.5m vs ~9m) and keeps --concurrency=50% at 2 rather than collapsing to 1.
     # Actionlint cannot validate the organization-specific runner label.
-    runs-on: ${{ github.repository == 'poolsideai/assistant' && 'ubuntu-24.04-4' || 'ubuntu-24.04' }}
+    runs-on: ${{ github.repository == 'poolsideai/assistants' && 'assistants-ubuntu-24.04-4' || 'ubuntu-24.04' }}
     name: ${{ matrix.name }}
     env:
       GH_TOKEN: ${{ github.token }}

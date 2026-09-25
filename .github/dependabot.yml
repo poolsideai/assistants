@@ -1,7 +1,8 @@
 version: 2
 updates:
-  # Maintain dependencies for GitHub Actions
+  # Keep security-fix PRs; general version updates are reviewed manually.
   - package-ecosystem: "github-actions"
     directory: "/"
+    open-pull-requests-limit: 0
     schedule:
       interval: "weekly"

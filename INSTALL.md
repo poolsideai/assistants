@@ -13,7 +13,7 @@ for each surface. The steps below use the releases page directly.
 
 ### Desktop app on macOS Apple Silicon
 
-1. Open the [releases page](https://github.com/poolsideai/assistant/releases)
+1. Open the [releases page](https://github.com/poolsideai/assistants/releases)
    and open the newest **desktop/** release.
 2. Download the `.dmg` asset.
 3. Open the `.dmg` and drag **Poolside** to **Applications**.
@@ -25,7 +25,7 @@ Install Poolside Assistant from the
 [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=poolside-ai.acp-assistant)
 or use a release VSIX. Poolside Assistant requires VS Code 1.85.0 or later.
 
-1. Open the [releases page](https://github.com/poolsideai/assistant/releases)
+1. Open the [releases page](https://github.com/poolsideai/assistants/releases)
    and open the newest **vscode-assistant/** release.
 2. Download the `.vsix` asset for your platform. See
    [Choose the right VS Code VSIX](#choose-the-right-vs-code-vsix).
@@ -58,8 +58,8 @@ VSIX asset.
 Poolside Assistant requires Visual Studio 2022 version 17.9 or later on Windows
 amd64.
 
-1. Open the [releases page](https://github.com/poolsideai/assistant/releases)
-   and open the newest **vs/** release.
+1. Open the [releases page](https://github.com/poolsideai/assistants/releases)
+   and open the newest **vs-assistant/** release.
 2. Download `poolside-assistant-<version>.vsix`.
 3. Close Visual Studio.
 4. Open the `.vsix` file to install the extension.
@@ -96,8 +96,8 @@ from source.
 Clone the repository:
 
 ```sh
-git clone git@github.com:poolsideai/assistant.git
-cd assistant
+git clone git@github.com:poolsideai/assistants.git
+cd assistants
 ```
 
 If you use `asdf`, run:

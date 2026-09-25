@@ -20,7 +20,7 @@ concurrency:
 jobs:
   plan:
     name: Plan helper release
-    if: github.repository == 'poolsideai/assistant'
+    if: github.repository == 'poolsideai/assistants'
     runs-on: ubuntu-latest
     outputs:
       action: ${{ steps.plan.outputs.action }}

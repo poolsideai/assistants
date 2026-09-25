@@ -19,7 +19,7 @@ jobs:
           - ubuntu-24.04
           - macos-14-large
     # Forks don't have the org's larger runners; fall back to a public macOS runner.
-    runs-on: ${{ (github.repository != 'poolsideai/assistant' && matrix.os == 'macos-14-large') && 'macos-latest' || matrix.os }}
+    runs-on: ${{ (github.repository != 'poolsideai/assistants' && matrix.os == 'macos-14-large') && 'macos-latest' || matrix.os }}
 
     defaults:
       run:
