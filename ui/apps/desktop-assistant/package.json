@@ -5,7 +5,7 @@
   "description": "The Poolside desktop assistant shell.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/poolsideai/assistant"
+    "url": "https://github.com/poolsideai/assistants"
   },
   "author": {
     "name": "Poolside",

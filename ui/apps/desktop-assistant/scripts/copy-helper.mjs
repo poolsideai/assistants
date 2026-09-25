@@ -17,6 +17,7 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 const appDir = join(scriptDir, "..");
 const repoRoot = join(appDir, "..", "..", "..");
 const binaryDir = join(appDir, "src-tauri", "binaries");
+const helperRepository = process.env.POOLSIDE_HELPER_REPOSITORY || "poolsideai/assistants";
 
 const runtimeArtifactDir = process.env.POOLSIDE_RUNTIME_ARTIFACT_DIR;
 if (runtimeArtifactDir && !existsSync(runtimeArtifactDir)) {
@@ -322,7 +323,18 @@ function supportsWhisperServer(triple) {
 function downloadGitHubReleaseAsset({ version, archiveName }) {
   execFileSync(
     "gh",
-    ["release", "download", version, "--pattern", archiveName, "--clobber", "--dir", binaryDir],
+    [
+      "release",
+      "download",
+      version,
+      "--repo",
+      helperRepository,
+      "--pattern",
+      archiveName,
+      "--clobber",
+      "--dir",
+      binaryDir,
+    ],
     {
       cwd: repoRoot,
       stdio: "inherit",

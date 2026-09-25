@@ -5,7 +5,7 @@
   "description": "The Poolside app to run in a tool window in Visual Studio.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/poolsideai/assistant"
+    "url": "https://github.com/poolsideai/assistants"
   },
   "author": {
     "name": "Poolside",

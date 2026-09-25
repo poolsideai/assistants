@@ -7,7 +7,7 @@
 set -euo pipefail
 
 helper_version="${POOLSIDE_HELPER_VERSION:-}"
-repository="${POOLSIDE_HELPER_REPOSITORY:-poolsideai/assistant}"
+repository="${POOLSIDE_HELPER_REPOSITORY:-poolsideai/assistants}"
 
 if [[ -n "${helper_version}" ]]; then
   [[ "${helper_version}" =~ ^helper/v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {

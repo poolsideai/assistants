@@ -60,7 +60,7 @@ permissions:
 jobs:
   plan:
     name: Plan
-    if: github.repository == 'poolsideai/assistant'
+    if: github.repository == 'poolsideai/assistants'
     runs-on: ubuntu-latest
     outputs:
       needs_release: ${{ steps.plan.outputs.needs_release || 'false' }}
@@ -746,7 +746,7 @@ jobs:
     needs: [plan, build, publish, finalize]
     if: >-
       always() &&
-      github.repository == 'poolsideai/assistant'
+      github.repository == 'poolsideai/assistants'
     runs-on: ubuntu-latest
     steps:
       - name: Determine terminal outcome

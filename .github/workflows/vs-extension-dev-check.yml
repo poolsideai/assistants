@@ -39,10 +39,10 @@ jobs:
       - name: Download helper
         env:
           GH_TOKEN: ${{ github.token }}
-          # The helper/v* lineage lives in the canonical repository, so a fork's
-          # run resolves and downloads the same published release rather than
-          # looking for one of its own.
-          GH_REPO: poolsideai/assistant
+          # PRs use the base repository's published runtime, which also lets
+          # the migration PR validate before the public repo has releases.
+          # Pushes (including in forks) use the public canonical repository.
+          POOLSIDE_HELPER_REPOSITORY: ${{ github.event.pull_request.base.repo.full_name || 'poolsideai/assistants' }}
         run: pnpm -F @poolsideai/vs-assistant download:binaries
 
       # The archive is rooted at the least common ancestor of the paths below,

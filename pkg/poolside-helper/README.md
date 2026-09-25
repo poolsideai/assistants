@@ -60,6 +60,9 @@ The product manifests do not pin helper versions. Fresh local binary installs
 and Visual Studio resolve the highest published `helper/v*` version; set
 `POOLSIDE_HELPER_VERSION=helper/vM.m.p` to reproduce an exact one. Cached
 Desktop binary installs remain offline-safe and can be explicitly refreshed.
+Local binary downloads use `poolsideai/assistants`, including when working in a
+fork. Set `POOLSIDE_HELPER_REPOSITORY=owner/repo` to resolve and download a
+runtime from another repository.
 VS Code debug sessions run the helper from local Go source. Desktop development
 can opt into a local helper build with `POOLSIDE_DESKTOP_LOCAL_HELPER=1`.
 

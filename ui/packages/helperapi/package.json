@@ -3,7 +3,7 @@
   "version": "2.3.53",
   "private": true,
   "repository": {
-    "url": "https://github.com/poolsideai/assistant"
+    "url": "https://github.com/poolsideai/assistants"
   },
   "type": "module",
   "imports": {

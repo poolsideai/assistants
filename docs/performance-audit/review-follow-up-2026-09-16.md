@@ -1,6 +1,6 @@
 # PR review follow-up — 16 September 2026
 
-The remaining [review thread](https://github.com/poolsideai/assistant/pull/623#discussion_r4015714390) identified two related navigation races in `DesktopRuntime`: New Chat awaits its working directory, and New Conversation can await agent discovery. Either continuation could create and select a draft after the user had selected another conversation or opened Settings.
+The remaining review thread identified two related navigation races in `DesktopRuntime`: New Chat awaits its working directory, and New Conversation can await agent discovery. Either continuation could create and select a draft after the user had selected another conversation or opened Settings.
 
 Both continuations now check the active conversation, view, and project-settings path before changing session state. A request generation also prevents an older New command from winning while a newer command is still pending. Cancelled requests return the existing `null` result without creating, persisting, focusing, or selecting a stale draft. Normal immediate creation, reuse of an empty draft, and an explicitly requested chat opened from Settings keep their existing behavior.
 

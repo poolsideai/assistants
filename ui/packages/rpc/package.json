@@ -4,7 +4,7 @@
   "private": true,
   "description": "Inter process communication protocol for poolside assistants",
   "repository": {
-    "url": "https://github.com/poolsideai/assistant"
+    "url": "https://github.com/poolsideai/assistants"
   },
   "type": "module",
   "imports": {

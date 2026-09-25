@@ -1081,7 +1081,7 @@ program
   .option(
     "--repository <owner/repo>",
     "GitHub repository for commit/compare links",
-    process.env.GITHUB_REPOSITORY || "poolsideai/assistant",
+    process.env.GITHUB_REPOSITORY || "poolsideai/assistants",
   )
   .option("--slack", "Emit the truncated Slack variant instead of the release markdown", false)
   .action(

@@ -42,9 +42,9 @@ Visual Studio extension.
 
 | Surface                             | Status    | Download                                                                                                      |
 | ----------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------- |
-| **Desktop** — macOS (Apple Silicon) | Available | [Newest `desktop/v*` release](https://github.com/poolsideai/assistant/releases?q=desktop%2Fv)                  |
-| **VS Code** extension               | Available | [Newest `vscode-assistant/v*` release](https://github.com/poolsideai/assistant/releases?q=vscode-assistant%2Fv) |
-| **Visual Studio** extension         | Available | [Newest `vs-assistant/v*` release](https://github.com/poolsideai/assistant/releases?q=vs-assistant%2Fv)        |
+| **Desktop** — macOS (Apple Silicon) | Available | [Newest `desktop/v*` release](https://github.com/poolsideai/assistants/releases?q=desktop%2Fv)                  |
+| **VS Code** extension               | Available | [Newest `vscode-assistant/v*` release](https://github.com/poolsideai/assistants/releases?q=vscode-assistant%2Fv) |
+| **Visual Studio** extension         | Available | [Newest `vs-assistant/v*` release](https://github.com/poolsideai/assistants/releases?q=vs-assistant%2Fv)        |
 
 For install instructions, see
 [Install a prebuilt release](./INSTALL.md#install-a-prebuilt-release). After
@@ -53,14 +53,14 @@ installing, see
 an agent and start a conversation.
 
 Need a build for another platform?
-[Start a discussion](https://github.com/poolsideai/assistant/discussions) or
+[Start a discussion](https://github.com/poolsideai/assistants/discussions) or
 [build Poolside Assistant from source](./INSTALL.md#build-from-source).
 
 ## Issues and discussions
 
 Bugs, feature requests, agent compatibility reports, rough edges, and questions —
 we'd like to hear all of it. Please start in
-[GitHub Discussions](https://github.com/poolsideai/assistant/discussions)
+[GitHub Discussions](https://github.com/poolsideai/assistants/discussions)
 rather than opening an issue directly.
 
 We keep the issue tracker for accepted, well-understood work that's ready to pick

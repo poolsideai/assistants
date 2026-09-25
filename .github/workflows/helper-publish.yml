@@ -33,7 +33,7 @@ permissions:
 jobs:
   publish:
     name: Publish permanent helper release
-    if: github.repository == 'poolsideai/assistant'
+    if: github.repository == 'poolsideai/assistants'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout helper source

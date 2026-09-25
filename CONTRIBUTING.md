@@ -35,7 +35,7 @@ For shared UI workspace structure and package commands, use
 
 Bugs, feature requests, agent compatibility reports, rough edges, and questions —
 we'd like to hear all of it. Please start in
-[GitHub Discussions](https://github.com/poolsideai/assistant/discussions)
+[GitHub Discussions](https://github.com/poolsideai/assistants/discussions)
 rather than opening an issue directly.
 
 We keep the issue tracker for accepted, well-understood work that's ready to pick

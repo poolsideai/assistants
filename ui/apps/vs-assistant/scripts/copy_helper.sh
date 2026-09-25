@@ -15,9 +15,10 @@ mkdir -p "$HELPER_DIR"
 cd "$HELPER_DIR"
 
 REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+helper_repository="${POOLSIDE_HELPER_REPOSITORY:-poolsideai/assistants}"
 helper_version="$(bash "$REPO_ROOT/scripts/resolve-helper-release.sh")"
 
-gh release download "$helper_version" --pattern '*windows*' --clobber
+gh release download "$helper_version" --repo "$helper_repository" --pattern '*windows*' --clobber
 
 for f in *.tar.gz; do
   tar -xvf "$f"

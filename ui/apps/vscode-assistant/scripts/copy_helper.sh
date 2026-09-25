@@ -27,6 +27,7 @@ if [[ -n "$runtime_artifact_dir" ]]; then
   helper_version="${POOLSIDE_RUNTIME_VERSION:-source/unknown}"
 else
   REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+  helper_repository="${POOLSIDE_HELPER_REPOSITORY:-poolsideai/assistants}"
   helper_version="$(bash "$REPO_ROOT/scripts/resolve-helper-release.sh")"
 fi
 
@@ -93,13 +94,13 @@ if [[ -n "$runtime_artifact_dir" ]]; then
     done
   fi
 elif [[ -n "$helper_pattern" ]]; then
-  gh release download "$helper_version" --pattern "$helper_pattern" --clobber
+  gh release download "$helper_version" --repo "$helper_repository" --pattern "$helper_pattern" --clobber
   for pattern in "${supplemental_patterns[@]}"; do
-    gh release download "$helper_version" --pattern "$pattern" --clobber || \
+    gh release download "$helper_version" --repo "$helper_repository" --pattern "$pattern" --clobber || \
       echo "Optional helper asset not found: $pattern"
   done
 else
-  gh release download "$helper_version" --clobber
+  gh release download "$helper_version" --repo "$helper_repository" --clobber
 fi
 
 shopt -s nullglob
