@@ -89,7 +89,7 @@
     "luxon": "catalog:",
     "marked": "^15.0.6",
     "serialize-error": "^11.0.3",
-    "uuid": "^9.0.1"
+    "uuid": "^14.0.2"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "catalog:",
