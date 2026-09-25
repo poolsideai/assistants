@@ -1,0 +1,5 @@
+# The real bundle is built in by scripts/embed-webui.mjs; keep only the
+# placeholder committed so `//go:embed all:dist` always has a file.
+*
+!.gitignore
+!.gitkeep
