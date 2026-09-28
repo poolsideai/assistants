@@ -21,24 +21,8 @@ on:
       - ui/apps/desktop-assistant/src-tauri/Cargo.toml
       - ui/apps/desktop-assistant/src-tauri/Cargo.lock
       - cmd/poolside-mlx-sidecar/Package.resolved
+  # Required checks must report on every PR, including documentation-only changes.
   pull_request:
-    paths:
-      - .github/workflows/license-check.yml
-      - grant.yaml
-      - scripts/license-check.sh
-      - scripts/render-license-report.sh
-      - THIRD-PARTY-DEPENDENCIES.md
-      - docs/license-checks.md
-      - go.mod
-      - go.sum
-      - MODULE.bazel
-      - MODULE.bazel.lock
-      - package.json
-      - pnpm-lock.yaml
-      - ui/**/package.json
-      - ui/apps/desktop-assistant/src-tauri/Cargo.toml
-      - ui/apps/desktop-assistant/src-tauri/Cargo.lock
-      - cmd/poolside-mlx-sidecar/Package.resolved
 
 jobs:
   license-check:
