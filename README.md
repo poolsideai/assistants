@@ -82,7 +82,12 @@ Dependency license policy docs live in
 
 ## License
 
-Poolside Assistant is licensed under the Apache License 2.0.
+Poolside Assistant's source code and client applications are licensed under the
+[Apache License 2.0](./LICENSE). Third-party components retain their own licenses;
+see [Third-party licenses](./THIRD-PARTY-LICENSES.md).
+
+Agents and services you connect to through Poolside Assistant are subject to
+their own licenses and terms.
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
 
