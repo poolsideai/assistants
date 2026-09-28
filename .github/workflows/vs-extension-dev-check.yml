@@ -11,6 +11,8 @@ on:
     paths:
       - '.github/workflows/vs-extension-dev-check.yml'
       - 'ui/apps/vs-assistant/**'
+  # Revalidate main after publishing a helper or recovering a stuck workflow run.
+  workflow_dispatch:
 
 permissions:
   contents: read
