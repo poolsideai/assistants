@@ -12,10 +12,8 @@ on:
     paths:
       - ui/apps/desktop-assistant/src-tauri/**
       - .github/workflows/desktop-rust-ci.yml
+  # Required checks must report on every PR, including documentation-only changes.
   pull_request:
-    paths:
-      - ui/apps/desktop-assistant/src-tauri/**
-      - .github/workflows/desktop-rust-ci.yml
   # Manual reseed after a toolchain or mbx upgrade invalidates the cache
   # between src-tauri changes (save-on-workflow-dispatch below).
   workflow_dispatch:
