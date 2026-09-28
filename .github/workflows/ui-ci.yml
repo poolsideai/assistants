@@ -12,16 +12,8 @@ on:
       - pnpm-*.yaml
     branches:
       - main
+  # Required checks must report on every PR, including documentation-only changes.
   pull_request:
-    paths:
-      - ui/**
-      - scripts/ui/**
-      - .github/workflows/ui-ci.yml
-      - .github/workflows/release-*.yml
-      - .github/workflows/validate-*-release.yml
-      - .github/actions/**
-      - package.json
-      - pnpm-*.yaml
 
 env:
   TURBO_TELEMETRY_DISABLED: 1
