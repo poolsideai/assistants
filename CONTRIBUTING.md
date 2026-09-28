@@ -4,6 +4,10 @@ Thanks for helping improve Poolside Assistant.
 
 ## Development
 
+Changes to `main` land through squash-merged pull requests. Before merging,
+all required CI checks must pass against the latest `main`, and all review
+conversations must be resolved.
+
 - **[`README.md`](./README.md)**: Project overview, release downloads, and
   discussion links.
 - **[`INSTALL.md`](./INSTALL.md#build-from-source)**: Set up the repo locally
