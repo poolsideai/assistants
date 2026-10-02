@@ -152,7 +152,7 @@
     "katex": "0.16.22",
     "lodash": "catalog:",
     "marked": "^15.0.6",
-    "mermaid": "^11.16.0",
+    "mermaid": "^11.16.1",
     "parse-diff": "^0.11.1",
     "prosemirror-codemark": "^0.4.2",
     "prosemirror-commands": "^1.7.1",
@@ -168,7 +168,7 @@
     "svelte-time": "^2.0.2",
     "three": "^0.173.0",
     "type-fest": "catalog:",
-    "uuid": "^9.0.1"
+    "uuid": "^14.0.2"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "catalog:",
