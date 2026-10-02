@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "The Poolside desktop assistant shell."
 authors = ["Poolside <hello@poolside.ai>"]
 publish = false
+license = "Apache-2.0"
 edition = "2021"
 
 [lib]

@@ -44,6 +44,7 @@
     "active": true,
     "targets": "all",
     "createUpdaterArtifacts": true,
+    "licenseFile": "../../../../LICENSE",
     "category": "DeveloperTool",
     "externalBin": [
       "binaries/poolside-helper",
@@ -51,6 +52,7 @@
       "binaries/poolside-whisper-server"
     ],
     "resources": {
+      "../../../../LICENSE": "LICENSE",
       "Credits.html": "Credits.html",
       "binaries/default.metallib": "default.metallib"
     },
